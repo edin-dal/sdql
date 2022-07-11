@@ -1,0 +1,32 @@
+let CU_h = 
+  sum(<cu, cu_v> <- CUSTOMER)
+    if(cu.C_MKTSEGMENT == "BUILDING") then
+      { cu.C_CUSTKEY -> 1 }
+    else
+      { }
+let OR_h = 
+  sum(<or, or_v> <- ORDERS)
+    let ckey = or.O_CUSTKEY
+    let key = or.O_ORDERKEY
+    let date = or.O_ORDERDATE
+    if((date < 19950315) && (0 < CU_h(ckey))) then
+      { key -> 
+         < O_SHIPPRIORITY = or.O_SHIPPRIORITY, 
+              O_ORDERDATE = or.O_ORDERDATE >
+      }
+    else
+      { }
+sum(<li, li_v> <- LINEITEM)
+  let okey = li.L_ORDERKEY
+  let sdate = li.L_SHIPDATE
+  if((19950315 < sdate) && !((OR_h(okey).O_ORDERDATE== 0) && (OR_h(okey).O_SHIPPRIORITY== 0))) then
+    {
+      <
+       L_ORDERKEY = okey,
+       O_ORDERDATE = OR_h(okey).O_ORDERDATE,
+       O_SHIPPRIORITY = OR_h(okey).O_SHIPPRIORITY
+      > ->
+       li.L_EXTENDEDPRICE * (1 - li.L_DISCOUNT)
+    }
+  else
+    { }

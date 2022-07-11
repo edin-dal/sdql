@@ -1,0 +1,13 @@
+sum(<li, li_v> <- LINEITEM)
+  if(li.L_SHIPDATE <= 19980902) then 
+    { li.L_RETURNFLAG ->
+       < 
+         L_QUANTITY_sum = li.L_QUANTITY,
+         L_EXTENDEDPRICE_sum = li.L_EXTENDEDPRICE,
+         agg1 = li._2 * li.L_EXTENDEDPRICE * (1 - li.L_DISCOUNT),
+         agg2 = li._2 * li.L_EXTENDEDPRICE * (1 - li.L_DISCOUNT) * (1 + li.L_TAX),
+         mult = 1
+       >
+    }
+  else
+    { }

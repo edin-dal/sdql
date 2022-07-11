@@ -76,11 +76,15 @@ object Parser {
   def ext[_: P]: P[External] = P( "ext(" ~/ fieldConst ~/ "," ~/ expr.rep(1, sep=","./) ~ space ~/ ")" ).map(x =>
     External(x._1.v.asInstanceOf[Symbol].name, x._2))
   def keyValue[_: P] = P( expr ~/ "->" ~/ expr )
-  def keyNoValue[_: P] = P( expr ~ !("->") ).map(x => (x, Const(true)))
-  // def dict[_: P]: P[DictNode] =
-  //   P( "{" ~/ keyValue.rep(sep=","./) ~ space ~/ "}").map(x => DictNode(x))
-  def dictOrSet[_: P]: P[DictNode] =
-    P( "{" ~/ (keyNoValue | keyValue).rep(sep=","./) ~ space ~/ "}").map(x => DictNode(x))
+  // def keyNoValue[_: P] = P( expr ~ !("->") ).map(x => (x, Const(true)))
+  def dict[_: P]: P[DictNode] =
+    P( "{" ~/ keyValue.rep(sep=","./) ~ space ~/ "}").map(x => DictNode(x))
+  // def set[_: P]: P[DictNode] =
+  //   P( "{" ~/ keyNoValue.rep(sep=","./) ~ space ~/ "}").map(x => DictNode(x))
+  // def dictOrSet[_: P]: P[DictNode] =
+  //   P( "{" ~/ (keyNoValue | keyValue).rep(sep=","./) ~ space ~/ "}").map(x => DictNode(x))
+  // def dictOrSet[_: P]: P[DictNode] = P( dict | set ) 
+  def dictOrSet[_: P]: P[DictNode] = P( dict ) 
   def emptyDict[_: P]: P[EmptyRef] = 
     P( tpeDict ~ space ~ "{" ~ space ~/ "}" ).map(tp => EmptyRef(tp))
   def emptyRef[_: P]: P[EmptyRef] = 
@@ -117,12 +121,23 @@ object Parser {
       case "&&" => And(acc, cur._2)
       case "||" => Or(acc, cur._2)
     } ))
-  def addSubCmp[_: P]: P[Exp] = P( divMul ~ (StringIn("+", "-", "<", "==", "<=", "!=").! ~ !(">") ~/ divMul).rep ).map(x => 
+  // def addSubCmp[_: P]: P[Exp] = P( divMul ~ (StringIn("+", "-", "<", "==", "<=", ">=", ">", "!=").! ~ !(">") ~/ divMul).rep ).map(x => 
+  //   x._2.foldLeft(x._1)((acc, cur) => cur._1 match {
+  //     case "+" => Add(acc, cur._2)
+  //     case "-" => Add(acc, Neg(cur._2))
+  //     case op => Cmp(acc, cur._2, op)
+  //   } ))
+  def addSub[_: P]: P[Exp] = P( divMul ~ (StringIn("+", "-").! ~ !(">") ~/ divMul).rep ).map(x => 
     x._2.foldLeft(x._1)((acc, cur) => cur._1 match {
       case "+" => Add(acc, cur._2)
       case "-" => Add(acc, Neg(cur._2))
-      case op => Cmp(acc, cur._2, op)
     } ))
+  def addSubCmp[_: P]: P[Exp] = P( addSub ~ (StringIn("<", "==", "<=", "!=").! ~/ addSub).? ).map(x => 
+      x._2 match {
+        case Some((op, y)) => Cmp(x._1, y, op)
+        case None => x._1
+      }
+  )
   def parens[_: P]: P[Exp] = P( "(" ~/ expr ~/ ")")
   def expr[_: P]: P[Exp] = P( addSubCmp )
   def top[_: P]: P[Exp] = P(expr ~ End)

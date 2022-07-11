@@ -1,0 +1,7 @@
+sum(<li, li_v> <- LINEITEM)
+  if((0.08 <= li.L_DISCOUNT) && (li.L_DISCOUNT <= 0.1) && 
+      (li.L_QUANTITY < 24) && (19960101 <= li.L_SHIPDATE) &&
+      (li.L_SHIPDATE < 19970101)) then
+    li._2 * li.L_EXTENDEDPRICE * li.L_DISCOUNT
+  else
+    0
