@@ -120,6 +120,23 @@ class ParserTest extends FlatSpec {
     sdql"y * x ^ 2" should be (sdql"y * (x * x)")
   }
 
+  "Parser" should "splice constants" in {
+    val TRUE = true
+    val FALSE = false
+    val ONE = 1
+    val ONE_HALF = 1.5
+    val MAP = Map(ONE -> TRUE)
+    val REC = RecordValue(Seq("a" -> ONE, "b" -> ONE_HALF))
+    val MAP_REC = Map(REC -> ONE_HALF)
+    sdql"$TRUE" should be (sdql"true")
+    sdql"$FALSE" should be (sdql"false")
+    sdql"$ONE" should be (sdql"1")
+    sdql"$ONE_HALF" should be (sdql"1.5")
+    sdql"$MAP" should be (sdql"{1 -> true}")
+    sdql"$REC" should be (sdql"<a=1,b=1.5>")
+    sdql"$MAP_REC" should be (sdql"{ <a=1,b=1.5> -> 1.5 }")
+  }
+
   "Parser" should "parse TPCH" in {
     SourceCode.fromFile("progs/tpch/q1.sdql")
     SourceCode.fromFile("progs/tpch/q3.sdql")

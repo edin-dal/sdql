@@ -132,7 +132,7 @@ object External {
   object SubString extends ExternalFactory("SubString")
   object Year extends ExternalFactory("Year")
   object CStore extends ExternalFactory("CStore")
-  object ParseDate extends ExternalFactory("parseDate")
+  object ParseDate extends ExternalFactory("ParseDate")
   object Inv extends ExternalFactory("inv")
   object Log extends ExternalFactory("log")
 }
