@@ -21,13 +21,13 @@ class ParserTest extends FlatSpec {
     }
   }
 
-  "Parser" should "work for if then else" in {
+  it should "work for if then else" in {
     sdql"if true then 0 else 1" should be (IfThenElse(Const(true), Const(0), Const(1)))
     sdql"if (true) then (0) else (1)" should be (IfThenElse(Const(true), Const(0), Const(1)))
     sdql"if (!true) then (0) else (1)" should be (IfThenElse(Not(Const(true)), Const(0), Const(1)))
   }
 
-  "Parser" should "work for letbinding" in {
+  it should "work for letbinding" in {
     sdql"let x = 1 in 2" should be (LetBinding(Sym("x"), Const(1), Const(2)))
     sdql"let    x  =    (1) in    2" should be (LetBinding(Sym("x"), Const(1), Const(2)))
     sdql"let x_1 = 1 in 2" should be (LetBinding(Sym("x_1"), Const(1), Const(2)))
@@ -40,12 +40,12 @@ class ParserTest extends FlatSpec {
     }
   }
 
-  "Parser" should "work for sum" in {
+  it should "work for sum" in {
     sdql"sum(<k,v> <- X) v" should be (Sum(Sym("k"), Sym("v"), Sym("X"), Sym("v")))
     sdql"sum(<k,v> <- X) {k -> v}" should be (Sum(Sym("k"), Sym("v"), Sym("X"), SingleDict(Sym("k"), Sym("v"))))
   }
 
-  "Parser" should "handle comments" in {
+  it should "handle comments" in {
     val term = LetBinding(Sym("x"), Sym("y"), Sym("z"))
     sdql"/* comment for let */ let x = y in z" should be (term)
     sdql"let x = y in /* comment for let */ z" should be (term)
@@ -62,7 +62,7 @@ class ParserTest extends FlatSpec {
   """ should be (term)
   }
 
-  "Parser" should "work for arith" in {
+  it should "work for arith" in {
     sdql"2 * 3" should be (Mult(Const(2.0), Const(3.0)))
     sdql"2 + 3" should be (Add(Const(2.0), Const(3.0)))
     sdql"2 / 3" should be (Mult(Const(2.0), External.Inv(Const(3.0))))
@@ -85,7 +85,7 @@ class ParserTest extends FlatSpec {
     sdql"!2" should be (Not(Const(2.0)))
   }
 
-  "Parser" should "work for set & dict" in {
+  it should "work for set & dict" in {
     sdql"{}" should be (SetNode(Seq()))
     // sdql"{x}" should be (SetNode(Seq(Sym("x"))))
     // sdql"{  x   , y   }" should be (SetNode(Seq(Sym("x"), Sym("y"))))
@@ -99,7 +99,7 @@ class ParserTest extends FlatSpec {
     sdql"range(3)" should be (RangeNode(3))
   }
 
-  "Parser" should "work for record" in {
+  it should "work for record" in {
     sdql"< foo = 1  >" should be (RecNode(Seq("foo" -> Const(1.0))))
     sdql"< foo = 1, goo  =  hoo  >" should be (RecNode(Seq("foo" -> Const(1.0), "goo" -> Sym("hoo"))))
     sdql"x.name" should be (FieldNode(Sym("x"), "name"))
@@ -108,19 +108,19 @@ class ParserTest extends FlatSpec {
     sdql"x._1" should be (Fst(Sym("x")))
   }
 
-  "Parser" should "work for load & ext" in {
+  it should "work for load & ext" in {
     sdql"ext(`TopN`, x)" should be (External("TopN", Seq(Sym("x"))))
     sdql"""load[{string -> bool}]("foo.csv")""" should be (Load("foo.csv",DictType(StringType,BoolType)))
     sdql"""load[{<a:dense_int,b:double> -> int}]("foo.csv")""" should be (Load("foo.csv",
       DictType(RecordType(Seq(Attribute("a", DenseIntType(-1)), Attribute("b", RealType))),IntType)))
   }
 
-  "Parser" should "perform desugaring" in {
+  it should "perform desugaring" in {
     sdql"x ^ 2" should be (sdql"x * x")
     sdql"y * x ^ 2" should be (sdql"y * (x * x)")
   }
 
-  "Parser" should "splice constants" in {
+  it should "splice constants" in {
     val TRUE = true
     val FALSE = false
     val ONE = 1
@@ -128,6 +128,7 @@ class ParserTest extends FlatSpec {
     val MAP = Map(ONE -> TRUE)
     val REC = RecordValue(Seq("a" -> ONE, "b" -> ONE_HALF))
     val MAP_REC = Map(REC -> ONE_HALF)
+    val STRING = "foo"
     sdql"$TRUE" should be (sdql"true")
     sdql"$FALSE" should be (sdql"false")
     sdql"$ONE" should be (sdql"1")
@@ -135,9 +136,10 @@ class ParserTest extends FlatSpec {
     sdql"$MAP" should be (sdql"{1 -> true}")
     sdql"$REC" should be (sdql"<a=1,b=1.5>")
     sdql"$MAP_REC" should be (sdql"{ <a=1,b=1.5> -> 1.5 }")
+    sdql"$STRING" should be (sdql""" "foo" """)
   }
 
-  "Parser" should "parse TPCH" in {
+  it should "parse TPCH" in {
     SourceCode.fromFile("progs/tpch/q1.sdql")
     SourceCode.fromFile("progs/tpch/q3.sdql")
     SourceCode.fromFile("progs/tpch/q6.sdql")

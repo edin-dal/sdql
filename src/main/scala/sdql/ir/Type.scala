@@ -13,7 +13,7 @@ case class DenseIntType(n: Int) extends Type
 case object BoolType extends Type
 case object IntType extends Type
 case object CharType extends Type
-// case object DateType extends Type
+case object DateType extends Type
 case class DictType(key: Type, value: Type) extends Type
 case class RecordType(attrs: Seq[Attribute]) extends Type {
   override def equals(o: Any): Boolean = o match {

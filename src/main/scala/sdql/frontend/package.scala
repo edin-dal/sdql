@@ -6,7 +6,7 @@ package object frontend {
     // val sdqlCG = new BaseDocument {} 
     def valueToString(v: Any): String = v match {
       case b: Boolean => b.toString
-      case s: String => s.toString
+      case s: String => "\"" + s.toString + "\""
       case d: Double => d.toString
       case i: Int => i.toString
       case m: Map[_, _] => 
