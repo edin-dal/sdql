@@ -8,9 +8,9 @@ import fastparse._, NoWhitespace._, CharPredicates._
 object Parser {
   def keywords[_: P] = P (
     StringIn("if", "then", "else", "let", "sum", "false", 
-      "true", "in", "join", "trie", "strie", "log", "ext", "iter", "int", "double", 
-      "string", "date_t", "dict", "set", "range", "field", "unit",
-      "index", "dense_int") ~
+      "true", "in", "join", "load", "ext", "iter", "int", "double", 
+      "string", "date", "range", "unit", "bool",
+      "dense_int") ~
       !idRest
   )  
   def `false`[_: P]       = P( "false" ).map(_ => Const(false))
@@ -46,16 +46,17 @@ object Parser {
   def escape[_: P]        = P( "\\" ~ (CharIn("\"/\\\\bfnrt") | unicodeEscape) )
   def alpha[_: P]         = P( CharPred(isLetter) )
 
+  def tpeBool[_: P]       = P( "bool" ).map(_ => BoolType)
   def tpeInt[_: P]        = P( "int" ).map(_ => IntType)
-  def tpeReal[_: P]       = P( "double" ).map(_ => RealType)
+  def tpeReal[_: P]       = P( "double" | "real" ).map(_ => RealType)
   def tpeString[_: P]     = P( "string" ).map(_ => StringType)
-  def tpeDate[_: P]       = P( "date_t" ).map(_ => DateType)
-  def tpeIndex[_:P]       = P( "index" ~ "[" ~ space ~/ ( "-1" | integral ).!.map(_.toInt) ~/ space ~/ "]"  ).map(x => DenseIntType(x))
+  def tpeDate[_: P]       = P( "date" ).map(_ => DateType)
+  def tpeIndex[_:P]       = P( "dense_int" ~ ("[" ~ space ~/ ( "-1" | integral ).!.map(_.toInt) ~/ space ~/ "]").?  ).map(x => DenseIntType(x.getOrElse(-1)))
   def fieldTpe[_: P]      = P( variable ~/ ":" ~ space ~/ tpe ).map(x => Attribute(x._1.name, x._2))
   def tpeRec[_: P]        =
-    P( "{" ~/ fieldTpe.rep(sep=","./) ~ space ~/ "}").map(l => RecordType(l))
-  def tpeDict[_: P]       = P( "dict" ~ "[" ~/ tpe ~ space ~ "," ~ space ~/ tpe ~ "]").map(x => DictType(x._1, x._2))
-  def tpe[_: P]: P[Type]  = tpeInt | tpeReal | tpeString | tpeDate | tpeRec | tpeDict | tpeIndex
+    P( "<" ~/ fieldTpe.rep(sep=","./) ~ space ~/ ">").map(l => RecordType(l))
+  def tpeDict[_: P]       = P( "{" ~/ tpe ~ space ~ "->" ~ space ~/ tpe ~ "}").map(x => DictType(x._1, x._2))
+  def tpe[_: P]: P[Type]  = tpeBool | tpeInt | tpeReal | tpeString | tpeDate | tpeRec | tpeDict | tpeIndex
 
   def strChars[_: P] = P( CharsWhile(stringChars) )
 
@@ -79,23 +80,21 @@ object Parser {
   // def keyNoValue[_: P] = P( expr ~ !("->") ).map(x => (x, Const(true)))
   def dict[_: P]: P[DictNode] =
     P( "{" ~/ keyValue.rep(sep=","./) ~ space ~/ "}").map(x => DictNode(x))
+  def load[_: P]: P[Load] =
+    P( "load" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ string ~/ ")").map(x => Load(x._2.v.asInstanceOf[String], x._1))
   // def set[_: P]: P[DictNode] =
   //   P( "{" ~/ keyNoValue.rep(sep=","./) ~ space ~/ "}").map(x => DictNode(x))
   // def dictOrSet[_: P]: P[DictNode] =
   //   P( "{" ~/ (keyNoValue | keyValue).rep(sep=","./) ~ space ~/ "}").map(x => DictNode(x))
   // def dictOrSet[_: P]: P[DictNode] = P( dict | set ) 
-  def dictOrSet[_: P]: P[DictNode] = P( dict ) 
-  def emptyDict[_: P]: P[EmptyRef] = 
-    P( tpeDict ~ space ~ "{" ~ space ~/ "}" ).map(tp => EmptyRef(tp))
-  def emptyRef[_: P]: P[EmptyRef] = 
-    P( "@" ~/ ( emptyDict ) )
+  def dictOrSet[_: P]: P[DictNode] = P( dict )
   
   def fieldValue[_: P] = P( variable ~/ "=" ~/ expr ).map(x => (x._1.name, x._2))
   def rec[_: P] =
     P( "<" ~/ fieldValue.rep(sep=","./) ~ space ~/ ">").map(x => RecNode(x))
 
   def factor[_: P]: P[Exp] = P(space ~ (const | neg | not | dictOrSet | 
-    emptyRef | rec | ifThenElse | range | 
+    rec | ifThenElse | range | load |
     letBinding | sum | variable |
     ext | parens) ~ space)
 

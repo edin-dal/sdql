@@ -1,4 +1,5 @@
-sum(<li, li_v> <- LINEITEM)
+let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string> -> int}]("lineitem.csv")
+sum(<li, li_v> <- lineitem)
   if(li.L_SHIPDATE <= 19980902) then 
     { li.L_RETURNFLAG ->
        < 

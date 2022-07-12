@@ -10,6 +10,7 @@ case object StringType extends Type
 case object RealType extends Type
 // Used as the underlying type of a RangeNode, and keys for DictNodes that will generate arrays
 case class DenseIntType(n: Int) extends Type
+case object BoolType extends Type
 case object IntType extends Type
 case object CharType extends Type
 case object DateType extends Type

@@ -108,8 +108,11 @@ class ParserTest extends FlatSpec {
     sdql"x._1" should be (Fst(Sym("x")))
   }
 
-  "Parser" should "work for join & trie & ext" in {
+  "Parser" should "work for load & ext" in {
     sdql"ext(`TopN`, x)" should be (External("TopN", Seq(Sym("x"))))
+    sdql"""load[{string -> bool}]("foo.csv")""" should be (Load("foo.csv",DictType(StringType,BoolType)))
+    sdql"""load[{<a:dense_int,b:double> -> int}]("foo.csv")""" should be (Load("foo.csv",
+      DictType(RecordType(Seq(Attribute("a", DenseIntType(-1)), Attribute("b", RealType))),IntType)))
   }
 
   "Parser" should "perform desugaring" in {

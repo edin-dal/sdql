@@ -110,7 +110,7 @@ case class LetBinding(x: Sym, e1: Exp, e2: Exp) extends Exp {
     case _ => super.hashCode()
   }
 }
-case class EmptyRef(tp: Type) extends Exp
+case class Load(path: String, tp: Type) extends Exp
 case class External(name: String, args: Seq[Exp]) extends Exp
 
 abstract class ExternalFactory(symbol: String) {
