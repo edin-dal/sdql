@@ -16,6 +16,7 @@ class ParserTest extends FlatSpec {
     sdql""" "foo" """ should be (Const("foo"))
     sdql"dense_int(999, -1)" should be (Const(DenseInt(999, -1)))
     sdql"dense_int(12, 255)" should be (Const(DenseInt(12, 255)))
+    sdql"date(19890713)" should be (Const(DateValue(19890713)))
     assertThrows[Exception] {
       sdql"`foo`"
     }
@@ -141,7 +142,6 @@ class ParserTest extends FlatSpec {
 
   it should "parse TPCH" in {
     SourceCode.fromFile("progs/tpch/q1.sdql")
-    SourceCode.fromFile("progs/tpch/q3.sdql")
     SourceCode.fromFile("progs/tpch/q6.sdql")
   }
 }

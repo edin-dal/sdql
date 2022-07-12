@@ -39,6 +39,9 @@ object Parser {
   def denseInt[_:P] = P( "dense_int" ~ "(" ~ (integral.!.map(_.toInt)) ~ space ~ "," ~ space ~/ (( "-1" | integral ).!.map(_.toInt)) ~ ")" ).map(
     x => Const(DenseInt(x._1, x._2))
   )
+  def dateValue[_:P] = P( "date" ~ "(" ~ (integral.!.map(_.toInt)) ~ space ~ ")" ).map(
+    x => Const(DateValue(x))
+  )
 
   def stringChars(c: Char) = c != '\"' && c != '\\'
   def hexDigit[_: P]      = P( CharIn("0-9a-fA-F") )
@@ -65,7 +68,7 @@ object Parser {
   def fieldChars[_: P] = P( CharsWhile(_ != '`') )
   def fieldConst[_: P] =
     P( space ~ "`" ~/ (fieldChars | escape).rep.! ~ "`").map(x => Const(Symbol(x)))
-  def const[_: P]: P[Const] = P(`true` | `false` | unit | number | int | string | denseInt)
+  def const[_: P]: P[Const] = P(`true` | `false` | unit | number | int | string | denseInt | dateValue)
   def idRest[_: P]: P[Char] = P( CharPred(c => isLetter(c) | isDigit(c) | c == '_').! ).map(_(0))
   def variable[_: P]: P[Sym] = P( space ~ !keywords ~ ((alpha | "_" | "$") ~ idRest.rep).! ~ space ).map(x => Sym(x))
   def ifThenElse[_: P]: P[IfThenElse] = P( "if" ~/ expr ~/ "then" ~/ expr ~/ "else" ~/ expr).map(x => IfThenElse(x._1, x._2, x._3))
