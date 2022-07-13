@@ -16,9 +16,9 @@ import ir._
 
 object Loader {
  
-  def fileLineCount(file: String) = {
-    import scala.sys.process._;
-    Integer.parseInt(((("wc -l " + file) #| "awk {print($1)}").!!).replaceAll("\\s+$", ""))
+  def fileLineCount(file: String): Int = {
+    import java.nio.file.Files
+    Files.lines(java.nio.file.Paths.get(file)).count().toInt
   }
 
  def loadTable(table: Table, limit: Int = -1): Array[RecordValue] = {
