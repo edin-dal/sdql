@@ -103,6 +103,7 @@ case class IfThenElse(cond: Exp, thenp: Exp, elsep: Exp) extends Exp
 case class FieldNode(e: Exp, f: Field) extends Exp
 case class Sum(key: Sym, value: Sym, e1: Exp, body: Exp) extends Exp
 case class Get(e1: Exp, e2: Exp) extends Exp
+case class Concat(e1: Exp, e2: Exp) extends Exp
 case class LetBinding(x: Sym, e1: Exp, e2: Exp) extends Exp {
   override def hashCode(): Int = this match {
     case LetBindingN(xs, res) =>

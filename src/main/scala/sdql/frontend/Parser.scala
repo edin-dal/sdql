@@ -9,7 +9,7 @@ object Parser {
   def keywords[_: P] = P (
     StringIn("if", "then", "else", "let", "sum", "false", 
       "true", "in", "join", "load", "ext", "iter", "int", "double", 
-      "string", "date", "range", "unit", "bool",
+      "string", "date", "range", "unit", "bool", "concat",
       "dense_int") ~
       !idRest
   )  
@@ -41,6 +41,9 @@ object Parser {
   )
   def dateValue[_:P] = P( "date" ~ "(" ~ (integral.!.map(_.toInt)) ~ space ~ ")" ).map(
     x => Const(DateValue(x))
+  )
+  def concat[_:P] = P( "concat" ~ "(" ~ expr ~ space ~ "," ~ space ~/ expr ~ ")" ).map(
+    x => Concat(x._1, x._2)
   )
 
   def stringChars(c: Char) = c != '\"' && c != '\\'
@@ -97,7 +100,7 @@ object Parser {
     P( "<" ~/ fieldValue.rep(sep=","./) ~ space ~/ ">").map(x => RecNode(x))
 
   def factor[_: P]: P[Exp] = P(space ~ (const | neg | not | dictOrSet | 
-    rec | ifThenElse | range | load |
+    rec | ifThenElse | range | load | concat |
     letBinding | sum | variable |
     ext | parens) ~ space)
 

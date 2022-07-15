@@ -42,6 +42,15 @@ class InterpreterTest extends FlatSpec {
     interpreter(sdql"let x=<a=1,b=2,c=3> in ((x.a < x.b) && (x.c < x.b))") === false
   }
 
+  it should "work for records" in {
+    interpreter(sdql"< a=1, b=1.5 >") should be (RecordValue(Seq("a" -> 1, "b" -> 1.5)))
+    interpreter(sdql"concat(< a=1 >, < b=1.5 >)") should be (RecordValue(Seq("a" -> 1, "b" -> 1.5)))
+    interpreter(sdql"concat(< a=1, b=1.5 >, < b=1.5 >)") should be (RecordValue(Seq("a" -> 1, "b" -> 1.5)))
+    assertThrows[Exception] {
+      interpreter(sdql"concat(< a=1, b=2.5 >, < b=1.5 >)")
+    }
+  }
+
   val iList = 0 until 10
   val sList = 100 until 110
   val sRel = for(i <- iList; s <- sList) yield (i, s, i * s + 42)

@@ -85,6 +85,22 @@ object Interpreter {
         case _ =>
           raise(s"`$v1($v2)` needs a dictionary but given `${v1.getClass}`")
       }
+    case Concat(e1, e2) =>
+      val (v1, v2) = (run(e1), run(e2))
+      (v1, v2) match {
+        case (RecordValue(fs1), RecordValue(fs2)) => 
+          val (fs1m, fs2m) = fs1.toMap -> fs2.toMap
+          val common = fs1.filter(x1 => fs2m.contains(x1._1)).map(x1 => (x1._1, x1._2, fs2m(x1._1)))
+          if(common.isEmpty)
+            RecordValue(fs1 ++ fs2)
+          else
+            if(common.forall(x => x._2 == x._3))
+              RecordValue(fs1 ++ fs2.filter(x2 => !fs1m.contains(x2._1)))
+            else
+              raise(s"`concat($v1, $v2)` with different values for the same field name")
+        case _ =>
+          raise(s"`concat($v1,$v2)` needs records, but given `${v1.getClass}`, `${v2.getClass}`")
+      }
     case Sum(k, v, e1, e2) =>
       val v1 = run(e1)
       v1 match {

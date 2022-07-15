@@ -107,6 +107,7 @@ class ParserTest extends FlatSpec {
     sdql"x.name * 2" should be (Mult(FieldNode(Sym("x"), "name"), Const(2.0)))
     sdql"x.name * y.foo" should be (Mult(FieldNode(Sym("x"), "name"), FieldNode(Sym("y"), "foo")))
     sdql"x._1" should be (Fst(Sym("x")))
+    sdql"concat(x, y)" should be (Concat(Sym("x"), Sym("y")))
   }
 
   it should "work for load & ext" in {
