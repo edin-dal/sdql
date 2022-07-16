@@ -175,7 +175,7 @@ object Interpreter {
     }
   }
   def external(name: String, args: Seq[Value]): Value = {
-    import External._
+    import ExternalFunctions._
     def raiseTp(tp: String) = raise(s"ext(`$name`, ...) expects $tp, but given: ${args.mkString(", ")}.")
     implicit def bool2double(b: Boolean): Double = if(b) 1 else 0
     name match {

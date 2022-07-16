@@ -66,7 +66,7 @@ class ParserTest extends FlatSpec {
   it should "work for arith" in {
     sdql"2 * 3" should be (Mult(Const(2.0), Const(3.0)))
     sdql"2 + 3" should be (Add(Const(2.0), Const(3.0)))
-    sdql"2 / 3" should be (Mult(Const(2.0), External.Inv(Const(3.0))))
+    sdql"2 / 3" should be (Mult(Const(2.0), ExternalFunctions.Inv(Const(3.0))))
     sdql"2 - 3" should be (Add(Const(2.0), Neg(Const(3.0))))
     sdql"2 + 1 * 3" should be (Add(Const(2.0), Mult(Const(1.0), Const(3.0))))
     sdql"2 * 1 + 3" should be (Add(Mult(Const(2.0), Const(1.0)), Const(3.0)))

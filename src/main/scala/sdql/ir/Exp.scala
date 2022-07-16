@@ -114,30 +114,6 @@ case class LetBinding(x: Sym, e1: Exp, e2: Exp) extends Exp {
 case class Load(path: String, tp: Type) extends Exp
 case class External(name: String, args: Seq[Exp]) extends Exp
 
-abstract class ExternalFactory(symbol: String) {
-  def SYMBOL = symbol
-  def apply(es: Exp*): Exp = External(symbol, es.toSeq)
-  def unapplySeq(e: Exp): Option[Seq[Exp]] = e match {
-    case External(sym, seq) if sym == symbol =>
-      Some(seq)
-    case _ =>
-      None
-  }
-}
-object External {
-  object TopN extends ExternalFactory("TopN")
-  object StrContains extends ExternalFactory("StrContains")
-  object StrStartsWith extends ExternalFactory("StrStartsWith")
-  object StrEndsWith extends ExternalFactory("StrEndsWith")
-  object StrContainsN extends ExternalFactory("StrContainsN")
-  object SubString extends ExternalFactory("SubString")
-  object Year extends ExternalFactory("Year")
-  object CStore extends ExternalFactory("CStore")
-  object ParseDate extends ExternalFactory("ParseDate")
-  object Inv extends ExternalFactory("inv")
-  object Log extends ExternalFactory("log")
-}
-
 /**
  * This object models the multiplication of a sequence of expressions. It can
  * either apply the multiplication operation to the sequence, or extract the

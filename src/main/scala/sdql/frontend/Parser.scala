@@ -122,7 +122,7 @@ object Parser {
   def divMul[_: P]: P[Exp] = P( factorMult ~ (StringIn("*", "/", "|", "&&", "||").! ~/ factorMult).rep ).map(x => 
     x._2.foldLeft(x._1)((acc, cur) => cur._1 match {
       case "*" => Mult(acc, cur._2)
-      case "/" => Mult(acc, External.Inv(cur._2))
+      case "/" => Mult(acc, ExternalFunctions.Inv(cur._2))
       case "&&" => And(acc, cur._2)
       case "||" => Or(acc, cur._2)
     } ))
