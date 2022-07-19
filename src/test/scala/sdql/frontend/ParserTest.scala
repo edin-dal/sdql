@@ -117,6 +117,12 @@ class ParserTest extends FlatSpec {
       DictType(RecordType(Seq(Attribute("a", DenseIntType(-1)), Attribute("b", RealType))),IntType)))
   }
 
+  it should "work for semirings" in {
+    sdql"""promote[mxsm](x)""" should be (Promote(TropicalSemiRingType("max_sum"), Sym("x")))
+    sdql"""promote[min_sum](x)""" should be (Promote(TropicalSemiRingType("min_sum"), Sym("x")))
+    sdql"""load[{string -> min_prod}]("foo.csv")""" should be (Load("foo.csv",DictType(StringType,TropicalSemiRingType("min_prod"))))
+  }
+
   it should "perform desugaring" in {
     sdql"x ^ 2" should be (sdql"x * x")
     sdql"y * x ^ 2" should be (sdql"y * (x * x)")

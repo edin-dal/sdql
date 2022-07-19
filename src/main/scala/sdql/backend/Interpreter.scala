@@ -125,12 +125,47 @@ object Interpreter {
         case _ =>
           raise(s"`load[$tp]('${path}')` only supports the type `{ < ... > -> int }`")
       }
+    case Promote(tp, e1) => 
+      val v1 = run(e1)
+      def notSupported() = raise(s"`promote[$tp]($v1)` not supported for value of type `${v1.getClass}`")
+      tp match {
+        case tsrt: TropicalSemiRingType => 
+          val d1 = v1 match {
+            case d: Double => d
+            case i: Int => i.toDouble
+            case _ => notSupported()
+          }
+          TropicalSemiRing(tsrt, d1)
+        case RealType =>
+          v1 match {
+            case i: Int => i.toDouble
+            case d: Double => d
+            case t: TropicalSemiRing[Double] if t.value.nonEmpty => t.value.get
+            case _ => notSupported()
+          }
+        case IntType =>
+          v1 match {
+            case i: Int => i
+            case d: Double => d.toInt
+            case t: TropicalSemiRing[Double] if t.value.nonEmpty  => t.value.get.toInt
+            case _ => notSupported()
+          }
+        case _ => notSupported()
+      }
     case External(name, args) =>
       val vs = args.map(x => run(x)(ctx))
       external(name, vs)
   }
   def add(v1: Value, v2: Value): Value = {
     (v1, v2) match {
+      case (MinSumSemiRing(Some(s1)), MinSumSemiRing(Some(s2))) =>
+        MinSumSemiRing(Some(math.min(s1, s2)))
+      case (MaxSumSemiRing(Some(s1)), MaxSumSemiRing(Some(s2))) => 
+        MaxSumSemiRing(Some(math.max(s1, s2)))
+      case (MinProdSemiRing(Some(s1)), MinProdSemiRing(Some(s2))) =>
+        MinProdSemiRing(Some(math.min(s1, s2)))
+      case (MaxProdSemiRing(Some(s1)), MaxProdSemiRing(Some(s2))) => 
+        MaxProdSemiRing(Some(math.max(s1, s2)))
       case (ZeroValue, r2) => r2
       case (r1, ZeroValue) => r1
       case (r1: Int, r2: Int) => r1 + r2
@@ -159,6 +194,14 @@ object Interpreter {
   }
   def mult(v1: Value, v2: Value): Value = {
     (v1, v2) match {
+      case (MinSumSemiRing(Some(s1)), MinSumSemiRing(Some(s2))) =>
+        MinSumSemiRing(Some(s1 + s2))
+      case (MaxSumSemiRing(Some(s1)), MaxSumSemiRing(Some(s2))) => 
+        MaxSumSemiRing(Some(s1 + s2))
+      case (MinProdSemiRing(Some(s1)), MinProdSemiRing(Some(s2))) =>
+        MinProdSemiRing(Some(s1 * s2))
+      case (MaxProdSemiRing(Some(s1)), MaxProdSemiRing(Some(s2))) => 
+        MaxProdSemiRing(Some(s1 * s2))
       case (ZeroValue, r2) => ZeroValue
       case (r1, ZeroValue) => ZeroValue
       case (r1: Int, r2: Int) => r1 * r2

@@ -72,7 +72,3 @@ object ScalarType {
 case class Attribute(name: Field, tpe: Type)
 
 abstract class CustomSemiRingType(val name: String, val params: Seq[Any]) extends Type
-case class SemiRingCovarType(startIndex: Int, size: Int) 
-  extends CustomSemiRingType("SemiRingCovar", Seq(startIndex, RealType, size))
-case class SemiRingFusedCovarType(size: Int) 
-  extends CustomSemiRingType("SemiRingFusedCovar", Seq(RealType, size))

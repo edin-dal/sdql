@@ -9,7 +9,9 @@ object Parser {
   def keywords[_: P] = P (
     StringIn("if", "then", "else", "let", "sum", "false", 
       "true", "in", "join", "load", "ext", "iter", "int", "double", 
-      "string", "date", "range", "unit", "bool", "concat",
+      "string", "date", "range", "unit", "bool", "concat", "promote",
+      "mnpr", "mxpr", "mnsm", "mxsm",
+      "min_prod", "max_prod", "min_sum", "max_sum",
       "dense_int") ~
       !idRest
   )  
@@ -52,6 +54,9 @@ object Parser {
   def escape[_: P]        = P( "\\" ~ (CharIn("\"/\\\\bfnrt") | unicodeEscape) )
   def alpha[_: P]         = P( CharPred(isLetter) )
 
+  def tpeTropSR[_: P]     = 
+    P(("mnpr" | "mxpr" | "mnsm" | "mxsm" |
+       "min_prod" | "max_prod" | "min_sum" | "max_sum").! ).map(x => TropicalSemiRingType(x))
   def tpeBool[_: P]       = P( "bool" ).map(_ => BoolType)
   def tpeInt[_: P]        = P( "int" ).map(_ => IntType)
   def tpeReal[_: P]       = P( "double" | "real" ).map(_ => RealType)
@@ -62,7 +67,7 @@ object Parser {
   def tpeRec[_: P]        =
     P( "<" ~/ fieldTpe.rep(sep=","./) ~ space ~/ ">").map(l => RecordType(l))
   def tpeDict[_: P]       = P( "{" ~/ tpe ~ space ~ "->" ~ space ~/ tpe ~ "}").map(x => DictType(x._1, x._2))
-  def tpe[_: P]: P[Type]  = tpeBool | tpeInt | tpeReal | tpeString | tpeDate | tpeRec | tpeDict | tpeIndex
+  def tpe[_: P]: P[Type]  = tpeBool | tpeInt | tpeReal | tpeString | tpeDate | tpeRec | tpeDict | tpeIndex | tpeTropSR
 
   def strChars[_: P] = P( CharsWhile(stringChars) )
 
@@ -88,6 +93,8 @@ object Parser {
     P( "{" ~/ keyValue.rep(sep=","./) ~ space ~/ "}").map(x => DictNode(x))
   def load[_: P]: P[Load] =
     P( "load" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ string ~/ ")").map(x => Load(x._2.v.asInstanceOf[String], x._1))
+  def promote[_: P]: P[Promote] =
+    P( "promote" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ expr ~/ ")").map(x => Promote(x._1, x._2))
   // def set[_: P]: P[DictNode] =
   //   P( "{" ~/ keyNoValue.rep(sep=","./) ~ space ~/ "}").map(x => DictNode(x))
   // def dictOrSet[_: P]: P[DictNode] =
@@ -100,7 +107,7 @@ object Parser {
     P( "<" ~/ fieldValue.rep(sep=","./) ~ space ~/ ">").map(x => RecNode(x))
 
   def factor[_: P]: P[Exp] = P(space ~ (const | neg | not | dictOrSet | 
-    rec | ifThenElse | range | load | concat |
+    rec | ifThenElse | range | load | concat | promote |
     letBinding | sum | variable |
     ext | parens) ~ space)
 

@@ -107,6 +107,21 @@ sum(<x_s, x_s_v> <- S)
     interpreter(sdql"{ 1 -> 5.0 }(2)") should be (ZeroValue)
   }
 
+  it should "work for semirings" in {
+    interpreter(sdql"promote[mxsm](1.5)") should be (MaxSumSemiRing(Some(1.5)))
+    interpreter(sdql"promote[mnpr](2)") should be (MinProdSemiRing(Some(2)))
+    interpreter(sdql"promote[max_prod](-1)") should be (MaxProdSemiRing(Some(-1)))
+    interpreter(sdql"promote[mnsm](2.7) + promote[mnsm](3.2)") should be (MinSumSemiRing(Some(2.7)))
+    interpreter(sdql"promote[mxsm](2.7) + promote[mxsm](3.2)") should be (MaxSumSemiRing(Some(3.2)))
+    interpreter(sdql"promote[mxsm](2.7) * promote[mxsm](3.2)") should be (MaxSumSemiRing(Some(5.9)))
+    interpreter(sdql"promote[mnsm](2.7) * promote[mnsm](3.2)") should be (MinSumSemiRing(Some(5.9)))
+    interpreter(sdql"promote[mnpr](2.7) * promote[mnpr](3.2)") should be (MinProdSemiRing(Some(2.7 * 3.2)))
+    interpreter(sdql"promote[mxpr](2.7) * promote[mxpr](3.2)") should be (MaxProdSemiRing(Some(2.7 * 3.2)))
+    interpreter(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) promote[mxsm](s_v) ") should be (MaxSumSemiRing(Some(2.5)))
+    interpreter(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) promote[mxpr](s_v) ") should be (MaxProdSemiRing(Some(2.5)))
+    interpreter(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) promote[mnsm](s_v) ") should be (MinSumSemiRing(Some(1.5)))
+  }
+
   it should "handle external functions" in {
     interpreter(sdql"""ext(`ParseDate`, "1989-07-13")""") should be (DateValue(19890713))
     interpreter(sdql"""ext(`Year`, ext(`ParseDate`, "1989-07-13"))""") should be (1989)
