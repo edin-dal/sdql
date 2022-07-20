@@ -3,6 +3,7 @@ package backend
 
 import ir._
 import storage.{ Loader, Table }
+import scala.annotation.tailrec
 
 object Interpreter {
   type Value = Any
@@ -48,8 +49,12 @@ object Interpreter {
         case "!=" => return v1 != v2
         case _ => 
       }
-      def cmp(d1: Double, d2: Double): Int = 
-        if(d1 < d2) -1 else if (d1 > d2) 1 else 0 
+      def cmp(d1: Double, d2: Double): Int = {
+        @tailrec def findPrec(d: Double, res: Double): Double = 
+          if(d <= 0) res else findPrec(d * 10 - (d * 10).toInt, res / 10)
+        val precision = findPrec(d2 - d2.toInt, 1) * 0.001
+        if(math.abs(d1 - d2) < precision) 0 else if (d1 < d2 + precision) -1 else 1
+      }
       val res = (v1, v2) match {
         case (r1: Int, r2: Int) => cmp(r1.toDouble, r2.toDouble)
         case (r1: Int, r2: Double) => cmp(r1.toDouble, r2)
