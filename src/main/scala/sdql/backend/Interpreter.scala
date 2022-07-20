@@ -104,6 +104,8 @@ object Interpreter {
     case Sum(k, v, e1, e2) =>
       val v1 = run(e1)
       v1 match {
+        case ZeroValue =>
+          ZeroValue
         case range: Map[Value, Value] =>
           if(range.isEmpty)
             ZeroValue

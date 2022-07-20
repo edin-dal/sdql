@@ -71,6 +71,15 @@ class InterpreterTest extends FlatSpec {
     interpreter(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) s_v ") should be (4.0)
     interpreter(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) s ") should be (3)
     interpreter(sdql"let S = $s in sum(<s, s_v> <- S) s_v ") should be (iList.size * sList.size)
+    interpreter(sdql"let S = { } in sum(<s, s_v> <- S) s ") should be (ZeroValue)
+    interpreter(sdql"""let S = { 1 -> 1.5, 2 -> 2.5 }
+      let S1 = sum(<s, s_v> <- S) if(s == 1) then {s -> s_v*3} else {}
+      sum(<s, s_v> <- S1) s_v
+      """) should be (4.5)
+    interpreter(sdql"""let S = { 1 -> 1.5, 2 -> 2.5 }
+      let S1 = sum(<s, s_v> <- S) if(s == 3) then {s -> s_v*3} else {}
+      sum(<s, s_v> <- S1) s_v
+      """) should be (ZeroValue)
   }
 
   it should "work for joins" in {
