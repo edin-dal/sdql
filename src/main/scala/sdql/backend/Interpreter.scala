@@ -45,8 +45,8 @@ object Interpreter {
     case Cmp(e1, e2, op) =>
       val (v1, v2) = (run(e1), run(e2))
       op match {
-        case "==" => return v1 == v2
-        case "!=" => return v1 != v2
+        case "==" => return equal(v1, v2)
+        case "!=" => return !equal(v1, v2)
         case _ => 
       }
       def cmp(d1: Double, d2: Double): Int = {
@@ -162,6 +162,23 @@ object Interpreter {
     case External(name, args) =>
       val vs = args.map(x => run(x)(ctx))
       external(name, vs)
+  }
+  def equal(v1: Value, v2: Value): Boolean = {
+    (v1, v2) match {
+      case (ZeroValue, ZeroValue) => true
+      case (_, ZeroValue) => equal(v2, v1)
+      case (ZeroValue, v2) if isZero(v2) => true
+      case _ => v1 == v2
+    }
+  }
+  def isZero(v: Value): Boolean = v match {
+    case false => true
+    case 0 => true
+    case 0.0 => true
+    case TropicalSemiRing(_, None) => true
+    case ZeroValue => true
+    case x: Map[_, _] if x.isEmpty => true
+    case _ => false
   }
   def add(v1: Value, v2: Value): Value = {
     (v1, v2) match {

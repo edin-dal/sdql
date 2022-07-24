@@ -11,8 +11,8 @@ class InterpreterTest extends FlatSpec {
   def interpreter(e: Exp) = Interpreter(e)
 
   "Interpreter" should "work for constants" in {
-    interpreter(sdql"true") === true
-    interpreter(sdql"false") === false
+    interpreter(sdql"true") should === (true)
+    interpreter(sdql"false") should === (false)
     interpreter(sdql"42") should be (42)
     interpreter(sdql"42.2") should be (42.2)
     interpreter(sdql""" "foo" """) should be ("foo")
@@ -29,17 +29,33 @@ class InterpreterTest extends FlatSpec {
   }
 
   it should "work for logical ops" in {
-    interpreter(sdql"true && true") === true
-    interpreter(sdql"true && false") === false
-    interpreter(sdql"false && true") === false
-    interpreter(sdql"false && false") === false
-    interpreter(sdql"true || true") === true
-    interpreter(sdql"true || false") === true
-    interpreter(sdql"false || true") === true
-    interpreter(sdql"false || false") === false
-    interpreter(sdql"(3 < 2) && (3 < 4)") === false
-    interpreter(sdql"let x=<a=1,b=2,c=3> in ((x.a < x.b) && (x.b < x.c))") === true
-    interpreter(sdql"let x=<a=1,b=2,c=3> in ((x.a < x.b) && (x.c < x.b))") === false
+    interpreter(sdql"true && true") should === (true)
+    interpreter(sdql"true && false") should === (false)
+    interpreter(sdql"false && true") should === (false)
+    interpreter(sdql"false && false") should === (false)
+    interpreter(sdql"true || true") should === (true)
+    interpreter(sdql"true || false") should === (true)
+    interpreter(sdql"false || true") should === (true)
+    interpreter(sdql"false || false") should === (false)
+    interpreter(sdql"(3 < 2) && (3 < 4)") should === (false)
+    interpreter(sdql"let x=<a=1,b=2,c=3> in ((x.a < x.b) && (x.b < x.c))") should === (true)
+    interpreter(sdql"let x=<a=1,b=2,c=3> in ((x.a < x.b) && (x.c < x.b))") should === (false)
+  }
+
+  it should "work for comparison" in {
+    interpreter(sdql"true == true") should === (true)
+    interpreter(sdql"true == false") should === (false)
+    interpreter(sdql"false != true") should === (true)
+    interpreter(sdql"false == false") should === (true)
+    interpreter(sdql"{} == {}") should === (true)
+    interpreter(sdql"{ 1 -> 2 } == {}") should === (false)
+    interpreter(sdql"{ 1 -> 2 } != {}") should === (true)
+    interpreter(sdql"{ 1 -> 2 }(1) == 2") should === (true)
+    interpreter(sdql"{ 1 -> 2 }(2) == 0") should === (true)
+    interpreter(sdql"{ 0 -> { 1 -> 2 } }(0) == { 1 -> 2 }") should === (true)
+    interpreter(sdql"{ 0 -> { 1 -> 2 } }(1) == { }") should === (true)
+    interpreter(sdql"""let R = {<name="Apple"> -> { <name="Apple",initial="A"> -> 1 } } in
+      R(<name="Elephant">) == {}""") should === (true)
   }
 
   it should "work for records" in {
@@ -135,18 +151,18 @@ sum(<x_s, x_s_v> <- S)
     interpreter(sdql"""ext(`ParseDate`, "1989-07-13")""") should be (DateValue(19890713))
     interpreter(sdql"""ext(`Year`, ext(`ParseDate`, "1989-07-13"))""") should be (1989)
     interpreter(sdql"""ext(`SubString`, "19890713", 1, 2)""") should be ("98")
-    interpreter(sdql"""ext(`StrStartsWith`, "19890713", "1989")""") === true
-    interpreter(sdql"""ext(`StrStartsWith`, "19890713", "199")""") === false
-    interpreter(sdql"""ext(`StrEndsWith`, "19890713", "0713")""") === true
-    interpreter(sdql"""ext(`StrEndsWith`, "19890713", "113")""") === false
-    interpreter(sdql"""ext(`StrContains`, "19890713", "8907")""") === true
-    interpreter(sdql"""ext(`StrContains`, "19890713", "1989")""") === true
-    interpreter(sdql"""ext(`StrContains`, "19890713", "0713")""") === true
-    interpreter(sdql"""ext(`StrContains`, "19890713", "901")""") === false
-    interpreter(sdql"""ext(`StrContains`, "19890713", "113")""") === false
-    interpreter(sdql"""ext(`StrContainsN`, "19890713", "1989", "07")""") === true    
-    interpreter(sdql"""ext(`StrContainsN`, "19890713", "8907", "1989", "0713")""") === true    
-    interpreter(sdql"""ext(`StrContainsN`, "19890713", "19892", "0713")""") === false    
+    interpreter(sdql"""ext(`StrStartsWith`, "19890713", "1989")""") should === (true)
+    interpreter(sdql"""ext(`StrStartsWith`, "19890713", "199")""") should === (false)
+    interpreter(sdql"""ext(`StrEndsWith`, "19890713", "0713")""") should === (true)
+    interpreter(sdql"""ext(`StrEndsWith`, "19890713", "113")""") should === (false)
+    interpreter(sdql"""ext(`StrContains`, "19890713", "8907")""") should === (true)
+    interpreter(sdql"""ext(`StrContains`, "19890713", "1989")""") should === (true)
+    interpreter(sdql"""ext(`StrContains`, "19890713", "0713")""") should === (true)
+    interpreter(sdql"""ext(`StrContains`, "19890713", "901")""") should === (false)
+    interpreter(sdql"""ext(`StrContains`, "19890713", "113")""") should === (false)
+    interpreter(sdql"""ext(`StrContainsN`, "19890713", "1989", "07")""") should === (true)    
+    interpreter(sdql"""ext(`StrContainsN`, "19890713", "8907", "1989", "0713")""") should === (true)    
+    interpreter(sdql"""ext(`StrContainsN`, "19890713", "19892", "0713")""") should === (false)    
   }
 
   it should "load correctly" in {
