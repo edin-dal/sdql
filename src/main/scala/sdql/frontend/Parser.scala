@@ -12,6 +12,7 @@ object Parser {
       "string", "date", "range", "unit", "bool", "concat", "promote",
       "mnpr", "mxpr", "mnsm", "mxsm",
       "min_prod", "max_prod", "min_sum", "max_sum",
+      "enum",
       "dense_int") ~
       !idRest
   )  
@@ -57,6 +58,8 @@ object Parser {
   def tpeTropSR[_: P]     = 
     P(("mnpr" | "mxpr" | "mnsm" | "mxsm" |
        "min_prod" | "max_prod" | "min_sum" | "max_sum").! ).map(x => TropicalSemiRingType(x))
+  def tpeEnum[_: P]       =
+    P( "enum" ~ ("[" ~ space ~/ tpe ~/ space ~/ "]")  ).map(x => EnumSemiRingType(x))
   def tpeBool[_: P]       = P( "bool" ).map(_ => BoolType)
   def tpeInt[_: P]        = P( "int" ).map(_ => IntType)
   def tpeReal[_: P]       = P( "double" | "real" ).map(_ => RealType)
@@ -67,7 +70,7 @@ object Parser {
   def tpeRec[_: P]        =
     P( "<" ~/ fieldTpe.rep(sep=","./) ~ space ~/ ">").map(l => RecordType(l))
   def tpeDict[_: P]       = P( "{" ~/ tpe ~ space ~ "->" ~ space ~/ tpe ~ "}").map(x => DictType(x._1, x._2))
-  def tpe[_: P]: P[Type]  = tpeBool | tpeInt | tpeReal | tpeString | tpeDate | tpeRec | tpeDict | tpeIndex | tpeTropSR
+  def tpe[_: P]: P[Type]  = tpeBool | tpeInt | tpeReal | tpeString | tpeDate | tpeRec | tpeDict | tpeIndex | tpeTropSR | tpeEnum
 
   def strChars[_: P] = P( CharsWhile(stringChars) )
 

@@ -161,11 +161,14 @@ object Interpreter {
             case _ => notSupported()
           }
           TropicalSemiRing(tsrt, d1)
+        case etp @ EnumSemiRingType(tp1) =>
+          EnumSemiRing(etp, SingletonEnumSemiRing(v1))
         case RealType =>
           v1 match {
             case i: Int => i.toDouble
             case d: Double => d
             case t: TropicalSemiRing[Double] if t.value.nonEmpty => t.value.get
+            case et: EnumSemiRing[Double] if et.value.nonEmpty => et.value.get
             case _ => notSupported()
           }
         case IntType =>
@@ -173,6 +176,7 @@ object Interpreter {
             case i: Int => i
             case d: Double => d.toInt
             case t: TropicalSemiRing[Double] if t.value.nonEmpty  => t.value.get.toInt
+            case et: EnumSemiRing[Int] if et.value.nonEmpty => et.value.get
             case _ => notSupported()
           }
         case _ => notSupported()
@@ -217,6 +221,19 @@ object Interpreter {
         MinProdSemiRing(Some(math.min(s1, s2)))
       case (MaxProdSemiRing(Some(s1)), MaxProdSemiRing(Some(s2))) => 
         MaxProdSemiRing(Some(math.max(s1, s2)))
+      case (EnumSemiRing(tp1, en1), EnumSemiRing(tp2, en2)) if(tp1 == tp2) => 
+        (en1, en2) match {
+          case (TopEnumSemiRing, _) | (_, TopEnumSemiRing) => EnumSemiRing(tp1, TopEnumSemiRing)
+          case (BottomEnumSemiRing, _) => v2
+          case (_, BottomEnumSemiRing) => v1
+          case (SingletonEnumSemiRing(s1), SingletonEnumSemiRing(s2)) =>
+            if(equal(s1, s2))
+              v1
+            else
+              EnumSemiRing(tp1, TopEnumSemiRing)
+          case _ => 
+            raise(s"enum addition not supported: `$en1`, `$en2`")
+        }
       case (ZeroValue, r2) => r2
       case (r1, ZeroValue) => r1
       case (r1: Int, r2: Int) => r1 + r2
@@ -253,6 +270,19 @@ object Interpreter {
         MinProdSemiRing(Some(s1 * s2))
       case (MaxProdSemiRing(Some(s1)), MaxProdSemiRing(Some(s2))) => 
         MaxProdSemiRing(Some(s1 * s2))
+      case (EnumSemiRing(tp1, en1), EnumSemiRing(tp2, en2)) if(tp1 == tp2) => 
+        (en1, en2) match {
+          case (BottomEnumSemiRing, _) | (_, BottomEnumSemiRing) => EnumSemiRing(tp1, BottomEnumSemiRing)
+          case (TopEnumSemiRing, _) => v2
+          case (_, TopEnumSemiRing) => v1
+          case (SingletonEnumSemiRing(s1), SingletonEnumSemiRing(s2)) =>
+            if(equal(s1, s2))
+              v1
+            else
+              EnumSemiRing(tp1, BottomEnumSemiRing)
+          case _ => 
+            raise(s"enum multiplication not supported: `$en1`, `$en2`")
+        }
       case (ZeroValue, r2) => ZeroValue
       case (r1, ZeroValue) => ZeroValue
       case (r1: Int, r2: Int) => r1 * r2

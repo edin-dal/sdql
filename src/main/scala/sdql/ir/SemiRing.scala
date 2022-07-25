@@ -40,3 +40,21 @@ case class SemiRingCovarType(startIndex: Int, size: Int)
   extends CustomSemiRingType("SemiRingCovar", Seq(startIndex, RealType, size))
 case class SemiRingFusedCovarType(size: Int) 
   extends CustomSemiRingType("SemiRingFusedCovar", Seq(RealType, size))
+
+case class EnumSemiRing[T](kind: EnumSemiRingType, value: EnumSemiRingValue[T])
+sealed trait EnumSemiRingValue[+T] {
+  def nonEmpty: Boolean = this match {
+    case SingletonEnumSemiRing(_) => true
+    case _ => false
+  }
+  def get: T = this match {
+    case SingletonEnumSemiRing(v) => v
+    case _ => ???
+  }
+}
+case object TopEnumSemiRing extends EnumSemiRingValue[Nothing]
+case object BottomEnumSemiRing extends EnumSemiRingValue[Nothing]
+case class SingletonEnumSemiRing[+T](value: T) extends EnumSemiRingValue[T]
+
+case class EnumSemiRingType(tp: Type)
+  extends CustomSemiRingType("enum", Seq(tp))
