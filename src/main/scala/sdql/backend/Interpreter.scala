@@ -116,10 +116,28 @@ object Interpreter {
             ZeroValue
           else {
             var res: Value = ZeroValue
+            val mutRes = scala.collection.mutable.Map[Value, Value]()
+            var inPlace = false
+            var firstIter = true
             for(kv <- range) {
-              res = add(res, run(e2)(ctx ++ Map(k -> kv._1, v -> kv._2)))
+              val cur = run(e2)(ctx ++ Map(k -> kv._1, v -> kv._2))
+              if(firstIter) {
+                firstIter = false
+                if(cur.isInstanceOf[Map[_, _]]) {
+                  inPlace = true
+                }
+                else
+                  inPlace = false
+              }
+              if(inPlace)
+                inPlaceAdd(mutRes, cur.asInstanceOf[Map[Value, Value]])
+              else
+                res = add(res, cur)
             }
-            res
+            if(inPlace)
+              mutRes.toMap
+            else
+              res
           }
         case _ =>
           raise(s"`sum(<$k,$v> <- $v1) ...` doesn't have a dictionary range: `${v1.getClass}`")
@@ -179,6 +197,15 @@ object Interpreter {
     case ZeroValue => true
     case x: Map[_, _] if x.isEmpty => true
     case _ => false
+  }
+  def inPlaceAdd(v1: scala.collection.mutable.Map[Value, Value], v2: Map[Value, Value]): Unit = {
+    for(x <- v2) {
+      if(v1.contains(x._1)) {
+        v1(x._1) = add(v1(x._1), x._2)
+      } else {
+        v1(x._1) = x._2
+      }
+    }
   }
   def add(v1: Value, v2: Value): Value = {
     (v1, v2) match {
@@ -278,6 +305,10 @@ object Interpreter {
         val as = args.map(_.asInstanceOf[String])
         val (obj, xs) = as.head ->  as.tail
         xs.forall(x => obj.contains(x))
+      case x if x == StrIndexOf.SYMBOL => (args(0), args(1), args(2)) match {
+        case (str1: String, str2: String, idx: Int) => str1.indexOf(str2, idx)
+        case _ => raiseTp("string, string, int")
+      }
       case x if x == Inv.SYMBOL => args(0) match {
         case r: Int => 1.0 / r
         case r: Double => 1 / r

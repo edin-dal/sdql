@@ -163,6 +163,14 @@ sum(<x_s, x_s_v> <- S)
     interpreter(sdql"""ext(`StrContainsN`, "19890713", "1989", "07")""") should === (true)    
     interpreter(sdql"""ext(`StrContainsN`, "19890713", "8907", "1989", "0713")""") should === (true)    
     interpreter(sdql"""ext(`StrContainsN`, "19890713", "19892", "0713")""") should === (false)    
+    interpreter(sdql"""ext(`StrIndexOf`, "19890713", "8907", 0)""") should === (2)
+    interpreter(sdql"""ext(`StrIndexOf`, "19890713", "8907", 2)""") should === (2)
+    interpreter(sdql"""ext(`StrIndexOf`, "19890713", "8907", 3)""") should === (-1)
+    interpreter(sdql"""ext(`StrIndexOf`, "19890713", "1989", 0)""") should === (0)
+    interpreter(sdql"""ext(`StrIndexOf`, "19890713", "1989", 1)""") should === (-1)
+    interpreter(sdql"""ext(`StrIndexOf`, "19890713", "0713", 0)""") should === (4)
+    interpreter(sdql"""ext(`StrIndexOf`, "19890713", "901", 0)""") should === (-1)
+    interpreter(sdql"""ext(`StrIndexOf`, "19890713", "113", 0)""") should === (-1)
   }
 
   it should "load correctly" in {
