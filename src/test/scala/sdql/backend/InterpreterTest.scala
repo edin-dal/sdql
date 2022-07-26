@@ -50,6 +50,7 @@ class InterpreterTest extends FlatSpec {
     interpreter(sdql"{} == {}") should === (true)
     interpreter(sdql"{ 1 -> 2 } == {}") should === (false)
     interpreter(sdql"{ 1 -> 2 } != {}") should === (true)
+    interpreter(sdql"{ 1 -> 0 } == {}") should === (true)
     interpreter(sdql"{ 1 -> 2 }(1) == 2") should === (true)
     interpreter(sdql"{ 1 -> 2 }(2) == 0") should === (true)
     interpreter(sdql"{ 0 -> { 1 -> 2 } }(0) == { 1 -> 2 }") should === (true)
@@ -96,6 +97,9 @@ class InterpreterTest extends FlatSpec {
       let S1 = sum(<s, s_v> <- S) if(s == 3) then {s -> s_v*3} else {}
       sum(<s, s_v> <- S1) s_v
       """) should be (ZeroValue)
+    interpreter(sdql"""let S = { 1 -> 1.5, 2 -> -1.5 }
+      sum(<s, s_v> <- S) {1 -> s_v}
+      """) should be (Map())
   }
 
   it should "work for joins" in {
@@ -130,6 +134,8 @@ sum(<x_s, x_s_v> <- S)
     interpreter(sdql"let Q = { <i=1, s=1, c=1, p=1> -> 2 } in Q") should be (interpreter(sdql"{ <i=1, s=1, c=1, p=1> -> 2 }"))
     interpreter(sdql"{ 1 -> 5.0 }(1)") should be (5.0)
     interpreter(sdql"{ 1 -> 5.0 }(2)") should be (ZeroValue)
+    interpreter(sdql"{ 1 -> 0.0 }") should be (interpreter(sdql"{ }"))
+    interpreter(sdql"{ 1 -> 1.0 } + { 1 -> -1.0 }") should be (interpreter(sdql"{ }"))
   }
 
   it should "work for semirings" in {

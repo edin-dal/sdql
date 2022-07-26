@@ -17,7 +17,7 @@ object Interpreter {
       case Some(v) => v
       case None => raise(s"Variable `$name` not in scope!")
     }
-    case DictNode(vals) => vals.map(x => run(x._1) -> run(x._2)).toMap
+    case DictNode(vals) => normalize(vals.map(x => run(x._1) -> run(x._2)).toMap)
     case LetBinding(x, e1, e2) =>
       val v1 = run(e1)
       run(e2)(ctx ++ Map(x -> v1))
@@ -198,17 +198,23 @@ object Interpreter {
     case 0 => true
     case 0.0 => true
     case TropicalSemiRing(_, None) => true
+    case EnumSemiRing(_, BottomEnumSemiRing) => true
     case ZeroValue => true
     case x: Map[_, _] if x.isEmpty => true
+    case RecordValue(vals) if vals.forall(x => isZero(x._2)) => true
     case _ => false
   }
   def inPlaceAdd(v1: scala.collection.mutable.Map[Value, Value], v2: Map[Value, Value]): Unit = {
     for(x <- v2) {
-      if(v1.contains(x._1)) {
-        v1(x._1) = add(v1(x._1), x._2)
-      } else {
-        v1(x._1) = x._2
-      }
+      val rhs = 
+        if(v1.contains(x._1))
+          add(v1(x._1), x._2)
+        else 
+          x._2
+      if(!isZero(rhs))
+        v1(x._1) = rhs
+      else if (isZero(rhs) && v1.contains(x._1))
+        v1.remove(x._1)
     }
   }
   def add(v1: Value, v2: Value): Value = {
@@ -246,7 +252,7 @@ object Interpreter {
         else
           RecordValue(vs1.zip(vs2).map(x => x._1._1 -> add(x._1._2, x._2._2)))
       case (r1: Map[Value,_], r2: Map[Value,_]) =>
-        (r1.keys ++ r2.keys).map(k => k -> {
+        val res = (r1.keys ++ r2.keys).map(k => k -> {
           (r1.get(k), r2.get(k)) match {
             case (Some(vv1), Some(vv2)) => 
               add(vv1, vv2)
@@ -257,8 +263,17 @@ object Interpreter {
             case _ => ???
           }
         }).toMap
+        normalize(res)
       case _ => raise(s"`$v1 + $v2` not handled")
     }
+  }
+  def normalize(v: Value): Value = v match {
+    case m: Map[Value, Value] => 
+      m.map(kv => kv._1 -> normalize(kv._2)).filter(kv => !isZero(kv._2))
+    case RecordValue(vals) =>
+      RecordValue(vals.map(v => v._1 -> normalize(v._2)))
+    case _ =>
+      v
   }
   def mult(v1: Value, v2: Value): Value = {
     (v1, v2) match {

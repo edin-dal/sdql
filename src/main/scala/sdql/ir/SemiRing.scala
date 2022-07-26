@@ -56,5 +56,4 @@ case object TopEnumSemiRing extends EnumSemiRingValue[Nothing]
 case object BottomEnumSemiRing extends EnumSemiRingValue[Nothing]
 case class SingletonEnumSemiRing[+T](value: T) extends EnumSemiRingValue[T]
 
-case class EnumSemiRingType(tp: Type)
-  extends CustomSemiRingType("enum", Seq(tp))
+case class EnumSemiRingType(tp: Type) extends CustomSemiRingType("enum", Seq(tp))
