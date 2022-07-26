@@ -163,12 +163,15 @@ object Interpreter {
           TropicalSemiRing(tsrt, d1)
         case etp @ EnumSemiRingType(tp1) =>
           EnumSemiRing(etp, SingletonEnumSemiRing(v1))
+        case etp @ NullableSemiRingType(tp1) =>
+          NullableSemiRing(etp, Some(v1))
         case RealType =>
           v1 match {
             case i: Int => i.toDouble
             case d: Double => d
             case t: TropicalSemiRing[Double] if t.value.nonEmpty => t.value.get
             case et: EnumSemiRing[Double] if et.value.nonEmpty => et.value.get
+            case nt: NullableSemiRing[Double] if nt.value.nonEmpty => nt.value.get
             case _ => notSupported()
           }
         case IntType =>
@@ -177,6 +180,7 @@ object Interpreter {
             case d: Double => d.toInt
             case t: TropicalSemiRing[Double] if t.value.nonEmpty  => t.value.get.toInt
             case et: EnumSemiRing[Int] if et.value.nonEmpty => et.value.get
+            case nt: NullableSemiRing[Int] if nt.value.nonEmpty => nt.value.get
             case _ => notSupported()
           }
         case _ => notSupported()
@@ -199,6 +203,7 @@ object Interpreter {
     case 0.0 => true
     case TropicalSemiRing(_, None) => true
     case EnumSemiRing(_, BottomEnumSemiRing) => true
+    case NullableSemiRing(_, None) => true
     case ZeroValue => true
     case x: Map[_, _] if x.isEmpty => true
     case RecordValue(vals) if vals.forall(x => isZero(x._2)) => true
@@ -239,6 +244,15 @@ object Interpreter {
               EnumSemiRing(tp1, TopEnumSemiRing)
           case _ => 
             raise(s"enum addition not supported: `$en1`, `$en2`")
+        }
+      case (NullableSemiRing(tp1, en1), NullableSemiRing(tp2, en2)) if(tp1 == tp2) => 
+        (en1, en2) match {
+          case (None, _) => v2
+          case (_, None) => v1
+          case (Some(s1), Some(s2)) => 
+              NullableSemiRing(tp1, Some(add(s1, s2)))
+          case _ => 
+            raise(s"nullable addition not supported: `$en1`, `$en2`")
         }
       case (ZeroValue, r2) => r2
       case (r1, ZeroValue) => r1
@@ -297,6 +311,14 @@ object Interpreter {
               EnumSemiRing(tp1, BottomEnumSemiRing)
           case _ => 
             raise(s"enum multiplication not supported: `$en1`, `$en2`")
+        }
+      case (NullableSemiRing(tp1, en1), NullableSemiRing(tp2, en2)) if(tp1 == tp2) => 
+        (en1, en2) match {
+          case (None, _) | (_, None) => NullableSemiRing(tp1, None)
+          case (Some(s1), Some(s2)) => 
+              NullableSemiRing(tp1, Some(mult(s1, s2)))
+          case _ => 
+            raise(s"nullable multiplciation not supported: `$en1`, `$en2`")
         }
       case (ZeroValue, r2) => ZeroValue
       case (r1, ZeroValue) => ZeroValue

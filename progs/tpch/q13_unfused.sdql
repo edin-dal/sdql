@@ -5,12 +5,20 @@ let o_h =
     let idx1 = ext(`StrIndexOf`, o.o_comment, "unusual", 0) 
     let idx2 = ext(`StrIndexOf`, o.o_comment, "packages", idx1)
     if(!((idx1 != -1) && (idx2 != -1))) then 
-      {o.o_custkey -> m} 
+      {o.o_custkey -> { o -> m } } 
     else 
       {}
-let c_h = sum(<c,m> in customer) 
-  if(o_h(c.c_custkey) != 0) then
-    { c.c_custkey -> promote[nullable[int]](o_h(c.c_custkey)) }
+let c_h1 = sum(<c,m> in customer) 
+  if(o_h(c.c_custkey) != {}) then
+    sum(<o,m2> in o_h(c.c_custkey)) 
+      { <left=c, right={o -> m2}> -> m }
   else 
-    { c.c_custkey -> promote[nullable[int]](0) }
-sum(<o,m> in c_h) { promote[int](m) -> 1 }
+    { <left=c, right={}> -> m }
+let c_h2 = 
+  sum(<co,m> in c_h1) 
+    if(co.right != {}) then
+      sum(<o,m2> in co.right) 
+        { co.left.c_custkey -> promote[nullable[int]](m * m2) }
+    else 
+      { co.left.c_custkey -> promote[nullable[int]](0) }
+sum(<o,m> in c_h2) { promote[int](m) -> 1 }
