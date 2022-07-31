@@ -192,6 +192,20 @@ sum(<x_s, x_s_v> <- S)
     interpreter(sdql"""ext(`StrIndexOf`, "19890713", "113", 0)""") should === (-1)
   }
 
+  it should "handle simple graph queries" in {
+    val q1 = sdql"""let Nodes = { 
+      0 -> <label = {"Person" -> true, "Director" -> true, "Singer" -> true}, name="Oliver Stone", age=30>, 
+      1 -> <label = {"Person" -> true, "Director" -> true}, name="Michael Douglas", age=35>,
+      2 -> <label = {"Person" -> true, "Actor" -> true}, name="Charlie Sheen",age=32>}  
+    sum(<k,v> in Nodes) 
+      if(v.name=="Charlie Sheen") then
+        {<age=v.age> -> 1}
+      else
+        {}
+    """
+    interpreter(q1) should be (interpreter(sdql"{<age=32> -> 1}"))
+  }
+
   it should "load correctly" in {
     val file = "test.csv"
     def writeToFile(str: String): Unit = {
