@@ -220,5 +220,17 @@ sum(<x_s, x_s_v> <- S)
     writeToFile("1|1|0.08|1989-07-13|")
     interpreter(sdql"""let R = load[{<a:int, b: int, c: real, d: date> -> int}]($file)
       sum(<x, v> <- R) if(x.c <= 0.08) then v else 0""") should be (1)
+    writeToFile("""933|4139
+933|6597069777240
+933|10995116284808
+933|32985348833579
+933|32985348838375
+1129|1242
+1129|2199023262543
+1129|6597069771886
+1129|6597069776731
+1129|8796093026744""")
+    interpreter(sdql"""let R = load[{<startId:int,endId:int>->int}]($file)
+      sum(<x, v> <- R) if(x.startId == 933) then 10 else 1""") should be (55)
   }
 }
