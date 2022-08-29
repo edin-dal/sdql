@@ -106,7 +106,7 @@ class FastScanner(filename: String) {
     cnt
   }
 
-  private val buffer = new Array[Byte](1 << 10)
+  private val buffer = new Array[Byte](1 << 15)
   def next_string: String = {
     java.util.Arrays.fill(buffer, 0.toByte)
     byteRead = br.read()
