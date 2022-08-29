@@ -1,0 +1,18 @@
+let Message=load[{int-> <id:int,imageFile:string,creationDate:string,locationIP:string,browserUsed:string,language:string,content:string,length:int>}]("LDBC_DataBase/Post.csv")
+let Person=load[{int-> <id:int,firstName:string,lastName:string,gender:string,birthday:date,creationDate:string,locationIP:string,browserUsed:string>}]("LDBC_DataBase/Person.csv")
+let hasCreator={1->load[{<startId:int,endId:int>->int}]("LDBC_DataBase/post_hasCreator_person.csv")}
+let RelLabels={"hasCreator"-> {<startLabel="Message",endLabel="Person">->1}}
+
+let RelId=sum(<i,j> in RelLabels("hasCreator"))
+if((i.startLabel=="Message")&& i.endLabel=="Person") then
+{1-><id=j>}
+else{}
+
+sum(<r,v> in hasCreator(RelId(1).id))
+if(Message(r.startId)!=0) then
+if(Message(r.startId).id==2061) then
+let p=Person(r.endId) in
+let m=Message(r.startId) in
+{<personId=p.id,firstName=p.firstName,lastName=p.lastName>->1}
+else{}
+else{}

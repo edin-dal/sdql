@@ -213,11 +213,11 @@ sum(<x_s, x_s_v> <- S)
       pw.println(str)
       pw.close
     }
-    writeToFile("1|one|2.5|1989-07-13")
+    writeToFile("1|one|2.5|1989-07-13|")
     interpreter(sdql"""load[{<a:int, b: string, c: real, d: date> -> int}]($file)""") should be (interpreter(sdql"""{ <a=1, b="one", c=2.5, d=ext(`ParseDate`, "1989-07-13")> -> 1 }"""))
-    writeToFile("1|1|2.5|1989-07-13")
+    writeToFile("1|1|2.5|1989-07-13|")
     interpreter(sdql"""load[{<a:int, b: int, c: real, d: date> -> int}]($file)""") should be (interpreter(sdql"""{ <a=1, b=1, c=2.5, d=ext(`ParseDate`, "1989-07-13")> -> 1 }"""))
-    writeToFile("1|1|0.08|1989-07-13")
+    writeToFile("1|1|0.08|1989-07-13|")
     interpreter(sdql"""let R = load[{<a:int, b: int, c: real, d: date> -> int}]($file)
       sum(<x, v> <- R) if(x.c <= 0.08) then v else 0""") should be (1)
   }

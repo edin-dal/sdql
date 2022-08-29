@@ -40,7 +40,10 @@ class FastScanner(filename: String) {
       byteRead = br.read()
       intDigits = intDigits + 1
     }
-    if ((byteRead != delimiter) && (byteRead != '.') && (byteRead != '\n'))
+    if (byteRead == '\r'){
+      byteRead = br.read()
+    }
+    if ((byteRead != delimiter) && (byteRead != '.') && (byteRead != '\n')&& (byteRead != -1))
       throw new RuntimeException("Tried to read Integer, but found neither delimiter nor . after number (found " +
         byteRead.asInstanceOf[Char] + ", previous token = " + intDigits + "/" + number + ")")
     if (signed) -1 * number else number
@@ -67,6 +70,25 @@ class FastScanner(filename: String) {
     if ((del != delimiter) && (del != '\n'))
       throw new RuntimeException("Expected delimiter after char. Not found. Sorry!")
     byteRead.asInstanceOf[Char]
+  }
+
+  def next_long() = {
+    var number:Long = 0
+    intDigits = 0
+    byteRead = br.read()
+    while (Character.isDigit(byteRead)) {
+      number *= 10
+      number += byteRead - '0'
+      byteRead = br.read()
+      intDigits = intDigits + 1
+    }
+    if (byteRead == '\r'){
+      byteRead = br.read()
+    }
+    if ((byteRead != delimiter) && (byteRead != '.') && (byteRead != '\n') && (byteRead != -1))
+      throw new RuntimeException("Tried to read Long, but found neither delimiter nor . after number (found " +
+        byteRead.asInstanceOf[Char] + ", previous token = " + intDigits + "/" + number + ")")
+    number
   }
 
   def next(buf: Array[Byte]): Int = {

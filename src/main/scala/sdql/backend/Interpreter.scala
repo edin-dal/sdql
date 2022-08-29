@@ -1,8 +1,9 @@
 package sdql
 package backend
 
-import ir._
-import storage.{ Loader, Table }
+import ir.{LongType, _}
+import storage.{Loader, Table}
+
 import scala.annotation.tailrec
 
 object Interpreter {
@@ -147,6 +148,8 @@ object Interpreter {
         case DictType(RecordType(fs), IntType) =>
           val arr = Loader.loadTable(Table(path, fs, path))
           arr.map(x => x -> 1).toMap
+        case DictType(IntType,RecordType(fs)) =>
+          Loader.loadNodesTable(Table(path, fs, path))
         case _ =>
           raise(s"`load[$tp]('${path}')` only supports the type `{ < ... > -> int }`")
       }

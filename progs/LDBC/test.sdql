@@ -1,0 +1,3 @@
+let Post=load[{int-> <id:int,imageFile:string,creationDate:string,locationIP:string,browserUsed:string,language:string,content:string,length:int>}]("LDBC_DataBase/post2.csv")
+sum(<k,v> in Post)
+{k->1}

@@ -1,0 +1,43 @@
+let Message=load[{int-> <id:int,creationDate:string,locationIP:string,browserUsed:string,content:string,length:int>}]("LDBC_DataBase/Comment.csv")
+let Person=load[{int-> <id:int,firstName:string,lastName:string,gender:string,birthday:date,creationDate:string,locationIP:string,browserUsed:string>}]("LDBC_DataBase/Person.csv")
+let Post=load[{int-> <id:int,imageFile:string,creationDate:string,locationIP:string,browserUsed:string,language:string,content:string,length:int>}]("LDBC_DataBase/Post.csv")
+let Forum=load[{int-> <id:int,title:string,creationDate:string>}]("LDBC_DataBase/forum.csv")
+
+let replyOf={1->load[{<startId:int,endId:int>->int}]("LDBC_DataBase/comment_replyOf_post.csv")}
+let containerOf={1->load[{<startId:int,endId:int>->int}]("LDBC_DataBase/forum_containerOf_post.csv")}
+let hasModerator={1->load[{<startId:int,endId:int>->int}]("LDBC_DataBase/forum_hasModerator_person.csv")}
+let RelLabels={"replyOf"-> {<startLabel="Message",endLabel="Post">->1},"containerOf"-> {<startLabel="Forum",endLabel="Post">->1},"hasModerator"-> {<startLabel="Forum",endLabel="Person">->1}}
+
+let RelId=sum(<i,j> in RelLabels("replyOf"))
+if((i.startLabel=="Message")&& i.endLabel=="Post") then
+{1-><id=j>}
+else{}
+let R1=sum(<r,v> in replyOf(RelId(1).id))
+if(Message(r.startId)!=0) then
+if(Message(r.startId).id==2061) then
+{r->1}
+else{}
+else{}
+let RelId2=sum(<i,j> in RelLabels("containerOf"))
+if((i.startLabel=="Forum")&& i.endLabel=="Post") then
+{1-><id=j>}
+else{}
+let R2=sum(<r,v> in containerOf(RelId2(1).id))
+{r->1}
+let RelId3=sum(<i,j> in RelLabels("hasModerator"))
+if((i.startLabel=="Forum")&& i.endLabel=="Person") then
+{1-><id=j>}
+else{}
+let R3=sum(<r,v> in containerOf(RelId3(1).id))
+{r->1}
+sum(<r1,v1> in R1)sum(<r2,v2> in R2)
+if(r1.endId==r2.endId) then
+sum(<r3,v3> in R3)
+if(r2.startId==r3.startId) then
+let m=Message(r1.startId)
+let p=Post(r1.endId)
+let f=Forum(r2.startId)
+let mod=Person(r3.endId)
+{<forumId=f.id,forumTitle=f.title,moderatorId=mod.id,moderatorFirstName=mod.firstName,moderatorLastName=mod.lastName>->1}
+else{}
+else{}

@@ -8,7 +8,7 @@ import fastparse._, NoWhitespace._, CharPredicates._
 object Parser {
   def keywords[_: P] = P (
     StringIn("if", "then", "else", "let", "sum", "false", 
-      "true", "in", "join", "load", "ext", "iter", "int", "double", 
+      "true", "in", "join", "load", "ext", "iter", "int", "long","double",
       "string", "date", "range", "unit", "bool", "concat", "promote",
       "mnpr", "mxpr", "mnsm", "mxsm",
       "min_prod", "max_prod", "min_sum", "max_sum",
@@ -64,6 +64,7 @@ object Parser {
     P( "nullable" ~ ("[" ~ space ~/ tpe ~/ space ~/ "]")  ).map(x => NullableSemiRingType(x))
   def tpeBool[_: P]       = P( "bool" ).map(_ => BoolType)
   def tpeInt[_: P]        = P( "int" ).map(_ => IntType)
+  def tpeLong[_: P]       = P( "long" ).map(_ => LongType)
   def tpeReal[_: P]       = P( "double" | "real" ).map(_ => RealType)
   def tpeString[_: P]     = P( "string" ).map(_ => StringType)
   def tpeDate[_: P]       = P( "date" ).map(_ => DateType)
@@ -72,7 +73,7 @@ object Parser {
   def tpeRec[_: P]        =
     P( "<" ~/ fieldTpe.rep(sep=","./) ~ space ~/ ">").map(l => RecordType(l))
   def tpeDict[_: P]       = P( "{" ~/ tpe ~ space ~ "->" ~ space ~/ tpe ~ "}").map(x => DictType(x._1, x._2))
-  def tpe[_: P]: P[Type]  = tpeBool | tpeInt | tpeReal | tpeString | tpeDate | tpeRec | tpeDict | tpeIndex | tpeTropSR | tpeEnum | tpeNullable
+  def tpe[_: P]: P[Type]  = tpeBool | tpeInt | tpeLong | tpeReal | tpeString | tpeDate | tpeRec | tpeDict | tpeIndex | tpeTropSR | tpeEnum | tpeNullable
 
   def strChars[_: P] = P( CharsWhile(stringChars) )
 

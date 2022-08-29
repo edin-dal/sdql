@@ -1,0 +1,14 @@
+    let Person=load[{int-> <id:int,firstName:string,lastName:string,gender:string,birthday:date,creationDate:string,locationIP:string,browserUsed:string>}]("LDBC_DataBase/Person.csv")
+    let isLocatedIn={1->load[{<startId:int,endId:int>->int}]("LDBC_DataBase/person_isLocatedIn_city.csv")}
+    let RelLabels={"isLocatedIn"-> {<startLabel="Person",endLabel="City">->1}}
+
+    let RelId=sum(<i,j> in RelLabels("isLocatedIn"))
+    if((i.startLabel=="Person")&& i.endLabel=="City") then
+    {1-><id=j>}
+    else{}
+    sum(<r,v> in isLocatedIn(RelId(1).id))
+    if(Person(r.startId).id==1099) then
+    let p=City(r.endId) in
+    let n=Person(r.startId) in
+    {<firstName=n.firstName,lastName=n.lastName,birthday=n.birthday,locationIP=n.locationIP,browserUsed=n.browserUsed,cityId=p.id,gender=n.gender,creationDate=n.creationDate>->1}
+    else{}

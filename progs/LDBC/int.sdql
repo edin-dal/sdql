@@ -1,0 +1,3 @@
+let Message=load[{int-> <id:int,imageFile:string,creationDate:string,locationIP:string,browserUsed:string,language:string,content:string,length:int>}]("LDBC_DataBase/int.csv")
+sum(<k,v> in Message)
+{<id=v.id>->1}

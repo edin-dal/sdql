@@ -1,0 +1,5 @@
+let Message=load[{int-> <id:int,imageFile:string,creationDate:string,locationIP:string,browserUsed:string,language:string,content:string,length:int>}]("LDBC_DataBase/Post.csv")
+sum(<k,m> in Message)
+ if(m.id==2061) then
+{<messageCreationDate=m.creationDate,messageContent=m.content,imageFile=m.imageFile>->1}
+else{}

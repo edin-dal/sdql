@@ -1,0 +1,14 @@
+let Person=load[{int-> <id:int,firstName:string,lastName:string,gender:string,birthday:date,creationDate:string,locationIP:string,browserUsed:string>}]("LDBC_DataBase/Person.csv")
+let knows={1->load[{<startId:int,endId:int,creationDate:string>->int}]("LDBC_DataBase/person_knows_person.csv")}
+let RelLabels={"knows"-> {<startLabel="Person",endLabel="Person">->1}}
+
+let RelId=sum(<i,j> in RelLabels("knows"))
+if((i.startLabel=="Person")&& i.endLabel=="Person") then
+{1-><id=j>}
+else{}
+sum(<r,v> in knows(RelId(1).id))
+if(Person(r.startId).id==1099) then
+let friend=Person(r.endId) in
+let n=Person(r.startId) in
+{<personId=friend.id,firstName=friend.firstName,lastName=friend.lastName,friendshipCreationDate=r.creationDate>->1}
+else{}
