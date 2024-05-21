@@ -28,3 +28,19 @@ For example, to run TPCH Q6, first make sure that the folder `datasets/tpch` con
 sbt
 run interpret progs/tpch/q6.sdql
 ```
+
+## TPCH tables format
+
+The data loader does not expect TPCH tables to have end-of-line `|` characters.
+
+Strip them as follows:
+
+```bash
+sed -i 's/|$//' datasets/tpch/*.tbl
+```
+
+On OSX:
+
+```bash
+sed -i '' 's/|$//' datasets/tpch/*.tbl
+```
