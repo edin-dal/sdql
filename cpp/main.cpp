@@ -22,29 +22,29 @@ const auto SEPARATOR = rapidcsv::SeparatorParams('|');
 phmap::flat_hash_map<std::tuple<std::string, std::string>,
                      std::tuple<double, double, double, double, int>>
 q1() {
-  const rapidcsv::Document lineitem(DATASETS_DIR / "lineitem.tbl", NO_HEADERS,
+  const rapidcsv::Document LINEITEM(DATASETS_DIR / "lineitem.tbl", NO_HEADERS,
                                     SEPARATOR);
-  const auto l_orderkey = lineitem.GetColumn<int>(0);
-  const auto l_partkey = lineitem.GetColumn<int>(1);
-  const auto l_suppkey = lineitem.GetColumn<int>(2);
-  const auto l_linenumber = lineitem.GetColumn<int>(3);
-  const auto l_quantity = lineitem.GetColumn<double>(4);
-  const auto l_extendedprice = lineitem.GetColumn<double>(5);
-  const auto l_discount = lineitem.GetColumn<double>(6);
-  const auto l_tax = lineitem.GetColumn<double>(7);
-  const auto l_returnflag = lineitem.GetColumn<std::string>(8);
-  const auto l_linestatus = lineitem.GetColumn<std::string>(9);
-  const auto l_shipdate = lineitem.GetColumn<std::string>(10);
-  const auto l_commitdate = lineitem.GetColumn<std::string>(11);
-  const auto l_receiptdate = lineitem.GetColumn<std::string>(12);
-  const auto l_shipinstruct = lineitem.GetColumn<std::string>(13);
-  const auto l_shipmode = lineitem.GetColumn<std::string>(14);
-  const auto l_comment = lineitem.GetColumn<std::string>(15);
+  const auto l_orderkey = LINEITEM.GetColumn<int>(0);
+  const auto l_partkey = LINEITEM.GetColumn<int>(1);
+  const auto l_suppkey = LINEITEM.GetColumn<int>(2);
+  const auto l_linenumber = LINEITEM.GetColumn<int>(3);
+  const auto l_quantity = LINEITEM.GetColumn<double>(4);
+  const auto l_extendedprice = LINEITEM.GetColumn<double>(5);
+  const auto l_discount = LINEITEM.GetColumn<double>(6);
+  const auto l_tax = LINEITEM.GetColumn<double>(7);
+  const auto l_returnflag = LINEITEM.GetColumn<std::string>(8);
+  const auto l_linestatus = LINEITEM.GetColumn<std::string>(9);
+  const auto l_shipdate = LINEITEM.GetColumn<std::string>(10);
+  const auto l_commitdate = LINEITEM.GetColumn<std::string>(11);
+  const auto l_receiptdate = LINEITEM.GetColumn<std::string>(12);
+  const auto l_shipinstruct = LINEITEM.GetColumn<std::string>(13);
+  const auto l_shipmode = LINEITEM.GetColumn<std::string>(14);
+  const auto l_comment = LINEITEM.GetColumn<std::string>(15);
 
   phmap::flat_hash_map<std::tuple<std::string, std::string>,
                        std::tuple<double, double, double, double, int>>
       map({});
-  for (int i = 0; i < lineitem.GetRowCount(); i++) {
+  for (int i = 0; i < LINEITEM.GetRowCount(); i++) {
     if (l_shipdate[i] <= "1998-09-02") {
       std::tuple key(l_returnflag[i], l_linestatus[i]);
       std::tuple val(
@@ -59,31 +59,48 @@ q1() {
 }
 
 double q6() {
-  const rapidcsv::Document lineitem(DATASETS_DIR / "lineitem.tbl", NO_HEADERS,
+  const rapidcsv::Document LINEITEM(DATASETS_DIR / "lineitem.tbl", NO_HEADERS,
                                     SEPARATOR);
-  const auto l_orderkey = lineitem.GetColumn<int>(0);
-  const auto l_partkey = lineitem.GetColumn<int>(1);
-  const auto l_suppkey = lineitem.GetColumn<int>(2);
-  const auto l_linenumber = lineitem.GetColumn<int>(3);
-  const auto l_quantity = lineitem.GetColumn<double>(4);
-  const auto l_extendedprice = lineitem.GetColumn<double>(5);
-  const auto l_discount = lineitem.GetColumn<double>(6);
-  const auto l_tax = lineitem.GetColumn<double>(7);
-  const auto l_returnflag = lineitem.GetColumn<std::string>(8);
-  const auto l_linestatus = lineitem.GetColumn<std::string>(9);
-  const auto l_shipdate = lineitem.GetColumn<std::string>(10);
-  const auto l_commitdate = lineitem.GetColumn<std::string>(11);
-  const auto l_receiptdate = lineitem.GetColumn<std::string>(12);
-  const auto l_shipinstruct = lineitem.GetColumn<std::string>(13);
-  const auto l_shipmode = lineitem.GetColumn<std::string>(14);
-  const auto l_comment = lineitem.GetColumn<std::string>(15);
 
-  auto scalar = 0.0;
-  for (int i = 0; i < lineitem.GetRowCount(); i++) {
-    if (l_shipdate[i] >= "1994-01-01" && l_shipdate[i] < "1995-01-01" &&
-        l_discount[i] >= 0.05 && l_discount[i] <= 0.07 &&
-        l_quantity[i] < 24.0) {
-      scalar += l_extendedprice[i] * l_discount[i];
+  struct Lineitem {
+    std::vector<int> l_orderkey;
+    std::vector<int> l_partkey;
+    std::vector<int> l_suppkey;
+    std::vector<int> l_linenumber;
+    std::vector<double> l_quantity;
+    std::vector<double> l_extendedprice;
+    std::vector<double> l_discount;
+    std::vector<double> l_tax;
+    std::vector<std::string> l_returnflag;
+    std::vector<std::string> l_linestatus;
+    std::vector<std::string> l_shipdate;
+    std::vector<std::string> l_commitdate;
+    std::vector<std::string> l_receiptdate;
+    std::vector<std::string> l_shipinstruct;
+    std::vector<std::string> l_shipmode;
+    std::vector<std::string> l_comment;
+  };
+
+  const Lineitem lineitem{
+      LINEITEM.GetColumn<int>(0),          LINEITEM.GetColumn<int>(1),
+      LINEITEM.GetColumn<int>(2),          LINEITEM.GetColumn<int>(3),
+      LINEITEM.GetColumn<double>(4),       LINEITEM.GetColumn<double>(5),
+      LINEITEM.GetColumn<double>(6),       LINEITEM.GetColumn<double>(7),
+      LINEITEM.GetColumn<std::string>(8),  LINEITEM.GetColumn<std::string>(9),
+      LINEITEM.GetColumn<std::string>(10), LINEITEM.GetColumn<std::string>(11),
+      LINEITEM.GetColumn<std::string>(12), LINEITEM.GetColumn<std::string>(13),
+      LINEITEM.GetColumn<std::string>(14), LINEITEM.GetColumn<std::string>(15),
+  };
+
+  double scalar(0);
+  const Lineitem &li = lineitem;
+  for (int i = 0; i < LINEITEM.GetRowCount(); i++) {
+    if (0.05 <= li.l_discount[i] && li.l_discount[i] <= 0.07 &&
+        li.l_quantity[i] < 24 && "1994-01-01" <= li.l_shipdate[i] &&
+        li.l_shipdate[i] < "1995-01-01") {
+      scalar += li.l_extendedprice[i] * li.l_discount[i];
+    } else {
+      scalar += 0.0;
     }
   }
 

@@ -25,7 +25,7 @@ object Main {
         val filename = args(1)
         val prog = SourceCode.fromFile(filename).exp
         val res = Compiler(prog)
-        println(Value.toString(res))
+        println(res)
       case arg =>
         raise(s"`run $arg` not supported")
     }
