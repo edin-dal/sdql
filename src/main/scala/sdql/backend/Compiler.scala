@@ -36,7 +36,7 @@ object Compiler {
         |}""".stripMargin
 
   def run(e: Exp, maybe_name: Option[String] = None)(implicit ctx: Ctx): String = e match {
-    case LetBinding(x, e1, e2) =>
+    case LetBinding(x @ Sym(name), e1, e2) =>
 //      println("*" * 80)
 //      println(s"${e.getClass} /")
 //      println("*" * 40)
@@ -48,7 +48,7 @@ object Compiler {
 //      println("*" * 40)
 //      println(s"/ ${e.getClass}")
 //      println("*" * 80)
-      run(e1) + run(e2)(ctx ++ Map(x -> TypeInference.run(e1)))
+      run(e1) + run(e2, Some(name))(ctx ++ Map(x -> TypeInference.run(e1)))
 
     case Sum(k, v, e1, e2) =>
       // infer types of k, v from e1
@@ -68,20 +68,27 @@ object Compiler {
       var local_ctx = ctx ++ Map(k -> k_type, v -> v_type)
 
       val tpe = TypeInference.run(e2)(local_ctx)
-      val name = s"v_$uuid"
-      local_ctx ++= Map(Sym(name) -> tpe)
+      val agg = s"v_$uuid"
+      local_ctx ++= Map(Sym(agg) -> tpe)
       val init =  tpe match {
         case RealType | IntType => "0"
         case DictType(_, _) => "{}"
         case _ => raise(s"unhandled type: $tpe")
       }
       val loop_body = e2 match {
-        case _: IfThenElse => run(e2, Some(name))(local_ctx)
+        case _: IfThenElse => run(e2, Some(agg))(local_ctx)
         case _ => run(e2)(local_ctx)
       }
-      // TODO hardcoded lineitem
-      s"""${toCpp(tpe)} $name($init);
-          |const Lineitem &li = lineitem;
+      val name = maybe_name match {
+        case Some(name) => name
+        case None => raise(
+          s"${Sum.getClass.getSimpleName.init}"
+            + s"inside ${LetBinding.getClass.getSimpleName.init}"
+            + " needs to know binding variable name"
+        )
+      }
+      s"""${toCpp(tpe)} $agg($init);
+          |const ${name.capitalize} &li = $name;
           |for (int i = 0; i < ${e1_sym.name.toUpperCase()}.GetRowCount(); i++) {
           |$loop_body
           |}""".stripMargin
