@@ -16,7 +16,24 @@ object Compiler {
 
   private def uuid = UUID.randomUUID.toString.replace("-", "_")
 
-  def apply(e: Exp, ctx: Ctx = Map()): String = run(e)(ctx)
+  // TODO
+  //  for (const auto &[fst, snd] : v_()) {
+  //    std::cout << fst << ':' << snd << std::endl;
+  //  }
+  def apply(e: Exp): String =
+    s"""|#include "parallel_hashmap/phmap.h"
+        |#include "rapidcsv.h"
+        |#include "tuple_helper.h"
+        |#include <filesystem>
+        |#include <iostream>
+        |#include <regex>
+        |
+        |const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
+        |const auto SEPARATOR = rapidcsv::SeparatorParams('|');
+        |
+        |int main() {
+        |${run(e)(Map())}
+        |}""".stripMargin
 
   def run(e: Exp, maybe_name: Option[String] = None)(implicit ctx: Ctx): String = e match {
     case LetBinding(x, e1, e2) =>
@@ -67,8 +84,7 @@ object Compiler {
           |const Lineitem &li = lineitem;
           |for (int i = 0; i < ${e1_sym.name.toUpperCase()}.GetRowCount(); i++) {
           |$loop_body
-          |}
-          |""".stripMargin
+          |}""".stripMargin
 
     // base case
     case IfThenElse(cond, e1, Const(false)) =>
@@ -126,7 +142,7 @@ object Compiler {
       tp match {
         case DictType(RecordType(fs), IntType) =>
           val varname = re_filename.findAllIn(path).matchData.next().group(2)
-          val csv = s"""const rapidcsv::Document ${varname.toUpperCase}("../$path", NO_HEADERS, SEPARATOR);\n"""
+          val csv = s"""const rapidcsv::Document ${varname.toUpperCase}("$path", NO_HEADERS, SEPARATOR);\n"""
           val struct_def = fs.map(attr => s"std::vector<${toCpp(attr.tpe)}> ${attr.name};")
             .mkString(s"struct ${varname.capitalize} {\n", "\n", "\n};\n")
           val struct_init = fs.zipWithIndex.map(
@@ -146,9 +162,23 @@ object Compiler {
     )
   }
 
-  private def ifElseBody(e: Exp, name: String)(implicit ctx: Ctx): String = e match {
-    case DictNode(Nil) => ""
-    case _ => s"\n$name += ${run(e, Some(name))};"
+  private def ifElseBody(e: Exp, name: String)(implicit ctx: Ctx): String = {
+    val lhs = ctx.get(Sym(name)) match {
+      // TODO hardcoded li.l_returnflag, li.l_linestatus and [i]
+      case Some(t: DictType) =>
+        s"$name[${toCpp(t.key)}(li.l_returnflag[i], li.l_linestatus[i])]"
+      case Some(t) if t.isScalar =>
+        name
+      case None => raise(
+        s"${IfThenElse.getClass.getSimpleName.init}"
+          + s"inside ${Sum.getClass.getSimpleName.init}"
+          + " needs to know aggregation variable type"
+      )
+    }
+    e match {
+      case DictNode(Nil) => ""
+      case _ => s"\n$lhs += ${run(e, Some(name))};"
+    }
   }
 
   private def toCpp(tpe: ir.Type): String = tpe match {
