@@ -78,8 +78,8 @@ object TypeInference {
     if (promo_t1 != promo_t2) {
       raise(
         s"${exp.simpleName} branches have types: " +
-        s"${promo_t1.simpleName}${if (t1 != promo_t1) s" (↑${promo_t1.simpleName})" else ""} ≠ " +
-        s"${promo_t2.simpleName}${if (t2 != promo_t2) s" (↑${promo_t2.simpleName})" else ""}"
+        s"${promo_t1.simpleName}${if (promo_t1 != t1) s" (↑${t1.simpleName})" else ""} ≠ " +
+        s"${promo_t2.simpleName}${if (promo_t2 != t2) s" (↑${t2.simpleName})" else ""}"
       )
     }
     promo_t1
