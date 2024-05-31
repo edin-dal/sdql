@@ -135,8 +135,14 @@ object Compiler {
       ""
     case DictNode(ArrayBuffer((_, RecNode(values)))) =>
       assert(values.isInstanceOf[ArrayBuffer[(Field, Exp)]])
-      // TODO hardcoded types
-      values.map(e => run(e._2)).mkString("std::tuple<double, double, double, double, int>(", ", ", ")")
+      val tpe = TypeInference.run(e) match {
+        case dictTpe: DictType => dictTpe.value
+        case tpe => raise(
+          s"expression ${e.simpleName} should be of type " +
+            s"${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
+        )
+      }
+      values.map(e => run(e._2)).mkString(s"${toCpp(tpe)}(", ", ", ")")
 
     case Load(path, tp) =>
       tp match {
