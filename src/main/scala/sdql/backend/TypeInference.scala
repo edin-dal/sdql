@@ -71,17 +71,17 @@ object TypeInference {
     }
     val t1 = run(e1)
     val t2 = run(e2)
-    val (promo_t1, promo_t2) = (t1, t2) match {
+    val (t1Promo, t2Promo) = (t1, t2) match {
       case (IntType, RealType) | (RealType, IntType) => (RealType, RealType)
       case (t1, t2) => (t1, t2)
     }
-    if (promo_t1 != promo_t2) {
+    if (t1Promo != t2Promo) {
       raise(
         s"${exp.simpleName} branches have types: " +
-        s"${promo_t1.simpleName}${if (promo_t1 != t1) s" (↑${t1.simpleName})" else ""} ≠ " +
-        s"${promo_t2.simpleName}${if (promo_t2 != t2) s" (↑${t2.simpleName})" else ""}"
+        s"${t1Promo.simpleName}${if (t1Promo != t1) s" (↑${t1.simpleName})" else ""} ≠ " +
+        s"${t2Promo.simpleName}${if (t2Promo != t2) s" (↑${t2.simpleName})" else ""}"
       )
     }
-    promo_t1
+    t1Promo
   }
 }

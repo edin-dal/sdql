@@ -11,8 +11,8 @@ object Compiler {
   type Var = Sym
   type Ctx = Map[Sym, Type]
 
-  private val re_filename = "^(.+/)*(.+)\\.(.+)$".r
-  private val re_date =  "(^\\d{4})(\\d{2})(\\d{2})$".r
+  private val reFilename = "^(.+/)*(.+)\\.(.+)$".r
+  private val reDate =  "(^\\d{4})(\\d{2})(\\d{2})$".r
 
   private def uuid = UUID.randomUUID.toString.replace("-", "_")
 
@@ -35,7 +35,7 @@ object Compiler {
         |${run(e)(Map())}
         |}""".stripMargin
 
-  def run(e: Exp, maybe_name: Option[String] = None)(implicit ctx: Ctx): String = e match {
+  def run(e: Exp, maybeName: Option[String] = None)(implicit ctx: Ctx): String = e match {
     case LetBinding(x @ Sym(name), e1, e2) =>
 //      println("*" * 80)
 //      println(s"${e.getClass} /")
@@ -53,10 +53,10 @@ object Compiler {
     case Sum(k, v, e1, e2) =>
       // infer types of k, v from e1
       val e1_sym = e1 match {
-        case s @ Sym(_) => s
+        case s: Sym => s
         case _ => raise(s"only ${Sym.getClass.getSimpleName.init} expressions supported")
       }
-      val (k_type, v_type) = ctx.get(e1_sym) match {
+      val (kType, vType) = ctx.get(e1_sym) match {
         case _ @ Some(DictType(k_type, v_type)) => (k_type, v_type)
         case Some(tpe) => raise(
           s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
@@ -65,21 +65,21 @@ object Compiler {
       }
 
       // Note: k and v are bound to local scope, not global
-      var local_ctx = ctx ++ Map(k -> k_type, v -> v_type)
+      var localCtx = ctx ++ Map(k -> kType, v -> vType)
 
-      val tpe = TypeInference.run(e2)(local_ctx)
+      val tpe = TypeInference.run(e2)(localCtx)
       val agg = s"v_$uuid"
-      local_ctx ++= Map(Sym(agg) -> tpe)
+      localCtx ++= Map(Sym(agg) -> tpe)
       val init =  tpe match {
         case RealType | IntType => "0"
         case DictType(_, _) => "{}"
         case _ => raise(s"unhandled type: $tpe")
       }
-      val loop_body = e2 match {
-        case _: IfThenElse => run(e2, Some(agg))(local_ctx)
-        case _ => run(e2)(local_ctx)
+      val loopBody = e2 match {
+        case _: IfThenElse => run(e2, Some(agg))(localCtx)
+        case _ => run(e2)(localCtx)
       }
-      val name = maybe_name match {
+      val name = maybeName match {
         case Some(name) => name
         case None => raise(
           s"${Sum.getClass.getSimpleName.init}"
@@ -90,7 +90,7 @@ object Compiler {
       s"""${toCpp(tpe)} $agg($init);
           |const ${name.capitalize} &li = $name;
           |for (int i = 0; i < ${e1_sym.name.toUpperCase()}.GetRowCount(); i++) {
-          |$loop_body
+          |$loopBody
           |}""".stripMargin
 
     // base case
@@ -102,7 +102,7 @@ object Compiler {
       s"${run(cond)} && ${run(e1)}"
     // recursive case
     case IfThenElse(cond, e1, e2) =>
-      val name = maybe_name match {
+      val name = maybeName match {
         case Some(name) => name
         case None => raise(
           s"${IfThenElse.getClass.getSimpleName.init}"
@@ -133,7 +133,7 @@ object Compiler {
       s"-${run(e)}"
 
     case Const(DateValue(v)) =>
-      val yyyymmdd = re_date.findAllIn(v.toString).matchData.next()
+      val yyyymmdd = reDate.findAllIn(v.toString).matchData.next()
       s""""${yyyymmdd.group(1)}-${yyyymmdd.group(2)}-${yyyymmdd.group(3)}""""
     case Const(v) =>
       v.toString
@@ -154,16 +154,16 @@ object Compiler {
     case Load(path, tp) =>
       tp match {
         case DictType(RecordType(fs), IntType) =>
-          val varname = re_filename.findAllIn(path).matchData.next().group(2)
-          val csv = s"""const rapidcsv::Document ${varname.toUpperCase}("$path", NO_HEADERS, SEPARATOR);\n"""
+          val varName = reFilename.findAllIn(path).matchData.next().group(2)
+          val csv = s"""const rapidcsv::Document ${varName.toUpperCase}("$path", NO_HEADERS, SEPARATOR);\n"""
           val struct_def = fs.map(attr => s"std::vector<${toCpp(attr.tpe)}> ${attr.name};")
-            .mkString(s"struct ${varname.capitalize} {\n", "\n", "\n};\n")
+            .mkString(s"struct ${varName.capitalize} {\n", "\n", "\n};\n")
           val struct_init = fs.zipWithIndex.map(
               {
-                case (attr, i) => s"${varname.toUpperCase}.GetColumn<${toCpp(attr.tpe)}>($i),"
+                case (attr, i) => s"${varName.toUpperCase}.GetColumn<${toCpp(attr.tpe)}>($i),"
               }
             )
-            .mkString(s"const ${varname.capitalize} ${varname.toLowerCase} {\n", "\n", "\n};\n")
+            .mkString(s"const ${varName.capitalize} ${varName.toLowerCase} {\n", "\n", "\n};\n")
           s"$csv\n$struct_def\n$struct_init\n"
         case _ =>
           raise(s"`load[$tp]('$path')` only supports the type `{ < ... > -> int }`")
