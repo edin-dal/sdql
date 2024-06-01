@@ -4,7 +4,12 @@ import munit.Assertions.munitPrint
 import sdql.ir._
 
 import java.util.UUID
+import scala.PartialFunction.condOpt
 import scala.collection.mutable.ArrayBuffer
+
+sealed trait Context
+case class LetBindingContext(lhs: String) extends Context
+case class SumContext(agg: String) extends Context
 
 object Compiler {
   type Type = ir.Type
@@ -35,7 +40,7 @@ object Compiler {
         |${run(e)(Map())}
         |}""".stripMargin
 
-  def run(e: Exp, maybeName: Option[String] = None)(implicit ctx: Ctx): String = e match {
+  def run(e: Exp, context: List[Context] = List())(implicit ctx: Ctx): String = e match {
     case LetBinding(x @ Sym(name), e1, e2) =>
 //      println("*" * 80)
 //      println(s"${e.getClass} /")
@@ -48,7 +53,7 @@ object Compiler {
 //      println("*" * 40)
 //      println(s"/ ${e.getClass}")
 //      println("*" * 80)
-      run(e1) + run(e2, Some(name))(ctx ++ Map(x -> TypeInference.run(e1)))
+      run(e1) + run(e2, List(LetBindingContext(lhs = name)) ++ context)(ctx ++ Map(x -> TypeInference.run(e1)))
 
     case Sum(k, v, e1, e2) =>
       // infer types of k, v from e1
@@ -76,17 +81,16 @@ object Compiler {
         case _ => raise(s"unhandled type: $tpe")
       }
       val loopBody = e2 match {
-        case _: IfThenElse => run(e2, Some(agg))(localCtx)
+        case _: IfThenElse => run(e2, List(SumContext(agg = agg)) ++ context)(localCtx)
         case _ => run(e2)(localCtx)
       }
-      val name = maybeName match {
-        case Some(name) => name
-        case None => raise(
-          s"${Sum.getClass.getSimpleName.init}"
-            + s"inside ${LetBinding.getClass.getSimpleName.init}"
-            + " needs to know binding variable name"
-        )
-      }
+
+      val iter = context.flatMap(x => condOpt(x) { case LetBindingContext(lhs) => lhs }).iterator
+      val name = if (iter.hasNext) iter.next() else raise(
+        s"${Sum.getClass.getSimpleName.init}"
+          + s"inside ${LetBinding.getClass.getSimpleName.init}"
+          + " needs to know binding variable name"
+      )
       s"""${toCpp(tpe)} $agg($init);
           |const ${name.capitalize} &li = $name;
           |for (int i = 0; i < ${e1_sym.name.toUpperCase()}.GetRowCount(); i++) {
@@ -102,16 +106,8 @@ object Compiler {
       s"${run(cond)} && ${run(e1)}"
     // recursive case
     case IfThenElse(cond, e1, e2) =>
-      val name = maybeName match {
-        case Some(name) => name
-        case None => raise(
-          s"${IfThenElse.getClass.getSimpleName.init}"
-            + s"inside ${Sum.getClass.getSimpleName.init}"
-            + " needs to know aggregation variable name"
-        )
-      }
-      s"""if (${run(cond)}) {${ifElseBody(e1, name)}
-         |} else {${ifElseBody(e2, name)}
+      s"""if (${run(cond)}) {${ifElseBody(e1, context)}
+         |} else {${ifElseBody(e2, context)}
          |}""".stripMargin
 
     case Cmp(e1, e2, cmp) =>
@@ -175,7 +171,13 @@ object Compiler {
     )
   }
 
-  private def ifElseBody(e: Exp, name: String)(implicit ctx: Ctx): String = {
+  private def ifElseBody(e: Exp, context: List[Context])(implicit ctx: Ctx): String = {
+    val iter = context.flatMap(x => condOpt(x) { case SumContext(agg) => agg }).iterator
+    val name = if (iter.hasNext) iter.next() else raise(
+      s"${IfThenElse.getClass.getSimpleName.init}"
+        + s"inside ${Sum.getClass.getSimpleName.init}"
+        + " needs to know aggregation variable name"
+    )
     val lhs = ctx.get(Sym(name)) match {
       // TODO hardcoded li.l_returnflag, li.l_linestatus and [i]
       case Some(t: DictType) =>
@@ -190,7 +192,7 @@ object Compiler {
     }
     e match {
       case DictNode(Nil) => ""
-      case _ => s"\n$lhs += ${run(e, Some(name))};"
+      case _ => s"\n$lhs += ${run(e, context)};"
     }
   }
 
