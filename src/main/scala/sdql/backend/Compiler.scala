@@ -68,7 +68,6 @@ object Compiler {
         )
         case None => raise(s"unknown symbol: $e1_sym")
       }
-
       // Note: k and v are bound to local scope, not global
       var localCtx = ctx ++ Map(k -> kType, v -> vType)
 
@@ -106,9 +105,14 @@ object Compiler {
       s"${run(cond)} && ${run(e1)}"
     // recursive case
     case IfThenElse(cond, e1, e2) =>
-      s"""if (${run(cond)}) {${ifElseBody(e1, context)}
-         |} else {${ifElseBody(e2, context)}
-         |}""".stripMargin
+      val elseBody = e2 match {
+        case DictNode(Nil) => ""
+        case _ =>
+          s""" else {
+            |${ifElseBody(e2, context)}
+            |}""".stripMargin
+      }
+      s"""if (${run(cond)}) {${ifElseBody(e1, context)}\n}$elseBody""".stripMargin
 
     case Cmp(e1, e2, cmp) =>
       s"${run(e1)} $cmp ${run(e2)}"
@@ -173,17 +177,20 @@ object Compiler {
 
   private def ifElseBody(e: Exp, context: List[Context])(implicit ctx: Ctx): String = {
     val iter = context.flatMap(x => condOpt(x) { case SumContext(agg) => agg }).iterator
-    val name = if (iter.hasNext) iter.next() else raise(
+    val agg = if (iter.hasNext) iter.next() else raise(
       s"${IfThenElse.getClass.getSimpleName.init}"
         + s"inside ${Sum.getClass.getSimpleName.init}"
         + " needs to know aggregation variable name"
     )
-    val lhs = ctx.get(Sym(name)) match {
-      // TODO hardcoded li.l_returnflag, li.l_linestatus and [i]
+    val lhs = ctx.get(Sym(agg)) match {
       case Some(t: DictType) =>
-        s"$name[${toCpp(t.key)}(li.l_returnflag[i], li.l_linestatus[i])]"
+        val keys = e match {
+          case DictNode(ArrayBuffer(Tuple2(RecNode(keys), _))) =>
+            keys.map(_._2).map(x => {run(x)(Map())}).mkString(", ")
+        }
+        s"$agg[${toCpp(t.key)}($keys)]"
       case Some(t) if t.isScalar =>
-        name
+        agg
       case None => raise(
         s"${IfThenElse.getClass.getSimpleName.init}"
           + s"inside ${Sum.getClass.getSimpleName.init}"
