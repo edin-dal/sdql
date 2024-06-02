@@ -25,8 +25,8 @@ object Compiler {
     val printBody = tpe match {
       case _: DictType =>
         s"""
-           |for (const auto &[fst, snd] : $name) {
-           |std::cout << fst << ':' << snd << std::endl;
+           |for (const auto &[key, val] : $name) {
+           |std::cout << key << ':' << val << std::endl;
            |}
            |""".stripMargin
       case _ if tpe.isScalar =>
