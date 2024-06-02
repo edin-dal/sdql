@@ -5,6 +5,7 @@ import sdql.backend._
 import sdql.frontend._
 import sdql.ir._
 
+import java.nio.file.Path
 import scala.sys.process._
 
 object Main {
@@ -15,25 +16,29 @@ object Main {
     }
     args(0) match {
       case "interpret" =>
-        if(args.length < 2) {
-          raise("usage: `run interpret <sdql_files>*`")
+        if(args.length < 3) {
+          raise("usage: `run interpret <path> <sdql_files>*`")
         }
-        for (sdqlFilePath <- args.drop(1)) {
-          val prog = SourceCode.fromFile(sdqlFilePath).exp
+        val dirPath = Path.of(args(1))
+        for (fileName <- args.drop(2)) {
+          val filePath = dirPath.resolve(fileName)
+          val prog = SourceCode.fromFile(filePath.toString).exp
           val res = Interpreter(prog)
-          println(sdqlFilePath)
+          println(fileName)
           println({Value.toString(res)})
           println()
         }
       case "compile" =>
-        if(args.length < 2) {
-          raise("usage: `run compile <sdql_files>*`")
+        if(args.length < 3) {
+          raise("usage: `run compile <path> <sdql_files>*`")
         }
-        for (sdqlFilePath <- args.drop(1)) {
-          val prog = SourceCode.fromFile(sdqlFilePath).exp
+        val dirPath = Path.of(args(1))
+        for (fileName <- args.drop(2)) {
+          val filePath = dirPath.resolve(fileName)
+          val prog = SourceCode.fromFile(filePath.toString).exp
           val res = Compiler(prog)
-          println(sdqlFilePath)
-          println(compile(sdqlFilePath, res))
+          println(fileName)
+          println(compile(filePath.toString, res))
           println()
         }
       case arg =>

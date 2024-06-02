@@ -19,14 +19,14 @@ sbt test
 
 ```
 sbt
-run interpret <sdql_file>
+run interpret <path> <sdql_files>*
 ```
 
 For example, to run TPCH Q6, first make sure that the folder `datasets/tpch` contains TPCH tables (with a small scale factor). Then, run the following command:
 
 ```
 sbt
-run interpret progs/tpch/q6.sdql
+run interpret progs/tpch q6.sdql
 ```
 
 ## TPCH tables format
