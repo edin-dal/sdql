@@ -19,11 +19,8 @@ const auto DATASETS_DIR = std::filesystem::path("..") / "datasets" / "tpch";
 const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
 const auto SEPARATOR = rapidcsv::SeparatorParams('|');
 
-phmap::flat_hash_map<std::tuple<std::string, std::string>,
-                     std::tuple<double, double, double, double, int>>
-q1() {
-  const rapidcsv::Document LINEITEM(DATASETS_DIR / "lineitem.tbl", NO_HEADERS,
-                                    SEPARATOR);
+phmap::flat_hash_map<std::tuple<std::string, std::string>, std::tuple<double, double, double, double, int> > q1() {
+  const rapidcsv::Document LINEITEM(DATASETS_DIR / "lineitem.tbl", NO_HEADERS, SEPARATOR);
   const auto l_orderkey = LINEITEM.GetColumn<int>(0);
   const auto l_partkey = LINEITEM.GetColumn<int>(1);
   const auto l_suppkey = LINEITEM.GetColumn<int>(2);
@@ -41,16 +38,12 @@ q1() {
   const auto l_shipmode = LINEITEM.GetColumn<std::string>(14);
   const auto l_comment = LINEITEM.GetColumn<std::string>(15);
 
-  phmap::flat_hash_map<std::tuple<std::string, std::string>,
-                       std::tuple<double, double, double, double, int>>
-      map({});
+  phmap::flat_hash_map<std::tuple<std::string, std::string>, std::tuple<double, double, double, double, int> > map({});
   for (int i = 0; i < LINEITEM.GetRowCount(); i++) {
     if (l_shipdate[i] <= "1998-09-02") {
       std::tuple key(l_returnflag[i], l_linestatus[i]);
-      std::tuple val(
-          l_quantity[i], l_extendedprice[i],
-          l_extendedprice[i] * (1.0 - l_discount[i]),
-          l_extendedprice[i] * (1.0 - l_discount[i]) * (1.0 + l_tax[i]), 1);
+      std::tuple val(l_quantity[i], l_extendedprice[i], l_extendedprice[i] * (1.0 - l_discount[i]),
+                     l_extendedprice[i] * (1.0 - l_discount[i]) * (1.0 + l_tax[i]), 1);
       map[key] += val;
     }
   }
@@ -59,8 +52,7 @@ q1() {
 }
 
 double q6() {
-  const rapidcsv::Document LINEITEM(DATASETS_DIR / "lineitem.tbl", NO_HEADERS,
-                                    SEPARATOR);
+  const rapidcsv::Document LINEITEM(DATASETS_DIR / "lineitem.tbl", NO_HEADERS, SEPARATOR);
 
   struct Lineitem {
     std::vector<int> l_orderkey;
@@ -82,22 +74,19 @@ double q6() {
   };
 
   const Lineitem lineitem{
-      LINEITEM.GetColumn<int>(0),          LINEITEM.GetColumn<int>(1),
-      LINEITEM.GetColumn<int>(2),          LINEITEM.GetColumn<int>(3),
-      LINEITEM.GetColumn<double>(4),       LINEITEM.GetColumn<double>(5),
-      LINEITEM.GetColumn<double>(6),       LINEITEM.GetColumn<double>(7),
-      LINEITEM.GetColumn<std::string>(8),  LINEITEM.GetColumn<std::string>(9),
-      LINEITEM.GetColumn<std::string>(10), LINEITEM.GetColumn<std::string>(11),
-      LINEITEM.GetColumn<std::string>(12), LINEITEM.GetColumn<std::string>(13),
-      LINEITEM.GetColumn<std::string>(14), LINEITEM.GetColumn<std::string>(15),
+    LINEITEM.GetColumn<int>(0), LINEITEM.GetColumn<int>(1), LINEITEM.GetColumn<int>(2),
+    LINEITEM.GetColumn<int>(3), LINEITEM.GetColumn<double>(4), LINEITEM.GetColumn<double>(5),
+    LINEITEM.GetColumn<double>(6), LINEITEM.GetColumn<double>(7), LINEITEM.GetColumn<std::string>(8),
+    LINEITEM.GetColumn<std::string>(9), LINEITEM.GetColumn<std::string>(10), LINEITEM.GetColumn<std::string>(11),
+    LINEITEM.GetColumn<std::string>(12), LINEITEM.GetColumn<std::string>(13), LINEITEM.GetColumn<std::string>(14),
+    LINEITEM.GetColumn<std::string>(15),
   };
 
   double scalar(0);
   const Lineitem &li = lineitem;
   for (int i = 0; i < LINEITEM.GetRowCount(); i++) {
-    if (0.05 <= li.l_discount[i] && li.l_discount[i] <= 0.07 &&
-        li.l_quantity[i] < 24 && "1994-01-01" <= li.l_shipdate[i] &&
-        li.l_shipdate[i] < "1995-01-01") {
+    if (0.05 <= li.l_discount[i] && li.l_discount[i] <= 0.07 && li.l_quantity[i] < 24 &&
+        "1994-01-01" <= li.l_shipdate[i] && li.l_shipdate[i] < "1995-01-01") {
       scalar += li.l_extendedprice[i] * li.l_discount[i];
     } else {
       scalar += 0.0;
@@ -145,9 +134,8 @@ double q6() {
   return scalar;
 }
 
-phmap::flat_hash_map<std::tuple<int>, std::tuple<int>> q13() {
-  const rapidcsv::Document customer(DATASETS_DIR / "customer.tbl", NO_HEADERS,
-                                    SEPARATOR);
+phmap::flat_hash_map<std::tuple<int>, std::tuple<int> > q13() {
+  const rapidcsv::Document customer(DATASETS_DIR / "customer.tbl", NO_HEADERS, SEPARATOR);
   const auto c_custkey = customer.GetColumn<int>(0);
   const auto c_name = customer.GetColumn<std::string>(1);
   const auto c_address = customer.GetColumn<std::string>(2);
@@ -157,8 +145,7 @@ phmap::flat_hash_map<std::tuple<int>, std::tuple<int>> q13() {
   const auto c_mktsegment = customer.GetColumn<std::string>(6);
   const auto c_comment = customer.GetColumn<std::string>(7);
 
-  const rapidcsv::Document orders(DATASETS_DIR / "orders.tbl", NO_HEADERS,
-                                  SEPARATOR);
+  const rapidcsv::Document orders(DATASETS_DIR / "orders.tbl", NO_HEADERS, SEPARATOR);
   const auto o_orderkey = orders.GetColumn<int>(0);
   const auto o_custkey = orders.GetColumn<int>(1);
   const auto o_orderstatus = orders.GetColumn<std::string>(2);
@@ -170,14 +157,23 @@ phmap::flat_hash_map<std::tuple<int>, std::tuple<int>> q13() {
   const auto o_comment = orders.GetColumn<std::string>(8);
 
   phmap::flat_hash_map<int, int> o_map({});
-  const std::regex re(".*special.*requests.*");
+
+  // const std::regex re(".*special.*requests.*");
+  // for (int i = 0; i < orders.GetRowCount(); i++) {
+  //   if (!std::regex_match(o_comment[i], re)) {
+  //     o_map[o_custkey[i]] += 1;
+  //   }
+  // }
+
   for (int i = 0; i < orders.GetRowCount(); i++) {
-    if (!std::regex_match(o_comment[i], re)) {
+    auto idx1 = o_comment[i].find("special", 0);
+    auto idx2 = o_comment[i].find("requests", idx1);
+    if (idx1 != -1 && idx2 != -1) {
       o_map[o_custkey[i]] += 1;
     }
   }
 
-  phmap::flat_hash_map<std::tuple<int>, std::tuple<int>> c_map({});
+  phmap::flat_hash_map<std::tuple<int>, std::tuple<int> > c_map({});
   for (int i = 0; i < customer.GetRowCount(); i++) {
     std::tuple key(o_map.contains(c_custkey[i]) ? o_map.at(c_custkey[i]) : 0);
     c_map[key] += std::tuple(1);
@@ -187,13 +183,13 @@ phmap::flat_hash_map<std::tuple<int>, std::tuple<int>> q13() {
 }
 
 int main() {
-  for (const auto &[fst, snd] : q1()) {
+  for (const auto &[fst, snd]: q1()) {
     std::cout << fst << ':' << snd << std::endl;
   }
 
   std::cout << q6() << std::endl;
 
-  for (const auto &[fst, snd] : q13()) {
+  for (const auto &[fst, snd]: q13()) {
     std::cout << fst << ':' << snd << std::endl;
   }
 }
