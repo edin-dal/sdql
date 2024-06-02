@@ -63,7 +63,7 @@ object Compiler {
 //      println(s"/ ${e.getClass}")
 //      println("*" * 80)
       val (cpp_e1, _) = run(e1)
-      val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1)(typesCtx))
+      val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
       val callsLocal = List(LetBindingCtx(lhs = name)) ++ callsCtx
       val (cpp_e2, info @ Some(_)) = run(e2)(typesLocal, callsLocal)
       (cpp_e1 + cpp_e2, info)
@@ -165,6 +165,16 @@ object Compiler {
         )
       }
       (values.map(e => srun(e._2)).mkString(s"${toCpp(tpe)}(", ", ", ")"), None)
+
+    case External(name, args) =>
+      import ExternalFunctions._
+      args match {
+        case ArrayBuffer(field: FieldNode, elem, from) if name == StrIndexOf.SYMBOL =>
+          val name = s"v_$uuid"
+          val tpe = TypeInference.run(e)
+          (s"auto $name = ${srun(field)}.find(${srun(elem)}, ${srun(from)})", Some(Sym(name), tpe))
+        case _ => raise(s"unhandled function name: $name")
+      }
 
     case Load(path, tp) =>
       tp match {

@@ -34,6 +34,8 @@ object TypeInference {
           TupleType(keys.map(_._2).map(run)),
           TupleType(values.map(_._2).map(run)),
         )
+      case DictNode(ArrayBuffer((e, _))) =>
+        run(e)
 
       case FieldNode(sym@Sym(name), f) => ctx.get(sym) match {
         case Some(RecordType(vals)) => vals.find(v => v.name == f) match {
@@ -51,6 +53,17 @@ object TypeInference {
         case v if v.getClass == classOf[String] => StringType
         case v => raise(s"unhandled class: ${v.getClass.getSimpleName}")
       }
+
+      case External(name, _) =>
+        import ExternalFunctions._
+        name match {
+          case _ if name == StrIndexOf.SYMBOL => IntType
+          case _ => raise(s"unhandled function name: $name")
+        }
+
+      case LetBinding(x, e1, e2) =>
+        val t1 = TypeInference.run(e1)
+        TypeInference.run(e2)(ctx ++ Map(x -> t1))
 
       case Load(_, tp) =>
         tp
