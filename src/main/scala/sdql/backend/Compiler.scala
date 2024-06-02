@@ -7,14 +7,12 @@ import java.util.UUID
 import scala.PartialFunction.condOpt
 import scala.collection.mutable.ArrayBuffer
 
-sealed trait Context
-case class LetBindingContext(lhs: String) extends Context
-case class SumContext(agg: String) extends Context
-
 object Compiler {
-  type Type = ir.Type
-  type Var = Sym
-  type Ctx = Map[Sym, Type]
+  private type TypesCtx = TypeInference.Ctx
+  private type CallsCtx = List[CallCtx]
+  private sealed trait CallCtx
+  private case class LetBindingCtx(lhs: String) extends CallCtx
+  private case class SumCtx(agg: String) extends CallCtx
 
   private val reFilename = "^(.+/)*(.+)\\.(.+)$".r
   private val reDate =  "(^\\d{4})(\\d{2})(\\d{2})$".r
@@ -37,23 +35,25 @@ object Compiler {
         |const auto SEPARATOR = rapidcsv::SeparatorParams('|');
         |
         |int main() {
-        |${run(e)(Map())}
+        |${run(e)(Map(), List())}
         |}""".stripMargin
 
-  def run(e: Exp, context: List[Context] = List())(implicit ctx: Ctx): String = e match {
+  def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case LetBinding(x @ Sym(name), e1, e2) =>
 //      println("*" * 80)
 //      println(s"${e.getClass} /")
 //      println("*" * 40)
 //      println(s"x: $x")
 //      println("*" * 40)
-//      println(munitPrint(e1))
+//      println(s"e1: ${munitPrint(e1)}")
 //      println("*" * 40)
-//      println(munitPrint(e2))
+//      println(s"e2: ${munitPrint(e2)}")
 //      println("*" * 40)
 //      println(s"/ ${e.getClass}")
 //      println("*" * 80)
-      run(e1) + run(e2, List(LetBindingContext(lhs = name)) ++ context)(ctx ++ Map(x -> TypeInference.run(e1)))
+      val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1)(typesCtx))
+      val callsLocal = List(LetBindingCtx(lhs = name)) ++ callsCtx
+      run(e1) + run(e2)(typesLocal, callsLocal)
 
     case Sum(k, v, e1, e2) =>
       // infer types of k, v from e1
@@ -61,7 +61,7 @@ object Compiler {
         case s: Sym => s
         case _ => raise(s"only ${Sym.getClass.getSimpleName.init} expressions supported")
       }
-      val (kType, vType) = ctx.get(e1_sym) match {
+      val (kType, vType) = typesCtx.get(e1_sym) match {
         case _ @ Some(DictType(k_type, v_type)) => (k_type, v_type)
         case Some(tpe) => raise(
           s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
@@ -69,22 +69,22 @@ object Compiler {
         case None => raise(s"unknown symbol: $e1_sym")
       }
       // Note: k and v are bound to local scope, not global
-      var localCtx = ctx ++ Map(k -> kType, v -> vType)
+      var typesLocal = typesCtx ++ Map(k -> kType, v -> vType)
 
-      val tpe = TypeInference.run(e2)(localCtx)
+      val tpe = TypeInference.run(e2)(typesLocal)
       val agg = s"v_$uuid"
-      localCtx ++= Map(Sym(agg) -> tpe)
+      typesLocal ++= Map(Sym(agg) -> tpe)
       val init =  tpe match {
         case RealType | IntType => "0"
         case DictType(_, _) => "{}"
         case _ => raise(s"unhandled type: $tpe")
       }
       val loopBody = e2 match {
-        case _: IfThenElse => run(e2, List(SumContext(agg = agg)) ++ context)(localCtx)
-        case _ => run(e2)(localCtx)
+        case _: IfThenElse => run(e2)(typesLocal, List(SumCtx(agg = agg)) ++ callsCtx)
+        case _ => run(e2)(typesCtx ++ typesLocal, callsCtx)
       }
 
-      val iter = context.flatMap(x => condOpt(x) { case LetBindingContext(lhs) => lhs }).iterator
+      val iter = callsCtx.flatMap(x => condOpt(x) { case LetBindingCtx(lhs) => lhs }).iterator
       val name = if (iter.hasNext) iter.next() else raise(
         s"${Sum.getClass.getSimpleName.init}"
           + s"inside ${LetBinding.getClass.getSimpleName.init}"
@@ -109,10 +109,10 @@ object Compiler {
         case DictNode(Nil) => ""
         case _ =>
           s""" else {
-            |${ifElseBody(e2, context)}
+            |${ifElseBody(e2)}
             |}""".stripMargin
       }
-      s"""if (${run(cond)}) {${ifElseBody(e1, context)}\n}$elseBody""".stripMargin
+      s"""if (${run(cond)}) {${ifElseBody(e1)}\n}$elseBody""".stripMargin
 
     case Cmp(e1, e2, cmp) =>
       s"${run(e1)} $cmp ${run(e2)}"
@@ -175,18 +175,18 @@ object Compiler {
     )
   }
 
-  private def ifElseBody(e: Exp, context: List[Context])(implicit ctx: Ctx): String = {
-    val iter = context.flatMap(x => condOpt(x) { case SumContext(agg) => agg }).iterator
+  private def ifElseBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
+    val iter = callsCtx.flatMap(x => condOpt(x) { case SumCtx(agg) => agg }).iterator
     val agg = if (iter.hasNext) iter.next() else raise(
       s"${IfThenElse.getClass.getSimpleName.init}"
         + s"inside ${Sum.getClass.getSimpleName.init}"
         + " needs to know aggregation variable name"
     )
-    val lhs = ctx.get(Sym(agg)) match {
+    val lhs = typesCtx.get(Sym(agg)) match {
       case Some(t: DictType) =>
         val keys = e match {
           case DictNode(ArrayBuffer(Tuple2(RecNode(keys), _))) =>
-            keys.map(_._2).map(x => {run(x)(Map())}).mkString(", ")
+            keys.map(_._2).map(x => {run(x)(Map(), List())}).mkString(", ")
         }
         s"$agg[${toCpp(t.key)}($keys)]"
       case Some(t) if t.isScalar =>
@@ -199,7 +199,7 @@ object Compiler {
     }
     e match {
       case DictNode(Nil) => ""
-      case _ => s"\n$lhs += ${run(e, context)};"
+      case _ => s"$lhs += ${run(e)};"
     }
   }
 
