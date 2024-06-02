@@ -15,21 +15,27 @@ object Main {
     }
     args(0) match {
       case "interpret" =>
-        if(args.length != 2) {
-          raise("usage: `run interpret <sdql_file>`")
+        if(args.length < 2) {
+          raise("usage: `run interpret <sdql_files>*`")
         }
-        val sdqlFilePath = args(1)
-        val prog = SourceCode.fromFile(sdqlFilePath).exp
-        val res = Interpreter(prog)
-        println(Value.toString(res))
+        for (sdqlFilePath <- args.drop(1)) {
+          val prog = SourceCode.fromFile(sdqlFilePath).exp
+          val res = Interpreter(prog)
+          println(sdqlFilePath)
+          println({Value.toString(res)})
+          println()
+        }
       case "compile" =>
-        if(args.length != 2) {
-          raise("usage: `run compile <sdql_file>`")
+        if(args.length < 2) {
+          raise("usage: `run compile <sdql_files>*`")
         }
-        val sdqlFilePath = args(1)
-        val prog = SourceCode.fromFile(sdqlFilePath).exp
-        val res = Compiler(prog)
-        println(compile(sdqlFilePath, res))
+        for (sdqlFilePath <- args.drop(1)) {
+          val prog = SourceCode.fromFile(sdqlFilePath).exp
+          val res = Compiler(prog)
+          println(sdqlFilePath)
+          println(compile(sdqlFilePath, res))
+          println()
+        }
       case arg =>
         raise(s"`run $arg` not supported")
     }
