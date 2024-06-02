@@ -46,6 +46,10 @@ object Main {
     }
   }
 
+  // clang-format -i q1.cpp -style="{ColumnLimit: 120}"
+  // && clang++ -std=c++20 q1.cpp
+  // && ./q1.out
+  // && rm q1.out
   private def compile(sdqlFilePath: String, cpp: String) = {
     val noExtension = reFilename.findAllIn(sdqlFilePath).matchData.next().group(2)
     reflect.io.File(mk_cpp(noExtension)).writeAll(cpp)
