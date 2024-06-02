@@ -133,7 +133,6 @@ object Compiler {
     case Cmp(e1, e2, cmp) =>
       (s"${srun(e1)} $cmp ${srun(e2)}", None)
 
-    // TODO hardcoded [i]
     case FieldNode(Sym(name), f) =>
       (s"$name.$f[i]", None)
 
