@@ -1,5 +1,6 @@
 package sdql
 package backend
+
 import munit.Assertions.munitPrint
 import sdql.ir._
 
@@ -19,11 +20,18 @@ object Compiler {
 
   private def uuid = UUID.randomUUID.toString.replace("-", "_")
 
-  // TODO
-  //  for (const auto &[fst, snd] : v_()) {
-  //    std::cout << fst << ':' << snd << std::endl;
-  //  }
-  def apply(e: Exp): String =
+  def apply(e: Exp): String = {
+    val (mainBody, Some((Sym(name), tpe))) = run(e)(Map(), List())
+    val printBody = tpe match {
+      case _: DictType =>
+        s"""
+           |for (const auto &[fst, snd] : $name) {
+           |std::cout << fst << ':' << snd << std::endl;
+           |}
+           |""".stripMargin
+      case _ if tpe.isScalar =>
+        s"std::cout << $name << std::endl;"
+    }
     s"""|#include "parallel_hashmap/phmap.h"
         |#include "rapidcsv.h"
         |#include "tuple_helper.h"
@@ -35,10 +43,13 @@ object Compiler {
         |const auto SEPARATOR = rapidcsv::SeparatorParams('|');
         |
         |int main() {
-        |${run(e)(Map(), List())}
+        |$mainBody
+        |
+        |$printBody
         |}""".stripMargin
+  }
 
-  def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+  def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): (String, Option[(Sym, Type)]) = e match {
     case LetBinding(x @ Sym(name), e1, e2) =>
 //      println("*" * 80)
 //      println(s"${e.getClass} /")
@@ -51,9 +62,11 @@ object Compiler {
 //      println("*" * 40)
 //      println(s"/ ${e.getClass}")
 //      println("*" * 80)
+      val (cpp_e1, _) = run(e1)
       val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1)(typesCtx))
       val callsLocal = List(LetBindingCtx(lhs = name)) ++ callsCtx
-      run(e1) + run(e2)(typesLocal, callsLocal)
+      val (cpp_e2, info @ Some(_)) = run(e2)(typesLocal, callsLocal)
+      (cpp_e1 + cpp_e2, info)
 
     case Sum(k, v, e1, e2) =>
       // infer types of k, v from e1
@@ -80,8 +93,8 @@ object Compiler {
         case _ => raise(s"unhandled type: $tpe")
       }
       val loopBody = e2 match {
-        case _: IfThenElse => run(e2)(typesLocal, List(SumCtx(agg = agg)) ++ callsCtx)
-        case _ => run(e2)(typesCtx ++ typesLocal, callsCtx)
+        case _: IfThenElse => srun(e2)(typesLocal, List(SumCtx(agg = agg)) ++ callsCtx)
+        case _ => srun(e2)(typesCtx ++ typesLocal, callsCtx)
       }
 
       val iter = callsCtx.flatMap(x => condOpt(x) { case LetBindingCtx(lhs) => lhs }).iterator
@@ -90,11 +103,14 @@ object Compiler {
           + s"inside ${LetBinding.getClass.getSimpleName.init}"
           + " needs to know binding variable name"
       )
-      s"""${toCpp(tpe)} $agg($init);
+      (
+        s"""${toCpp(tpe)} $agg($init);
           |const ${name.capitalize} &li = $name;
           |for (int i = 0; i < ${e1_sym.name.toUpperCase()}.GetRowCount(); i++) {
           |$loopBody
-          |}""".stripMargin
+          |}""".stripMargin,
+        Some(Sym(agg), tpe),
+      )
 
     // base case
     case IfThenElse(cond, e1, Const(false)) =>
@@ -102,7 +118,7 @@ object Compiler {
         case _: Const | _: Cmp =>
         case _ => raise(s"unexpected class: ${e1.simpleName}")
       }
-      s"${run(cond)} && ${run(e1)}"
+      (s"${srun(cond)} && ${srun(e1)}", None)
     // recursive case
     case IfThenElse(cond, e1, e2) =>
       val elseBody = e2 match {
@@ -112,34 +128,34 @@ object Compiler {
             |${ifElseBody(e2)}
             |}""".stripMargin
       }
-      s"""if (${run(cond)}) {${ifElseBody(e1)}\n}$elseBody""".stripMargin
+      (s"""if (${srun(cond)}) {${ifElseBody(e1)}\n}$elseBody""".stripMargin, None)
 
     case Cmp(e1, e2, cmp) =>
-      s"${run(e1)} $cmp ${run(e2)}"
+      (s"${srun(e1)} $cmp ${srun(e2)}", None)
 
     // TODO hardcoded [i]
     case FieldNode(Sym(name), f) =>
-      s"$name.$f[i]"
+      (s"$name.$f[i]", None)
 
     case Add(e1, Neg(e2)) =>
-      s"(${run(e1)} - ${run(e2)})"
+      (s"(${srun(e1)} - ${srun(e2)})", None)
     case Add(e1, e2) =>
-      s"(${run(e1)} + ${run(e2)})"
+      (s"(${srun(e1)} + ${srun(e2)})", None)
 
     case Mult(e1, e2) =>
-      s"(${run(e1)} * ${run(e2)})"
+      (s"(${srun(e1)} * ${srun(e2)})", None)
 
     case Neg(e) =>
-      s"-${run(e)}"
+      (s"-${srun(e)}", None)
 
     case Const(DateValue(v)) =>
       val yyyymmdd = reDate.findAllIn(v.toString).matchData.next()
-      s""""${yyyymmdd.group(1)}-${yyyymmdd.group(2)}-${yyyymmdd.group(3)}""""
+      (s""""${yyyymmdd.group(1)}-${yyyymmdd.group(2)}-${yyyymmdd.group(3)}"""", None)
     case Const(v) =>
-      v.toString
+      (v.toString, None)
 
     case DictNode(Nil) =>
-      ""
+      ("", None)
     case DictNode(ArrayBuffer((_, RecNode(values)))) =>
       assert(values.isInstanceOf[ArrayBuffer[(Field, Exp)]])
       val tpe = TypeInference.run(e) match {
@@ -149,7 +165,7 @@ object Compiler {
             s"${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
         )
       }
-      values.map(e => run(e._2)).mkString(s"${toCpp(tpe)}(", ", ", ")")
+      (values.map(e => srun(e._2)).mkString(s"${toCpp(tpe)}(", ", ", ")"), None)
 
     case Load(path, tp) =>
       tp match {
@@ -164,7 +180,7 @@ object Compiler {
               }
             )
             .mkString(s"const ${varName.capitalize} ${varName.toLowerCase} {\n", "\n", "\n};\n")
-          s"$csv\n$struct_def\n$struct_init\n"
+          (s"$csv\n$struct_def\n$struct_init\n", None)
         case _ =>
           raise(s"`load[$tp]('$path')` only supports the type `{ < ... > -> int }`")
       }
@@ -186,7 +202,7 @@ object Compiler {
       case Some(t: DictType) =>
         val keys = e match {
           case DictNode(ArrayBuffer(Tuple2(RecNode(keys), _))) =>
-            keys.map(_._2).map(x => {run(x)(Map(), List())}).mkString(", ")
+            keys.map(_._2).map(x => {srun(x)(Map(), List())}).mkString(", ")
         }
         s"$agg[${toCpp(t.key)}($keys)]"
       case Some(t) if t.isScalar =>
@@ -199,9 +215,11 @@ object Compiler {
     }
     e match {
       case DictNode(Nil) => ""
-      case _ => s"$lhs += ${run(e)};"
+      case _ => s"$lhs += ${srun(e)};"
     }
   }
+
+  def srun(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = run(e)._1
 
   private def toCpp(tpe: ir.Type): String = tpe match {
     case RealType => "double"
