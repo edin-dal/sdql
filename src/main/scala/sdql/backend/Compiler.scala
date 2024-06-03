@@ -15,7 +15,6 @@ object Compiler {
   private case class LetBindingCtx(lhs: String) extends CallCtx
   private case class SumCtx(agg: String) extends CallCtx
 
-  private val reFilename = "^(.+/)*(.+)\\.(.+)$".r
   private val reDate =  "(^\\d{4})(\\d{2})(\\d{2})$".r
 
   private def uuid = UUID.randomUUID.toString.replace("-", "_")
@@ -65,9 +64,12 @@ object Compiler {
 //      println(s"/ ${e.getClass}")
 //      println("*" * 80)
       val cpp_e1 = e1 match {
-        case _: External => s"auto $name = ${srun(e1)};"
-        // TODO get rid of this case
-        case _ => srun(e1)
+        case Load(path, tp) =>
+          s"""const rapidcsv::Document ${name.toUpperCase}("$path", NO_HEADERS, SEPARATOR);
+             |
+             |${load(name, path, tp)};""".stripMargin
+        case _ =>
+          s"auto $name = ${srun(e1)};"
       }
       val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
       val callsLocal = List(LetBindingCtx(lhs = name)) ++ callsCtx
@@ -193,28 +195,25 @@ object Compiler {
         case _ => raise(s"unhandled function name: $name")
       }
 
-    case Load(path, tp) =>
-      tp match {
-        case DictType(RecordType(fs), IntType) =>
-          val varName = reFilename.findAllIn(path).matchData.next().group(2)
-          val csv = s"""const rapidcsv::Document ${varName.toUpperCase}("$path", NO_HEADERS, SEPARATOR);\n"""
-          val struct_def = fs.map(attr => s"std::vector<${toCpp(attr.tpe)}> ${attr.name};")
-            .mkString(s"struct ${varName.capitalize} {\n", "\n", "\n};\n")
-          val struct_init = fs.zipWithIndex.map(
-              {
-                case (attr, i) => s"${varName.toUpperCase}.GetColumn<${toCpp(attr.tpe)}>($i),"
-              }
-            )
-            .mkString(s"const ${varName.capitalize} ${varName.toLowerCase} {\n", "\n", "\n};\n")
-          (s"$csv\n$struct_def\n$struct_init\n", None)
-        case _ =>
-          raise(s"`load[$tp]('$path')` only supports the type `{ < ... > -> int }`")
-      }
-
     case _ => raise(
       f"""Unhandled ${e.simpleName} in
          |${munitPrint(e)}""".stripMargin
     )
+  }
+
+  private def load(varName: String, path: String, tp: Type): String = tp match {
+    case DictType(RecordType(fs), IntType) =>
+      val struct_def = fs.map(attr => s"std::vector<${toCpp(attr.tpe)}> ${attr.name};")
+        .mkString(s"struct ${varName.capitalize} {\n", "\n", "\n};\n")
+      val struct_init = fs.zipWithIndex.map(
+          {
+            case (attr, i) => s"${varName.toUpperCase}.GetColumn<${toCpp(attr.tpe)}>($i),"
+          }
+        )
+        .mkString(s"const ${varName.capitalize} ${varName.toLowerCase} {\n", "\n", "\n};\n")
+      s"$struct_def\n$struct_init\n"
+    case _ =>
+      raise(s"`load[$tp]('$path')` only supports the type `{ < ... > -> int }`")
   }
 
   private def ifElseBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
