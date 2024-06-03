@@ -27,6 +27,12 @@ object TypeInference {
       case Neg(e) =>
         run(e)
 
+      case sym @ Sym(name) =>
+        ctx.get(sym) match {
+          case Some(tpe) => tpe
+          case None => raise(s"unknown name: $name")
+        }
+
       case DictNode(ArrayBuffer((RecNode(keys), RecNode(values)))) =>
         assert(keys.isInstanceOf[ArrayBuffer[(Field, Exp)]])
         assert(values.isInstanceOf[ArrayBuffer[(Field, Exp)]])
@@ -37,12 +43,15 @@ object TypeInference {
       case DictNode(ArrayBuffer((e, _))) =>
         run(e)
 
-      case FieldNode(sym@Sym(name), f) => ctx.get(sym) match {
-        case Some(RecordType(vals)) => vals.find(v => v.name == f) match {
+      case FieldNode(sym@Sym(name), f) => run(sym) match {
+        case RecordType(vals) => vals.find(_.name == f) match {
           case Some(v) => v.tpe
           case _ => raise(s"$name not in $vals")
         }
-        case _ => raise(s"unknown name: $name")
+        case t => raise(
+          s"${Sym.getClass.getSimpleName.init} $name: expected " +
+            s"${Sym.getClass.getSimpleName.init}, not ${t.simpleName}"
+        )
       }
 
       case Const(v) => v match {

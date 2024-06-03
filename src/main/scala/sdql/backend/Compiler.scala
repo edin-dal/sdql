@@ -153,6 +153,9 @@ object Compiler {
     case Const(v) =>
       (v.toString, None)
 
+    case Sym(name) =>
+      (name, None)
+
     case DictNode(Nil) =>
       ("", None)
     case DictNode(ArrayBuffer((_, RecNode(values)))) =>
