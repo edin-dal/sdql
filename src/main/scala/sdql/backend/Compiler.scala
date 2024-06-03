@@ -42,6 +42,8 @@ object Compiler {
         |const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
         |const auto SEPARATOR = rapidcsv::SeparatorParams('|');
         |
+        |class Values { public: int operator [](int _) const { return 1; } };
+        |
         |int main() {
         |$mainBody
         |
@@ -115,6 +117,7 @@ object Compiler {
       (
         s"""${toCpp(tpe)} $agg($init);
           |const ${name.capitalize} &${k.name} = $name;
+          |constexpr auto ${v.name} = Values();
           |for (int i = 0; i < ${e1_sym.name.toUpperCase()}.GetRowCount(); i++) {
           |$loopBody
           |}""".stripMargin,
@@ -167,7 +170,7 @@ object Compiler {
       (v.toString, None)
 
     case Sym(name) =>
-      (name, None)
+      (s"$name[i]", None)
 
     case DictNode(Nil) =>
       ("", None)
