@@ -118,6 +118,8 @@ object Compiler {
         Some(Sym(agg), tpe),
       )
 
+    case IfThenElse(cond, Const(false), Const(true)) =>
+      raise("negation '!' not implemented yet")
     // base case
     case IfThenElse(cond, e1, Const(false)) =>
       e1 match {
