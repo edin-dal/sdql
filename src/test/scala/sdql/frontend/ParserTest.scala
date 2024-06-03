@@ -153,4 +153,8 @@ class ParserTest extends FlatSpec {
     SourceCode.fromFile("progs/tpch/q1.sdql")
     SourceCode.fromFile("progs/tpch/q6.sdql")
   }
+
+  it should "parse JOB" in {
+    SourceCode.fromFile("progs/job/q3a.sdql")
+  }
 }

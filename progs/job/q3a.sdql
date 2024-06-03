@@ -1,0 +1,25 @@
+let mk_trie0 = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
+let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
+    let t_trie1 = t_trie0(x0) in
+	if (t_trie1 != {}) then
+		
+		sum(<mk_off, _> in mk_trie1) 
+			sum(<t_off, _> in t_trie1) 
+				{ <x1=mk_movie_id(mk_off), x2=mk_keyword_id(mk_off), x3=t_title(t_off)> -> true }
+	else 
+	    {}
+
+		
+in 
+sum(<x0, mi_trie1> in mi_trie0)
+    let interm0_trie1 = interm0_trie0(x0) in
+	if (interm0_trie1 != {}) then
+		
+		sum(<x1, interm0_trie2> in interm0_trie1) 
+		    let k_trie1 = k_trie0(x1) in
+			if (k_trie1 != {}) then
+				let mn_interm0_col2 = sum(<interm0_off, _> in interm0_trie2) { interm0_col2(interm0_off) -> true } in
+				<x1=mn_interm0_col2>
+			else 
+			    <x1={}>
+    else {}
