@@ -62,10 +62,14 @@ object Compiler {
 //      println("*" * 40)
 //      println(s"/ ${e.getClass}")
 //      println("*" * 80)
-      val (cpp_e1, _) = run(e1)
+      val cpp_e1 = e1 match {
+        case _: External => s"auto $name = ${srun(e1)};"
+        // TODO get rid of this case
+        case _ => srun(e1)
+      }
       val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
       val callsLocal = List(LetBindingCtx(lhs = name)) ++ callsCtx
-      val (cpp_e2, info @ Some(_)) = run(e2)(typesLocal, callsLocal)
+      val (cpp_e2, info) = run(e2)(typesLocal, callsLocal)
       (cpp_e1 + cpp_e2, info)
 
     case Sum(k, v, e1, e2) =>
@@ -93,19 +97,21 @@ object Compiler {
         case _ => raise(s"unhandled type: $tpe")
       }
       val loopBody = e2 match {
-        case _: IfThenElse => srun(e2)(typesLocal, List(SumCtx(agg = agg)) ++ callsCtx)
-        case _ => srun(e2)(typesCtx ++ typesLocal, callsCtx)
+        case _: LetBinding | _: IfThenElse =>
+          srun(e2)(typesLocal, List(SumCtx(agg = agg)) ++ callsCtx)
+        case _ =>
+          raise(s"unhandled expression ${e2.simpleName} in ${e.simpleName}")
       }
 
       val iter = callsCtx.flatMap(x => condOpt(x) { case LetBindingCtx(lhs) => lhs }).iterator
       val name = if (iter.hasNext) iter.next() else raise(
         s"${Sum.getClass.getSimpleName.init}"
-          + s"inside ${LetBinding.getClass.getSimpleName.init}"
+          + s" inside ${LetBinding.getClass.getSimpleName.init}"
           + " needs to know binding variable name"
       )
       (
         s"""${toCpp(tpe)} $agg($init);
-          |const ${name.capitalize} &li = $name;
+          |const ${name.capitalize} &${k.name} = $name;
           |for (int i = 0; i < ${e1_sym.name.toUpperCase()}.GetRowCount(); i++) {
           |$loopBody
           |}""".stripMargin,
@@ -150,6 +156,8 @@ object Compiler {
     case Const(DateValue(v)) =>
       val yyyymmdd = reDate.findAllIn(v.toString).matchData.next()
       (s""""${yyyymmdd.group(1)}-${yyyymmdd.group(2)}-${yyyymmdd.group(3)}"""", None)
+    case Const(v: String) =>
+      (s""""$v"""", None)
     case Const(v) =>
       (v.toString, None)
 
@@ -173,9 +181,7 @@ object Compiler {
       import ExternalFunctions._
       args match {
         case ArrayBuffer(field: FieldNode, elem, from) if name == StrIndexOf.SYMBOL =>
-          val name = s"v_$uuid"
-          val tpe = TypeInference.run(e)
-          (s"auto $name = ${srun(field)}.find(${srun(elem)}, ${srun(from)})", Some(Sym(name), tpe))
+          (s"${srun(field)}.find(${srun(elem)}, ${srun(from)})", None)
         case _ => raise(s"unhandled function name: $name")
       }
 
@@ -207,7 +213,7 @@ object Compiler {
     val iter = callsCtx.flatMap(x => condOpt(x) { case SumCtx(agg) => agg }).iterator
     val agg = if (iter.hasNext) iter.next() else raise(
       s"${IfThenElse.getClass.getSimpleName.init}"
-        + s"inside ${Sum.getClass.getSimpleName.init}"
+        + s" inside ${Sum.getClass.getSimpleName.init}"
         + " needs to know aggregation variable name"
     )
     val lhs = typesCtx.get(Sym(agg)) match {
@@ -221,7 +227,7 @@ object Compiler {
         agg
       case None => raise(
         s"${IfThenElse.getClass.getSimpleName.init}"
-          + s"inside ${Sum.getClass.getSimpleName.init}"
+          + s" inside ${Sum.getClass.getSimpleName.init}"
           + " needs to know aggregation variable type"
       )
     }
