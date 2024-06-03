@@ -9,7 +9,10 @@ import scala.annotation.tailrec
  * given program.
  */
 sealed trait Exp {
-  def simpleName: String = this.getClass.getSimpleName
+  def simpleName: String = {
+    val name = this.getClass.getSimpleName
+    if (name.endsWith("$")) name.dropRight(1) else name
+  }
 }
 
 /**
