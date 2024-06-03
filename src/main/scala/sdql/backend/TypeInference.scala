@@ -56,10 +56,10 @@ object TypeInference {
 
       case Const(v) => v match {
         case _: DateValue => DateType
-        case v if v.getClass == classOf[Boolean] => BoolType
-        case v if v.getClass == classOf[Integer] => IntType
-        case v if v.getClass == classOf[Double] => RealType
-        case v if v.getClass == classOf[String] => StringType
+        case v if v.getClass == classOf[java.lang.Boolean] => BoolType
+        case v if v.getClass == classOf[java.lang.Integer] => IntType
+        case v if v.getClass == classOf[java.lang.Double] => RealType
+        case v if v.getClass == classOf[java.lang.String] => StringType
         case v => raise(s"unhandled class: ${v.getClass.getSimpleName}")
       }
 
