@@ -40,8 +40,8 @@ object TypeInference {
           TupleType(keys.map(_._2).map(run)),
           TupleType(values.map(_._2).map(run)),
         )
-      case DictNode(ArrayBuffer((e, _))) =>
-        run(e)
+      case DictNode(ArrayBuffer((e1, e2))) =>
+        DictType(run(e1), run(e2))
 
       case FieldNode(sym@Sym(name), f) => run(sym) match {
         case RecordType(vals) => vals.find(_.name == f) match {

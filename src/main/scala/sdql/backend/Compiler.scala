@@ -226,6 +226,9 @@ object Compiler {
         val keys = e match {
           case DictNode(ArrayBuffer(Tuple2(RecNode(keys), _))) =>
             keys.map(_._2).map(x => {srun(x)(Map(), List())}).mkString(", ")
+          case DictNode(ArrayBuffer((e1: FieldNode, e2))) =>
+            // TODO q13
+            ???
         }
         s"$agg[${toCpp(t.key)}($keys)]"
       case Some(t) if t.isScalar =>
