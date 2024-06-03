@@ -96,12 +96,6 @@ object Compiler {
         case DictType(_, _) => "{}"
         case _ => raise(s"unhandled type: $tpe")
       }
-      val loopBody = e2 match {
-        case _: LetBinding | _: IfThenElse =>
-          srun(e2)(typesLocal, List(SumCtx(agg = agg)) ++ callsCtx)
-        case _ =>
-          raise(s"unhandled expression ${e2.simpleName} in ${e.simpleName}")
-      }
 
       val iter = callsCtx.flatMap(x => condOpt(x) { case LetBindingCtx(lhs) => lhs }).iterator
       val name = if (iter.hasNext) iter.next() else raise(
@@ -109,6 +103,15 @@ object Compiler {
           + s" inside ${LetBinding.getClass.getSimpleName.init}"
           + " needs to know binding variable name"
       )
+
+      val callsLocal = List(SumCtx(agg = agg)) ++ callsCtx
+      val loopBody = e2 match {
+        case _: LetBinding | _: IfThenElse =>
+          srun(e2)(typesLocal, callsLocal)
+        case _ =>
+          ifElseBody(e2)(typesLocal, callsLocal)
+      }
+
       (
         s"""${toCpp(tpe)} $agg($init);
           |const ${name.capitalize} &${k.name} = $name;
