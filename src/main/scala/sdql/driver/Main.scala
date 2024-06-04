@@ -67,7 +67,7 @@ object Main {
   ).!!
   private def run(noExtension: String) = s"./${mk_out(noExtension)}".!!
   private def clean(noExtension: String) = s"rm ${mk_out(noExtension)}".!!
-  private def mk_cpp(noExtension: String) = s"compiled/$noExtension.cpp"
-  private def mk_out(noExtension: String) = s"compiled/$noExtension.out"
+  private def mk_cpp(noExtension: String) = s"generated/$noExtension.cpp"
+  private def mk_out(noExtension: String) = s"generated/$noExtension.out"
   private val reFilename = "^(.+/)*(.+)\\.(.+)$".r
 }
