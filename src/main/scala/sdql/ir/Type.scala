@@ -4,6 +4,10 @@ package ir
 sealed trait Type {
   def =~=(o: Type): Boolean = equals(o)
   def isScalar: Boolean = ScalarType.isScalar(this)
+  def simpleName: String = {
+    val name = this.getClass.getSimpleName
+    if (name.endsWith("$")) name.dropRight(1) else name
+  }
 }
 case object BottomType extends Type
 case object StringType extends Type

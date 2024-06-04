@@ -19,12 +19,46 @@ sbt test
 
 ```
 sbt
-run interpret <sdql_file>
+run interpret <path> <sdql_files>*
 ```
 
 For example, to run TPCH Q6, first make sure that the folder `datasets/tpch` contains TPCH tables (with a small scale factor). Then, run the following command:
 
 ```
 sbt
-run interpret progs/tpch/q6.sdql
+run interpret progs/tpch q6.sdql
+```
+
+# Running the Compiler
+
+Similar to the above:
+
+```
+sbt
+run compile <path> <sdql_files>*
+```
+
+For example, to run compiled TPCH Q1 and Q6:
+
+```
+sbt
+run interpret progs/tpch q1.sdql q6.sdql
+```
+
+Note: compilation requires `clang++` and `clang-format` installed.
+
+## TPCH tables format
+
+The data loader does not expect TPCH tables to have end-of-line `|` characters.
+
+Strip them as follows:
+
+```bash
+sed -i 's/|$//' datasets/tpch/*.tbl
+```
+
+On OSX:
+
+```bash
+sed -i '' 's/|$//' datasets/tpch/*.tbl
 ```
