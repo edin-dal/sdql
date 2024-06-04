@@ -142,6 +142,9 @@ object CppCodeGenerator {
       }
       (values.map(e => srun(e._2)).mkString(s"${toCpp(tpe)}(", ", ", ")"), None)
 
+    case Get(e1, e2) =>
+      (s"${srun(e1)}[${srun(e2)}]", None)
+
     case External(name, args) =>
       import ExternalFunctions._
       args match {

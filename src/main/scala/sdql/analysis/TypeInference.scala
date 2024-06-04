@@ -64,6 +64,17 @@ object TypeInference {
         case v => raise(s"unhandled class: ${v.getClass.getSimpleName}")
       }
 
+      case Get(e1: Sym, e2) =>
+        val (kType, vType) = ctx.get(e1) match {
+          case Some(DictType(k_type, v_type)) => (k_type, v_type)
+          case Some(tpe) => raise(
+            s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
+          )
+          case None => raise(s"unknown symbol: $e1")
+        }
+        assert(run(e2) == kType)
+        vType
+
       case External(name, _) =>
         import ExternalFunctions._
         name match {
