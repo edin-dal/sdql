@@ -52,17 +52,6 @@ object Compiler {
 
   def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): (String, Option[(Sym, Type)]) = e match {
     case LetBinding(x @ Sym(name), e1, e2) =>
-//      println("*" * 80)
-//      println(s"${e.getClass} /")
-//      println("*" * 40)
-//      println(s"x: $x")
-//      println("*" * 40)
-//      println(s"e1: ${munitPrint(e1)}")
-//      println("*" * 40)
-//      println(s"e2: ${munitPrint(e2)}")
-//      println("*" * 40)
-//      println(s"/ ${e.getClass}")
-//      println("*" * 80)
       val cpp_e1 = e1 match {
         case Load(path, tp) =>
           s"""const rapidcsv::Document ${name.toUpperCase}("$path", NO_HEADERS, SEPARATOR);
