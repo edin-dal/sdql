@@ -29,6 +29,17 @@ sbt
 run interpret progs/tpch q6.sdql
 ```
 
+# Running the Compiler
+
+Similar to the above:
+
+```
+sbt
+run compile <path> <sdql_files>*
+```
+
+Note: compilation requires `clang++` and `clang-format` installed.
+
 ## TPCH tables format
 
 The data loader does not expect TPCH tables to have end-of-line `|` characters.
