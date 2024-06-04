@@ -47,7 +47,8 @@ object Interpreter {
       op match {
         case "==" => return equal(v1, v2)
         case "!=" => return !equal(v1, v2)
-        case _ => 
+        case "in" => raise("\"in\" comparison not supported by interpreter")
+        case _ =>
       }
       def cmp(d1: Double, d2: Double): Int = {
         @tailrec def findPrec(d: Double, res: Double): Double = 

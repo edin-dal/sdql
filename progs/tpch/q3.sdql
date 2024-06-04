@@ -15,8 +15,7 @@ let o_h =
   sum(<o,o_v> in orders)
     if(
         (o.o_orderdate < date(19950315))
-        // TODO
-        // && (o.o_custkey in c_h)
+        && (o.o_custkey in c_h)
       ) then
       { o.o_orderkey -> < _ = o.o_orderdate, _ = o.o_shippriority > }
     else
@@ -27,8 +26,7 @@ let o_h =
   sum(<li,li_v> in lineitem)
     if(
         (date(19950315) < li.l_shipdate)
-        // TODO
-        // && (li.l_orderkey in o_h)
+        && (li.l_orderkey in o_h)
       ) then
       {
         <

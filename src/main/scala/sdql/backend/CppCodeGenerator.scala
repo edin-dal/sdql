@@ -84,6 +84,15 @@ object CppCodeGenerator {
       }
       (s"""if (${srun(cond)}) {${ifElseBody(e1)}\n}$elseBody""".stripMargin, None)
 
+    case Cmp(e1, e2: Sym, "in") =>
+      TypeInference.run(e2) match {
+        case _: DictType =>
+        case tpe => raise(
+          s"expression ${e2.simpleName} should be of type " +
+            s"${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
+        )
+      }
+      (s"${srun(e2)}.contains(${srun(e1)})", None)
     case Cmp(e1, e2, cmp) =>
       (s"${srun(e1)} $cmp ${srun(e2)}", None)
 
