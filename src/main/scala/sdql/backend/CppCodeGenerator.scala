@@ -15,7 +15,7 @@ object CppCodeGenerator {
   private sealed trait CallCtx
   private case class SumCtx(k:String, v: String, agg: String) extends CallCtx
 
-  private val reDate =  "(^\\d{4})(\\d{2})(\\d{2})$".r
+  private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
 
   private def uuid = UUID.randomUUID.toString.replace("-", "_")
 
