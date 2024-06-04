@@ -31,12 +31,7 @@ object CppCodeGenerator {
       case _ if tpe.isScalar =>
         s"std::cout << $name << std::endl;"
     }
-    s"""|#include "parallel_hashmap/phmap.h"
-        |#include "rapidcsv.h"
-        |#include "tuple_helper.h"
-        |#include <filesystem>
-        |#include <iostream>
-        |#include <regex>
+    s"""|#include "../runtime/headers.h"
         |
         |const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
         |const auto SEPARATOR = rapidcsv::SeparatorParams('|');
