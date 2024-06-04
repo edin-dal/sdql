@@ -63,49 +63,8 @@ object Compiler {
       val (cpp_e2, info) = run(e2)(typesLocal, callsCtx)
       (cpp_e1 + cpp_e2, info)
 
-    // TODO remove type inference code duplication (type inference needs to pass context back)
-    case Sum(k, v, e1, e2) =>
-      // from e1 infer types of k, v
-      val e1Sym = e1 match {
-        case s: Sym => s
-        case _ => raise(s"only ${Sym.getClass.getSimpleName.init} expressions supported")
-      }
-      val (kType, vType) = typesCtx.get(e1Sym) match {
-        case Some(DictType(k_type, v_type)) => (k_type, v_type)
-        case Some(tpe) => raise(
-          s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
-        )
-        case None => raise(s"unknown symbol: $e1Sym")
-      }
-      // from types of k, v infer type of e2
-      var typesLocal = typesCtx ++ Map(k -> kType, v -> vType)
-      val tpe = TypeInference.run(e2)(typesLocal)
-
-      val agg = s"v_$uuid"
-      typesLocal ++= Map(Sym(agg) -> tpe)
-      val init =  tpe match {
-        case RealType | IntType => "0"
-        case DictType(_, _) => "{}"
-        case _ => raise(s"unhandled type: $tpe")
-      }
-
-      val callsLocal = List(SumCtx(k=k.name, v=v.name, agg=agg)) ++ callsCtx
-      val loopBody = e2 match {
-        case _: LetBinding | _: IfThenElse =>
-          srun(e2)(typesLocal, callsLocal)
-        case _ =>
-          ifElseBody(e2)(typesLocal, callsLocal)
-      }
-
-      (
-        s"""${toCpp(tpe)} $agg($init);
-          |const ${e1Sym.name.capitalize} &${k.name} = ${e1Sym.name};
-          |constexpr auto ${v.name} = Values();
-          |for (int i = 0; i < ${e1Sym.name.toUpperCase()}.GetRowCount(); i++) {
-          |$loopBody
-          |}""".stripMargin,
-        Some(Sym(agg), tpe),
-      )
+    case e: Sum =>
+      sum(e)
 
     case IfThenElse(cond, Const(false), Const(true)) =>
       (s"!(${srun(cond)})", None)
@@ -203,6 +162,52 @@ object Compiler {
       s"$struct_def\n$struct_init\n"
     case _ =>
       raise(s"`load[$tp]('$path')` only supports the type `{ < ... > -> int }`")
+  }
+
+  // TODO remove type inference code duplication (type inference needs to pass context back)
+  private def sum(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): (String, Option[(Sym, Type)]) = {
+    val (k, v, e1, e2) = e match { case Sum(k, v, e1, e2) => (k, v, e1, e2) }
+    // from e1 infer types of k, v
+    val e1Sym = e1 match {
+      case s: Sym => s
+      case _ => raise(s"only ${Sym.getClass.getSimpleName.init} expressions supported")
+    }
+    val (kType, vType) = typesCtx.get(e1Sym) match {
+      case Some(DictType(k_type, v_type)) => (k_type, v_type)
+      case Some(tpe) => raise(
+        s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
+      )
+      case None => raise(s"unknown symbol: $e1Sym")
+    }
+    // from types of k, v infer type of e2
+    var typesLocal = typesCtx ++ Map(k -> kType, v -> vType)
+    val tpe = TypeInference.run(e2)(typesLocal)
+
+    val agg = s"v_$uuid"
+    typesLocal ++= Map(Sym(agg) -> tpe)
+    val init =  tpe match {
+      case RealType | IntType => "0"
+      case DictType(_, _) => "{}"
+      case _ => raise(s"unhandled type: $tpe")
+    }
+
+    val callsLocal = List(SumCtx(k=k.name, v=v.name, agg=agg)) ++ callsCtx
+    val loopBody = e2 match {
+      case _: LetBinding | _: IfThenElse =>
+        srun(e2)(typesLocal, callsLocal)
+      case _ =>
+        ifElseBody(e2)(typesLocal, callsLocal)
+    }
+
+    (
+      s"""${toCpp(tpe)} $agg($init);
+         |const ${e1Sym.name.capitalize} &${k.name} = ${e1Sym.name};
+         |constexpr auto ${v.name} = Values();
+         |for (int i = 0; i < ${e1Sym.name.toUpperCase()}.GetRowCount(); i++) {
+         |$loopBody
+         |}""".stripMargin,
+      Some(Sym(agg), tpe),
+    )
   }
 
   private def ifElseBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
