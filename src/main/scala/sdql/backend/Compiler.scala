@@ -56,6 +56,8 @@ object Compiler {
           s"""const rapidcsv::Document ${name.toUpperCase}("$path", NO_HEADERS, SEPARATOR);
              |
              |${load(name, path, tp)}""".stripMargin
+        case e1: Sum =>
+          s"auto $name = ${sum(e1, Some(name))._1}"
         case _ =>
           s"auto $name = ${srun(e1)};"
       }
@@ -164,31 +166,26 @@ object Compiler {
       raise(s"`load[$tp]('$path')` only supports the type `{ < ... > -> int }`")
   }
 
-  // TODO remove type inference code duplication (type inference needs to pass context back)
-  private def sum(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): (String, Option[(Sym, Type)]) = {
-    val (k, v, e1, e2) = e match { case Sum(k, v, e1, e2) => (k, v, e1, e2) }
-    // from e1 infer types of k, v
-    val e1Sym = e1 match {
-      case s: Sym => s
-      case _ => raise(s"only ${Sym.getClass.getSimpleName.init} expressions supported")
-    }
-    val (kType, vType) = typesCtx.get(e1Sym) match {
-      case Some(DictType(k_type, v_type)) => (k_type, v_type)
-      case Some(tpe) => raise(
-        s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
-      )
-      case None => raise(s"unknown symbol: $e1Sym")
-    }
-    // from types of k, v infer type of e2
-    var typesLocal = typesCtx ++ Map(k -> kType, v -> vType)
-    val tpe = TypeInference.run(e2)(typesLocal)
+  private def sum(e: Sum, maybe_agg: Option[String] = None)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): (String, Option[(Sym, Type)]) = {
+    val (k, v, e1Name, e2) = e match { case Sum(k, v, Sym(e1Name), e2) => (k, v, e1Name, e2) }
+    var (tpe, typesLocal) = TypeInference.sum_with_ctx(e)
 
-    val agg = s"v_$uuid"
+    val agg = maybe_agg match {
+      case None => s"v_$uuid"
+      case Some(agg) => agg
+    }
     typesLocal ++= Map(Sym(agg) -> tpe)
-    val init =  tpe match {
+
+    val init_body =  tpe match {
       case RealType | IntType => "0"
       case DictType(_, _) => "{}"
       case _ => raise(s"unhandled type: $tpe")
+    }
+    val init = maybe_agg match {
+      case None => s"${toCpp(tpe)} $agg($init_body);"
+      // when an aggregation variable name is passed
+      // we assume the sum is bound to a let statement
+      case Some(_) => s"${toCpp(tpe)} ($init_body);"
     }
 
     val callsLocal = List(SumCtx(k=k.name, v=v.name, agg=agg)) ++ callsCtx
@@ -200,12 +197,14 @@ object Compiler {
     }
 
     (
-      s"""${toCpp(tpe)} $agg($init);
-         |const ${e1Sym.name.capitalize} &${k.name} = ${e1Sym.name};
+      s"""$init
+         |const ${e1Name.capitalize} &${k.name} = $e1Name;
          |constexpr auto ${v.name} = Values();
-         |for (int i = 0; i < ${e1Sym.name.toUpperCase()}.GetRowCount(); i++) {
+         |for (int i = 0; i < ${e1Name.toUpperCase()}.GetRowCount(); i++) {
          |$loopBody
-         |}""".stripMargin,
+         |}
+         |
+         |""".stripMargin,
       Some(Sym(agg), tpe),
     )
   }

@@ -15,21 +15,8 @@ object TypeInference {
 
   def run(e: Exp)(implicit ctx: Ctx): Type = {
     e match {
-      case Sum(k, v, e1, e2) =>
-        // from e1 infer types of k, v
-        val e1Sym = e1 match {
-          case s: Sym => s
-          case _ => raise(s"only ${Sym.getClass.getSimpleName.init} expressions supported")
-        }
-        val (kType, vType) = ctx.get(e1Sym) match {
-          case Some(DictType(k_type, v_type)) => (k_type, v_type)
-          case Some(tpe) => raise(
-            s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
-          )
-          case None => raise(s"unknown symbol: $e1Sym")
-        }
-        // from types of k, v infer type of e2
-        run(e2)(ctx ++ Map(k -> kType, v -> vType))
+      case e : Sum =>
+        sum_with_ctx(e)._1
 
       case IfThenElse(_, DictNode(Nil), DictNode(Nil)) =>
         raise("both branches empty")
@@ -96,6 +83,21 @@ object TypeInference {
            |${munitPrint(e)}""".stripMargin
       )
     }
+  }
+
+  def sum_with_ctx(e: Sum)(implicit ctx: Ctx): (Type, Ctx) = {
+    val (k, v, e1Sym, e2) = e match { case Sum(k, v, e1Sym: Sym, e2) => (k, v, e1Sym, e2) }
+    // from e1 infer types of k, v
+    val (kType, vType) = ctx.get(e1Sym) match {
+      case Some(DictType(k_type, v_type)) => (k_type, v_type)
+      case Some(tpe) => raise(
+        s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
+      )
+      case None => raise(s"unknown symbol: $e1Sym")
+    }
+    // from types of k, v infer type of e2
+    val localCtx = ctx ++ Map(k -> kType, v -> vType)
+    (run(e2)(localCtx), localCtx)
   }
 
   private def branching(exp: Exp)(implicit ctx: Ctx): Type = {
