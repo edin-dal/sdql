@@ -63,23 +63,24 @@ object Compiler {
       val (cpp_e2, info) = run(e2)(typesLocal, callsCtx)
       (cpp_e1 + cpp_e2, info)
 
+    // TODO remove type inference code duplication (type inference needs to pass context back)
     case Sum(k, v, e1, e2) =>
-      // infer types of k, v from e1
-      val e1_sym = e1 match {
+      // from e1 infer types of k, v
+      val e1Sym = e1 match {
         case s: Sym => s
         case _ => raise(s"only ${Sym.getClass.getSimpleName.init} expressions supported")
       }
-      val (kType, vType) = typesCtx.get(e1_sym) match {
-        case _ @ Some(DictType(k_type, v_type)) => (k_type, v_type)
+      val (kType, vType) = typesCtx.get(e1Sym) match {
+        case Some(DictType(k_type, v_type)) => (k_type, v_type)
         case Some(tpe) => raise(
           s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
         )
-        case None => raise(s"unknown symbol: $e1_sym")
+        case None => raise(s"unknown symbol: $e1Sym")
       }
-      // Note: k and v are bound to local scope, not global
+      // from types of k, v infer type of e2
       var typesLocal = typesCtx ++ Map(k -> kType, v -> vType)
-
       val tpe = TypeInference.run(e2)(typesLocal)
+
       val agg = s"v_$uuid"
       typesLocal ++= Map(Sym(agg) -> tpe)
       val init =  tpe match {
@@ -98,9 +99,9 @@ object Compiler {
 
       (
         s"""${toCpp(tpe)} $agg($init);
-          |const ${e1_sym.name.capitalize} &${k.name} = ${e1_sym.name};
+          |const ${e1Sym.name.capitalize} &${k.name} = ${e1Sym.name};
           |constexpr auto ${v.name} = Values();
-          |for (int i = 0; i < ${e1_sym.name.toUpperCase()}.GetRowCount(); i++) {
+          |for (int i = 0; i < ${e1Sym.name.toUpperCase()}.GetRowCount(); i++) {
           |$loopBody
           |}""".stripMargin,
         Some(Sym(agg), tpe),
