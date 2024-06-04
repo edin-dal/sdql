@@ -55,25 +55,32 @@ object TypeInference {
         )
       }
 
-      case Const(v) => v match {
-        case _: DateValue => DateType
-        case _: Boolean => BoolType
-        case _: Integer => IntType
-        case _: Double => RealType
-        case _: String => StringType
-        case v => raise(s"unhandled class: ${v.getClass.getSimpleName}")
-      }
+      case Const(v) =>
+        any(v)
 
-      case Get(e1: Sym, e2) =>
-        val (kType, vType) = ctx.get(e1) match {
-          case Some(DictType(k_type, v_type)) => (k_type, v_type)
-          case Some(tpe) => raise(
-            s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
+      case Get(e1, e2) => run(e1) match {
+        case RecordType(attrs) => run(e2) match {
+          case IntType => e2 match {
+            case Const(v: Int) => attrs(v).tpe
+            case tpe => raise(
+              s"expected ${Const.getClass.getSimpleName.init}, not ${tpe.simpleName}"
+            )
+          }
+          case tpe => raise(
+            s"expected ${IntType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
           )
-          case None => raise(s"unknown symbol: $e1")
         }
-        assert(run(e2) == kType)
-        vType
+        case DictType(kType, vType) => run(e2) match {
+          case tpe if tpe == kType => vType
+          case tpe => raise(
+            s"can't index with ${tpe.simpleName} from ${DictType.getClass.getSimpleName.init}"
+          )
+        }
+        case tpe => raise(
+          s"expected ${RecordType.getClass.getSimpleName.init} or " +
+            s"${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
+        )
+      }
 
       case External(name, _) =>
         import ExternalFunctions._
@@ -132,5 +139,14 @@ object TypeInference {
       )
     }
     t1Promo
+  }
+
+  private def any(v: Any): Type = v match {
+    case _: DateValue => DateType
+    case _: Boolean => BoolType
+    case _: Integer => IntType
+    case _: Double => RealType
+    case _: String => StringType
+    case v => raise(s"unhandled class: ${v.getClass.getSimpleName}")
   }
 }

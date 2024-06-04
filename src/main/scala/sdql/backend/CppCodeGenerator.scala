@@ -142,8 +142,19 @@ object CppCodeGenerator {
       }
       (values.map(e => srun(e._2)).mkString(s"${toCpp(tpe)}(", ", ", ")"), None)
 
-    case Get(e1, e2) =>
-      (s"${srun(e1)}[${srun(e2)}]", None)
+    case Get(e1, e2) => (
+      TypeInference.run(e1) match {
+        case _: RecordType =>
+          s"std::get<${srun(e2)}>(${srun(e1)})"
+        case _: DictType =>
+          s"${srun(e1)}[${srun(e2)}]"
+        case tpe => raise(
+          s"expected ${RecordType.getClass.getSimpleName.init} or " +
+            s"${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
+        )
+      },
+      None
+    )
 
     case External(name, args) =>
       import ExternalFunctions._
