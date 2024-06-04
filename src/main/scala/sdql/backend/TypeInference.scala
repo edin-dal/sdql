@@ -33,15 +33,13 @@ object TypeInference {
           case None => raise(s"unknown name: $name")
         }
 
-      case DictNode(ArrayBuffer((RecNode(keys), RecNode(values)))) =>
-        assert(keys.isInstanceOf[ArrayBuffer[(Field, Exp)]])
-        assert(values.isInstanceOf[ArrayBuffer[(Field, Exp)]])
-        DictType(
-          TupleType(keys.map(_._2).map(run)),
-          TupleType(values.map(_._2).map(run)),
-        )
+      case DictNode(ArrayBuffer((e1: RecNode, e2: RecNode))) =>
+        DictType(run(e1), run(e2))
       case DictNode(ArrayBuffer((e1, e2))) =>
         DictType(run(e1), run(e2))
+
+      case RecNode(values) =>
+        TupleType(values.map(_._2).map(run))
 
       case FieldNode(sym@Sym(name), f) => run(sym) match {
         case RecordType(vals) => vals.find(_.name == f) match {

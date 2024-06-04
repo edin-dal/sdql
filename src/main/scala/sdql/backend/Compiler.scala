@@ -162,13 +162,15 @@ object Compiler {
 
     case DictNode(Nil) =>
       ("", None)
-    case DictNode(ArrayBuffer((_, RecNode(values)))) =>
-      assert(values.isInstanceOf[ArrayBuffer[(Field, Exp)]])
+    case DictNode(ArrayBuffer((_, e2: RecNode))) =>
+      (srun(e2), None)
+
+    case RecNode(values) =>
       val tpe = TypeInference.run(e) match {
-        case dictTpe: DictType => dictTpe.value
+        case tpe: RecordType => tpe
         case tpe => raise(
           s"expression ${e.simpleName} should be of type " +
-            s"${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
+            s"${RecordType.getClass.getSimpleName.init} not ${tpe.simpleName}"
         )
       }
       (values.map(e => srun(e._2)).mkString(s"${toCpp(tpe)}(", ", ", ")"), None)
