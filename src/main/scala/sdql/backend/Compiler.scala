@@ -12,7 +12,6 @@ object Compiler {
   private type TypesCtx = TypeInference.Ctx
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
-  private case class LetBindingCtx(lhs: String) extends CallCtx
   private case class SumCtx(k:String, v: String, agg: String) extends CallCtx
 
   private val reDate =  "(^\\d{4})(\\d{2})(\\d{2})$".r
@@ -61,8 +60,7 @@ object Compiler {
           s"auto $name = ${srun(e1)};"
       }
       val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
-      val callsLocal = List(LetBindingCtx(lhs = name)) ++ callsCtx
-      val (cpp_e2, info) = run(e2)(typesLocal, callsLocal)
+      val (cpp_e2, info) = run(e2)(typesLocal, callsCtx)
       (cpp_e1 + cpp_e2, info)
 
     case Sum(k, v, e1, e2) =>
@@ -90,13 +88,6 @@ object Compiler {
         case _ => raise(s"unhandled type: $tpe")
       }
 
-      val iter = callsCtx.flatMap(x => condOpt(x) { case LetBindingCtx(lhs) => lhs }).iterator
-      val name = if (iter.hasNext) iter.next() else raise(
-        s"${Sum.getClass.getSimpleName.init}"
-          + s" inside ${LetBinding.getClass.getSimpleName.init}"
-          + " needs to know binding variable name"
-      )
-
       val callsLocal = List(SumCtx(k=k.name, v=v.name, agg=agg)) ++ callsCtx
       val loopBody = e2 match {
         case _: LetBinding | _: IfThenElse =>
@@ -107,7 +98,7 @@ object Compiler {
 
       (
         s"""${toCpp(tpe)} $agg($init);
-          |const ${name.capitalize} &${k.name} = $name;
+          |const ${e1_sym.name.capitalize} &${k.name} = ${e1_sym.name};
           |constexpr auto ${v.name} = Values();
           |for (int i = 0; i < ${e1_sym.name.toUpperCase()}.GetRowCount(); i++) {
           |$loopBody
