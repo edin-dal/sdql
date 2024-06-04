@@ -1,5 +1,5 @@
 package sdql
-package backend
+package analysis
 
 import munit.Assertions.munitPrint
 import sdql.ir._

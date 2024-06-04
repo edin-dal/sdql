@@ -2,6 +2,7 @@ package sdql
 package backend
 
 import munit.Assertions.munitPrint
+import sdql.analysis.TypeInference
 import sdql.ir._
 
 import java.util.UUID
