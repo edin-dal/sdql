@@ -13,7 +13,7 @@ object Compiler {
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
   private case class LetBindingCtx(lhs: String) extends CallCtx
-  private case class SumCtx(agg: String) extends CallCtx
+  private case class SumCtx(k:String, v: String, agg: String) extends CallCtx
 
   private val reDate =  "(^\\d{4})(\\d{2})(\\d{2})$".r
 
@@ -67,7 +67,7 @@ object Compiler {
         case Load(path, tp) =>
           s"""const rapidcsv::Document ${name.toUpperCase}("$path", NO_HEADERS, SEPARATOR);
              |
-             |${load(name, path, tp)};""".stripMargin
+             |${load(name, path, tp)}""".stripMargin
         case _ =>
           s"auto $name = ${srun(e1)};"
       }
@@ -108,7 +108,7 @@ object Compiler {
           + " needs to know binding variable name"
       )
 
-      val callsLocal = List(SumCtx(agg = agg)) ++ callsCtx
+      val callsLocal = List(SumCtx(k=k.name, v=v.name, agg=agg)) ++ callsCtx
       val loopBody = e2 match {
         case _: LetBinding | _: IfThenElse =>
           srun(e2)(typesLocal, callsLocal)
@@ -172,7 +172,13 @@ object Compiler {
       (v.toString, None)
 
     case Sym(name) =>
-      (s"$name[i]", None)
+      val iter = callsCtx.flatMap(x => condOpt(x) { case SumCtx(k, v, _) => (k, v) }).iterator
+      if (iter.hasNext) {
+        val(k, v) = iter.next()
+        if (name == k || name == v)
+          return (s"$name[i]", None)
+      }
+      (name, None)
 
     case DictNode(Nil) =>
       ("", None)
@@ -217,22 +223,20 @@ object Compiler {
   }
 
   private def ifElseBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
-    val iter = callsCtx.flatMap(x => condOpt(x) { case SumCtx(agg) => agg }).iterator
+    val iter = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, agg) => agg }).iterator
     val agg = if (iter.hasNext) iter.next() else raise(
       s"${IfThenElse.getClass.getSimpleName.init}"
         + s" inside ${Sum.getClass.getSimpleName.init}"
         + " needs to know aggregation variable name"
     )
     val lhs = typesCtx.get(Sym(agg)) match {
-      case Some(t: DictType) =>
-        val keys = e match {
-          case DictNode(ArrayBuffer(Tuple2(RecNode(keys), _))) =>
-            keys.map(_._2).map(x => {srun(x)(Map(), List())}).mkString(", ")
-          case DictNode(ArrayBuffer((e1: FieldNode, e2))) =>
-            // TODO q13
-            ???
+      case Some(t: DictType) => e match {
+        case DictNode(ArrayBuffer((RecNode(keys), _))) =>
+          val ks = keys.map(_._2).map(x => {srun(x)(Map(), List())}).mkString(", ")
+          s"$agg[${toCpp(t.key)}($ks)]"
+        case DictNode(ArrayBuffer((e1: FieldNode, _))) =>
+          s"$agg[${srun(e1)}]"
         }
-        s"$agg[${toCpp(t.key)}($keys)]"
       case Some(t) if t.isScalar =>
         agg
       case None => raise(
@@ -243,6 +247,7 @@ object Compiler {
     }
     e match {
       case DictNode(Nil) => ""
+      case DictNode(ArrayBuffer((_: FieldNode, e2))) => s"$lhs += ${srun(e2)};"
       case _ => s"$lhs += ${srun(e)};"
     }
   }
