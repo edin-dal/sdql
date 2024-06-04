@@ -9,7 +9,7 @@ import java.util.UUID
 import scala.PartialFunction.condOpt
 import scala.collection.mutable.ArrayBuffer
 
-object Compiler {
+object CppCodeGenerator {
   private type TypesCtx = TypeInference.Ctx
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx

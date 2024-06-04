@@ -36,7 +36,7 @@ object Main {
         for (fileName <- args.drop(2)) {
           val filePath = dirPath.resolve(fileName)
           val prog = SourceCode.fromFile(filePath.toString).exp
-          val res = Compiler(prog)
+          val res = CppCodeGenerator(prog)
           println(fileName)
           println(compile(filePath.toString, res))
           println()
