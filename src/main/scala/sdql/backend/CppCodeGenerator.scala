@@ -6,14 +6,14 @@ import sdql.analysis.TypeInference
 import sdql.ir._
 
 import java.util.UUID
-import scala.PartialFunction.condOpt
+import scala.PartialFunction.{cond, condOpt}
 import scala.collection.mutable.ArrayBuffer
 
 object CppCodeGenerator {
   private type TypesCtx = TypeInference.Ctx
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
-  private case class SumCtx(k:String, v: String, agg: String) extends CallCtx
+  private case class LoopCtx(k:String, v: String, agg: String, isSum: Boolean) extends CallCtx
 
   private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
 
@@ -52,8 +52,8 @@ object CppCodeGenerator {
           s"""const rapidcsv::Document ${name.toUpperCase}("$path", NO_HEADERS, SEPARATOR);
              |
              |${load(name, path, tp)}""".stripMargin
-        case e1: Sum =>
-          s"auto $name = ${sum(e1, Some(name))._1}"
+        case _: ForLoop | _: Sum =>
+          s"auto $name = ${generate_loop(e1, Some(name))._1}"
         case _ =>
           s"auto $name = ${srun(e1)};"
       }
@@ -61,8 +61,8 @@ object CppCodeGenerator {
       val (cpp_e2, info) = run(e2)(typesLocal, callsCtx)
       (cpp_e1 + cpp_e2, info)
 
-    case e: Sum =>
-      sum(e)
+    case _: ForLoop | _: Sum =>
+      generate_loop(e)
 
     case IfThenElse(cond, Const(false), Const(true)) =>
       (s"!(${srun(cond)})", None)
@@ -119,7 +119,7 @@ object CppCodeGenerator {
       (v.toString, None)
 
     case Sym(name) =>
-      val iter = callsCtx.flatMap(x => condOpt(x) { case SumCtx(k, v, _) => (k, v) }).iterator
+      val iter = callsCtx.flatMap(x => condOpt(x) { case LoopCtx(k, v, _, _) => (k, v) }).iterator
       if (iter.hasNext) {
         val(k, v) = iter.next()
         if (name == k || name == v)
@@ -185,9 +185,10 @@ object CppCodeGenerator {
       raise(s"`load[$tp]('$path')` only supports the type `{ < ... > -> int }`")
   }
 
-  private def sum(e: Sum, maybe_agg: Option[String] = None)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): (String, Option[(Sym, Type)]) = {
-    val (k, v, e1Name, e2) = e match { case Sum(k, v, Sym(e1Name), e2) => (k, v, e1Name, e2) }
-    var (tpe, typesLocal) = TypeInference.sum_with_ctx(e)
+  private def generate_loop(e: Exp, maybe_agg: Option[String] = None)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): (String, Option[(Sym, Type)]) = {
+    val (k, v, e1, e2) = TypeInference.unpack_loop(e)
+    val e1Name = e1 match { case Sym(e1Name) => e1Name }
+    var (tpe, typesLocal) = TypeInference.loop_infer_type_and_ctx(e)
 
     val agg = maybe_agg match {
       case None => s"v_$uuid"
@@ -207,7 +208,8 @@ object CppCodeGenerator {
       case Some(_) => s"${toCpp(tpe)} ($init_body);"
     }
 
-    val callsLocal = List(SumCtx(k=k.name, v=v.name, agg=agg)) ++ callsCtx
+    val isSum = cond(e) { case _: Sum => true }
+    val callsLocal = List(LoopCtx(k=k.name, v=v.name, agg=agg, isSum=isSum)) ++ callsCtx
     val loopBody = e2 match {
       case _: LetBinding | _: IfThenElse =>
         srun(e2)(typesLocal, callsLocal)
@@ -229,21 +231,22 @@ object CppCodeGenerator {
   }
 
   private def ifElseBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
-    val iter = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, agg) => agg }).iterator
-    val agg = if (iter.hasNext) iter.next() else raise(
+    val iter = callsCtx.flatMap(x => condOpt(x) { case LoopCtx(_, _, agg, isSum) => (agg, isSum) }).iterator
+    val (agg, isSum) = if (iter.hasNext) iter.next() else raise(
       s"${IfThenElse.getClass.getSimpleName.init}"
         + s" inside ${Sum.getClass.getSimpleName.init}"
-        + " needs to know aggregation variable name"
+        + " needs to know sum context"
     )
+
     val lhs = typesCtx.get(Sym(agg)) match {
-      case Some(t: DictType) => e match {
-        case DictNode(ArrayBuffer((RecNode(keys), _))) =>
-          val ks = keys.map(_._2).map(x => {srun(x)}).mkString(", ")
-          s"$agg[${toCpp(t.key)}($ks)]"
-        case DictNode(ArrayBuffer((e1: FieldNode, _))) =>
+      case Some(_: DictType) => e match {
+        case DictNode(ArrayBuffer((e1, e2))) =>
+          if (!isSum)
+            return s"$agg.emplace(${srun(e1)}, ${srun(e2)});"
           s"$agg[${srun(e1)}]"
         }
       case Some(t) if t.isScalar =>
+        assert(isSum)
         agg
       case None => raise(
         s"${IfThenElse.getClass.getSimpleName.init}"
