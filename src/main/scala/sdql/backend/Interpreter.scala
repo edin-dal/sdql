@@ -47,7 +47,7 @@ object Interpreter {
       op match {
         case "==" => return equal(v1, v2)
         case "!=" => return !equal(v1, v2)
-        case "in" => raise("\"in\" comparison not supported by interpreter")
+        case "∈" => raise("contains comparison \"∈\" not supported by interpreter")
         case _ =>
       }
       def cmp(d1: Double, d2: Double): Int = {
@@ -107,6 +107,7 @@ object Interpreter {
         case _ =>
           raise(s"`concat($v1,$v2)` needs records, but given `${v1.getClass}`, `${v2.getClass}`")
       }
+    case _: ForLoop => raise("\"for\" loop not supported by interpreter")
     case Sum(k, v, e1, e2) =>
       val v1 = run(e1)
       v1 match {

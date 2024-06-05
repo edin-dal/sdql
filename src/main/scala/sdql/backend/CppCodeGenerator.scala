@@ -84,7 +84,7 @@ object CppCodeGenerator {
       }
       (s"""if (${srun(cond)}) {${ifElseBody(e1)}\n}$elseBody""".stripMargin, None)
 
-    case Cmp(e1, e2: Sym, "in") =>
+    case Cmp(e1, e2: Sym, "∈") =>
       TypeInference.run(e2) match {
         case _: DictType =>
         case tpe => raise(
