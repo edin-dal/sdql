@@ -237,27 +237,19 @@ object CppCodeGenerator {
         + s" inside ${Sum.getClass.getSimpleName.init}"
         + " needs to know sum context"
     )
-
-    val lhs = typesCtx.get(Sym(agg)) match {
-      case Some(_: DictType) => e match {
-        case DictNode(ArrayBuffer((e1, e2))) =>
-          if (!isSum)
-            return s"$agg.emplace(${srun(e1)}, ${srun(e2)});"
-          s"$agg[${srun(e1)}]"
-        }
-      case Some(t) if t.isScalar =>
+     e match {
+      case DictNode(Nil) =>
+        ""
+      case DictNode(ArrayBuffer((e1, e2))) =>
+        assert(cond(typesCtx.get(Sym(agg))) { case Some(_: DictType) => true })
+        if (isSum)
+          s"$agg[${srun(e1)}] += ${srun(e2)};"
+        else
+          s"$agg.emplace(${srun(e1)}, ${srun(e2)});"
+      case _ =>
+        assert(cond(typesCtx.get(Sym(agg))) { case Some(t) => t.isScalar })
         assert(isSum)
-        agg
-      case None => raise(
-        s"${IfThenElse.getClass.getSimpleName.init}"
-          + s" inside ${Sum.getClass.getSimpleName.init}"
-          + " needs to know aggregation variable type"
-      )
-    }
-    e match {
-      case DictNode(Nil) => ""
-      case DictNode(ArrayBuffer((_: FieldNode, e2))) => s"$lhs += ${srun(e2)};"
-      case _ => s"$lhs += ${srun(e)};"
+        s"$agg += ${srun(e)};"
     }
   }
 
