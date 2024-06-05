@@ -1,25 +1,32 @@
-let mk_trie0 = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
-let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
-    let t_trie1 = t_trie0(x0) in
-	if (t_trie1 != {}) then
-		
-		sum(<mk_off, _> in mk_trie1) 
-			sum(<t_off, _> in t_trie1) 
-				{ <x1=mk_movie_id(mk_off), x2=mk_keyword_id(mk_off), x3=t_title(t_off)> -> true }
-	else 
-	    {}
+let mk = load[{<id: int, movie_id: int, keyword_id: int> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/movie_keyword.csv")
+let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/3a/t.csv")
+let mi = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/3a/mi.csv")
+let k = load[{<id: int, keyword: string, phonetic_code: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/3a/k.csv")
 
-		
-in 
-sum(<x0, mi_trie1> in mi_trie0)
-    let interm0_trie1 = interm0_trie0(x0) in
+let mk_trie0 = sum(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> mk_tuple } in
+let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> t_tuple } in
+let mi_trie0 = sum(<mi_tuple, _> <- mi) { mi_tuple.movie_id -> mi_tuple } in
+let k_trie0 = sum(<k_tuple, _> <- k) { k_tuple.id -> k_tuple } in
+
+let interm0 = sum(<x0, mk_trie1> <- mk_trie0)
+	let t_trie1 = t_trie0(x0) in
+	if (t_trie1 != {}) then
+		sum(<mk_tuple, _> <- mk_trie1)
+			sum(<t_tuple, _> <- t_trie1)
+				{ mk_tuple.movie_id -> { mk_tuple.keyword_id -> <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=t_tuple.title> } }
+	else
+		{}
+in
+
+sum(<x0, mi_trie1> <- mi_trie0)
+	let interm0_trie1 = interm0_trie0(x0) in
 	if (interm0_trie1 != {}) then
-		
-		sum(<x1, interm0_trie2> in interm0_trie1) 
-		    let k_trie1 = k_trie0(x1) in
+		sum(<x1, interm0_trie2> <- interm0_trie1)
+			let k_trie1 = k_trie0(x1) in
 			if (k_trie1 != {}) then
-				let mn_interm0_col2 = sum(<interm0_off, _> in interm0_trie2) { interm0_col2(interm0_off) -> true } in
-				<x1=mn_interm0_col2>
-			else 
-			    <x1={}>
-    else {}
+				let mn_interm0_col2 = sum(<interm0_tuple, _> <- interm0_trie2) interm0_tuple.col2 in
+				<col2=mn_interm0_col2>
+			else
+				<col2={}>
+	else
+		{}
