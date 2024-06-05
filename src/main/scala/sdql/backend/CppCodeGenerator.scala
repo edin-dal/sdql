@@ -238,7 +238,7 @@ object CppCodeGenerator {
     val lhs = typesCtx.get(Sym(agg)) match {
       case Some(t: DictType) => e match {
         case DictNode(ArrayBuffer((RecNode(keys), _))) =>
-          val ks = keys.map(_._2).map(x => {srun(x)(Map(), List())}).mkString(", ")
+          val ks = keys.map(_._2).map(x => {srun(x)}).mkString(", ")
           s"$agg[${toCpp(t.key)}($ks)]"
         case DictNode(ArrayBuffer((e1: FieldNode, _))) =>
           s"$agg[${srun(e1)}]"

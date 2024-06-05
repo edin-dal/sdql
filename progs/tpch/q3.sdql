@@ -30,9 +30,9 @@ let o_h =
       ) then
       {
         <
-          _ = li.l_orderkey
-          // _ = o_h(li.l_orderkey)(0)
-          // _ = o_h(li.l_orderkey)(1)
+          _ = li.l_orderkey,
+          _ = o_h(li.l_orderkey)(0),
+          _ = o_h(li.l_orderkey)(1)
         > ->
          < _ = li.l_extendedprice * (1 - li.l_discount) >
       }
