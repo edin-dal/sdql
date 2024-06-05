@@ -45,7 +45,7 @@ object TypeInference {
         DictType(run(e1), run(e2))
 
       case RecNode(values) =>
-        TupleType(values.map(_._2).map(run))
+        RecordType(values.map(v => Attribute(name=v._1, tpe=run(v._2))))
 
       case FieldNode(sym@Sym(name), f) => run(sym) match {
         case RecordType(vals) => vals.find(_.name == f) match {
