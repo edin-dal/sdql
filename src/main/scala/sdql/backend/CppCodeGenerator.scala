@@ -23,11 +23,9 @@ object CppCodeGenerator {
     val (mainBody, Some((Sym(name), tpe))) = run(e)(Map(), List())
     val printBody = tpe match {
       case _: DictType =>
-        s"""
-           |for (const auto &[key, val] : $name) {
+        s"""for (const auto &[key, val] : $name) {
            |std::cout << key << ':' << val << std::endl;
-           |}
-           |""".stripMargin
+           |}""".stripMargin
       case _ if tpe.isScalar =>
         s"std::cout << $name << std::endl;"
     }
@@ -35,23 +33,22 @@ object CppCodeGenerator {
         |
         |const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
         |const auto SEPARATOR = rapidcsv::SeparatorParams('|');
-        |
+        |${makeCsvBody(e)}
         |class Values { public: int operator [](int _) const { return 1; } };
         |
         |int main() {
         |$mainBody
-        |
         |$printBody
-        |}""".stripMargin
+        |}
+        |""".stripMargin
   }
 
   def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): (String, Option[(Sym, Type)]) = e match {
     case LetBinding(x @ Sym(name), e1, e2) =>
       val cpp_e1 = e1 match {
-        case Load(path, tp) =>
-          s"""const rapidcsv::Document ${name.toUpperCase}("$path", NO_HEADERS, SEPARATOR);
-             |
-             |${load(name, path, tp)}""".stripMargin
+        case Load(_, DictType(RecordType(_), IntType)) =>
+          // handled in a previous separate tree traversal
+          ""
         case _: ForLoop | _: Sum =>
           s"auto $name = ${generate_loop(e1, Some(name))._1}"
         case _ =>
@@ -170,21 +167,6 @@ object CppCodeGenerator {
     )
   }
 
-  private def load(varName: String, path: String, tp: Type): String = tp match {
-    case DictType(RecordType(fs), IntType) =>
-      val struct_def = fs.map(attr => s"std::vector<${toCpp(attr.tpe)}> ${attr.name};")
-        .mkString(s"struct ${varName.capitalize} {\n", "\n", "\n};\n")
-      val struct_init = fs.zipWithIndex.map(
-          {
-            case (attr, i) => s"${varName.toUpperCase}.GetColumn<${toCpp(attr.tpe)}>($i),"
-          }
-        )
-        .mkString(s"const ${varName.capitalize} ${varName.toLowerCase} {\n", "\n", "\n};\n")
-      s"$struct_def\n$struct_init\n"
-    case _ =>
-      raise(s"`load[$tp]('$path')` only supports the type `{ < ... > -> int }`")
-  }
-
   private def generate_loop(e: Exp, maybe_agg: Option[String] = None)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): (String, Option[(Sym, Type)]) = {
     val (k, v, e1, e2) = TypeInference.unpack_loop(e)
     val e1Name = e1 match { case Sym(e1Name) => e1Name }
@@ -204,7 +186,7 @@ object CppCodeGenerator {
     val init = maybe_agg match {
       case None => s"${toCpp(tpe)} $agg($init_body);"
       // when an aggregation variable name is passed
-      // we assume the sum is bound to a let statement
+      // we assume the loop is bound to a let statement
       case Some(_) => s"${toCpp(tpe)} ($init_body);"
     }
 
@@ -221,7 +203,7 @@ object CppCodeGenerator {
       s"""$init
          |const ${e1Name.capitalize} &${k.name} = $e1Name;
          |constexpr auto ${v.name} = Values();
-         |for (int i = 0; i < ${e1Name.toUpperCase()}.GetRowCount(); i++) {
+         |for (int i = 0; i < ${e1Name.toLowerCase}.size(); i++) {
          |$loopBody
          |}
          |
@@ -263,4 +245,97 @@ object CppCodeGenerator {
     case RecordType(attrs) => attrs.map(_.tpe).map(toCpp).mkString("std::tuple<", ", ", ">")
     case tpe => raise(s"unimplemented type: $tpe")
   }
+
+  private def makeCsvBody(e: Exp): String = {
+    val pathNameAttrs =
+      flattenExps(e)
+        .flatMap(
+          e => condOpt(e) {
+            case LetBinding(Sym(name), Load(path, DictType(RecordType(attrs), IntType)), _) =>
+              (path, name, attrs)
+          }
+        )
+        .distinct
+
+    val csvConsts =
+      pathNameAttrs.map({ case (path, name, _) => makeCsvConst(name, path) } ).mkString("", "\n", "\n")
+    val structDefs =
+      pathNameAttrs.map({ case (_, name, attrs) => makeStructDef(name, attrs) } ).mkString("\n")
+    val structInits =
+      pathNameAttrs.map({ case (_, name, attrs) => makeStructInit(name, attrs) } ).mkString("\n")
+
+    List(csvConsts, structDefs, structInits).mkString("\n")
+  }
+
+  private def makeCsvConst(name: String, path: String): String = {
+    s"""const rapidcsv::Document ${name.toUpperCase}("$path", NO_HEADERS, SEPARATOR);"""
+  }
+
+  private def makeStructDef(name: String, attrs: Seq[Attribute]): String = {
+    attrs.map(attr => s"std::vector<${toCpp(attr.tpe)}> ${attr.name};")
+      .mkString(
+        s"struct ${name.capitalize} {\n",
+        "\n",
+        s"""
+           |static unsigned long size() { return ${name.toUpperCase}.GetRowCount(); }
+           |};
+           |""".stripMargin
+      )
+  }
+
+  private def makeStructInit(name: String, attrs: Seq[Attribute]): String =
+    attrs.zipWithIndex.map(
+        {
+          case (attr, i) => s"${name.toUpperCase}.GetColumn<${toCpp(attr.tpe)}>($i),"
+        }
+      )
+      .mkString(s"const ${name.capitalize} ${name.toLowerCase} {\n", "\n", "\n};\n")
+
+  private def flattenExps(e: Exp): List[Exp] =
+    List(e) ++ (
+      e match {
+        // 0-ary
+        case _: Sym | _: Const | _: RangeNode | _: Load =>
+          List()
+        // 1-ary
+        case Neg(e) =>
+          flattenExps(e)
+        case FieldNode(e, _) =>
+          flattenExps(e)
+        case Promote(_, e) =>
+          flattenExps(e)
+        // 2-ary
+        case Add(e1, e2) =>
+          flattenExps(e1) ++ flattenExps(e2)
+        case Mult(e1, e2) =>
+          flattenExps(e1) ++ flattenExps(e2)
+        case Cmp(e1, e2, _) =>
+          flattenExps(e1) ++ flattenExps(e2)
+        case ForLoop(_, _, e1, e2) =>
+          flattenExps(e1) ++ flattenExps(e2)
+        case Sum(_, _, e1, e2) =>
+          flattenExps(e1) ++ flattenExps(e2)
+        case Get(e1, e2) =>
+          flattenExps(e1) ++ flattenExps(e2)
+        case Concat(e1, e2) =>
+          flattenExps(e1) ++ flattenExps(e2)
+        case LetBinding(_, e1, e2) =>
+          flattenExps(e1) ++ flattenExps(e2)
+        // 3-ary
+        case IfThenElse(e1, e2, e3) =>
+          flattenExps(e1) ++ flattenExps(e2) ++ flattenExps(e3)
+        // n-ary
+        case RecNode(values) =>
+          values.map(_._2).flatMap(flattenExps).toList
+        case DictNode(dict) =>
+          dict.flatMap(x => flattenExps(x._1) ++ flattenExps(x._2)).toList
+        case External(_, args) =>
+          args.flatMap(flattenExps).toList
+        // unhandled
+        case _ => raise(
+          f"""Unhandled ${e.simpleName} in
+             |${munitPrint(this)}""".stripMargin
+        )
+      }
+      )
 }
