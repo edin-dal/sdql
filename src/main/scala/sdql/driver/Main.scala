@@ -56,9 +56,7 @@ object Main {
     reflect.io.File(cppPath(noExtension).toString).writeAll(cpp)
     in_generated(clang_format(noExtension)).!!
     in_generated(clang(noExtension)).!!
-    val res = in_generated(run(noExtension)).!!
-    in_generated(clean(noExtension)).!!
-    res
+    in_generated(run(noExtension)).!!
   }
   private def clang_format(noExtension: String) = Seq(
     "clang-format", "-i", s"$noExtension.cpp", "-style", "{ColumnLimit: 120}"
@@ -67,7 +65,6 @@ object Main {
     "clang++", "--std", "c++20", s"$noExtension.cpp", "-o", s"$noExtension.out"
   )
   private def run(noExtension: String) = Seq(s"./$noExtension.out")
-  private def clean(noExtension: String) = Seq("rm", s"$noExtension.out")
   private def in_generated(seq: Seq[String]) = sys.process.Process(seq, generatedDir)
   private def cppPath(noExtension: String) = Paths.get(generatedDir.toString, s"$noExtension.cpp")
   private val generatedDir = new java.io.File("generated")
