@@ -33,6 +33,7 @@ object Main {
         }
         val dirPath = Path.of(args(1))
         val fileNames = args.drop(2)
+        cmake(dirPath, fileNames)
         for (fileName <- fileNames) {
           val filePath = dirPath.resolve(fileName)
           val prog = SourceCode.fromFile(filePath.toString).exp
@@ -41,7 +42,6 @@ object Main {
           println(compile(filePath, res))
           println()
         }
-        cmake(dirPath, fileNames)
       case arg =>
         raise(s"`run $arg` not supported")
     }
