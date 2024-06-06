@@ -1,0 +1,58 @@
+let part = load[{<p_partkey: int, p_name: string, p_mfgr: string, p_brand: string, p_type: string, p_size: int, p_container: string, p_retailprice: double, p_comment: string> -> int}]("datasets/tpch/part.tbl")
+
+let supplier = load[{<s_suppkey: int, s_name: string, s_address: string, s_nationkey: int, s_phone: string, s_acctbal: double, s_comment: string> -> int}]("datasets/tpch/supplier.tbl")
+
+let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
+
+let partsupp = load[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_supplycost: double, ps_comment: string> -> int}]("datasets/tpch/partsupp.tbl")
+
+let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_totalprice: double, o_orderdate: date, o_orderpriority: string, o_clerk: string, o_shippriority: int, o_comment: string> -> int}]("datasets/tpch/orders.tbl")
+
+let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
+
+let n_h =
+  for(<n,n_v> in nation)
+    { n.n_nationkey -> < _ = n.n_name > }
+
+let s_h =
+  for(<s,s_v> in supplier)
+    { s.s_suppkey -> n_h(s.s_nationkey)(0) }
+
+let p_h =
+  for(<p,p_v> in part)
+    let idx = ext(`StrIndexOf`, p.p_name, "green", 0)
+    if(idx != -1) then
+      { p.p_partkey -> < _ = p.p_partkey > }
+    else
+      { }
+
+let ps_h =
+  for(<ps,ps_v> in partsupp)
+    if(ps.ps_partkey ∈ p_h) then
+      { < _ = ps.ps_partkey, _ = ps.ps_suppkey > -> < _ = s_h(ps.ps_suppkey), _ = ps.ps_supplycost > }
+    else
+      { }
+
+// TODO sdqlpy stores o_h as a vector
+let o_h =
+  for(<o,o_v> in orders)
+    { o.o_orderkey -> o.o_orderdate }
+
+// TODO
+// let li_h =
+  sum(<li,li_v> <- lineitem)
+    if(< _ = li.l_partkey, _ = li.l_suppkey > ∈ ps_h) then
+      {
+        <
+          nation = ps_h(< _ = li.l_partkey, _ = li.l_suppkey >)(0),
+           o_year = ext(`SubString`, o_h(li.l_orderkey), 0, 4)
+        > ->
+         < um_profit = li.l_extendedprice * (1.0 - li.l_discount) - ps_h(< _ = li.l_partkey, _ = li.l_suppkey >)(1) * li.l_quantity >
+      }
+    else
+      { }
+
+// TODO flatten li_h by concatenating keys and values (map to 1)
+// note: sum or for loop should both work as keys are distinct
+// for(<k, v> <- li_h)
+//  { < nation = k.nation, o_year = k.o_year, um_profit = v.um_profit > -> 1 }
