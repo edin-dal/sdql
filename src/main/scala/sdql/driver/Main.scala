@@ -5,8 +5,7 @@ import sdql.backend._
 import sdql.frontend._
 import sdql.ir._
 
-import java.nio.file.Path
-import scala.sys.process._
+import java.nio.file.{Path, Paths}
 
 object Main {
 
@@ -52,22 +51,23 @@ object Main {
   // && rm q1.out
   private def compile(sdqlFilePath: String, cpp: String) = {
     val noExtension = reFilename.findAllIn(sdqlFilePath).matchData.next().group(2)
-    reflect.io.File(mk_cpp(noExtension)).writeAll(cpp)
-    clang_format(noExtension)
-    clang(noExtension)
-    val res = run(noExtension)
-    clean(noExtension)
+    reflect.io.File(cppPath(noExtension).toString).writeAll(cpp)
+    in_generated(clang_format(noExtension)).!!
+    in_generated(clang(noExtension)).!!
+    val res = in_generated(run(noExtension)).!!
+    in_generated(clean(noExtension)).!!
     res
   }
   private def clang_format(noExtension: String) = Seq(
-    "clang-format", "-i", mk_cpp(noExtension), "-style", "{ColumnLimit: 120}"
-  ).!!
+    "clang-format", "-i", s"$noExtension.cpp", "-style", "{ColumnLimit: 120}"
+  )
   private def clang(noExtension: String) = Seq(
-    "clang++", "--std", "c++20", mk_cpp(noExtension), "-o", mk_out(noExtension)
-  ).!!
-  private def run(noExtension: String) = s"./${mk_out(noExtension)}".!!
-  private def clean(noExtension: String) = s"rm ${mk_out(noExtension)}".!!
-  private def mk_cpp(noExtension: String) = s"generated/$noExtension.cpp"
-  private def mk_out(noExtension: String) = s"generated/$noExtension.out"
+    "clang++", "--std", "c++20", s"$noExtension.cpp", "-o", s"$noExtension.out"
+  )
+  private def run(noExtension: String) = Seq(s"./$noExtension.out")
+  private def clean(noExtension: String) = Seq("rm", s"$noExtension.out")
+  private def in_generated(seq: Seq[String]) = sys.process.Process(seq, generatedDir)
+  private def cppPath(noExtension: String) = Paths.get(generatedDir.toString, s"$noExtension.cpp")
+  private val generatedDir = new java.io.File("generated")
   private val reFilename = "^(.+/)*(.+)\\.(.+)$".r
 }

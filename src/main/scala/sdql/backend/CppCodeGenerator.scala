@@ -268,7 +268,7 @@ object CppCodeGenerator {
   }
 
   private def makeCsvConst(name: String, path: String): String = {
-    s"""const rapidcsv::Document ${name.toUpperCase}("$path", NO_HEADERS, SEPARATOR);"""
+    s"""const rapidcsv::Document ${name.toUpperCase}("../$path", NO_HEADERS, SEPARATOR);"""
   }
 
   private def makeStructDef(name: String, attrs: Seq[Attribute]): String = {
