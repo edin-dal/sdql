@@ -30,13 +30,16 @@ let o_h =
       ) then
       {
         <
-          _ = li.l_orderkey,
-          _ = o_h(li.l_orderkey)(0),
-          _ = o_h(li.l_orderkey)(1)
+          _0 = li.l_orderkey,
+          _1 = o_h(li.l_orderkey)(0),
+          _2 = o_h(li.l_orderkey)(1)
         > ->
-         < _ = li.l_extendedprice * (1 - li.l_discount) >
+         < _0 = li.l_extendedprice * (1 - li.l_discount) >
       }
     else
       { }
 
 // TODO flatten li_h by concatenating keys and values (map to 1)
+// note: sum or for loop should both work as keys are distinct
+// for(<k, v> <- li_h)
+//  { < _ = k._0, _ = k._1, _ = k._2, _ = v._0 > -> 1 }

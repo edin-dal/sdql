@@ -95,8 +95,11 @@ object CppCodeGenerator {
     case Cmp(e1, e2, cmp) =>
       (s"${srun(e1)} $cmp ${srun(e2)}", None)
 
-    case FieldNode(Sym(name), f) =>
-      (s"$name.$f[i]", None)
+    case e @ FieldNode(Sym(name), f) =>
+      // FIXME hack for Q3 (Q1 & Q6 work even with fromLoad=true)
+      // val fromLoad = name != "k" && name != "v"
+      val fromLoad = true
+      (fieldNode(e, fromLoad), None)
 
     case Add(e1, Neg(e2)) =>
       (s"(${srun(e1)} - ${srun(e2)})", None)
@@ -240,6 +243,18 @@ object CppCodeGenerator {
         assert(isSum)
         s"$agg += ${srun(e)};"
     }
+  }
+
+  private def fieldNode(e: FieldNode, fromLoad: Boolean)(implicit typesCtx: TypesCtx) = e match {
+    case FieldNode(sym @ Sym(name), f) =>
+      TypeInference.run(sym) match {
+        case t: RecordType =>
+          val idx = t.indexOf(f) match { case Some(idx) => idx}
+          if (fromLoad) s"$name.$f[i]" else s" /* $f */ std::get<$idx>($name)"
+        case tpe => raise(
+          s"expected ${RecordType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
+        )
+      }
   }
 
   def srun(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = run(e)._1

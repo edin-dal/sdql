@@ -33,6 +33,11 @@ case class RecordType(attrs: Seq[Attribute]) extends Type {
   }
   override def hashCode(): Int = 
     attrs.map(_.name).hashCode()
+  def indexOf(name: Field): Option[Int] = {
+    val names = attrs.map(_.name)
+    assert(names.diff(names.distinct).isEmpty)
+    names.zipWithIndex.find(_._1 == name).map(_._2)
+  }
 }
 
 object TupleType {
