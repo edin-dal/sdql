@@ -208,7 +208,7 @@ object CppCodeGenerator {
 
     (
       s"""$init
-         |const ${e1Sym.name.capitalize} &${k.name} = ${e1Sym.name};
+         |const auto &${k.name} = ${e1Sym.name};
          |constexpr auto ${v.name} = Values();
          |for (int i = 0; i < ${e1Sym.name.toLowerCase}.size(); i++) {
          |$loopBody
