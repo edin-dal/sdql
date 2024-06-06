@@ -240,7 +240,7 @@ object CppCodeGenerator {
           s"$agg.emplace(${srun(e1)}, ${srun(e2)});"
       case _ =>
         assert(cond(typesCtx.get(Sym(agg))) { case Some(t) => t.isScalar })
-        assert(isSum)
+        assert(isSum || TypeInference.run(e).isScalar)
         s"$agg += ${srun(e)};"
     }
   }
