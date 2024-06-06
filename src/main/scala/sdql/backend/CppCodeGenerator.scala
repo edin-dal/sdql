@@ -14,13 +14,15 @@ object CppCodeGenerator {
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
   private case class LoopCtx(k:String, v: String, agg: String, isSum: Boolean) extends CallCtx
+  private type LoadsCtx = Set[Sym]
 
   private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
 
   private def uuid = UUID.randomUUID.toString.replace("-", "_")
 
   def apply(e: Exp): String = {
-    val (mainBody, Some((Sym(name), tpe))) = run(e)(Map(), List())
+    val (csvBody, loadsCtx) = CsvBodyWithLoadsCtx(e)
+    val (mainBody, Some((Sym(name), tpe))) = run(e)(Map(), List(), loadsCtx)
     val printBody = tpe match {
       case _: DictType =>
         s"""for (const auto &[key, val] : $name) {
@@ -33,7 +35,7 @@ object CppCodeGenerator {
         |
         |const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
         |const auto SEPARATOR = rapidcsv::SeparatorParams('|');
-        |${makeCsvBody(e)}
+        |$csvBody
         |class Values { public: int operator [](int _) const { return 1; } };
         |
         |int main() {
@@ -43,7 +45,7 @@ object CppCodeGenerator {
         |""".stripMargin
   }
 
-  def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): (String, Option[(Sym, Type)]) = e match {
+  def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): (String, Option[(Sym, Type)]) = e match {
     case LetBinding(x @ Sym(name), e1, e2) =>
       val cpp_e1 = e1 match {
         case Load(_, DictType(RecordType(_), IntType)) =>
@@ -55,7 +57,7 @@ object CppCodeGenerator {
           s"auto $name = ${srun(e1)};"
       }
       val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
-      val (cpp_e2, info) = run(e2)(typesLocal, callsCtx)
+      val (cpp_e2, info) = run(e2)(typesLocal, callsCtx, loadsCtx)
       (cpp_e1 + cpp_e2, info)
 
     case _: ForLoop | _: Sum =>
@@ -167,9 +169,11 @@ object CppCodeGenerator {
     )
   }
 
-  private def generate_loop(e: Exp, maybe_agg: Option[String] = None)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): (String, Option[(Sym, Type)]) = {
+  private def generate_loop
+  (e: Exp, maybe_agg: Option[String] = None)
+  (implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): (String, Option[(Sym, Type)]) = {
     val (k, v, e1, e2) = TypeInference.unpack_loop(e)
-    val e1Name = e1 match { case Sym(e1Name) => e1Name }
+    val e1Sym = e1 match { case e1: Sym => e1 }
     var (tpe, typesLocal) = TypeInference.loop_infer_type_and_ctx(e)
 
     val agg = maybe_agg match {
@@ -194,16 +198,19 @@ object CppCodeGenerator {
     val callsLocal = List(LoopCtx(k=k.name, v=v.name, agg=agg, isSum=isSum)) ++ callsCtx
     val loopBody = e2 match {
       case _: LetBinding | _: IfThenElse =>
-        srun(e2)(typesLocal, callsLocal)
+        srun(e2)(typesLocal, callsLocal, loadsCtx)
       case _ =>
-        ifElseBody(e2)(typesLocal, callsLocal)
+        ifElseBody(e2)(typesLocal, callsLocal, loadsCtx)
     }
+
+    // TODO use it to assign Values()
+    val _ = loadsCtx.contains(e1Sym)
 
     (
       s"""$init
-         |const ${e1Name.capitalize} &${k.name} = $e1Name;
+         |const ${e1Sym.name.capitalize} &${k.name} = ${e1Sym.name};
          |constexpr auto ${v.name} = Values();
-         |for (int i = 0; i < ${e1Name.toLowerCase}.size(); i++) {
+         |for (int i = 0; i < ${e1Sym.name.toLowerCase}.size(); i++) {
          |$loopBody
          |}
          |
@@ -212,7 +219,7 @@ object CppCodeGenerator {
     )
   }
 
-  private def ifElseBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
+  private def ifElseBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
     val iter = callsCtx.flatMap(x => condOpt(x) { case LoopCtx(_, _, agg, isSum) => (agg, isSum) }).iterator
     val (agg, isSum) = if (iter.hasNext) iter.next() else raise(
       s"${IfThenElse.getClass.getSimpleName.init}"
@@ -235,7 +242,7 @@ object CppCodeGenerator {
     }
   }
 
-  def srun(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = run(e)._1
+  def srun(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = run(e)._1
 
   private def toCpp(tpe: ir.Type): String = tpe match {
     case RealType => "double"
@@ -246,7 +253,7 @@ object CppCodeGenerator {
     case tpe => raise(s"unimplemented type: $tpe")
   }
 
-  private def makeCsvBody(e: Exp): String = {
+  private def CsvBodyWithLoadsCtx(e: Exp): (String, LoadsCtx) = {
     val pathNameAttrs =
       flattenExps(e)
         .flatMap(
@@ -264,7 +271,7 @@ object CppCodeGenerator {
     val structInits =
       pathNameAttrs.map({ case (_, name, attrs) => makeStructInit(name, attrs) } ).mkString("\n")
 
-    List(csvConsts, structDefs, structInits).mkString("\n")
+    (List(csvConsts, structDefs, structInits).mkString("\n"), pathNameAttrs.map(_._2).map(Sym.apply).toSet)
   }
 
   private def makeCsvConst(name: String, path: String): String = {
