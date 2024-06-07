@@ -165,6 +165,10 @@ object CppCodeGenerator {
     case External(name, args) =>
       (
           args match {
+            case ArrayBuffer(str, prefix) if name == StrStartsWith.SYMBOL =>
+              s"${srun(str)}.starts_with(${srun(prefix)})"
+            case ArrayBuffer(str, suffix) if name == StrEndsWith.SYMBOL =>
+              s"${srun(str)}.ends_with(${srun(suffix)})"
             case ArrayBuffer(str, start, end) if name == SubString.SYMBOL =>
               s"${srun(str)}.substr(${srun(start)}, ${srun(end)})"
             case ArrayBuffer(field: FieldNode, elem, from) if name == StrIndexOf.SYMBOL =>
