@@ -1,0 +1,76 @@
+let part = load[{<p_partkey: int, p_name: string, p_mfgr: string, p_brand: string, p_type: string, p_size: int, p_container: string, p_retailprice: double, p_comment: string> -> int}]("datasets/tpch/part.tbl")
+
+let supplier = load[{<s_suppkey: int, s_name: string, s_address: string, s_nationkey: int, s_phone: string, s_acctbal: double, s_comment: string> -> int}]("datasets/tpch/supplier.tbl")
+
+let partsupp = load[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_supplycost: double, ps_comment: string> -> int}]("datasets/tpch/partsupp.tbl")
+
+let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
+
+let region = load[{<r_regionkey: int, r_name: string, r_comment: string> -> int}]("datasets/tpch/region.tbl")
+
+let l_h =
+  for(<r,r_v> <- region)
+    if(r.r_name == "EUROPE") then
+      { r.r_regionkey -> < _ = r.r_regionkey > }
+    else
+      { }
+
+let n_h =
+  for(<n,n_v> <- nation)
+    if(n.n_regionkey ∈ l_h) then
+      { n.n_nationkey -> < _ = n.n_name > }
+    else
+      { }
+
+let s_h =
+  for(<s,s_v> <- supplier)
+    if(s.s_nationkey ∈ n_h) then
+      {
+        s.s_suppkey ->
+        <
+          _ = s.s_acctbal,
+          _ = s.s_name,
+          _ = n_h(s.s_nationkey),
+          _ = s.s_address,
+          _ = s.s_phone,
+          _ = s.s_comment
+        >
+      }
+    else
+      { }
+
+let p_h =
+  for(<p,p_v> <- part)
+    if((p.p_size == 15) && (ext(`StrEndsWith`, p.p_type, "BRASS"))) then
+      { p.p_partkey -> < _ = p.p_mfgr > }
+    else
+      { }
+
+let ps_h =
+  sum(<ps,ps_v> <- partsupp)
+    if (ps.ps_partkey ∈ s_h) then
+      { ps.ps_partkey -> ps.ps_supplycost }
+    else
+      { }
+
+// TODO avoid redefining ps,ps_v twice in codegen
+sum(<key,val> <- partsupp)
+  if(
+      (key.ps_partkey ∈ ps_h)
+      && (ps_h(key.ps_partkey) == key.ps_supplycost)
+      && (key.ps_suppkey ∈ n_h)
+    ) then
+    {
+      <
+        _ = s_h(key.ps_suppkey)(0),
+        _ = s_h(key.ps_suppkey)(1),
+        _ = s_h(key.ps_suppkey)(2),
+        _ = key.ps_partkey,
+        _ = p_h(key.ps_partkey)(0),
+        _ = s_h(key.ps_suppkey)(3),
+        _ = s_h(key.ps_suppkey)(4),
+        _ = s_h(key.ps_suppkey)(5)
+      > -> 1
+    }
+  else
+    { }
