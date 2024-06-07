@@ -8,6 +8,7 @@ import sdql.ir._
 import java.util.UUID
 import scala.PartialFunction.{cond, condOpt}
 import scala.collection.mutable.ArrayBuffer
+import ExternalFunctions._
 
 object CppCodeGenerator {
   private type TypesCtx = TypeInference.Ctx
@@ -106,6 +107,9 @@ object CppCodeGenerator {
     case Add(e1, e2) =>
       (s"(${srun(e1)} + ${srun(e2)})", None)
 
+    case Mult(e1, External(name, args)) if name == Inv.SYMBOL =>
+      assert(args.length == 1)
+      (s"(${srun(e1)} / ${srun(args.head)})", None)
     case Mult(e1, e2) =>
       (s"(${srun(e1)} * ${srun(e2)})", None)
 
@@ -159,12 +163,17 @@ object CppCodeGenerator {
     )
 
     case External(name, args) =>
-      import ExternalFunctions._
-      args match {
-        case ArrayBuffer(field: FieldNode, elem, from) if name == StrIndexOf.SYMBOL =>
-          (s"${srun(field)}.find(${srun(elem)}, ${srun(from)})", None)
-        case _ => raise(s"unhandled function name: $name")
-      }
+      (
+          args match {
+          case ArrayBuffer(field: FieldNode, elem, from) if name == StrIndexOf.SYMBOL =>
+            s"${srun(field)}.find(${srun(elem)}, ${srun(from)})"
+          case _ if name == Inv.SYMBOL =>
+            raise(s"${Inv.SYMBOL} should have been handled by ${Mult.getClass.getSimpleName.init}")
+          case _ =>
+            raise(s"unhandled function name: $name")
+        },
+        None
+      )
 
     case _ => raise(
       f"""Unhandled ${e.simpleName} in

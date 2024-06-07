@@ -4,7 +4,8 @@ package analysis
 import munit.Assertions.munitPrint
 import sdql.ir._
 
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable
+import scala.collection.mutable.{ArrayBuffer, WrappedArray}
 
 object TypeInference {
   type Type = ir.Type
@@ -85,11 +86,16 @@ object TypeInference {
         )
       }
 
-      case External(name, _) =>
+      case External(name, args) =>
         import ExternalFunctions._
         name match {
-          case _ if name == StrIndexOf.SYMBOL => IntType
-          case _ => raise(s"unhandled function name: $name")
+          case _ if name == StrIndexOf.SYMBOL =>
+            IntType
+          case _ if name == Inv.SYMBOL =>
+            assert(args.length == 1)
+            run(args.head)
+          case _ =>
+            raise(s"unhandled function name: $name")
         }
 
       case LetBinding(x, e1, e2) =>
@@ -122,24 +128,28 @@ object TypeInference {
     (run(e2)(localCtx), localCtx)
   }
 
-  private def branching(exp: Exp)(implicit ctx: Ctx): Type = {
-    val (e1, e2) = exp match {
+  private def branching(e: Exp)(implicit ctx: Ctx): Type = {
+    val (e1, e2) = e match {
       case IfThenElse(_, e1, e2) => (e1, e2)
       case Add(e1, e2) => (e1, e2)
       case Mult(e1, e2) => (e1, e2)
-      case _ => raise(s"unhandled class: ${exp.simpleName}")
+      case _ => raise(s"unhandled class: ${e.simpleName}")
     }
     val t1 = run(e1)
     val t2 = run(e2)
+    promote(t1, t2)
+  }
+
+  private def promote(t1: Type, t2: Type): Type = {
     val (t1Promo, t2Promo) = (t1, t2) match {
       case (IntType, RealType) | (RealType, IntType) => (RealType, RealType)
       case (t1, t2) => (t1, t2)
     }
     if (t1Promo != t2Promo) {
       raise(
-        s"${exp.simpleName} branches have types: " +
-        s"${t1Promo.simpleName}${if (t1Promo != t1) s" (↑${t1.simpleName})" else ""} ≠ " +
-        s"${t2Promo.simpleName}${if (t2Promo != t2) s" (↑${t2.simpleName})" else ""}"
+        s"branching with types: " +
+          s"${t1Promo.simpleName}${if (t1Promo != t1) s" (↑${t1.simpleName})" else ""} ≠ " +
+          s"${t2Promo.simpleName}${if (t2Promo != t2) s" (↑${t2.simpleName})" else ""}"
       )
     }
     t1Promo
