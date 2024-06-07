@@ -108,8 +108,8 @@ object CppCodeGenerator {
       (s"(${srun(e1)} + ${srun(e2)})", None)
 
     case Mult(e1, External(name, args)) if name == Inv.SYMBOL =>
-      assert(args.length == 1)
-      (s"(${srun(e1)} / ${srun(args.head)})", None)
+      val divisor = args match { case ArrayBuffer(divisorExp: Exp) => srun(divisorExp) }
+      (s"(${srun(e1)} / $divisor)", None)
     case Mult(e1, e2) =>
       (s"(${srun(e1)} * ${srun(e2)})", None)
 
@@ -165,10 +165,12 @@ object CppCodeGenerator {
     case External(name, args) =>
       (
           args match {
-          case ArrayBuffer(field: FieldNode, elem, from) if name == StrIndexOf.SYMBOL =>
-            s"${srun(field)}.find(${srun(elem)}, ${srun(from)})"
+            case ArrayBuffer(str, start, end) if name == SubString.SYMBOL =>
+              s"${srun(str)}.substr(${srun(start)}, ${srun(end)})"
+            case ArrayBuffer(field: FieldNode, elem, from) if name == StrIndexOf.SYMBOL =>
+              s"${srun(field)}.find(${srun(elem)}, ${srun(from)})"
           case _ if name == Inv.SYMBOL =>
-            raise(s"${Inv.SYMBOL} should have been handled by ${Mult.getClass.getSimpleName.init}")
+            raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
           case _ =>
             raise(s"unhandled function name: $name")
         },

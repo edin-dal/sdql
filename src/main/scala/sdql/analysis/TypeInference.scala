@@ -89,10 +89,11 @@ object TypeInference {
       case External(name, args) =>
         import ExternalFunctions._
         name match {
+          case _ if name == SubString.SYMBOL =>
+            StringType
           case _ if name == StrIndexOf.SYMBOL =>
             IntType
           case _ if name == Inv.SYMBOL =>
-            assert(args.length == 1)
             run(args.head)
           case _ =>
             raise(s"unhandled function name: $name")
