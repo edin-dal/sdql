@@ -97,7 +97,7 @@ object CppCodeGenerator {
       (s"${srun(e1)} $cmp ${srun(e2)}", None)
 
     case e @ FieldNode(Sym(name), f) =>
-      // FIXME hack for Q3 (Q1 & Q6 work even with fromLoad=true)
+      // FIXME hack for Q3, Q5, Q9 (Q1, Q6 work even with fromLoad=true)
       // val fromLoad = name != "k" && name != "v"
       val fromLoad = true
       (fieldNode(e, fromLoad), None)
