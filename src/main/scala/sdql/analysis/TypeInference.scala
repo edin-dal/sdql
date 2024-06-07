@@ -89,14 +89,29 @@ object TypeInference {
       case External(name, args) =>
         import ExternalFunctions._
         name match {
+          case _ if name == StrContains.SYMBOL =>
+            BoolType
+          case _ if name == StrStartsWith.SYMBOL =>
+            BoolType
+          case _ if name == StrEndsWith.SYMBOL =>
+            BoolType
+          case _ if name == StrContainsN.SYMBOL =>
+            BoolType
           case _ if name == SubString.SYMBOL =>
             StringType
           case _ if name == StrIndexOf.SYMBOL =>
             IntType
+          case _ if name == Year.SYMBOL =>
+            IntType
+          case _ if name == ParseDate.SYMBOL =>
+            DateType
           case _ if name == Inv.SYMBOL =>
-            run(args.head)
+            val arg = args match { case ArrayBuffer(e) => e}
+            run(arg)
+          case _ if Set(TopN.SYMBOL, CStore.SYMBOL, Log.SYMBOL).contains(name) =>
+            raise(s"unimplemented function name: $name")
           case _ =>
-            raise(s"unhandled function name: $name")
+            raise(s"unknown function name: $name")
         }
 
       case LetBinding(x, e1, e2) =>
