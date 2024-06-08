@@ -1,0 +1,83 @@
+let customer = load[{<c_custkey: int, c_name: string, c_address: string, c_nationkey: int, c_phone: string, c_acctbal: double, c_mktsegment: string, c_comment: string> -> int}]("datasets/tpch/customer.tbl")
+
+let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_totalprice: double, o_orderdate: date, o_orderpriority: string, o_clerk: string, o_shippriority: int, o_comment: string> -> int}]("datasets/tpch/orders.tbl")
+
+let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
+
+let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
+
+let n_h =
+  for(<n,n_v> in nation)
+    { n.n_nationkey -> < _ = n.n_name > }
+
+let c_h =
+  for(<c,c_v> in customer)
+    {
+      c.c_custkey ->
+      <
+        _ = c.c_custkey,
+        _ = c.c_name,
+        _ = c.c_acctbal,
+        _ = c.c_address,
+        _ = c.c_nationkey,
+        _ = c.c_phone,
+        _ = c.c_comment
+      >
+    }
+
+let o_h =
+  for(<o,o_v> in orders)
+    if(
+         (date(19931001)  <= o.o_orderdate)
+         && (o.o_orderdate < date(19940101))
+         && (o.o_custkey ∈ c_h)
+       ) then
+      {
+        o.o_orderkey ->
+        <
+          c_custkey =c_h(o.o_custkey)(0),
+          c_name =c_h(o.o_custkey)(1),
+          c_acctbal =c_h(o.o_custkey)(2),
+          c_address =c_h(o.o_custkey)(3),
+          c_phone =c_h(o.o_custkey)(5),
+          c_comment =c_h(o.o_custkey)(6),
+          n_name = n_h((c_h(o.o_custkey))(4))(0)
+        >
+      }
+      else
+        { }
+
+//TODO
+//let l_h =
+  sum(<l,l_v> in lineitem)
+    if((l.l_returnflag == "R") && (l.l_orderkey ∈ o_h)) then
+      {
+        <
+          c_custkey = o_h(l.l_orderkey)(0),
+          c_name = o_h(l.l_orderkey)(1),
+          c_acctbal = o_h(l.l_orderkey)(2),
+          n_name = o_h(l.l_orderkey)(6),
+          c_address = o_h(l.l_orderkey)(3),
+          c_phone = o_h(l.l_orderkey)(4),
+          c_comment = o_h(l.l_orderkey)(5)
+        >
+        -> l.l_extendedprice * (1.0 - l.l_discount)
+      }
+      else
+        { }
+
+// TODO flatten l_h
+//for(<k,v> in l_h)
+//  {
+//    <
+//      c_custkey = k.c_custkey,
+//      c_name = k.c_name,
+//      revenue = v,
+//      c_acctbal = k.c_acctbal,
+//      n_name = k.n_name,
+//      c_address = k.c_address,
+//      c_phone = k.c_phone,
+//      c_comment = k.c_comment
+//    >
+//    -> 1
+//  }
