@@ -104,7 +104,13 @@ object CppCodeGenerator {
       (s"(${srun(e1)} + ${srun(e2)})", None)
 
     case Mult(e1, External(name, args)) if name == Inv.SYMBOL =>
-      val divisor = args match { case ArrayBuffer(divisorExp: Exp) => srun(divisorExp) }
+      val divisor = args match {
+        case Seq(divisorExp: Exp) =>
+          srun(divisorExp)
+        case _ =>
+          println(args)
+          ???
+      }
       (s"(${srun(e1)} / $divisor)", None)
     case Mult(e1, e2) =>
       (s"(${srun(e1)} * ${srun(e2)})", None)
@@ -161,13 +167,13 @@ object CppCodeGenerator {
     case External(name, args) =>
       (
           args match {
-            case ArrayBuffer(str, prefix) if name == StrStartsWith.SYMBOL =>
+            case Seq(str, prefix) if name == StrStartsWith.SYMBOL =>
               s"${srun(str)}.starts_with(${srun(prefix)})"
-            case ArrayBuffer(str, suffix) if name == StrEndsWith.SYMBOL =>
+            case Seq(str, suffix) if name == StrEndsWith.SYMBOL =>
               s"${srun(str)}.ends_with(${srun(suffix)})"
-            case ArrayBuffer(str, start, end) if name == SubString.SYMBOL =>
+            case Seq(str, start, end) if name == SubString.SYMBOL =>
               s"${srun(str)}.substr(${srun(start)}, ${srun(end)})"
-            case ArrayBuffer(field: FieldNode, elem, from) if name == StrIndexOf.SYMBOL =>
+            case Seq(field: FieldNode, elem, from) if name == StrIndexOf.SYMBOL =>
               s"${srun(field)}.find(${srun(elem)}, ${srun(from)})"
           case _ if name == Inv.SYMBOL =>
             raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")

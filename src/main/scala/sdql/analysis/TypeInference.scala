@@ -106,7 +106,7 @@ object TypeInference {
           case _ if name == ParseDate.SYMBOL =>
             DateType
           case _ if name == Inv.SYMBOL =>
-            val arg = args match { case ArrayBuffer(e) => e}
+            val arg = args match { case Seq(e) => e}
             run(arg)
           case _ if Set(TopN.SYMBOL, CStore.SYMBOL, Log.SYMBOL).contains(name) =>
             raise(s"unimplemented function name: $name")

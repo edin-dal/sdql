@@ -1,0 +1,36 @@
+let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
+
+let part = load[{<p_partkey: int, p_name: string, p_mfgr: string, p_brand: string, p_type: string, p_size: int, p_container: string, p_retailprice: double, p_comment: string> -> int}]("datasets/tpch/part.tbl")
+
+let p_h =
+  for(<p,p_v> <- part)
+    if(ext(`StrStartsWith`, p.p_type, "PROMO")) then
+      { p.p_partkey -> < _ = p.p_partkey > }
+    else
+      { }
+
+// TODO avoid redefining l,l_v twice in codegen
+// TODO loop fusion like sdqlpy (i.e. aggregate into a tuple)
+
+let a =
+  sum(<la,la_v> <- lineitem)
+    if(
+      (date(19950901) <= la.l_shipdate) && (la.l_shipdate < date(19951001))
+      && (la.l_partkey ∈ p_h)
+    ) then
+      la.l_extendedprice * (1.0 - la.l_discount)
+    else
+      0.0
+
+let b =
+  sum(<lb,lb_v> <- lineitem)
+    if(
+      (date(19950901) <= lb.l_shipdate) && (lb.l_shipdate < date(19951001))
+    ) then
+      lb.l_extendedprice * (1.0 - lb.l_discount)
+    else
+      0.0
+
+// N.B. this fails to parse with brackets: (100 * a) / b
+// TODO handle case where result isn't from a loop
+100 * a / b
