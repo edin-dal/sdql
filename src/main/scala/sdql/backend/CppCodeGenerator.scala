@@ -68,10 +68,6 @@ object CppCodeGenerator {
       (s"!(${srun(cond)})", None)
     // base case
     case IfThenElse(cond, e1, Const(false)) =>
-      e1 match {
-        case _: Const | _: Cmp =>
-        case _ => raise(s"unexpected class: ${e1.simpleName}")
-      }
       (s"${srun(cond)} && ${srun(e1)}", None)
     // recursive case
     case IfThenElse(cond, e1, e2) =>
