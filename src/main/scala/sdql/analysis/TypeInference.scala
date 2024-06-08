@@ -51,7 +51,7 @@ object TypeInference {
       case FieldNode(sym @ Sym(name), f) => run(sym) match {
         case RecordType(vals) => vals.find(_.name == f) match {
           case Some(v) => v.tpe
-          case _ => raise(s"$name not in $vals")
+          case _ => raise(vals.map(_.name).mkString(s"$name not in: ", ", ", "."))
         }
         case t => raise(
           s"${Sym.getClass.getSimpleName.init} $name: expected " +
