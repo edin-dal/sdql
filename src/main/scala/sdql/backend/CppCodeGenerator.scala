@@ -7,7 +7,6 @@ import sdql.ir._
 
 import java.util.UUID
 import scala.PartialFunction.{cond, condOpt}
-import scala.collection.mutable.ArrayBuffer
 import ExternalFunctions._
 
 object CppCodeGenerator {
@@ -137,7 +136,7 @@ object CppCodeGenerator {
 
     case DictNode(Nil) =>
       ("", None)
-    case DictNode(ArrayBuffer((_, e2: RecNode))) =>
+    case DictNode(Seq((_, e2: RecNode))) =>
       (srun(e2), None)
     case DictNode(Seq(_, _)) =>
       // TODO here we should create a new dictionary
@@ -253,7 +252,7 @@ object CppCodeGenerator {
      e match {
       case DictNode(Nil) =>
         ""
-      case DictNode(ArrayBuffer((e1, e2))) =>
+      case DictNode(Seq((e1, e2))) =>
         assert(cond(typesCtx.get(Sym(agg))) { case Some(_: DictType) => true })
         if (isSum)
           s"$agg[${srun(e1)}] += ${srun(e2)};"

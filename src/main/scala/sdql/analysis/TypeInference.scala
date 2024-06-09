@@ -4,9 +4,6 @@ package analysis
 import munit.Assertions.munitPrint
 import sdql.ir._
 
-import scala.collection.mutable
-import scala.collection.mutable.{ArrayBuffer, WrappedArray}
-
 object TypeInference {
   type Type = ir.Type
   type Var = Sym
@@ -40,9 +37,9 @@ object TypeInference {
           case None => raise(s"unknown name: $name")
         }
 
-      case DictNode(ArrayBuffer((e1: RecNode, e2: RecNode))) =>
+      case DictNode(Seq((e1: RecNode, e2: RecNode))) =>
         DictType(run(e1), run(e2))
-      case DictNode(ArrayBuffer((e1, e2))) =>
+      case DictNode(Seq((e1, e2))) =>
         DictType(run(e1), run(e2))
 
       case RecNode(values) =>
