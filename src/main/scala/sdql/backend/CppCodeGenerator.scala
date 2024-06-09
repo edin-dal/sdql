@@ -139,6 +139,10 @@ object CppCodeGenerator {
       ("", None)
     case DictNode(ArrayBuffer((_, e2: RecNode))) =>
       (srun(e2), None)
+    case DictNode(Seq(_, _)) =>
+      // TODO here we should create a new dictionary
+      //  (this is used by e.g. Q19 to return its result)
+      ???
 
     case RecNode(values) =>
       val tpe = TypeInference.run(e) match {
