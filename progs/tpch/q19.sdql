@@ -1,0 +1,78 @@
+let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
+
+let part = load[{<p_partkey: int, p_name: string, p_mfgr: string, p_brand: string, p_type: string, p_size: int, p_container: string, p_retailprice: double, p_comment: string> -> int}]("datasets/tpch/part.tbl")
+
+// TODO investigate why this query triggers an assert in codegen, and add support for ||
+
+let p_h =
+  for(<p,p_v> in part)
+    if(
+        (
+          (p.p_brand == "Brand#12")
+          && (
+               (p.p_container == "SM CASE")
+               || (p.p_container == "SM BOX")
+               || (p.p_container == "SM PACK")
+               || (p.p_container == "SM PKG")
+             )
+          && (1 <= p.p_size) && (p.p_size <= 5)
+        )
+        || (
+          (p.p_brand == "Brand#23")
+          && (
+               (p.p_container == "MED BAG")
+               || (p.p_container == "MED BOX")
+               || (p.p_container == "MED PACK")
+               || (p.p_container == "MED PKG")
+             )
+          && (1 <= p.p_size) && (p.p_size <= 10)
+        )
+        || (
+          (p.p_brand == "Brand#34")
+          && (
+               (p.p_container == "LG CASE")
+               || (p.p_container == "LG BOX")
+               || (p.p_container == "LG PACK")
+               || (p.p_container == "LG PKG")
+             )
+          && (1 <= p.p_size) && (p.p_size <= 15)
+        )
+    ) then
+      { p.p_partkey ->
+        <
+          p_brand = p.p_brand,
+          p_size = p.p_size,
+          p_container = p.p_container
+        >
+      }
+    else
+      { }
+
+//TODO
+let res =
+  sum(<l,l_v> in lineitem)
+    let p_brand = p_h(l.l_partkey)(0)
+    if(
+      (l.l_partkey ∈ p_h)
+      && ((l.l_shipmode == "AIR") || (l.l_shipmode == "AIR REG"))
+      && (l.l_shipinstruct == "DELIVER IN PERSON")
+      && (
+           (
+             (p_brand == "Brand#12")
+             && (1 <= l.l_quantity) && (l.l_quantity <= 11)
+           )
+           || (
+             (p_brand == "Brand#23")
+             && (10 <= l.l_quantity) && (l.l_quantity <= 20)
+           )
+           || (
+             (p_brand == "Brand#34")
+             && (20 <= l.l_quantity) && (l.l_quantity <= 30)
+           )
+      )
+    ) then
+      l.l_extendedprice * (1.0 - l.l_discount)
+    else
+      0.0
+
+{ < _ = res > -> 1 }
