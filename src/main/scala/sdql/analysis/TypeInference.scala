@@ -48,6 +48,9 @@ object TypeInference {
       case RecNode(values) =>
         RecordType(values.map(v => Attribute(name=v._1, tpe=run(v._2))))
 
+      case Cmp(_, _, _) =>
+        BoolType
+
       case FieldNode(sym @ Sym(name), f) => run(sym) match {
         case RecordType(vals) => vals.find(_.name == f) match {
           case Some(v) => v.tpe
