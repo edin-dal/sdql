@@ -63,12 +63,15 @@ object CppCodeGenerator {
     case _: ForLoop | _: Sum =>
       generate_loop(e)
 
-    case IfThenElse(cond, Const(false), Const(true)) =>
-      (s"!(${srun(cond)})", None)
-    // base case
-    case IfThenElse(cond, e1, Const(false)) =>
-      (s"${srun(cond)} && ${srun(e1)}", None)
-    // recursive case
+    // not case
+    case IfThenElse(a, Const(false), Const(true)) =>
+      (s"!(${srun(a)})", None)
+    // and case
+    case IfThenElse(a, b, Const(false)) =>
+      (s"(${srun(a)} && ${srun(b)})", None)
+    // or case
+    case IfThenElse(a, Const(true), b) =>
+      (s"(${srun(a)} || ${srun(b)})", None)
     case IfThenElse(cond, e1, e2) =>
       val elseBody = e2 match {
         case DictNode(Nil) => ""

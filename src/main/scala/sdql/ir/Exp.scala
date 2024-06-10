@@ -98,8 +98,6 @@ case class Neg(e: Exp) extends Exp
  */
 case class Cmp(e1: Exp, e2: Exp, cmp: String) extends Exp
 
-// FIXME nesting IfThenElse can't distinguish between && and ||
-//  we should nest an expression CondExp inside IfThenElse.cond
 /**
  * Conditional statement
  * @param cond condition

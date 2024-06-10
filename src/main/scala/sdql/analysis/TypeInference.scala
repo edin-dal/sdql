@@ -19,6 +19,9 @@ object TypeInference {
       case _: Sum =>
         loop_infer_type_and_ctx(e)._1
 
+      // not case
+      case IfThenElse(a, Const(false), Const(true)) =>
+        run(a)
       case IfThenElse(_, DictNode(Nil), DictNode(Nil)) =>
         raise("both branches empty")
       case IfThenElse(_, DictNode(Nil), e2) =>
@@ -146,7 +149,15 @@ object TypeInference {
 
   private def branching(e: Exp)(implicit ctx: Ctx): Type = {
     val (e1, e2) = e match {
-      case IfThenElse(_, e1, e2) => (e1, e2)
+      // and case
+      case IfThenElse(a, b, Const(false)) =>
+        (a, b)
+      // or case
+      case IfThenElse(a, Const(true), b) =>
+        (a, b)
+      case IfThenElse(cond, e1, e2) =>
+        assert(run(cond) == BoolType)
+        (e1, e2)
       case Add(e1, e2) => (e1, e2)
       case Mult(e1, e2) => (e1, e2)
       case _ => raise(s"unhandled class: ${e.simpleName}")
