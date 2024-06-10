@@ -1,16 +1,19 @@
-let customer = load[{<c_custkey: int, c_name: string, c_address: string, c_nationkey: int, c_phone: string, c_acctbal: double, c_mktsegment: string, c_comment: string> -> int}]("datasets/tpch/customer.tbl")
 let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_totalprice: double, o_orderdate: date, o_orderpriority: string, o_clerk: string, o_shippriority: int, o_comment: string> -> int}]("datasets/tpch/orders.tbl")
-let o_h = 
-  sum(<o,m> in orders) 
+
+let customer = load[{<c_custkey: int, c_name: string, c_address: string, c_nationkey: int, c_phone: string, c_acctbal: double, c_mktsegment: string, c_comment: string> -> int}]("datasets/tpch/customer.tbl")
+
+let o_h =
+  sum(<o,o_v> in orders)
     let idx1 = ext(`StrIndexOf`, o.o_comment, "special", 0)
     let idx2 = ext(`StrIndexOf`, o.o_comment, "requests", idx1)
-    if(!((idx1 != -1) && (idx2 != -1))) then 
-      {o.o_custkey -> m} 
-    else 
-      {}
-let c_h = sum(<c,m> in customer) 
-  if(o_h(c.c_custkey) != 0) then
-    { c.c_custkey -> promote[nullable[int]](o_h(c.c_custkey)) }
-  else 
-    { c.c_custkey -> promote[nullable[int]](0) }
-sum(<o,m> in c_h) { promote[int](m) -> 1 }
+    if(!((idx1 != -1) && (idx2 != -1))) then
+      { o.o_custkey -> 1 }
+    else
+      { }
+
+// TODO is this valid SDQL? (looks ok and codegen worked out-of-the-box)
+sum(<c,c_v> in customer)
+  if(c.c_custkey ∈ o_h) then
+    { < _ = c.c_custkey > -> < _ = 1 > }
+  else
+    { < _ = 0 > -> < _ = 1 > }

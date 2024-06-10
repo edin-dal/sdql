@@ -1,9 +1,0 @@
-let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_totalprice: double, o_orderdate: date, o_orderpriority: string, o_clerk: string, o_shippriority: int, o_comment: string> -> int}]("datasets/tpch/orders.tbl")
-
-  sum(<o,m> in orders)
-    let idx1 = ext(`StrIndexOf`, o.o_comment, "special", 0)
-    let idx2 = ext(`StrIndexOf`, o.o_comment, "requests", idx1)
-    if(!((idx1 != -1) && (idx2 != -1))) then
-      {o.o_custkey -> m}
-    else
-      {}
