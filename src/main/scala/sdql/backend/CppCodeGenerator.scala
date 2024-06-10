@@ -9,6 +9,8 @@ import java.util.UUID
 import scala.PartialFunction.{cond, condOpt}
 import ExternalFunctions._
 
+import scala.collection.mutable.ArrayBuffer
+
 object CppCodeGenerator {
   private type TypesCtx = TypeInference.Ctx
   private type CallsCtx = List[CallCtx]
@@ -141,7 +143,7 @@ object CppCodeGenerator {
       ("", None)
     case DictNode(Seq((_, e2: RecNode))) =>
       (srun(e2), None)
-    case DictNode(Seq(_, _)) =>
+    case DictNode(Seq(_)) =>
       // TODO here we should create a new dictionary
       //  (this is used by e.g. Q19 to return its result)
       ???
