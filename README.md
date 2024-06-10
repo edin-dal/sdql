@@ -42,7 +42,7 @@ For example, to run compiled TPCH Q1 and Q6:
 
 ```
 sbt
-run interpret progs/tpch q1.sdql q6.sdql
+run compile progs/tpch q1.sdql q6.sdql
 ```
 
 Note: compilation requires `clang++` and `clang-format` installed.
