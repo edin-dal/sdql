@@ -47,7 +47,7 @@ let ps_h =
     else
       { }
 
-// TODO
+// TODO fix so we can reuse variable names <s,s_v>
 for(<k,v> in supplier)
   if(k.s_suppkey ∈ ps_h) then
     { < _ = k.s_name, _ = k.s_address > -> 1 }
