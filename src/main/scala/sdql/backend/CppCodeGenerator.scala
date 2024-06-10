@@ -54,26 +54,26 @@ object CppCodeGenerator {
           // handled in a previous separate tree traversal
           ""
         case _: ForLoop | _: Sum =>
-          s"auto $name = ${generate_loop(e1, Some(name))._1}"
+          s"auto $name = ${generateLoop(e1, Some(name))._1}"
         case _ =>
-          s"auto $name = ${srun(e1)};"
+          s"auto $name = ${sRun(e1)};"
       }
       val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
       val (cpp_e2, info) = run(e2)(typesLocal, callsCtx, loadsCtx)
       (cpp_e1 + cpp_e2, info)
 
     case _: ForLoop | _: Sum =>
-      generate_loop(e)
+      generateLoop(e)
 
     // not case
     case IfThenElse(a, Const(false), Const(true)) =>
-      (s"!(${srun(a)})", None)
+      (s"!(${sRun(a)})", None)
     // and case
     case IfThenElse(a, b, Const(false)) =>
-      (s"(${srun(a)} && ${srun(b)})", None)
+      (s"(${sRun(a)} && ${sRun(b)})", None)
     // or case
     case IfThenElse(a, Const(true), b) =>
-      (s"(${srun(a)} || ${srun(b)})", None)
+      (s"(${sRun(a)} || ${sRun(b)})", None)
     case IfThenElse(cond, e1, e2) =>
       val elseBody = e2 match {
         case DictNode(Nil) => ""
@@ -82,7 +82,7 @@ object CppCodeGenerator {
             |${ifElseBody(e2)}
             |}""".stripMargin
       }
-      (s"""if (${srun(cond)}) {${ifElseBody(e1)}\n}$elseBody""".stripMargin, None)
+      (s"""if (${sRun(cond)}) {${ifElseBody(e1)}\n}$elseBody""".stripMargin, None)
 
     case Cmp(e1, e2: Sym, "∈") =>
       TypeInference.run(e2) match {
@@ -92,9 +92,9 @@ object CppCodeGenerator {
             s"${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
         )
       }
-      (s"${srun(e2)}.contains(${srun(e1)})", None)
+      (s"${sRun(e2)}.contains(${sRun(e1)})", None)
     case Cmp(e1, e2, cmp) =>
-      (s"${srun(e1)} $cmp ${srun(e2)}", None)
+      (s"${sRun(e1)} $cmp ${sRun(e2)}", None)
 
     case e @ FieldNode(Sym(name), f) =>
       // FIXME hack for Q3, Q5, Q9, Q20 (Q1, Q6 work even with fromLoad=true)
@@ -103,24 +103,24 @@ object CppCodeGenerator {
       (fieldNode(e, fromLoad), None)
 
     case Add(e1, Neg(e2)) =>
-      (s"(${srun(e1)} - ${srun(e2)})", None)
+      (s"(${sRun(e1)} - ${sRun(e2)})", None)
     case Add(e1, e2) =>
-      (s"(${srun(e1)} + ${srun(e2)})", None)
+      (s"(${sRun(e1)} + ${sRun(e2)})", None)
 
     case Mult(e1, External(name, args)) if name == Inv.SYMBOL =>
       val divisor = args match {
         case Seq(divisorExp: Exp) =>
-          srun(divisorExp)
+          sRun(divisorExp)
         case _ =>
           println(args)
           ???
       }
-      (s"(${srun(e1)} / $divisor)", None)
+      (s"(${sRun(e1)} / $divisor)", None)
     case Mult(e1, e2) =>
-      (s"(${srun(e1)} * ${srun(e2)})", None)
+      (s"(${sRun(e1)} * ${sRun(e2)})", None)
 
     case Neg(e) =>
-      (s"-${srun(e)}", None)
+      (s"-${sRun(e)}", None)
 
     case Const(DateValue(v)) =>
       val yyyymmdd = reDate.findAllIn(v.toString).matchData.next()
@@ -142,7 +142,7 @@ object CppCodeGenerator {
     case DictNode(Nil) =>
       ("", None)
     case DictNode(Seq((_, e2: RecNode))) =>
-      (srun(e2), None)
+      (sRun(e2), None)
     case DictNode(Seq(_)) =>
       // TODO here we should create a new dictionary
       //  (this is used by e.g. Q19 to return its result)
@@ -156,14 +156,14 @@ object CppCodeGenerator {
             s"${RecordType.getClass.getSimpleName.init} not ${tpe.simpleName}"
         )
       }
-      (values.map(e => srun(e._2)).mkString(s"${toCpp(tpe)}(", ", ", ")"), None)
+      (values.map(e => sRun(e._2)).mkString(s"${toCpp(tpe)}(", ", ", ")"), None)
 
     case Get(e1, e2) => (
       TypeInference.run(e1) match {
         case _: RecordType =>
-          s"std::get<${srun(e2)}>(${srun(e1)})"
+          s"std::get<${sRun(e2)}>(${sRun(e1)})"
         case _: DictType =>
-          s"${srun(e1)}[${srun(e2)}]"
+          s"${sRun(e1)}[${sRun(e2)}]"
         case tpe => raise(
           s"expected ${RecordType.getClass.getSimpleName.init} or " +
             s"${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
@@ -176,13 +176,13 @@ object CppCodeGenerator {
       (
           args match {
             case Seq(str, prefix) if name == StrStartsWith.SYMBOL =>
-              s"${srun(str)}.starts_with(${srun(prefix)})"
+              s"${sRun(str)}.starts_with(${sRun(prefix)})"
             case Seq(str, suffix) if name == StrEndsWith.SYMBOL =>
-              s"${srun(str)}.ends_with(${srun(suffix)})"
+              s"${sRun(str)}.ends_with(${sRun(suffix)})"
             case Seq(str, start, end) if name == SubString.SYMBOL =>
-              s"${srun(str)}.substr(${srun(start)}, ${srun(end)})"
+              s"${sRun(str)}.substr(${sRun(start)}, ${sRun(end)})"
             case Seq(field: FieldNode, elem, from) if name == StrIndexOf.SYMBOL =>
-              s"${srun(field)}.find(${srun(elem)}, ${srun(from)})"
+              s"${sRun(field)}.find(${sRun(elem)}, ${sRun(from)})"
           case _ if name == Inv.SYMBOL =>
             raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
           case _ =>
@@ -197,7 +197,7 @@ object CppCodeGenerator {
     )
   }
 
-  private def generate_loop
+  private def generateLoop
   (e: Exp, maybe_agg: Option[String] = None)
   (implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): (String, Option[(Sym, Type)]) = {
     val (k, v, e1, e2) = TypeInference.unpack_loop(e)
@@ -226,7 +226,7 @@ object CppCodeGenerator {
     val callsLocal = List(LoopCtx(k=k.name, v=v.name, agg=agg, isSum=isSum)) ++ callsCtx
     val loopBody = e2 match {
       case _: LetBinding | _: IfThenElse =>
-        srun(e2)(typesLocal, callsLocal, loadsCtx)
+        sRun(e2)(typesLocal, callsLocal, loadsCtx)
       case _ =>
         ifElseBody(e2)(typesLocal, callsLocal, loadsCtx)
     }
@@ -260,13 +260,13 @@ object CppCodeGenerator {
       case DictNode(Seq((e1, e2))) =>
         assert(cond(typesCtx.get(Sym(agg))) { case Some(_: DictType) => true })
         if (isSum)
-          s"$agg[${srun(e1)}] += ${srun(e2)};"
+          s"$agg[${sRun(e1)}] += ${sRun(e2)};"
         else
-          s"$agg.emplace(${srun(e1)}, ${srun(e2)});"
+          s"$agg.emplace(${sRun(e1)}, ${sRun(e2)});"
       case _ =>
         assert(cond(typesCtx.get(Sym(agg))) { case Some(t) => t.isScalar })
         assert(isSum || TypeInference.run(e).isScalar)
-        s"$agg += ${srun(e)};"
+        s"$agg += ${sRun(e)};"
     }
   }
 
@@ -282,7 +282,7 @@ object CppCodeGenerator {
       }
   }
 
-  def srun(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = run(e)._1
+  def sRun(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = run(e)._1
 
   private def toCpp(tpe: ir.Type): String = tpe match {
     case RealType => "double"
