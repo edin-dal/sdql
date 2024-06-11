@@ -1,0 +1,39 @@
+let supplier = load[{<s_suppkey: int, s_name: string, s_address: string, s_nationkey: int, s_phone: string, s_acctbal: double, s_comment: string> -> int}]("datasets/tpch/supplier.tbl")
+
+let partsupp = load[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_supplycost: double, ps_comment: string> -> int}]("datasets/tpch/partsupp.tbl")
+
+let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
+
+let n_h =
+  for(<n,n_v> in nation)
+    if(n.n_name == "GERMANY") then
+      { n.n_nationkey -> < _ = n.n_nationkey > }
+    else
+      { }
+
+let s_h =
+  for(<s,s_v> in supplier)
+    if(s.s_nationkey ∈ n_h) then
+      { s.s_suppkey -> true }
+    else
+      { }
+
+// TODO avoid redefining ps,ps_v twice in codegen
+// TODO loop fusion like sdqlpy (i.e. aggregate into a tuple + support dict nested in tuple)
+
+let a =
+  sum(<psa,psa_v> in partsupp)
+    if(psa.ps_suppkey ∈ s_h) then
+      psa.ps_supplycost * psa.ps_availqty * 0.0001
+    else
+      0.0
+
+// TODO
+//let b =
+  sum(<psb,psb_v> in partsupp)
+    if(psb.ps_suppkey ∈ s_h) then
+      { psb.ps_partkey -> psb.ps_supplycost }
+    else
+      { }
+
+// TODO no way of zipping a and b, we need fusion for the last step
