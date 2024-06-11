@@ -1,0 +1,58 @@
+let supplier = load[{<s_suppkey: int, s_name: string, s_address: string, s_nationkey: int, s_phone: string, s_acctbal: double, s_comment: string> -> int}]("datasets/tpch/supplier.tbl")
+
+let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
+
+let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_totalprice: double, o_orderdate: date, o_orderpriority: string, o_clerk: string, o_shippriority: int, o_comment: string> -> int}]("datasets/tpch/orders.tbl")
+
+let customer = load[{<c_custkey: int, c_name: string, c_address: string, c_nationkey: int, c_phone: string, c_acctbal: double, c_mktsegment: string, c_comment: string> -> int}]("datasets/tpch/customer.tbl")
+
+let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
+
+let nationkey_to_name =
+  for(<n,n_v> in nation)
+    if((n.n_name == "FRANCE") || (n.n_name == "GERMANY")) then
+      { n.n_nationkey -> < _ = n.n_name > }
+    else
+      { }
+
+let custkey_to_name =
+  for(<c,c_v> in customer)
+    if(c.c_nationkey ∈ nationkey_to_name) then
+      { c.c_custkey -> nationkey_to_name(c.c_nationkey)(0) }
+    else
+      { }
+
+let orderkey_to_name =
+  for(<o,o_v> in orders)
+    if(o.o_custkey ∈ custkey_to_name) then
+      { o.o_orderkey -> custkey_to_name(o.o_custkey) }
+    else
+      { }
+
+let suppkey_to_name =
+  for(<s,s_v> in supplier)
+    if(s.s_nationkey ∈ orderkey_to_name) then
+      { s.s_suppkey -> orderkey_to_name(s.s_nationkey) }
+    else
+      { }
+
+sum(<l,l_v> in lineitem)
+  if(
+      (date(19950101) <= l.l_shipdate) && (l.l_shipdate <= date(19961231)) &&
+      (l.l_orderkey ∈ orderkey_to_name) && (l.l_suppkey ∈ suppkey_to_name) &&
+      (
+        ((orderkey_to_name(l.l_orderkey) == "FRANCE") && (suppkey_to_name(l.l_suppkey) == "GERMANY")) ||
+        ((orderkey_to_name(l.l_orderkey) == "GERMANY") && (suppkey_to_name(l.l_suppkey) == "FRANCE"))
+      )
+  ) then
+    {
+      <
+        supp_nation = suppkey_to_name(l.l_suppkey),
+        cust_nation = orderkey_to_name(l.l_orderkey),
+        l_year = ext(`SubString`, l.l_shipdate, 0, 4)
+      > -> <
+        revenue = l.l_extendedprice * (1.0 - l.l_discount)
+      >
+    }
+  else
+    { }
