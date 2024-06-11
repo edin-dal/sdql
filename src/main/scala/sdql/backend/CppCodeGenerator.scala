@@ -152,6 +152,7 @@ object CppCodeGenerator {
     case DictNode(Seq(_)) =>
       // TODO here we should create a new dictionary
       //  (this is used by e.g. Q19 to return its result)
+      // TODO this case might also be hit by Q8
       ???
 
     case RecNode(values) =>
@@ -291,6 +292,7 @@ object CppCodeGenerator {
   def sRun(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = run(e)._1
 
   private def toCpp(tpe: ir.Type): String = tpe match {
+    case BoolType => "bool"
     case RealType => "double"
     case IntType => "int"
     case StringType | DateType => "std::string"

@@ -1,0 +1,71 @@
+let part = load[{<p_partkey: int, p_name: string, p_mfgr: string, p_brand: string, p_type: string, p_size: int, p_container: string, p_retailprice: double, p_comment: string> -> int}]("datasets/tpch/part.tbl")
+
+let supplier = load[{<s_suppkey: int, s_name: string, s_address: string, s_nationkey: int, s_phone: string, s_acctbal: double, s_comment: string> -> int}]("datasets/tpch/supplier.tbl")
+
+let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
+
+let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_totalprice: double, o_orderdate: date, o_orderpriority: string, o_clerk: string, o_shippriority: int, o_comment: string> -> int}]("datasets/tpch/orders.tbl")
+
+let customer = load[{<c_custkey: int, c_name: string, c_address: string, c_nationkey: int, c_phone: string, c_acctbal: double, c_mktsegment: string, c_comment: string> -> int}]("datasets/tpch/customer.tbl")
+
+let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
+
+let region = load[{<r_regionkey: int, r_name: string, r_comment: string> -> int}]("datasets/tpch/region.tbl")
+
+let r_h =
+  for(<r,r_v> in region)
+    if(r.r_name == "AMERICA") then
+      { r.r_regionkey -> < _ = r.r_regionkey > }
+    else
+      { }
+
+let n_h =
+  for(<n,n_v> in nation)
+    if(n.n_regionkey ∈ r_h) then
+      { n.n_nationkey -> true }
+    else
+      { }
+
+let nationkey_to_name =
+  // TODO fix so we can reuse variable names <n,n_v>
+  for(<na,na_v> in nation)
+    { na.n_nationkey -> < _ = na.n_name > }
+
+let s_h =
+  for(<s,s_v> in supplier)
+    { s.s_suppkey -> < _ = s.s_nationkey > }
+
+// TODO sdqlpy stores c_h as a vector
+let c_h =
+  for(<c,c_v> in customer)
+    { c.c_custkey -> c.c_nationkey }
+
+let p_h =
+  for(<p,p_v> in part)
+      if(p.p_type == "ECONOMY ANODIZED STEEL") then
+        { p.p_partkey -> < _ = p.p_partkey > }
+      else
+        { }
+
+let o_h =
+  for(<o,o_v> in orders)
+      if((date(19950101) <= o.o_orderdate) && (o.o_orderdate <= date(19961231))) then
+        { o.o_orderkey -> < _ = o.o_custkey, _ = o.o_orderdate > }
+      else
+        { }
+
+// TODO need to support nested lets and ifs
+let l_h =
+  sum(<l,l_v> in lineitem)
+      if((l.l_partkey ∈ p_h) && (l.l_orderkey ∈ n_h) && (c_h(o_h(l.l_orderkey)(0)) ∈ n_h)) then
+        let orderdate = o_h(l.l_orderkey)(1)
+        let orderyear = ext(`SubString`, orderdate, 0, 4)
+        let volume = l.l_extendedprice * (1.0 - l.l_discount)
+        if(nationkey_to_name(s_h(l.l_suppkey)(0))(0) == "BRAZIL") then
+          { orderyear -> < _ = volume, _ = volume > }
+        else
+          { orderyear -> < _ = 0.0, _ = volume > }
+      else
+        { }
+
+l_h(0) / lh(1)
