@@ -3,18 +3,17 @@ package backend
 
 import munit.Assertions.munitPrint
 import sdql.analysis.TypeInference
+import sdql.ir.ExternalFunctions._
 import sdql.ir._
 
 import java.util.UUID
 import scala.PartialFunction.{cond, condOpt}
-import ExternalFunctions._
-
-import scala.collection.mutable.ArrayBuffer
 
 object CppCodeGenerator {
   private type TypesCtx = TypeInference.Ctx
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
+  private case class LetCtx() extends CallCtx
   private case class LoopCtx(k:String, v: String, agg: String, isSum: Boolean) extends CallCtx
   private type LoadsCtx = Set[Sym]
 
@@ -54,9 +53,11 @@ object CppCodeGenerator {
           // handled in a previous separate tree traversal
           ""
         case _: ForLoop | _: Sum =>
-          s"auto $name = ${generateLoop(e1, Some(name))._1}"
+          val callsLocal = List(LetCtx()) ++ callsCtx
+          s"auto $name = ${generateLoop(e1, Some(name))(typesCtx, callsLocal, loadsCtx)._1}"
         case _ =>
-          s"auto $name = ${sRun(e1)};"
+          val callsLocal = List(LetCtx()) ++ callsCtx
+          s"auto $name = ${sRun(e1)(typesCtx, callsLocal, loadsCtx)};"
       }
       val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
       val (cpp_e2, info) = run(e2)(typesLocal, callsCtx, loadsCtx)
@@ -108,14 +109,19 @@ object CppCodeGenerator {
       (s"(${sRun(e1)} + ${sRun(e2)})", None)
 
     case Mult(e1, External(name, args)) if name == Inv.SYMBOL =>
-      val divisor = args match {
-        case Seq(divisorExp: Exp) =>
-          sRun(divisorExp)
-        case _ =>
-          println(args)
-          ???
+      val divisor = args match { case Seq(divisorExp: Exp) => sRun(divisorExp) }
+      val expBody = s"(${sRun(e1)} / $divisor)"
+      // TODO this should run everywhere, not just Q14
+      if (!callsCtx.exists(cond(_) { case LetCtx() => true })) {
+        val name = s"v_$uuid"
+        return TypeInference.run(e) match {
+          case tpe if tpe.isScalar =>
+            (s"auto $name = $expBody;", Some(Sym(name), tpe))
+          case tpe =>
+            raise(s"unhandled type: $tpe")
+        }
       }
-      (s"(${sRun(e1)} / $divisor)", None)
+      (expBody, None)
     case Mult(e1, e2) =>
       (s"(${sRun(e1)} * ${sRun(e2)})", None)
 
@@ -212,7 +218,7 @@ object CppCodeGenerator {
 
     val init_body =  tpe match {
       case RealType | IntType => "0"
-      case DictType(_, _) => "{}"
+      case _: DictType => "{}"
       case _ => raise(s"unhandled type: $tpe")
     }
     val init = maybe_agg match {

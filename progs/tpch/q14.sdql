@@ -32,5 +32,4 @@ let b =
       0.0
 
 // N.B. this fails to parse with brackets: (100 * a) / b
-// TODO handle case where result isn't from a loop
 100 * a / b
