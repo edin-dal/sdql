@@ -62,7 +62,7 @@ object Main {
     "clang-format", "-i", s"$noExtension.cpp", "-style", "{ColumnLimit: 120}"
   )
   private def clang(noExtension: String) = Seq(
-    "clang++", "--std", "c++20", s"$noExtension.cpp", "-o", s"$noExtension.out"
+    "clang++", "-Wno-deprecated-builtins", "--std", "c++20", s"$noExtension.cpp", "-o", s"$noExtension.out"
   )
   private def run(noExtension: String) = Seq(s"./$noExtension.out")
   private def in_generated(seq: Seq[String]) = sys.process.Process(seq, generatedDir)

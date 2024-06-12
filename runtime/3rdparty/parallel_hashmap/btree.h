@@ -60,7 +60,6 @@
 #include <cstring>
 #include <limits>
 #include <new>
-#include <type_traits>
 
 #include "phmap_fwd_decl.h"
 #include "phmap_base.h"
@@ -76,6 +75,14 @@
 #endif
 
 namespace phmap {
+
+    // Defined and documented later on in this file.
+    template <typename T>
+    struct is_trivially_destructible;
+
+    // Defined and documented later on in this file.
+    template <typename T>
+    struct is_trivially_move_assignable;
 
     namespace type_traits_internal {
 
@@ -100,26 +107,26 @@ namespace phmap {
             : std::integral_constant<
             bool, std::is_move_constructible<
                       type_traits_internal::SingleMemberUnion<T>>::value &&
-            std::is_trivially_destructible<T>::value> {};
+            phmap::is_trivially_destructible<T>::value> {};
 
         template <class T>
         struct IsTriviallyCopyConstructibleObject
             : std::integral_constant<
             bool, std::is_copy_constructible<
                       type_traits_internal::SingleMemberUnion<T>>::value &&
-            std::is_trivially_destructible<T>::value> {};
-#if 0
+            phmap::is_trivially_destructible<T>::value> {};
+
         template <class T>
         struct IsTriviallyMoveAssignableReference : std::false_type {};
 
         template <class T>
         struct IsTriviallyMoveAssignableReference<T&>
-            : std::is_trivially_move_assignable<T>::type {};
+            : phmap::is_trivially_move_assignable<T>::type {};
 
         template <class T>
         struct IsTriviallyMoveAssignableReference<T&&>
-            : std::is_trivially_move_assignable<T>::type {};
-#endif
+            : phmap::is_trivially_move_assignable<T>::type {};
+
     }  // namespace type_traits_internal
 
 
@@ -148,10 +155,10 @@ namespace phmap {
 
         public:
             static constexpr bool kValue =
-                (phmap::is_trivially_copyable<ExtentsRemoved>::value || !kIsCopyOrMoveConstructible) &&
-                (phmap::is_trivially_copy_assignable<ExtentsRemoved>::value || !kIsCopyOrMoveAssignable) &&
+                (__has_trivial_copy(ExtentsRemoved) || !kIsCopyOrMoveConstructible) &&
+                (__has_trivial_assign(ExtentsRemoved) || !kIsCopyOrMoveAssignable) &&
                 (kIsCopyOrMoveConstructible || kIsCopyOrMoveAssignable) &&
-                std::is_trivially_destructible<ExtentsRemoved>::value &&
+                is_trivially_destructible<ExtentsRemoved>::value &&
                 // We need to check for this explicitly because otherwise we'll say
                 // references are trivial copyable when compiled by MSVC.
                 !std::is_reference<ExtentsRemoved>::value;
@@ -737,13 +744,13 @@ namespace priv {
         StringBtreeDefaultLess(std::less<std::string_view>) {}  // NOLINT
         StringBtreeDefaultLess(phmap::Less<std::string_view>) {}  // NOLINT
 
-        phmap::weak_ordering operator()(const std::string_view &lhs,
-                                        const std::string_view &rhs) const {
+        phmap::weak_ordering operator()(std::string_view lhs,
+                                        std::string_view rhs) const {
             return compare_internal::compare_result_as_ordering(lhs.compare(rhs));
         }
 #else
-        phmap::weak_ordering operator()(const std::string &lhs,
-                                        const std::string &rhs) const {
+        phmap::weak_ordering operator()(std::string lhs,
+                                        std::string rhs) const {
             return compare_internal::compare_result_as_ordering(lhs.compare(rhs));
         }
 #endif
@@ -763,8 +770,8 @@ namespace priv {
             return compare_internal::compare_result_as_ordering(rhs.compare(lhs));
         }
 #else
-        phmap::weak_ordering operator()(const std::string &lhs,
-                                        const std::string &rhs) const {
+        phmap::weak_ordering operator()(std::string lhs,
+                                        std::string rhs) const {
             return compare_internal::compare_result_as_ordering(rhs.compare(lhs));
         }
 #endif
@@ -851,14 +858,14 @@ namespace priv {
             // Upper bound for the available space for values. This is largest for leaf
             // nodes, which have overhead of at least a pointer + 4 bytes (for storing
             // 3 field_types and an enum).
-            kNodeSlotSpace =
-                TargetNodeSize - /*minimum overhead=*/(sizeof(void *) + 4),
+            kNodeValueSpace =
+            TargetNodeSize - /*minimum overhead=*/(sizeof(void *) + 4),
         };
 
         // This is an integral type large enough to hold as many
         // ValueSize-values as will fit a node of TargetNodeSize bytes.
         using node_count_type =
-            phmap::conditional_t<(kNodeSlotSpace / sizeof(slot_type) >
+            phmap::conditional_t<(kNodeValueSpace / sizeof(value_type) >
                                    (std::numeric_limits<uint8_t>::max)()),
             uint16_t, uint8_t>;  // NOLINT
 
@@ -1203,10 +1210,6 @@ namespace priv {
         reference value(size_type i) { return params_type::element(slot(i)); }
         const_reference value(size_type i) const { return params_type::element(slot(i)); }
 
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-#endif
         // Getters/setter for the child at position i in the node.
         btree_node *child(size_type i) const { return GetField<3>()[i]; }
         btree_node *&mutable_child(size_type i) { return GetField<3>()[i]; }
@@ -1218,9 +1221,6 @@ namespace priv {
             mutable_child(i) = c;
             c->set_position((field_type)i);
         }
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
         void init_child(int i, btree_node *c) {
             set_child(i, c);
             c->set_parent(this);
@@ -1526,12 +1526,6 @@ namespace priv {
             return node == x.node && position == x.position;
         }
         bool operator!=(const const_iterator &x) const {
-            return node != x.node || position != x.position;
-        }
-        bool operator==(const iterator &x) const {
-            return node == x.node && position == x.position;
-        }
-        bool operator!=(const iterator &x) const {
             return node != x.node || position != x.position;
         }
 
@@ -1861,7 +1855,7 @@ namespace priv {
         void swap(btree &x);
 
         const key_compare &key_comp() const noexcept {
-            return std::get<0>(root_);
+            return root_.template get<0>();
         }
         template <typename K, typename LK>
         bool compare_keys(const K &x, const LK &y) const {
@@ -1954,10 +1948,10 @@ namespace priv {
 
     private:
         // Internal accessor routines.
-        node_type *root() { return std::get<2>(root_); }
-        const node_type *root() const { return std::get<2>(root_); }
-        node_type *&mutable_root() noexcept { return std::get<2>(root_); }
-        key_compare *mutable_key_comp() noexcept { return &std::get<0>(root_); }
+        node_type *root() { return root_.template get<2>(); }
+        const node_type *root() const { return root_.template get<2>(); }
+        node_type *&mutable_root() noexcept { return root_.template get<2>(); }
+        key_compare *mutable_key_comp() noexcept { return &root_.template get<0>(); }
 
         // The leftmost node is stored as the parent of the root node.
         node_type *leftmost() { return root()->parent(); }
@@ -1965,10 +1959,10 @@ namespace priv {
 
         // Allocator routines.
         allocator_type *mutable_allocator() noexcept {
-            return &std::get<1>(root_);
+            return &root_.template get<1>();
         }
         const allocator_type &allocator() const noexcept {
-            return std::get<1>(root_);
+            return root_.template get<1>();
         }
 
         // Allocates a correctly aligned node of at least size bytes using the
@@ -2085,8 +2079,8 @@ namespace priv {
         void internal_clear(node_type *node);
 
         // Verifies the tree structure of node.
-        size_type internal_verify(const node_type *node,
-                                  const key_type *lo, const key_type *hi) const;
+        int internal_verify(const node_type *node,
+                            const key_type *lo, const key_type *hi) const;
 
         node_stats internal_stats(const node_type *node) const {
             // The root can be a static empty node.
@@ -2110,7 +2104,11 @@ namespace priv {
         }
 
     private:
-        std::tuple<key_compare, allocator_type, node_type *> root_;
+        // We use compressed tuple in order to save space because key_compare and
+        // allocator_type are usually empty.
+        phmap::priv::CompressedTuple<key_compare, allocator_type,
+                                                    node_type *>
+        root_;
 
         // A pointer to the rightmost node. Note that the leftmost node is stored as
         // the root's parent.
@@ -2235,13 +2233,11 @@ namespace priv {
             // 1) Shift existing values in the right node to their correct positions.
             right->uninitialized_move_n(to_move, right->count() - to_move,
                                         right->count(), right, alloc);
-            if (right->count() > to_move) {
-                for (slot_type *src = right->slot(right->count() - to_move - 1),
-                         *dest = right->slot(right->count() - 1),
-                         *end = right->slot(0);
-                     src >= end; --src, --dest) {
-                    params_type::move(alloc, src, dest);
-                }
+            for (slot_type *src = right->slot(right->count() - to_move - 1),
+                     *dest = right->slot(right->count() - 1),
+                     *end = right->slot(0);
+                 src >= end; --src, --dest) {
+                params_type::move(alloc, src, dest);
             }
 
             // 2) Move the delimiting value in the parent to the right node.
@@ -2505,7 +2501,7 @@ namespace priv {
             "key comparison function must return phmap::{weak,strong}_ordering or "
             "bool.");
 
-        // Test the assumption made in setting kNodeSlotSpace.
+        // Test the assumption made in setting kNodeValueSpace.
         static_assert(node_type::MinimumOverhead() >= sizeof(void *) + 4,
                       "node space assumption incorrect");
 
@@ -3230,7 +3226,7 @@ namespace priv {
     }
 
     template <typename P>
-    typename btree<P>::size_type btree<P>::internal_verify(
+    int btree<P>::internal_verify(
         const node_type *node, const key_type *lo, const key_type *hi) const {
         assert(node->count() > 0);
         assert(node->count() <= node->max_count());
@@ -3243,7 +3239,7 @@ namespace priv {
         for (int i = 1; i < node->count(); ++i) {
             assert(!compare_keys(node->key(i), node->key(i - 1)));
         }
-        size_type count = node->count();
+        int count = node->count();
         if (!node->leaf()) {
             for (int i = 0; i <= node->count(); ++i) {
                 assert(node->child(i) != nullptr);
@@ -3318,12 +3314,6 @@ namespace priv {
         const_reverse_iterator crend() const   { return tree_.rend(); }
 
         // Lookup routines.
-        // ----------------
-        template <typename K = key_type>
-        size_type count(const key_arg<K> &key) const {
-            auto er = this->equal_range(key);
-            return std::distance(er.first, er.second);
-        }
         template <typename K = key_type>
         iterator find(const key_arg<K> &key) {
             return tree_.find(key);
@@ -3360,11 +3350,7 @@ namespace priv {
         iterator erase(const_iterator first, const_iterator last) {
             return tree_.erase(iterator(first), iterator(last)).second;
         }
-        template <typename K = key_type>
-        size_type erase(const key_arg<K> &key) {
-            auto er = this->equal_range(key);
-            return tree_.erase_range(er.first, er.second).first;
-        }
+
         node_type extract(iterator position) {
             // Use Move instead of Transfer, because the rebalancing code expects to
             // have a valid object to scribble metadata bits on top of.
@@ -3463,10 +3449,6 @@ namespace priv {
                             const allocator_type &alloc = allocator_type())
             : btree_set_container(init.begin(), init.end(), comp, alloc) {}
 
-        btree_set_container(std::initializer_list<init_type> init,
-                            const allocator_type &alloc)
-            : btree_set_container(init.begin(), init.end(), alloc) {}
-
         // Lookup routines.
         template <typename K = key_type>
         size_type count(const key_arg<K> &key) const {
@@ -3485,23 +3467,23 @@ namespace priv {
             init_type v(std::forward<Args>(args)...);
             return this->tree_.insert_unique(params_type::key(v), std::move(v));
         }
-        iterator insert(const_iterator hint, const value_type &x) {
+        iterator insert(const_iterator position, const value_type &x) {
             return this->tree_
-                .insert_hint_unique(iterator(hint), params_type::key(x), x)
+                .insert_hint_unique(iterator(position), params_type::key(x), x)
                 .first;
         }
-        iterator insert(const_iterator hint, value_type &&x) {
+        iterator insert(const_iterator position, value_type &&x) {
             return this->tree_
-                .insert_hint_unique(iterator(hint), params_type::key(x),
+                .insert_hint_unique(iterator(position), params_type::key(x),
                                     std::move(x))
                 .first;
         }
 
         template <typename... Args>
-        iterator emplace_hint(const_iterator hint, Args &&... args) {
+        iterator emplace_hint(const_iterator position, Args &&... args) {
             init_type v(std::forward<Args>(args)...);
             return this->tree_
-                .insert_hint_unique(iterator(hint), params_type::key(v),
+                .insert_hint_unique(iterator(position), params_type::key(v),
                                     std::move(v))
                 .first;
         }
@@ -3723,11 +3705,11 @@ namespace priv {
         iterator insert(value_type &&x) {
             return this->tree_.insert_multi(std::move(x));
         }
-        iterator insert(const_iterator hint, const value_type &x) {
-            return this->tree_.insert_hint_multi(iterator(hint), x);
+        iterator insert(const_iterator position, const value_type &x) {
+            return this->tree_.insert_hint_multi(iterator(position), x);
         }
-        iterator insert(const_iterator hint, value_type &&x) {
-            return this->tree_.insert_hint_multi(iterator(hint), std::move(x));
+        iterator insert(const_iterator position, value_type &&x) {
+            return this->tree_.insert_hint_multi(iterator(position), std::move(x));
         }
         template <typename InputIterator>
         void insert(InputIterator b, InputIterator e) {
@@ -3741,9 +3723,9 @@ namespace priv {
             return this->tree_.insert_multi(init_type(std::forward<Args>(args)...));
         }
         template <typename... Args>
-        iterator emplace_hint(const_iterator hint, Args &&... args) {
+        iterator emplace_hint(const_iterator position, Args &&... args) {
             return this->tree_.insert_hint_multi(
-                iterator(hint), init_type(std::forward<Args>(args)...));
+                iterator(position), init_type(std::forward<Args>(args)...));
         }
         iterator insert(node_type &&node) {
             if (!node) return this->end();
@@ -3788,7 +3770,7 @@ namespace priv {
                     std::is_same<typename params_type::is_map_container,
                                  typename T::params_type::is_map_container>>::value,
                 int> = 0>
-        void merge(btree_container<T> &src) {  // NOLINT
+            void merge(btree_container<T> &src) {  // NOLINT
             insert(std::make_move_iterator(src.begin()),
                    std::make_move_iterator(src.end()));
             src.clear();
@@ -3803,7 +3785,7 @@ namespace priv {
                     std::is_same<typename params_type::is_map_container,
                                  typename T::params_type::is_map_container>>::value,
                 int> = 0>
-        void merge(btree_container<T> &&src) {
+            void merge(btree_container<T> &&src) {
             merge(src);
         }
     };
@@ -3857,8 +3839,6 @@ namespace priv {
         using Base::contains;
         using Base::count;
         using Base::equal_range;
-        using Base::lower_bound;
-        using Base::upper_bound;
         using Base::find;
         using Base::get_allocator;
         using Base::key_comp;
@@ -3916,8 +3896,6 @@ namespace priv {
         using Base::contains;
         using Base::count;
         using Base::equal_range;
-        using Base::lower_bound;
-        using Base::upper_bound;
         using Base::find;
         using Base::get_allocator;
         using Base::key_comp;
@@ -3978,8 +3956,6 @@ namespace priv {
         using Base::contains;
         using Base::count;
         using Base::equal_range;
-        using Base::lower_bound;
-        using Base::upper_bound;
         using Base::find;
         using Base::operator[];
         using Base::get_allocator;
@@ -4037,8 +4013,6 @@ namespace priv {
         using Base::contains;
         using Base::count;
         using Base::equal_range;
-        using Base::lower_bound;
-        using Base::upper_bound;
         using Base::find;
         using Base::get_allocator;
         using Base::key_comp;

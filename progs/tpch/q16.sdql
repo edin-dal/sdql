@@ -33,6 +33,7 @@ let s_h =
     else
       { }
 
+// TODO
 //let ps_h =
   sum(<ps,ps_v> <- partsupp)
     if ((ps.ps_partkey ∈ p_h) && (!(ps.ps_suppkey ∈ s_h))) then
@@ -47,4 +48,4 @@ let s_h =
     else
       { }
 
-// TODO needs support for nested dict so we can calculate supplier_cnt
+// TODO ho do we calculate size of the nested dictionary in SDQL?

@@ -2,20 +2,6 @@ let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_to
 
 let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
 
-// TODO rewrite it as originally with nested dict (and subsequent steps below)
-//let l_h =
-//  sum(<l,l_v> in lineitem)
-//    if(
-//      ((l.l_shipmode == "MAIL") || (l.l_shipmode == "SHIP"))
-//      && (date(19940101) < l.l_receiptdate)
-//      && (l.l_receiptdate < date(19950101))
-//      && (l.l_shipdate < l.l_commitdate)
-//      && (l.l_commitdate < l.l_receiptdate)
-//    ) then
-//      { l.l_orderkey -> { l.l_shipmode -> 1 } }
-//    else
-//      { }
-
 let l_h =
   sum(<l,l_v> in lineitem)
     if(
@@ -25,7 +11,7 @@ let l_h =
       && (l.l_shipdate < l.l_commitdate)
       && (l.l_commitdate < l.l_receiptdate)
     ) then
-      { l.l_orderkey -> l.l_shipmode }
+      { l.l_orderkey -> { l.l_shipmode -> 1 } }
     else
       { }
 

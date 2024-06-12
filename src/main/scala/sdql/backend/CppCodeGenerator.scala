@@ -149,11 +149,16 @@ object CppCodeGenerator {
       ("", None)
     case DictNode(Seq((_, e2: RecNode))) =>
       (sRun(e2), None)
+    case DictNode(Seq((e1, e2))) =>
+      // Create nested dict e.g. TPCH Q16
+      assert(cond(e1) { case _: FieldNode | _: Const => true })
+      assert(cond(e2) { case _: FieldNode | _: Const => true })
+      val tpe = TypeInference.run(e)
+      (s"${toCpp(tpe)}({{${sRun(e1)}, ${sRun(e2)}}})", None)
     case DictNode(Seq(_)) =>
       // TODO here we should create a new dictionary
       //  (this is used by e.g. Q19 to return its result)
       // TODO this case might also be hit by Q8
-      // TODO also hit by Q16 creating nested dict
       // TODO also hit by Q12
       ???
 

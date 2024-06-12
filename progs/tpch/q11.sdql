@@ -18,22 +18,20 @@ let s_h =
     else
       { }
 
-// TODO avoid redefining ps,ps_v twice in codegen
-// TODO loop fusion like sdqlpy (i.e. aggregate into a tuple + support dict nested in tuple)
+// TODO aggregate into a tuple
 
-let a =
-  sum(<psa,psa_v> in partsupp)
-    if(psa.ps_suppkey ∈ s_h) then
-      psa.ps_supplycost * psa.ps_availqty * 0.0001
-    else
-      0.0
-
-// TODO
-//let b =
-  sum(<psb,psb_v> in partsupp)
-    if(psb.ps_suppkey ∈ s_h) then
-      { psb.ps_partkey -> psb.ps_supplycost }
+let ps_h =
+  sum(<ps,ps_v> in partsupp)
+    if(ps.ps_suppkey ∈ s_h) then
+      <
+        _ = ps.ps_supplycost * ps.ps_availqty * 0.0001,
+        _ = { ps.ps_partkey -> ps.ps_supplycost }
+      >
     else
       { }
 
-// TODO no way of zipping a and b, we need fusion for the last step
+sum(<ps_partkey,ps_supplycost> in ps_h(1))
+  if(ps_h(0) < ps_supplycost) then
+    { < _ = ps_partkey, _ = ps_supplycost > -> true }
+  else
+    { }
