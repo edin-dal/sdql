@@ -272,6 +272,8 @@ object CppCodeGenerator {
           s"$agg[${sRun(e1)}] += ${sRun(e2)};"
         else
           s"$agg.emplace(${sRun(e1)}, ${sRun(e2)});"
+      case _: ForLoop | _: Sum =>
+        raise("nested loop not supported yet")
       case _ =>
         assert(cond(typesCtx.get(Sym(agg))) { case Some(t) => t.isScalar })
         assert(isSum || TypeInference.run(e).isScalar)

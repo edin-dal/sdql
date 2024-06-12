@@ -133,14 +133,12 @@ object TypeInference {
 
   def loop_infer_type_and_ctx(e: Exp)(implicit ctx: Ctx): (Type, Ctx) = {
     val (k, v, e1, e2) = unpack_loop(e)
-    val e1Sym = e1 match { case e1Sym: Sym => e1Sym }
     // from e1 infer types of k, v
-    val (kType, vType) = ctx.get(e1Sym) match {
-      case Some(DictType(k_type, v_type)) => (k_type, v_type)
-      case Some(tpe) => raise(
+    val (kType, vType) = run(e1) match {
+      case DictType(k_type, v_type) => (k_type, v_type)
+      case tpe => raise(
         s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
       )
-      case None => raise(s"unknown symbol: $e1Sym")
     }
     // from types of k, v infer type of e2
     val localCtx = ctx ++ Map(k -> kType, v -> vType)
