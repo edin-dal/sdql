@@ -6,7 +6,6 @@ let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenum
 //let l_h =
   sum(<l,l_v> in lineitem)
     if(
-      // TODO we must add support for || (currently it behaves like &&)
       ((l.l_shipmode == "MAIL") || (l.l_shipmode == "SHIP"))
       && (date(19940101) < l.l_receiptdate)
       && (l.l_receiptdate < date(19950101))
