@@ -1,0 +1,66 @@
+let customer = load[{<c_custkey: int, c_name: string, c_address: string, c_nationkey: int, c_phone: string, c_acctbal: double, c_mktsegment: string, c_comment: string> -> int}]("datasets/tpch/customer.tbl")
+
+let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_totalprice: double, o_orderdate: date, o_orderpriority: string, o_clerk: string, o_shippriority: int, o_comment: string> -> int}]("datasets/tpch/orders.tbl")
+
+// TODO sdqlpy stores o_h as a vector
+let o_h =
+  for(<o,o_v> <- orders)
+    { o.o_custkey -> true }
+
+// TODO avoid redefining c,c_v twice in codegen
+
+let a =
+  sum(<ca,ca_v> <- customer)
+    if(
+      (0.0 < ca.c_acctbal) &&
+      (
+        ext(`StrStartsWith`, ca.c_phone, "13") ||
+        ext(`StrStartsWith`, ca.c_phone, "31") ||
+        ext(`StrStartsWith`, ca.c_phone, "23") ||
+        ext(`StrStartsWith`, ca.c_phone, "29") ||
+        ext(`StrStartsWith`, ca.c_phone, "30") ||
+        ext(`StrStartsWith`, ca.c_phone, "18") ||
+        ext(`StrStartsWith`, ca.c_phone, "17")
+      )
+    ) then
+      ca.c_acctbal
+    else
+      0.0
+
+let b =
+  sum(<cb,cb_v> <- customer)
+    if(
+      (0.0 < cb.c_acctbal) &&
+      (
+        ext(`StrStartsWith`, cb.c_phone, "13") ||
+        ext(`StrStartsWith`, cb.c_phone, "31") ||
+        ext(`StrStartsWith`, cb.c_phone, "23") ||
+        ext(`StrStartsWith`, cb.c_phone, "29") ||
+        ext(`StrStartsWith`, cb.c_phone, "30") ||
+        ext(`StrStartsWith`, cb.c_phone, "18") ||
+        ext(`StrStartsWith`, cb.c_phone, "17")
+      )
+    ) then
+      1.0
+    else
+      0.0
+
+let avg = a / b
+
+sum(<c,c_v> <- customer)
+  if(
+    (avg < c.c_acctbal) &&
+    (!o_h(c.c_custkey)) &&
+    (
+      ext(`StrStartsWith`, c.c_phone, "13") ||
+      ext(`StrStartsWith`, c.c_phone, "31") ||
+      ext(`StrStartsWith`, c.c_phone, "23") ||
+      ext(`StrStartsWith`, c.c_phone, "29") ||
+      ext(`StrStartsWith`, c.c_phone, "30") ||
+      ext(`StrStartsWith`, c.c_phone, "18") ||
+      ext(`StrStartsWith`, c.c_phone, "17")
+    )
+  ) then
+    { ext(`SubString`, c.c_phone, 0, 2) -> < _ = 1, _ = c.c_acctbal > }
+  else
+    { }
