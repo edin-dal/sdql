@@ -153,6 +153,7 @@ object CppCodeGenerator {
       // TODO here we should create a new dictionary
       //  (this is used by e.g. Q19 to return its result)
       // TODO this case might also be hit by Q8
+      // TODO also hit by Q16 creating nested dict
       ???
 
     case RecNode(values) =>

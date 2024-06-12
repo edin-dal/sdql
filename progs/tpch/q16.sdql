@@ -1,0 +1,50 @@
+let partsupp = load[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_supplycost: double, ps_comment: string> -> int}]("datasets/tpch/partsupp.tbl")
+
+let part = load[{<p_partkey: int, p_name: string, p_mfgr: string, p_brand: string, p_type: string, p_size: int, p_container: string, p_retailprice: double, p_comment: string> -> int}]("datasets/tpch/part.tbl")
+
+let supplier = load[{<s_suppkey: int, s_name: string, s_address: string, s_nationkey: int, s_phone: string, s_acctbal: double, s_comment: string> -> int}]("datasets/tpch/supplier.tbl")
+
+let p_h =
+  for(<p,p_v> <- part)
+    if(
+      (p.p_brand != "Brand#45") &&
+      (ext(`StrStartsWith`, p.p_type, "MEDIUM POLISHED")) &&
+      (
+        (p.p_size ==  49) ||
+        (p.p_size ==  14) ||
+        (p.p_size ==  23) ||
+        (p.p_size ==  45) ||
+        (p.p_size ==  19) ||
+        (p.p_size ==  3) ||
+        (p.p_size ==  36) ||
+        (p.p_size ==  9)
+      )
+    ) then
+      { p.p_partkey -> < _ = p.p_brand, _ = p.p_type, _ = p.p_size > }
+    else
+      { }
+
+let s_h =
+  for(<s,s_v> <- supplier)
+    let idx1 = ext(`StrIndexOf`, s.s_comment, "Customer", 0)
+    let idx2 = ext(`StrIndexOf`, s.s_comment, "Complaints", idx1)
+    if((idx1 != -1) && (idx2 != -1)) then
+      { s.s_suppkey -> < _ = s.s_suppkey > }
+    else
+      { }
+
+//let ps_h =
+  sum(<ps,ps_v> <- partsupp)
+    if ((ps.ps_partkey ∈ p_h) && (!(ps.ps_suppkey ∈ s_h))) then
+    {
+      <
+        _ = p_h(ps.ps_partkey)(0),
+        _ = p_h(ps.ps_partkey)(1),
+        _ = p_h(ps.ps_partkey)(2)
+      > ->
+      { ps.ps_suppkey -> true }
+    }
+    else
+      { }
+
+// TODO needs support for nested dict so we can calculate supplier_cnt
