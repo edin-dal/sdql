@@ -1,0 +1,37 @@
+let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
+
+let supplier = load[{<s_suppkey: int, s_name: string, s_address: string, s_nationkey: int, s_phone: string, s_acctbal: double, s_comment: string> -> int}]("datasets/tpch/supplier.tbl")
+
+let max_revenue = 1772627.2087
+
+let l_h =
+  sum(<l,l_v> in lineitem)
+    if((date(19960101) <= l.l_shipdate) && (l.l_shipdate < date(19960401))) then
+      { l.l_suppkey -> l.l_extendedprice * (1.0 - l.l_discount) }
+    else
+      { }
+
+let s_h =
+  sum(<s,s_v> in supplier)
+    {
+      s.s_suppkey ->
+      <
+        _ = s.s_name,
+        _ = s.s_address,
+        _ = s.s_phone
+      >
+    }
+
+for(<k,v> in l_h)
+  if(v == max_revenue) then
+    {
+      <
+        // TODO fix (k) indexing in codegen
+        _ = s_h(k)(0),
+        _ = s_h(k)(1),
+        _ = s_h(k)(2),
+        _ = v
+      > -> true
+    }
+  else
+    { }
