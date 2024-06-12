@@ -1,0 +1,32 @@
+let supplier = load[{<s_suppkey: int, s_name: string, s_address: string, s_nationkey: int, s_phone: string, s_acctbal: double, s_comment: string> -> int}]("datasets/tpch/supplier.tbl")
+
+let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
+
+let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_totalprice: double, o_orderdate: date, o_orderpriority: string, o_clerk: string, o_shippriority: int, o_comment: string> -> int}]("datasets/tpch/orders.tbl")
+
+let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
+
+let n_h =
+  for(<n,n_v> <- nation)
+    if(n.n_name == "SAUDI ARABIA") then
+      { n.n_nationkey -> < _ = n.n_nationkey > }
+    else
+      { }
+
+let s_h =
+  for(<s,s_v> <- supplier)
+    if(s.s_nationkey ∈ n_h) then
+      { s.s_suppkey -> s.s_name }
+    else
+      { }
+
+// TODO sdqlpy stores o_h as a vector
+// let o_h =
+  for(<o,o_v> <- orders)
+    if(o.o_orderstatus == "F") then
+      { o.o_orderkey -> true }
+    else
+      { }
+
+// TODO there are vectors of vectors and emplace_back
+//  rewrite it with nested dicts? (after we support them)
