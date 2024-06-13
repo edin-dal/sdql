@@ -5,7 +5,7 @@ let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenum
 let li_h =
   for(<l,l_v> in lineitem)
     if((l.l_commitdate < l.l_receiptdate)) then
-      { l.l_orderkey -> 1 }
+      { l.l_orderkey -> true }
     else
       { }
 
@@ -14,9 +14,9 @@ let li_h =
   sum(<o,o_v> in orders)
     if(
       (date(19930701) <= o.o_orderdate)
-      && (o.o_orderdate < date(19931001)
+      && (o.o_orderdate < date(19931001))
       && li_h(o.o_orderkey)
-    )) then
+    ) then
       { o.o_orderpriority -> 1 }
     else
       { }

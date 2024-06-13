@@ -11,7 +11,7 @@ class CppCodegenTest extends AnyFlatSpec {
     assertCompiles("progs/tpch/q1.sdql")
     assertCompiles("progs/tpch/q2.sdql")
     assertCompiles("progs/tpch/q3.sdql")
-    // assertCompiles("progs/tpch/q4.sdql")
+    assertCompiles("progs/tpch/q4.sdql")
     assertCompiles("progs/tpch/q5.sdql")
     assertCompiles("progs/tpch/q6.sdql")
     assertCompiles("progs/tpch/q7.sdql")
