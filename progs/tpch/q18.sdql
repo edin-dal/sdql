@@ -5,14 +5,53 @@ let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_to
 let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
 
 // TODO
-// let li_h =
-  sum(<li,li_v> in lineitem)
-    { li.l_orderkey -> li.l_quantity }
+//class LineitemValues {
+//public:
+//  int operator[](const int i) const { return 0 <= i < LINEITEM.GetRowCount(); }
+//};
+
+// TODO fix so we can reuse variable names <l,l_v>
+
+let l_h =
+  sum(<la,la_v> in lineitem)
+    { la.l_orderkey -> la.l_quantity }
 
 // TODO Values() hack won't work for l_quantity here
-// TODO also codegen assumes l_orderkey is a vector
-//  for(<l_orderkey,l_quantity> in li_h)
-//    if(300 < l_quantity) then
-//      { l_orderkey -> 1 }
-//    else
-//      { }
+let orderkeys =
+  for(<l_orderkey,l_quantity> in l_h)
+    if(300 < l_quantity) then
+      { l_orderkey -> true }
+    else
+      { }
+
+let custkey_to_name =
+  for(<c,c_v> in customer)
+    { c.c_custkey -> < _ = c.c_name > }
+
+let o_h =
+  for(<o,o_v> in orders)
+    if((o.o_orderkey ∈ orderkeys) && (o.o_custkey ∈ custkey_to_name)) then
+      let name = custkey_to_name(o.o_custkey)(0)
+      {
+        o.o_orderkey ->
+        <
+          _ = name, _ = o.o_custkey, _ = o.o_orderkey, _ = o.o_orderdate, _ = o.o_totalprice
+        >
+      }
+    else
+      { }
+
+sum(<lb,lb_v> in lineitem)
+  if(lb.l_orderkey ∈ o_h) then
+    {
+      <
+        _ = o_h(l.l_orderkey)(0),
+        _ = o_h(l.l_orderkey)(1),
+        _ = o_h(l.l_orderkey)(2),
+        _ = o_h(l.l_orderkey)(3),
+        _ = o_h(l.l_orderkey)(4)
+      > ->
+      < _ = lb.l_quantity >
+    }
+  else
+    { }
