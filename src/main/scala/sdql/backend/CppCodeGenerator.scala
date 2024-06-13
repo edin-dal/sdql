@@ -37,7 +37,6 @@ object CppCodeGenerator {
         |const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
         |const auto SEPARATOR = rapidcsv::SeparatorParams('|');
         |$csvBody
-        |class Values { public: int operator [](int _) const { return 1; } };
         |
         |int main() {
         |$mainBody
@@ -251,7 +250,7 @@ object CppCodeGenerator {
     (
       s"""$init
          |const auto &${k.name} = ${e1Sym.name};
-         |constexpr auto ${v.name} = Values();
+         |constexpr auto ${v.name} = ${e1Sym.name.capitalize}Values();
          |for (int i = 0; i < ${e1Sym.name.toLowerCase}.size(); i++) {
          |$loopBody
          |}
@@ -327,13 +326,17 @@ object CppCodeGenerator {
       pathNameAttrs.map({ case (_, name, attrs) => makeStructDef(name, attrs) } ).mkString("\n")
     val structInits =
       pathNameAttrs.map({ case (_, name, attrs) => makeStructInit(name, attrs) } ).mkString("\n")
+    val valueClasses =
+      pathNameAttrs.map({ case (_, name, _) => makeValuesClass(name) } ).mkString("\n")
 
-    (List(csvConsts, structDefs, structInits).mkString("\n"), pathNameAttrs.map(_._2).map(Sym.apply).toSet)
+    (
+      List(csvConsts, structDefs, structInits, valueClasses).mkString("\n"),
+      pathNameAttrs.map(_._2).map(Sym.apply).toSet,
+    )
   }
 
-  private def makeCsvConst(name: String, path: String): String = {
+  private def makeCsvConst(name: String, path: String): String =
     s"""const rapidcsv::Document ${name.toUpperCase}("../$path", NO_HEADERS, SEPARATOR);"""
-  }
 
   private def makeStructDef(name: String, attrs: Seq[Attribute]): String = {
     attrs.map(attr => s"std::vector<${toCpp(attr.tpe)}> ${attr.name};")
@@ -354,6 +357,14 @@ object CppCodeGenerator {
         }
       )
       .mkString(s"const ${name.capitalize} ${name.toLowerCase} {\n", "\n", "\n};\n")
+
+  private def makeValuesClass(name: String): String =
+    s"""
+       |class ${name.capitalize}Values{
+       |public:
+       |int operator[](const int i) const { return 0 <= i < ${name.toUpperCase}.GetRowCount(); }
+       |};
+       |""".stripMargin
 
   private def flattenExps(e: Exp): List[Exp] =
     List(e) ++ (
