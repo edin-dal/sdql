@@ -9,7 +9,7 @@ import sdql.ir._
 import java.util.UUID
 import scala.PartialFunction.{cond, condOpt}
 
-object CppCodeGenerator {
+object CppCodegen {
   private type TypesCtx = TypeInference.Ctx
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
