@@ -5,7 +5,7 @@ import sdql.backend._
 import sdql.frontend._
 import sdql.ir._
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.Path
 
 object Main {
 
@@ -33,56 +33,17 @@ object Main {
         }
         val dirPath = Path.of(args(1))
         val fileNames = args.drop(2)
-        cmake(dirPath, fileNames)
+        CppCompilation.cmake(dirPath, fileNames)
         for (fileName <- fileNames) {
           val filePath = dirPath.resolve(fileName)
           val prog = SourceCode.fromFile(filePath.toString).exp
           val res = CppCodegen(prog)
           println(fileName)
-          println(compile(filePath, res))
+          println(CppCompilation.compile(filePath, res))
           println()
         }
       case arg =>
         raise(s"`run $arg` not supported")
     }
   }
-
-  // clang-format -i q1.cpp -style="{ColumnLimit: 120}"
-  // && clang++ -std=c++20 q1.cpp
-  // && ./q1.out
-  // && rm q1.out
-  private def compile(sdqlFilePath: Path, cpp: String) = {
-    val noExtension = getNoExtension(sdqlFilePath)
-    reflect.io.File(cppPath(noExtension).toString).writeAll(cpp)
-    in_generated(clang_format(noExtension)).!!
-    in_generated(clang(noExtension)).!!
-    in_generated(run(noExtension)).!!
-  }
-  private def clang_format(noExtension: String) = Seq(
-    "clang-format", "-i", s"$noExtension.cpp", "-style", "{ColumnLimit: 120}"
-  )
-  private def clang(noExtension: String) = clangCmd ++ Seq(s"$noExtension.cpp", "-o", s"$noExtension.out")
-  private def run(noExtension: String) = Seq(s"./$noExtension.out")
-  private def in_generated(seq: Seq[String]) = sys.process.Process(seq, generatedDir)
-  private def cppPath(noExtension: String) = Paths.get(generatedDir.toString, s"$noExtension.cpp")
-  private val generatedDir = new java.io.File("generated")
-  private def getNoExtension(path: Path) = reFilename.findAllIn(path.toString).matchData.next().group(2)
-  private val reFilename = "^(.+/)*(.+)\\.(.+)$".r
-  private def cmake(dirPath: Path, fileNames: Array[String]): Unit = {
-    val contents = cmakeContents(fileNames.map(dirPath.resolve).map(getNoExtension))
-    val path = Paths.get(generatedDir.toString, cmakeFileName)
-    reflect.io.File(path.toString).writeAll(contents)
-  }
-  private def cmakeContents(noExtensions: Seq[String]): String = {
-    val init =  s"""#this auto-generated config is handy for debugging
-       |cmake_minimum_required(VERSION 3.28)
-       |project(generated)
-       |set(CMAKE_CXX_STANDARD $cppStandard)
-       |set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $${CMAKE_CURRENT_SOURCE_DIR})
-       |""".stripMargin
-    noExtensions.map(noExtension => s"add_executable($noExtension.out $noExtension.cpp)").mkString(init, "\n", "")
-  }
-  private val cppStandard = 20
-  private val clangCmd = Seq("clang++", "-Wno-deprecated-builtins", "--std", s"c++$cppStandard")
-  private val cmakeFileName = "CMakeLists.txt"
 }
