@@ -63,7 +63,7 @@ object Main {
 	}
 
 	private def clang_format(noExtension: String) = Seq(
-		"clang-format", "-i", mk_cpp(noExtension), "-style", "{ColumnLimit: 120}"
+		"clang-format", "-i", mk_cpp(noExtension), "-style", "{ColumnLimit: 120, IndentWidth: 4}"
 	).!!
 
 	private def clang(noExtension: String) = Seq(
