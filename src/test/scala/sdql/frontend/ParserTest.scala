@@ -151,6 +151,26 @@ class ParserTest extends FlatSpec {
 
   it should "parse TPCH" in {
     SourceCode.fromFile("progs/tpch/q1.sdql")
+    SourceCode.fromFile("progs/tpch/q2.sdql")
+    SourceCode.fromFile("progs/tpch/q3.sdql")
+    SourceCode.fromFile("progs/tpch/q4.sdql")
+    SourceCode.fromFile("progs/tpch/q5.sdql")
     SourceCode.fromFile("progs/tpch/q6.sdql")
+    SourceCode.fromFile("progs/tpch/q7.sdql")
+    SourceCode.fromFile("progs/tpch/q8.sdql")
+    SourceCode.fromFile("progs/tpch/q9.sdql")
+    SourceCode.fromFile("progs/tpch/q10.sdql")
+    SourceCode.fromFile("progs/tpch/q11.sdql")
+    SourceCode.fromFile("progs/tpch/q12.sdql")
+    SourceCode.fromFile("progs/tpch/q13.sdql")
+    SourceCode.fromFile("progs/tpch/q14.sdql")
+    SourceCode.fromFile("progs/tpch/q15.sdql")
+    SourceCode.fromFile("progs/tpch/q16.sdql")
+    SourceCode.fromFile("progs/tpch/q17.sdql")
+    SourceCode.fromFile("progs/tpch/q18.sdql")
+    SourceCode.fromFile("progs/tpch/q19.sdql")
+    SourceCode.fromFile("progs/tpch/q20.sdql")
+    SourceCode.fromFile("progs/tpch/q21.sdql")
+    SourceCode.fromFile("progs/tpch/q22.sdql")
   }
 }
