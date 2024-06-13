@@ -9,3 +9,5 @@ libraryDependencies ++= Seq(
   "org.scalatest"   % "scalatest_2.12" % "3.1.4"         % "test",
   "org.scalameta"  %% "munit"          % "0.7.29"        // for pretty printing expressions
 )
+
+Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-P32")
