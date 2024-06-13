@@ -61,9 +61,7 @@ object Main {
   private def clang_format(noExtension: String) = Seq(
     "clang-format", "-i", s"$noExtension.cpp", "-style", "{ColumnLimit: 120}"
   )
-  private def clang(noExtension: String) = Seq(
-    "clang++", "-Wno-deprecated-builtins", "--std", "c++20", s"$noExtension.cpp", "-o", s"$noExtension.out"
-  )
+  private def clang(noExtension: String) = clangCmd ++ Seq(s"$noExtension.cpp", "-o", s"$noExtension.out")
   private def run(noExtension: String) = Seq(s"./$noExtension.out")
   private def in_generated(seq: Seq[String]) = sys.process.Process(seq, generatedDir)
   private def cppPath(noExtension: String) = Paths.get(generatedDir.toString, s"$noExtension.cpp")
@@ -76,13 +74,15 @@ object Main {
     reflect.io.File(path.toString).writeAll(contents)
   }
   private def cmakeContents(noExtensions: Seq[String]): String = {
-    val init =  """#this auto-generated config is handy for debugging
+    val init =  s"""#this auto-generated config is handy for debugging
        |cmake_minimum_required(VERSION 3.28)
        |project(generated)
-       |set(CMAKE_CXX_STANDARD 20)
-       |set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+       |set(CMAKE_CXX_STANDARD $cppStandard)
+       |set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $${CMAKE_CURRENT_SOURCE_DIR})
        |""".stripMargin
     noExtensions.map(noExtension => s"add_executable($noExtension.out $noExtension.cpp)").mkString(init, "\n", "")
   }
+  private val cppStandard = 20
+  private val clangCmd = Seq("clang++", "-Wno-deprecated-builtins", "--std", s"c++$cppStandard")
   private val cmakeFileName = "CMakeLists.txt"
 }

@@ -27,7 +27,7 @@ object CppCodegen {
     val printBody = tpe match {
       case _: DictType =>
         s"""for (const auto &[key, val] : $name) {
-           |std::cout << key << ':' << val << std::endl;
+           |std::cout << key << ":" << val << std::endl;
            |}""".stripMargin
       case _ if tpe.isScalar =>
         s"std::cout << $name << std::endl;"
