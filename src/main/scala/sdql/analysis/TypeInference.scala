@@ -167,18 +167,20 @@ object TypeInference {
   }
 
   private def promote(t1: Type, t2: Type): Type = {
-    val (t1Promo, t2Promo) = (t1, t2) match {
-      case (IntType, RealType) | (RealType, IntType) => (RealType, RealType)
-      case (t1, t2) => (t1, t2)
+    (t1, t2) match {
+      case (IntType, RealType) | (RealType, IntType) =>
+        RealType
+      case (DictType(kt1, vt1), DictType(kt2, vt2)) =>
+        DictType(promote(kt1, kt2), promote(vt1, vt2))
+      case (DictType(kt, vt), t) if t.isScalar =>
+        DictType(kt, promote(vt, t))
+      case (t, DictType(kt, vt)) if t.isScalar =>
+        DictType(kt, promote(vt, t))
+      case (t1, t2) if t1 == t2 =>
+        t1
+      case (t1, t2) =>
+        raise(s"can't promote types: ${t1.simpleName} ≠ ${t2.simpleName}")
     }
-    if (t1Promo != t2Promo) {
-      raise(
-        s"branching with types: " +
-          s"${t1Promo.simpleName}${if (t1Promo != t1) s" (↑${t1.simpleName})" else ""} ≠ " +
-          s"${t2Promo.simpleName}${if (t2Promo != t2) s" (↑${t2.simpleName})" else ""}"
-      )
-    }
-    t1Promo
   }
 
   def unpack_loop(e: Exp): (Var, Var, Exp, Exp) = e match {

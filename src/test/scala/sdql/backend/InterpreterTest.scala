@@ -16,8 +16,10 @@ class InterpreterTest extends FlatSpec {
     interpreter(sdql"42") should be (42)
     interpreter(sdql"42.2") should be (42.2)
     interpreter(sdql""" "foo" """) should be ("foo")
+    interpreter(sdql"date(19700101)") should be (DateValue(19700101))
     interpreter(sdql"< a = 1, b = 2 >") should be (RecordValue(Seq("a" -> 1, "b" -> 2)))
     interpreter(sdql"""{ "a" -> 1, "b" -> 2 }""") should be (Map("a" -> 1, "b" -> 2))
+    interpreter(sdql"""{ "a" -> 1, "b" -> 2.5 }""") should be (Map("a" -> 1.0, "b" -> 2.5))
   }
 
   it should "work for arith ops" in {
