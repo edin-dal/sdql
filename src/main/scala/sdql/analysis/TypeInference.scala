@@ -81,6 +81,11 @@ object TypeInference {
 					case _ => raise(s"Unhandled load type ${munitPrint(tp)}")
 				}
 
+			case Get(ht@Sym(_), _) =>
+				ctx.get(ht) match {
+					case Some(DictType(_, v)) => v
+				}
+
 			case _ => raise(
 				f"""Unhandled ${e.getClass.toString} in
 				   |${munitPrint(e)}""".stripMargin

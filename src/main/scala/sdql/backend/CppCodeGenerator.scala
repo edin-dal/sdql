@@ -1,13 +1,13 @@
 package sdql
 package backend
 
-import munit.Assertions.munitPrint
 import sdql.analysis.TypeInference
 import sdql.ir._
 
 import java.util.UUID
 import scala.PartialFunction.condOpt
 import scala.collection.mutable.ArrayBuffer
+
 
 object CppCodeGenerator {
 	private type TypesCtx = TypeInference.Ctx
@@ -28,8 +28,7 @@ object CppCodeGenerator {
 				   |std::cout << key << ':' << val << std::endl;
 				   |}
 				   |""".stripMargin
-			case _ if tpe.isScalar =>
-				s"std::cout << $name << std::endl;"
+			case _ if tpe.isScalar => s"std::cout << $name << std::endl;"
 		}
 		s"""|#include "../runtime/headers.h"
 			|#include <vector>
@@ -52,6 +51,9 @@ object CppCodeGenerator {
 		case LetBinding(x@Sym(varName), e1, e2) =>
 			val cpp_e1 = e1 match {
 				case Load(path, tp) => load(varName, path, tp)
+				case e1: Sum =>
+					s"auto $varName = ${sum(e1, Some(varName))._1}"
+				case _: Get => s"const auto $varName = ${srun(e1)};\n"
 				case _ => raise(s"Unhandled bind value $e1")
 			}
 			val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
@@ -60,9 +62,23 @@ object CppCodeGenerator {
 
 		case e: Sum => sum(e)
 
+		case IfThenElse(cond, thenp, elsep) =>
+			val cppCond = srun(cond)
+			val cppThen = scopeBody(thenp)
+			val cppElse = scopeBody(elsep)
+			(s"if ($cppCond) {\n$cppThen\n} else {\n$cppElse\n}\n", None)
+
+		case Cmp(e1, e2, cmp) => cmp match {
+			case "∈" => (s"${srun(e2)}.contains(${srun(e1)})", None)
+			case _ => raise(s"not supported cmp: $e")
+		}
+
+		case DictNode(Nil) => ("abcd", None)
 		case DictNode(ArrayBuffer((_, htValue))) => (srun(htValue), None)
 
 		case FieldNode(Sym(name), column) => (s"$name.$column[i]", None)
+
+		case Get(Sym(htName), Sym(htKeyName)) => (s"$htName.at($htKeyName)", None)
 
 		case Sym(name) =>
 			val itVar = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, itVar, _) => itVar }).iterator.next()
@@ -77,7 +93,7 @@ object CppCodeGenerator {
 			case _ => (v.toString, None)
 		}
 
-		case _ => raise(s"not supported: $e")
+		case _ => raise(s"not supported in run: $e")
 	}
 
 	private def load(varName: String, path: String, tp: Type): String = {
@@ -91,8 +107,7 @@ object CppCodeGenerator {
 					{ case (attr, i) => s"${docVar(varName)}.GetColumn<${toCpp(attr.tpe)}>($i)," }
 				).mkString(s"const ${typeVar(varName)} $varName {\n", "\n", "\n};\n")
 				s"$doc_def\n$struct_def\n$struct_init\n".stripMargin
-			case _ =>
-				raise(s"`load[$tp]('$path')` only supports the type `{ < ... > -> int }`")
+			case _ => raise(s"`load[$tp]('$path')` only supports the type `{ < ... > -> int }`")
 		}
 	}
 
@@ -128,46 +143,66 @@ object CppCodeGenerator {
 		)
 	}
 
-	private def loop(key: String, value: String, itVar: String, sumBody: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
-		val iter = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, _, resVar) => resVar }).iterator
-		val resVar = if (iter.hasNext) iter.next() else raise("there is no next")
-
-		println(typesCtx.get(Sym(resVar)))
-		println(sumBody)
-
-		val lhs = typesCtx.get(Sym(resVar)) match {
-			case Some(_: DictType) => sumBody match {
-				case DictNode(ArrayBuffer((htKey: FieldNode, _))) => s"$resVar[${srun(htKey)}]"
-				case _ => raise(s"Unhandled sumBody $sumBody")
-			}
-			case Some(tpe) if tpe.isScalar => resVar
-			case Some(tpe) => raise(s"Unhandled type for resVar $tpe")
-			case None => raise(s"$resVar doesn't exist in typesCtx")
-		}
-
-		val loopBody = s"$lhs += ${srun(sumBody)};"
-
-		typesCtx.get(Sym(itVar)) match {
+	private def loop(loopKey: String, loopVal: String, itVar: String, sumBody: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
+		val loopHeader = typesCtx.get(Sym(itVar)) match {
 			case Some(RelationType(_)) =>
-				s"""const ${typeVar(itVar)} &$key = $itVar;
-				   |constexpr auto $value = Values();
-				   |for (int i = 0; i < ${docVar(itVar)}.GetRowCount(); ++i) {
-				   |$loopBody
-				   |}
-				   |""".stripMargin
+				s"""const ${typeVar(itVar)} &$loopKey = $itVar;
+				   |constexpr auto $loopVal = Values();
+				   |for (int i = 0; i < ${docVar(itVar)}.GetRowCount(); ++i)""".stripMargin
+			case Some(DictType(IntType, _)) => s"for (const auto &[$loopKey, $loopVal] : $itVar)"
+			case Some(DictType(_: RecordType, _)) => s"for (const auto &${loopKey}_off : $itVar)"
 			case Some(tpe) => raise(s"Unhandled type for iteration $tpe")
 			case None => raise(s"$itVar doesn't exist in typesCtx")
+		}
+
+		s"""$loopHeader {
+		   |${scopeBody(sumBody)}
+		   |}
+		   |""".stripMargin
+	}
+
+	private def scopeBody(body: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = body match {
+		case _: LetBinding => srun(body)
+		case _: IfThenElse => srun(body)
+		case _: Sum => srun(body)
+		case _ =>
+			val iter = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, _, resVar) => resVar }).iterator
+			val resVar = if (iter.hasNext) iter.next() else raise("there is no next")
+			println(resVar, typesCtx.get(Sym(resVar)))
+			println("########################################################")
+			val resType = typesCtx.get(Sym(resVar)) match {
+				case Some(tpe) => tpe
+				case None => raise(s"$resVar doesn't exist in typesCtx in scopeBody")
+			}
+			println(resType)
+			val lhs = separateSides(body)
+			lhs match {
+				case "" => ""
+				case _ => s"$resVar$lhs;"
+			}
+	}
+
+	private def separateSides(body: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
+		body match {
+			case DictNode(ArrayBuffer((keyNode: FieldNode, valueNode))) => s"[${srun(keyNode)}]${separateSides(valueNode)}"
+			case _: Const => s"+= ${srun(body)}"
+			case DictNode(Nil) => ""
+			case DictNode(ArrayBuffer((_: Sym, _: Const))) => ".push_back(i)"
+			case _ => raise(s"not supported sides: $body")
 		}
 	}
 
 	private def toCpp(tpe: Type): String = tpe match {
 		case IntType => "int"
+		case StringType => "std::string"
 		case DictType(key, value) =>
 			val value_cpp = value match {
 				case IntType => toCpp(value)
+				case DictType(IntType, valueValue) => s"phmap::flat_hash_map<int, ${toCpp(valueValue)}>"
 				case DictType(_: RecordType, IntType) => "std::vector<int>"
 			}
 			s"phmap::flat_hash_map<${toCpp(key)}, $value_cpp>"
+		case RecordType(fs) => fs.map(_.tpe).map(toCpp).mkString("std::tuple<", ", ", ">")
 		case _ => raise(s"unsupported type in toCpp: $tpe")
 	}
 
