@@ -190,6 +190,23 @@ object CppCodegen {
           raise(s"unhandled function name: $name")
       }
 
+      case Concat(v1 @ RecNode(fs1), v2 @ RecNode(fs2)) => run(
+        {
+          val (fs1m, fs2m) = fs1.toMap -> fs2.toMap
+          val common = fs1.filter(x1 => fs2m.contains(x1._1)).map(x1 => (x1._1, x1._2, fs2m(x1._1)))
+          if(common.isEmpty)
+            RecNode(fs1 ++ fs2)
+          else
+            if(common.forall(x => x._2 == x._3))
+              RecNode(fs1 ++ fs2.filter(x2 => !fs1m.contains(x2._1)))
+            else
+              raise(s"`concat($v1, $v2)` with different values for the same field name")
+        }
+      )
+      case _: Concat =>
+        val _ = TypeInference.run(e)
+        raise(s"${Concat.getClass.getSimpleName} currently requires ${RecNode.getClass.getSimpleName} arguments")
+
       case _ => raise(
         f"""Unhandled ${e.simpleName} in
            |${munitPrint(e)}""".stripMargin

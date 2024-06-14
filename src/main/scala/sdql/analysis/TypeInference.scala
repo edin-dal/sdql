@@ -4,6 +4,8 @@ package analysis
 import munit.Assertions.munitPrint
 import sdql.ir._
 
+import scala.PartialFunction.cond
+
 object TypeInference {
   type Type = ir.Type
   type Var = Sym
@@ -124,6 +126,21 @@ object TypeInference {
 
       case Load(_, tp) =>
         tp
+
+      case Concat(e1, e2) => (run(e1), run(e2)) match {
+        case (v1 @ RecordType(fs1), v2 @ RecordType(fs2)) =>
+          val (fs1m, fs2m) = fs1.map(x1 => (x1.name, x1.tpe)).toMap -> fs2.map(x2 => (x2.name, x2.tpe)).toMap
+          val common = fs1.filter(x1 => fs2m.contains(x1.name)).map(x1 => (x1.name, x1.tpe, fs2m(x1.name)))
+          if(common.isEmpty)
+            RecordType(fs1 ++ fs2)
+          else
+            if(common.forall(x => x._2 == x._3))
+              RecordType(fs1 ++ fs2.filter(x2 => !fs1m.contains(x2.name)))
+            else
+              raise(s"`concat($v1, $v2)` with different values for the same field name")
+        case (v1, v2) =>
+          raise(s"`concat($v1,$v2)` needs records, but given `${v1.getClass}`, `${v2.getClass}`")
+      }
 
       case _ => raise(
         f"""Unhandled ${e.getClass.toString} in

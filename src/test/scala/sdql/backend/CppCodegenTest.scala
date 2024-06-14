@@ -101,12 +101,11 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
 
   it should "compile records" in {
     compilesExp(sdql"< a=1, b=1.5 >")
-//    TODO add support for concat
-//    compilesExp(sdql"concat(< a=1 >, < b=1.5 >)")
-//    compilesExp(sdql"concat(< a=1, b=1.5 >, < b=1.5 >)")
-//    assertThrows[Exception] {
-//      compilesExp(sdql"concat(< a=1, b=2.5 >, < b=1.5 >)")
-//    }
+    compilesExp(sdql"concat(< a=1 >, < b=1.5 >)")
+    compilesExp(sdql"concat(< a=1, b=1.5 >, < b=1.5 >)")
+    assertThrows[Exception] {
+      compilesExp(sdql"concat(< a=1, b=2.5 >, < b=1.5 >)")
+    }
   }
 
 //  TODO in future
