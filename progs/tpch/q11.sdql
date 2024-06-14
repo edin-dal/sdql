@@ -28,6 +28,11 @@ let ps_h =
         _ = { ps.ps_partkey -> ps.ps_supplycost }
       >
     else
+// TODO is this more accurate?
+//      <
+//        _ = 0.0,
+//        _ = { }
+//      >
       { }
 
 sum(<ps_partkey,ps_supplycost> in ps_h(1))
