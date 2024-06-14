@@ -29,6 +29,9 @@ object CppCodegen {
         s"""for (const auto &[key, val] : $name) {
            |std::cout << key << ":" << val << std::endl;
            |}""".stripMargin
+      case _: RecordType =>
+        // TODO print out attribute names
+        s"std::cout << $name << std::endl;"
       case _ if tpe.isScalar =>
         s"std::cout << $name << std::endl;"
     }
@@ -153,7 +156,7 @@ object CppCodegen {
       assert(cond(e1) { case _: FieldNode | _: Const => true })
       assert(cond(e2) { case _: FieldNode | _: Const => true })
       val tpe = TypeInference.run(e)
-      (s"${toCpp(tpe)}({{${sRun(e1)}, ${sRun(e2)}}})", None)
+      (s"${cppType(tpe)}({{${sRun(e1)}, ${sRun(e2)}}})", None)
     case DictNode(Seq(_)) =>
       // TODO here we should create a new dictionary
       //  (this is used by e.g. Q19 to return its result)
@@ -169,7 +172,7 @@ object CppCodegen {
             s"${RecordType.getClass.getSimpleName.init} not ${tpe.simpleName}"
         )
       }
-      (values.map(e => sRun(e._2)).mkString(s"${toCpp(tpe)}(", ", ", ")"), None)
+      (values.map(e => sRun(e._2)).mkString(s"${cppType(tpe)}(", ", ", ")"), None)
 
     case Get(e1, e2) => (
       TypeInference.run(e1) match {
@@ -223,16 +226,11 @@ object CppCodegen {
     }
     typesLocal ++= Map(Sym(agg) -> tpe)
 
-    val init_body =  tpe match {
-      case RealType | IntType => "0"
-      case _: DictType => "{}"
-      case _ => raise(s"unhandled type: $tpe")
-    }
     val init = maybe_agg match {
-      case None => s"${toCpp(tpe)} $agg($init_body);"
+      case None => s"${cppType(tpe)} $agg(${cppInit(tpe)});"
       // when an aggregation variable name is passed
       // we assume the loop is bound to a let statement
-      case Some(_) => s"${toCpp(tpe)} ($init_body);"
+      case Some(_) => s"${cppType(tpe)} (${cppInit(tpe)});"
     }
 
     val isSum = cond(e) { case _: Sum => true }
@@ -276,6 +274,10 @@ object CppCodegen {
           s"$agg[${sRun(e1)}] += ${sRun(e2)};"
         else
           s"$agg.emplace(${sRun(e1)}, ${sRun(e2)});"
+      case RecNode(values) =>
+        assert(cond(typesCtx.get(Sym(agg))) { case Some(RecordType(attrs)) => attrs.length == values.length })
+        assert(isSum)
+        values.map(_._2).zipWithIndex.map({ case (exp, i) => s"get<$i>($agg) += ${sRun(exp)};" }).mkString("\n")
       case _: ForLoop | _: Sum =>
         raise("nested loop not supported yet")
       case _ =>
@@ -299,13 +301,23 @@ object CppCodegen {
 
   def sRun(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = run(e)._1
 
-  private def toCpp(tpe: ir.Type): String = tpe match {
+  private def cppInit(tpe: ir.Type): String = tpe match {
+    case BoolType => "false"
+    case RealType => "0.0"
+    case IntType => "0"
+    case StringType | DateType => "std::string()"
+    case _: DictType => "{}"
+    case RecordType(attrs) => attrs.map(_.tpe).map(cppInit).mkString(", ")
+    case tpe => raise(s"unimplemented type: $tpe")
+  }
+
+  private def cppType(tpe: ir.Type): String = tpe match {
     case BoolType => "bool"
     case RealType => "double"
     case IntType => "int"
     case StringType | DateType => "std::string"
-    case DictType(key, value) => s"phmap::flat_hash_map<${toCpp(key)}, ${toCpp(value)}>"
-    case RecordType(attrs) => attrs.map(_.tpe).map(toCpp).mkString("std::tuple<", ", ", ">")
+    case DictType(key, value) => s"phmap::flat_hash_map<${cppType(key)}, ${cppType(value)}>"
+    case RecordType(attrs) => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
     case tpe => raise(s"unimplemented type: $tpe")
   }
 
@@ -339,7 +351,7 @@ object CppCodegen {
     s"""const rapidcsv::Document ${name.toUpperCase}("../$path", NO_HEADERS, SEPARATOR);"""
 
   private def makeStructDef(name: String, attrs: Seq[Attribute]): String = {
-    attrs.map(attr => s"std::vector<${toCpp(attr.tpe)}> ${attr.name};")
+    attrs.map(attr => s"std::vector<${cppType(attr.tpe)}> ${attr.name};")
       .mkString(
         s"struct ${name.capitalize} {\n",
         "\n",
@@ -353,7 +365,7 @@ object CppCodegen {
   private def makeStructInit(name: String, attrs: Seq[Attribute]): String =
     attrs.zipWithIndex.map(
         {
-          case (attr, i) => s"${name.toUpperCase}.GetColumn<${toCpp(attr.tpe)}>($i),"
+          case (attr, i) => s"${name.toUpperCase}.GetColumn<${cppType(attr.tpe)}>($i),"
         }
       )
       .mkString(s"const ${name.capitalize} ${name.toLowerCase} {\n", "\n", "\n};\n")

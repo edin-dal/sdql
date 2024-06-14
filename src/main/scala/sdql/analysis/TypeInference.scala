@@ -40,6 +40,9 @@ object TypeInference {
           case None => raise(s"unknown name: $name")
         }
 
+      case DictNode(Nil) =>
+        // TODO backtrack up the parse tree to check branch with non-empty dict
+        raise("Type inference needs backtracking to infer empty type { }")
       case DictNode(Seq((e1: RecNode, e2: RecNode))) =>
         DictType(run(e1), run(e2))
       case DictNode(Seq((e1, e2))) =>
