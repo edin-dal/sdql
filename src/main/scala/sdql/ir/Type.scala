@@ -73,7 +73,7 @@ object DecimalType {
 object ScalarType {
   def unapply(tp: Type): Option[Type] = if(isScalar(tp)) Some(tp) else None
   def isScalar(tp: Type) = tp match {
-    case DenseIntType(_) | RealType | IntType | StringType | DateType | CharType => true
+    case _: DenseIntType | RealType | IntType | StringType | DateType | CharType | BoolType => true
     case _ => false
   }
 }
