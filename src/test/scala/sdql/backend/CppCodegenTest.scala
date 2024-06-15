@@ -248,79 +248,82 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
   // TODO all these test cases above were taken from the interpreter tests
   //  separate test execution from test data and have them both share the data
 
-  it should "compile TPCH Q1" in {
-    compilesFile("progs/tpch/q1.sdql")
+  it should "compile and run TPCH Q1" in {
+    compileAndRunFile("progs/tpch/q1.sdql")
   }
-  it should "compile TPCH Q2" in {
-    compilesFile("progs/tpch/q2.sdql")
+  it should "compile and run TPCH Q2" in {
+    compileAndRunFile("progs/tpch/q2.sdql")
   }
-  it should "compile TPCH Q3" in {
-    compilesFile("progs/tpch/q3.sdql")
+  it should "compile and run TPCH Q3" in {
+    compileAndRunFile("progs/tpch/q3.sdql")
   }
-  it should "compile TPCH Q4" in {
-    compilesFile("progs/tpch/q4.sdql")
+  it should "compile and run TPCH Q4" in {
+    compileAndRunFile("progs/tpch/q4.sdql")
   }
-  it should "compile TPCH Q5" in {
-    compilesFile("progs/tpch/q5.sdql")
+  it should "compile and run TPCH Q5" in {
+    compileAndRunFile("progs/tpch/q5.sdql")
   }
-  it should "compile TPCH Q6" in {
-    compilesFile("progs/tpch/q6.sdql")
+  it should "compile and run TPCH Q6" in {
+    compileAndRunFile("progs/tpch/q6.sdql")
   }
-  it should "compile TPCH Q7" in {
-    compilesFile("progs/tpch/q7.sdql")
-  }
-// FIXME
-//  it should "compile TPCH Q8" in {
-//    compilesFile("progs/tpch/q8.sdql")
-//  }
-  it should "compile TPCH Q9" in {
-    compilesFile("progs/tpch/q9.sdql")
-  }
-  it should "compile TPCH Q10" in {
-    compilesFile("progs/tpch/q10.sdql")
+  it should "compile and run TPCH Q7" in {
+    compileAndRunFile("progs/tpch/q7.sdql")
   }
 // FIXME
-//  it should "compile TPCH Q11" in {
-//    compilesFile("progs/tpch/q11.sdql")
+//  it should "compile and run TPCH Q8" in {
+//    compileAndRunFile("progs/tpch/q8.sdql")
 //  }
-// FIXME
-//  it should "compile TPCH Q12" in {
-//    compilesFile("progs/tpch/q12.sdql")
-//  }
-  it should "compile TPCH Q13" in {
-    compilesFile("progs/tpch/q13.sdql")
+  it should "compile and run TPCH Q9" in {
+    compileAndRunFile("progs/tpch/q9.sdql")
   }
-  it should "compile TPCH Q14" in {
-    compilesFile("progs/tpch/q14.sdql")
+  it should "compile and run TPCH Q10" in {
+    compileAndRunFile("progs/tpch/q10.sdql")
   }
 // FIXME
-//  it should "compile TPCH Q15" in {
-//    compilesFile("progs/tpch/q15.sdql")
+//  it should "compile and run TPCH Q11" in {
+//    compileAndRunFile("progs/tpch/q11.sdql")
 //  }
-  it should "compile TPCH Q16" in {
-    compilesFile("progs/tpch/q16.sdql")
+// FIXME
+//  it should "compile and run TPCH Q12" in {
+//    compileAndRunFile("progs/tpch/q12.sdql")
+//  }
+  it should "compile and run TPCH Q13" in {
+    compileAndRunFile("progs/tpch/q13.sdql")
   }
-  it should "compile TPCH Q17" in {
-    compilesFile("progs/tpch/q17.sdql")
+  it should "compile and run TPCH Q14" in {
+    compileAndRunFile("progs/tpch/q14.sdql")
   }
 // FIXME
-//  it should "compile TPCH Q18" in {
-//    compilesFile("progs/tpch/q18.sdql")
+//  it should "compile and run TPCH Q15" in {
+//    compileAndRunFile("progs/tpch/q15.sdql")
 //  }
-  it should "compile TPCH Q19" in {
-    compilesFile("progs/tpch/q19.sdql")
+  it should "compile and run TPCH Q16" in {
+    compileAndRunFile("progs/tpch/q16.sdql")
   }
-  it should "compile TPCH Q20" in {
-    compilesFile("progs/tpch/q20.sdql")
+  it should "compile and run TPCH Q17" in {
+    compileAndRunFile("progs/tpch/q17.sdql")
   }
-  it should "compile TPCH Q21" in {
-    compilesFile("progs/tpch/q21.sdql")
+// FIXME
+//  it should "compile and run TPCH Q18" in {
+//    compileAndRunFile("progs/tpch/q18.sdql")
+//  }
+  it should "compile and run TPCH Q19" in {
+    compileAndRunFile("progs/tpch/q19.sdql")
   }
-  it should "compile TPCH Q22" in {
-    compilesFile("progs/tpch/q22.sdql")
+  it should "compile and run TPCH Q20" in {
+    compileAndRunFile("progs/tpch/q20.sdql")
+  }
+  it should "compile and run TPCH Q21" in {
+    compileAndRunFile("progs/tpch/q21.sdql")
+  }
+  it should "compile and run TPCH Q22" in {
+    compileAndRunFile("progs/tpch/q22.sdql")
   }
 
-  private def compilesFile(path: String) = compilesExp(SourceCode.fromFile(path).exp)
+//  TODO rid of compilesFile - but since we're using compileAndRunFile create test files in datasets/tpch/tests/*.sdql
+//  private def compilesFile(path: String) = compilesExp(SourceCode.fromFile(path).exp)
+  private def compileAndRunFile(path: String) =
+    CppCompilation.compile(java.nio.file.Path.of(path), CppCodegen(SourceCode.fromFile(path).exp))
   private def compilesExp(e: Exp) = assert(compile(e) == 0)
   private def compile(exp: Exp) = fromCpp(CppCodegen(exp))
   private def fromCpp(cpp: String) = CppCompilation.inGeneratedDir(Seq("bash", "-c", cmd(escape(cpp)))).run().exitValue()
