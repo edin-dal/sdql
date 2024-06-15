@@ -4,7 +4,7 @@ let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_to
 
 // TODO sdqlpy stores o_h as a vector
 let o_h =
-  for(<o,o_v> <- orders)
+  sum(<o,o_v> <- orders)
     { o.o_custkey -> true }
 
 // TODO avoid redefining c,c_v twice in codegen

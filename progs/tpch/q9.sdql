@@ -11,15 +11,15 @@ let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_to
 let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
 
 let n_h =
-  for(<n,n_v> in nation)
+  sum(<n,n_v> in nation)
     { n.n_nationkey -> < _ = n.n_name > }
 
 let s_h =
-  for(<s,s_v> in supplier)
+  sum(<s,s_v> in supplier)
     { s.s_suppkey -> n_h(s.s_nationkey)(0) }
 
 let p_h =
-  for(<p,p_v> in part)
+  sum(<p,p_v> in part)
     let idx = ext(`StrIndexOf`, p.p_name, "green", 0)
     if(idx != -1) then
       { p.p_partkey -> < _ = p.p_partkey > }
@@ -27,7 +27,7 @@ let p_h =
       { }
 
 let ps_h =
-  for(<ps,ps_v> in partsupp)
+  sum(<ps,ps_v> in partsupp)
     if(ps.ps_partkey ∈ p_h) then
       { < _ = ps.ps_partkey, _ = ps.ps_suppkey > -> < _ = s_h(ps.ps_suppkey), _ = ps.ps_supplycost > }
     else
@@ -35,7 +35,7 @@ let ps_h =
 
 // TODO sdqlpy stores o_h as a vector
 let o_h =
-  for(<o,o_v> in orders)
+  sum(<o,o_v> in orders)
     { o.o_orderkey -> o.o_orderdate }
 
 // TODO
@@ -54,5 +54,5 @@ let o_h =
 
 // TODO flatten li_h by concatenating keys and values (map to 1)
 // note: sum or for loop should both work as keys are distinct
-// for(<k, v> <- li_h)
+// sum(<k, v> <- li_h)
 //  { < nation = k.nation, o_year = k.o_year, um_profit = v.um_profit > -> 1 }

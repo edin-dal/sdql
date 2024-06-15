@@ -7,7 +7,7 @@ import fastparse._, NoWhitespace._, CharPredicates._
 
 object Parser {
   def keywords[_: P] = P (
-    StringIn("if", "then", "else", "let", "for", "sum", "false",
+    StringIn("if", "then", "else", "let", "sum", "false", 
       "true", "in", "join", "load", "ext", "iter", "int", "double", 
       "string", "date", "range", "unit", "bool", "concat", "promote",
       "mnpr", "mxpr", "mnsm", "mxsm",
@@ -86,8 +86,6 @@ object Parser {
   def variable[_: P]: P[Sym] = P( space ~ !keywords ~ ((alpha | "_" | "$") ~ idRest.rep).! ~ space ).map(x => Sym(x))
   def ifThenElse[_: P]: P[IfThenElse] = P( "if" ~/ expr ~/ "then" ~/ expr ~/ "else" ~/ expr).map(x => IfThenElse(x._1, x._2, x._3))
   def letBinding[_: P]: P[LetBinding] = P( "let" ~/ variable ~/ "=" ~/ expr ~/ "in".? ~/ expr).map(x => LetBinding(x._1, x._2, x._3))
-  def forLoop[_: P]: P[ForLoop] = P( "for" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/
-    expr).map(x => ForLoop(x._1, x._2, x._3, x._4))
   def sum[_: P]: P[Sum] = P( "sum" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/
     expr).map(x => Sum(x._1, x._2, x._3, x._4))
   // def set[_: P]: P[DictNode] = P( "{" ~/ (expr ~ !("->")).rep(sep=","./) ~ space ~/ "}" ).map(x => SetNode(x))
@@ -115,7 +113,7 @@ object Parser {
 
   def factor[_: P]: P[Exp] = P(space ~ (const | neg | not | dictOrSet | 
     rec | ifThenElse | range | load | concat | promote |
-    letBinding | forLoop | sum | variable |
+    letBinding | sum | variable |
     ext | parens) ~ space)
 
   def neg[_: P]: P[Neg] = P( "-" ~ !(">") ~ factor ).map(Neg)

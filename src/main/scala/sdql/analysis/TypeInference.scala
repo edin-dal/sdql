@@ -4,8 +4,6 @@ package analysis
 import munit.Assertions.munitPrint
 import sdql.ir._
 
-import scala.PartialFunction.cond
-
 object TypeInference {
   type Type = ir.Type
   type Var = Sym
@@ -15,13 +13,9 @@ object TypeInference {
 
   def run(e: Exp)(implicit ctx: Ctx): Type = {
     e match {
-      // iterating over a map has the same type whether we replace or sum values
-      case _: ForLoop =>
-        loop_infer_type_and_ctx(e)._1
-      case _: Sum =>
-        loop_infer_type_and_ctx(e)._1
+      case Sum(k, v, e1, e2) =>
+        sum_infer_type_and_ctx(k, v, e1, e2)._1
 
-      // not case
       case IfThenElse(a, Const(false), Const(true)) =>
         run(a)
       case IfThenElse(_, DictNode(Nil), DictNode(Nil)) =>
@@ -149,8 +143,7 @@ object TypeInference {
     }
   }
 
-  def loop_infer_type_and_ctx(e: Exp)(implicit ctx: Ctx): (Type, Ctx) = {
-    val (k, v, e1, e2) = unpack_loop(e)
+  def sum_infer_type_and_ctx(k: Sym, v: Sym, e1: Exp, e2: Exp)(implicit ctx: Ctx): (Type, Ctx) = {
     // from e1 infer types of k, v
     val (kType, vType) = run(e1) match {
       case DictType(k_type, v_type) => (k_type, v_type)
@@ -198,15 +191,6 @@ object TypeInference {
       case (t1, t2) =>
         raise(s"can't promote types: ${t1.simpleName} ≠ ${t2.simpleName}")
     }
-  }
-
-  def unpack_loop(e: Exp): (Var, Var, Exp, Exp) = e match {
-    case ForLoop(k, v, e1, e2) => (k, v, e1, e2)
-    case Sum(k, v, e1, e2) => (k, v, e1, e2)
-    case tpe => raise(
-      s"expected ${ForLoop.getClass.getSimpleName.init} or " +
-        s"${Sum.getClass.getSimpleName.init}, not ${tpe.simpleName}"
-    )
   }
 
   private def any(v: Any): Type = v match {

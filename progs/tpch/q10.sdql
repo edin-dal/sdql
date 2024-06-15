@@ -7,11 +7,11 @@ let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenum
 let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
 
 let n_h =
-  for(<n,n_v> in nation)
+  sum(<n,n_v> in nation)
     { n.n_nationkey -> < _ = n.n_name > }
 
 let c_h =
-  for(<c,c_v> in customer)
+  sum(<c,c_v> in customer)
     {
       c.c_custkey ->
       <
@@ -26,7 +26,7 @@ let c_h =
     }
 
 let o_h =
-  for(<o,o_v> in orders)
+  sum(<o,o_v> in orders)
     if(
          (date(19931001)  <= o.o_orderdate)
          && (o.o_orderdate < date(19940101))
@@ -67,7 +67,7 @@ let o_h =
         { }
 
 // TODO flatten l_h
-//for(<k,v> in l_h)
+//sum(<k,v> in l_h)
 //  {
 //    <
 //      c_custkey = k.c_custkey,

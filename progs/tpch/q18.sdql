@@ -12,18 +12,18 @@ let l_h =
 
 // TODO Values() hack won't work for l_quantity here
 let orderkeys =
-  for(<l_orderkey,l_quantity> in l_h)
+  sum(<l_orderkey,l_quantity> in l_h)
     if(300 < l_quantity) then
       { l_orderkey -> true }
     else
       { }
 
 let custkey_to_name =
-  for(<c,c_v> in customer)
+  sum(<c,c_v> in customer)
     { c.c_custkey -> < _ = c.c_name > }
 
 let o_h =
-  for(<o,o_v> in orders)
+  sum(<o,o_v> in orders)
     if((o.o_orderkey ∈ orderkeys) && (o.o_custkey ∈ custkey_to_name)) then
       let name = custkey_to_name(o.o_custkey)(0)
       {

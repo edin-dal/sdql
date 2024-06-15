@@ -22,7 +22,7 @@ let s_h =
       >
     }
 
-for(<k,v> in l_h)
+sum(<k,v> in l_h)
   if(v == max_revenue) then
     {
       <

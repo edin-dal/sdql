@@ -5,14 +5,14 @@ let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_to
 let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
 
 let c_h =
-  for(<c,c_v> in customer)
+  sum(<c,c_v> in customer)
     if(c.c_mktsegment == "BUILDING") then
       { c.c_custkey -> < _ = c.c_custkey > }
     else
       { }
 
 let o_h =
-  for(<o,o_v> in orders)
+  sum(<o,o_v> in orders)
     if(
         (o.o_orderdate < date(19950315))
         && (o.o_custkey ∈ c_h)
@@ -41,5 +41,5 @@ let o_h =
 
 // TODO flatten li_h by concatenating keys and values (map to 1)
 // note: sum or for loop should both work as keys are distinct
-// for(<k, v> <- li_h)
+// sum(<k, v> <- li_h)
 //  { < _ = k._0, _ = k._1, _ = k._2, _ = v._0 > -> 1 }

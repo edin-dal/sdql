@@ -13,14 +13,14 @@ object CppCodegen {
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
   private case class LetCtx(name: String) extends CallCtx
-  private case class LoopCtx(k:String, v: String, isSum: Boolean) extends CallCtx
+  private case class SumCtx(k:String, v: String) extends CallCtx
   private type LoadsCtx = Set[Sym]
 
   private def checkNoLetBindings(e: Exp)(implicit callsCtx: CallsCtx) =
     !cond(e) { case _: LetBinding => true } && !callsCtx.exists(cond(_) { case _: LetCtx  => true })
 
-  private def checkInLoop()(implicit callsCtx: CallsCtx) =
-    callsCtx.exists(cond(_) { case _: LoopCtx  => true })
+  private def checkInSum()(implicit callsCtx: CallsCtx) =
+    callsCtx.exists(cond(_) { case _: SumCtx  => true })
 
   private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
 
@@ -76,8 +76,8 @@ object CppCodegen {
         }
         cpp_e1 + cpp_e2
 
-      case _: ForLoop | _: Sum =>
-        generateLoop(e).dropRight(2) // FIXME redundant ;
+      case Sum(k, v, e1, e2) =>
+        generateSum(k, v, e1, e2).dropRight(2) // FIXME redundant ;
 
       // not case
       case IfThenElse(a, Const(false), Const(true)) =>
@@ -136,14 +136,10 @@ object CppCodegen {
         v.toString
 
       case Sym(name) =>
-        val iter =
-          callsCtx.flatMap(x => condOpt(x) { case LoopCtx(k, v, _) => (k, v) }).iterator
-        if (iter.hasNext) {
-          val(k, v) = iter.next()
-          if (name == k || name == v)
-            return s"$name[i]"
+        callsCtx.flatMap(x => condOpt(x) { case ctx: SumCtx => ctx }).headOption match {
+          case Some(SumCtx(k, v)) if (name == k || name == v) => s"$name[i]"
+          case _ => name
         }
-        name
 
       case DictNode(Nil) =>
         ""
@@ -212,17 +208,15 @@ object CppCodegen {
     }
   }
 
-  private def generateLoop(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
-    val (k, v, e1, e2) = TypeInference.unpack_loop(e)
+  private def generateSum(k: Sym, v: Sym, e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
     val e1Sym = e1 match { case e1: Sym => e1 }
-    var (tpe, typesLocal) = TypeInference.loop_infer_type_and_ctx(e)
+    var (tpe, typesLocal) = TypeInference.sum_infer_type_and_ctx(k, v, e1, e2)
 
     val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).iterator.next
     typesLocal ++= Map(Sym(agg) -> tpe)
 
-    val isSum = cond(e) { case _: Sum => true }
-    val callsLocal = List(LoopCtx(k=k.name, v=v.name, isSum=isSum)) ++ callsCtx
-    val loopBody = e2 match {
+    val callsLocal = List(SumCtx(k=k.name, v=v.name)) ++ callsCtx
+    val sumBody = e2 match {
       case _: LetBinding | _: IfThenElse =>
         run(e2)(typesLocal, callsLocal, loadsCtx)
       case _ =>
@@ -236,32 +230,27 @@ object CppCodegen {
        |const auto &${k.name} = ${e1Sym.name};
        |constexpr auto ${v.name} = ${e1Sym.name.capitalize}Values();
        |for (int i = 0; i < ${e1Sym.name.toLowerCase}.size(); i++) {
-       |$loopBody
+       |$sumBody
        |}
        |
        |""".stripMargin
   }
 
   private def ifElseBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
-    assert(checkInLoop())
+    assert(checkInSum())
     val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
-    val isSum = callsCtx.flatMap(x => condOpt(x) { case LoopCtx(_, _, isSum) => isSum }).head
     e match {
       case DictNode(seq) =>
-        seq.map(
-          if (isSum)
-            { kv => s"$agg[${run(kv._1)}] += ${run(kv._2)};" }
-          else
-            { kv => s"$agg.emplace(${run(kv._1)}, ${run(kv._2)});" }
-        ).mkString("\n")
+        // TODO sdqlpy does emplace aggregating over unique keys
+        //  kv => s"$agg.emplace(${run(kv._1)}, ${run(kv._2)});"
+        seq.map(kv => s"$agg[${run(kv._1)}] += ${run(kv._2)};").mkString("\n")
       case RecNode(values) =>
-        assert(isSum)
         values.map(_._2).zipWithIndex.map({ case (exp, i) => s"get<$i>($agg) += ${run(exp)};" }).mkString("\n")
-      case _: ForLoop | _: Sum =>
-        raise("nested loop not supported yet")
+      case _: Sum =>
+        raise("nested sum not supported yet")
       case _ =>
         assert(typesCtx(Sym(agg)).isScalar)
-        assert(isSum || TypeInference.run(e).isScalar)
+        assert(TypeInference.run(e).isScalar)
         s"$agg += ${run(e)};"
     }
   }
@@ -374,8 +363,6 @@ object CppCodegen {
         case Mult(e1, e2) =>
           flattenExps(e1) ++ flattenExps(e2)
         case Cmp(e1, e2, _) =>
-          flattenExps(e1) ++ flattenExps(e2)
-        case ForLoop(_, _, e1, e2) =>
           flattenExps(e1) ++ flattenExps(e2)
         case Sum(_, _, e1, e2) =>
           flattenExps(e1) ++ flattenExps(e2)

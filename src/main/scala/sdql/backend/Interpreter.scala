@@ -107,7 +107,6 @@ object Interpreter {
         case _ =>
           raise(s"`concat($v1,$v2)` needs records, but given `${v1.getClass}`, `${v2.getClass}`")
       }
-    case _: ForLoop => raise("\"for\" loop not supported by interpreter")
     case Sum(k, v, e1, e2) =>
       val v1 = run(e1)
       v1 match {

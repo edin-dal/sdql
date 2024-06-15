@@ -5,7 +5,7 @@ let part = load[{<p_partkey: int, p_name: string, p_mfgr: string, p_brand: strin
 // TODO investigate why this query triggers an assert in codegen, and add support for ||
 
 let p_h =
-  for(<p,p_v> in part)
+  sum(<p,p_v> in part)
     if(
         (
           (p.p_brand == "Brand#12")

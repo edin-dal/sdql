@@ -9,21 +9,21 @@ let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_commen
 let region = load[{<r_regionkey: int, r_name: string, r_comment: string> -> int}]("datasets/tpch/region.tbl")
 
 let l_h =
-  for(<r,r_v> <- region)
+  sum(<r,r_v> <- region)
     if(r.r_name == "EUROPE") then
       { r.r_regionkey -> < _ = r.r_regionkey > }
     else
       { }
 
 let n_h =
-  for(<n,n_v> <- nation)
+  sum(<n,n_v> <- nation)
     if(n.n_regionkey ∈ l_h) then
       { n.n_nationkey -> < _ = n.n_name > }
     else
       { }
 
 let s_h =
-  for(<s,s_v> <- supplier)
+  sum(<s,s_v> <- supplier)
     if(s.s_nationkey ∈ n_h) then
       {
         s.s_suppkey ->
@@ -40,7 +40,7 @@ let s_h =
       { }
 
 let p_h =
-  for(<p,p_v> <- part)
+  sum(<p,p_v> <- part)
     if((p.p_size == 15) && (ext(`StrEndsWith`, p.p_type, "BRASS"))) then
       { p.p_partkey -> < _ = p.p_mfgr > }
     else
