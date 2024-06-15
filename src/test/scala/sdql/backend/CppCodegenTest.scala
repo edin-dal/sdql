@@ -1,6 +1,7 @@
 package sdql
 package backend
 
+import CppCompilation.{inGeneratedDir, clangCmd}
 import org.scalatest.ParallelTestExecution
 import org.scalatest.flatspec.AnyFlatSpec
 import sdql.frontend.{Interpolator, SourceCode}
@@ -8,32 +9,31 @@ import sdql.ir.{Exp, RecordValue}
 
 class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
 
-  it should "compile constant true" in {
+  it should "codegen constant true" in {
     compilesExp(sdql"true")
   }
-  it should "compile constant false" in {
+  it should "codegen constant false" in {
     compilesExp(sdql"false")
   }
-  it should "compile constant int" in {
+  it should "codegen constant int" in {
     compilesExp(sdql"42")
   }
-  it should "compile constant real" in {
+  it should "codegen constant real" in {
     compilesExp(sdql"42.2")
   }
-  it should "compile constant string" in {
+  it should "codegen constant string" in {
     compilesExp(sdql""" "foo" """)
   }
-  it should "compile constant date" in {
+  it should "codegen constant date" in {
     compilesExp(sdql"date(19700101)")
   }
-  it should "compile constant tuple" in {
+  it should "codegen constant tuple" in {
     compilesExp(sdql"< a = 1, b = 2 >")
   }
-  it should "compile constant map" in {
+  it should "codegen constant map" in {
     compilesExp(sdql"""{ "a" -> 1, "b" -> 2 }""")
   }
-  // TODO this should be a unit test for type inference
-  it should "compile constant map requiring type promotion" in {
+  it should "codegen constant map requiring type promotion" in {
     val e = sdql"""{ "a" -> 1, "b" -> 2.5 }"""
     import sdql.analysis.TypeInference
     import sdql.ir.{DictType, RealType, StringType}
@@ -41,49 +41,49 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
     compilesExp(e)
   }
 
-  it should "compile arith op *" in {
+  it should "codegen arith op *" in {
     compilesExp(sdql"1 * 2")
   }
-  it should "compile arith op +" in {
+  it should "codegen arith op +" in {
     compilesExp(sdql"1 + 2")
   }
-  it should "compile arith op -" in {
+  it should "codegen arith op -" in {
     compilesExp(sdql"1 - 2")
   }
-  it should "compile arith op ^" in {
+  it should "codegen arith op ^" in {
     compilesExp(sdql"3 ^ 2")
   }
-  it should "compile arith op /" in {
+  it should "codegen arith op /" in {
     compilesExp(sdql"42 / 21")
   }
 
-  it should "compile logical op &&" in {
+  it should "codegen logical op &&" in {
     compilesExp(sdql"true && true")
     compilesExp(sdql"true && false")
     compilesExp(sdql"false && true")
     compilesExp(sdql"false && false")
   }
-  it should "compile logical op ||" in {
+  it should "codegen logical op ||" in {
     compilesExp(sdql"true || true")
     compilesExp(sdql"true || false")
     compilesExp(sdql"false || true")
     compilesExp(sdql"false || false")
   }
-  it should "compile logical ops" in {
+  it should "codegen logical ops" in {
     compilesExp(sdql"(3 < 2) && (3 < 4)")
     //    FIXME
     //    compilesExp(sdql"let x=<a=1,b=2,c=3> in ((x.a < x.b) && (x.b < x.c))")
     //    compilesExp(sdql"let x=<a=1,b=2,c=3> in ((x.a < x.b) && (x.c < x.b))")
   }
 
-  it should "compile comparisons on bool" in {
+  it should "codegen comparisons on bool" in {
     compilesExp(sdql"true == true")
     compilesExp(sdql"true == false")
     compilesExp(sdql"false != true")
     compilesExp(sdql"false == false")
   }
 //  FIXME
-//  it should "compile comparisons on map" in {
+//  it should "codegen comparisons on map" in {
 //    compilesExp(sdql"{} == {}")
 //    compilesExp(sdql"{ 1 -> 2 } == {}")
 //    compilesExp(sdql"{ 1 -> 2 } != {}")
@@ -94,12 +94,12 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
 //    compilesExp(sdql"{ 0 -> { 1 -> 2 } }(1) == { }")
 //  }
 //  FIXME
-//  it should "compile comparisons" in {
+//  it should "codegen comparisons" in {
 //    compilesExp(sdql"""let R = {<name="Apple"> -> { <name="Apple",initial="A"> -> 1 } } in
 //      R(<name="Elephant">) == {}""")
 //  }
 
-  it should "compile records" in {
+  it should "codegen records" in {
     compilesExp(sdql"< a=1, b=1.5 >")
     compilesExp(sdql"concat(< a=1 >, < b=1.5 >)")
     compilesExp(sdql"concat(< a=1, b=1.5 >, < b=1.5 >)")
@@ -120,7 +120,7 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
 //    rRel.map(e => RecordValue(Seq("s" -> e._1, "c" -> e._2)) -> 1).toMap
 //  }
 //
-//  it should "compile sums" in {
+//  it should "codegen sums" in {
 //    compilesExp(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) s_v ")
 //    compilesExp(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) s ")
 //    compilesExp(sdql"let S = $s in sum(<s, s_v> <- S) s_v ")
@@ -138,7 +138,7 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
 //      """)
 //  }
 //
-//  it should "compile joins" in {
+//  it should "codegen joins" in {
 //    compilesExp(sdql"""
 //let S = $s in
 //let R = $r in
@@ -162,7 +162,7 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
 //  }
 
 //  FIXME
-//  it should "compile dictionaries" in {
+//  it should "codegen dictionaries" in {
 //    compilesExp(sdql"{ 1 -> 1.0 } + { 1 -> 2.0 }")
 //    compilesExp(sdql"{ 1 -> 1.0, 2 -> 2.0 } + { 1 -> 2.0, 3 -> 4.0 }")
 //    compilesExp(sdql"{ 1 -> 2.0 } * 2.5")
@@ -181,7 +181,7 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
 //  }
 
 //  TODO in future
-//  it should "compile semirings" in {
+//  it should "codegen semirings" in {
 //    compilesExp(sdql"promote[mxsm](1.5)")
 //    compilesExp(sdql"promote[mnpr](2)")
 //    compilesExp(sdql"promote[max_prod](-1)")
@@ -205,7 +205,7 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
 //  }
 
 //  FIXME
-//  it should "compile external functions" in {
+//  it should "codegen external functions" in {
 //    compilesExp(sdql"""ext(`ParseDate`, "1989-07-13")""")
 //    compilesExp(sdql"""ext(`Year`, ext(`ParseDate`, "1989-07-13"))""")
 //    compilesExp(sdql"""ext(`SubString`, "19890713", 1, 2)""")
@@ -232,7 +232,7 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
 //  }
 
 //  TODO
-//  it should "compile simple graph queries" in {
+//  it should "codegen simple graph queries" in {
 //    compilesExp(sdql"""let Nodes = {
 //      0 -> <label = {"Person" -> true, "Director" -> true, "Singer" -> true}, name="Oliver Stone", age=30>,
 //      1 -> <label = {"Person" -> true, "Director" -> true}, name="Michael Douglas", age=35>,
@@ -244,91 +244,84 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
 //        {}
 //    """)
 //  }
-
-  // TODO all these test cases above were taken from the interpreter tests
-  //  separate test execution from test data and have them both share the data
-
-  it should "compile and run TPCH Q1" in {
-    compileAndRunFile("progs/tpch/q1.sdql")
+  
+  it should "codegen TPCH Q1" in {
+    compilesFile("progs/tpch/q1.sdql")
   }
-  it should "compile and run TPCH Q2" in {
-    compileAndRunFile("progs/tpch/q2.sdql")
+  it should "codegen TPCH Q2" in {
+    compilesFile("progs/tpch/q2.sdql")
   }
-  it should "compile and run TPCH Q3" in {
-    compileAndRunFile("progs/tpch/q3.sdql")
+  it should "codegen TPCH Q3" in {
+    compilesFile("progs/tpch/q3.sdql")
   }
-  it should "compile and run TPCH Q4" in {
-    compileAndRunFile("progs/tpch/q4.sdql")
+  it should "codegen TPCH Q4" in {
+    compilesFile("progs/tpch/q4.sdql")
   }
-  it should "compile and run TPCH Q5" in {
-    compileAndRunFile("progs/tpch/q5.sdql")
+  it should "codegen TPCH Q5" in {
+    compilesFile("progs/tpch/q5.sdql")
   }
-  it should "compile and run TPCH Q6" in {
-    compileAndRunFile("progs/tpch/q6.sdql")
+  it should "codegen TPCH Q6" in {
+    compilesFile("progs/tpch/q6.sdql")
   }
-  it should "compile and run TPCH Q7" in {
-    compileAndRunFile("progs/tpch/q7.sdql")
+  it should "codegen TPCH Q7" in {
+    compilesFile("progs/tpch/q7.sdql")
   }
 // FIXME
-//  it should "compile and run TPCH Q8" in {
-//    compileAndRunFile("progs/tpch/q8.sdql")
+//  it should "codegen TPCH Q8" in {
+//    compilesFile("progs/tpch/q8.sdql")
 //  }
-  it should "compile and run TPCH Q9" in {
-    compileAndRunFile("progs/tpch/q9.sdql")
+  it should "codegen TPCH Q9" in {
+    compilesFile("progs/tpch/q9.sdql")
   }
-  it should "compile and run TPCH Q10" in {
-    compileAndRunFile("progs/tpch/q10.sdql")
+  it should "codegen TPCH Q10" in {
+    compilesFile("progs/tpch/q10.sdql")
   }
 // FIXME
-//  it should "compile and run TPCH Q11" in {
-//    compileAndRunFile("progs/tpch/q11.sdql")
+//  it should "codegen TPCH Q11" in {
+//    compilesFile("progs/tpch/q11.sdql")
 //  }
 // FIXME
-//  it should "compile and run TPCH Q12" in {
-//    compileAndRunFile("progs/tpch/q12.sdql")
+//  it should "codegen TPCH Q12" in {
+//    compilesFile("progs/tpch/q12.sdql")
 //  }
-  it should "compile and run TPCH Q13" in {
-    compileAndRunFile("progs/tpch/q13.sdql")
+  it should "codegen TPCH Q13" in {
+    compilesFile("progs/tpch/q13.sdql")
   }
-  it should "compile and run TPCH Q14" in {
-    compileAndRunFile("progs/tpch/q14.sdql")
+  it should "codegen TPCH Q14" in {
+    compilesFile("progs/tpch/q14.sdql")
   }
 // FIXME
-//  it should "compile and run TPCH Q15" in {
-//    compileAndRunFile("progs/tpch/q15.sdql")
+//  it should "codegen TPCH Q15" in {
+//    compilesFile("progs/tpch/q15.sdql")
 //  }
-  it should "compile and run TPCH Q16" in {
-    compileAndRunFile("progs/tpch/q16.sdql")
+  it should "codegen TPCH Q16" in {
+    compilesFile("progs/tpch/q16.sdql")
   }
-  it should "compile and run TPCH Q17" in {
-    compileAndRunFile("progs/tpch/q17.sdql")
+  it should "codegen TPCH Q17" in {
+    compilesFile("progs/tpch/q17.sdql")
   }
 // FIXME
-//  it should "compile and run TPCH Q18" in {
-//    compileAndRunFile("progs/tpch/q18.sdql")
+//  it should "codegen TPCH Q18" in {
+//    compilesFile("progs/tpch/q18.sdql")
 //  }
-  it should "compile and run TPCH Q19" in {
-    compileAndRunFile("progs/tpch/q19.sdql")
+  it should "codegen TPCH Q19" in {
+    compilesFile("progs/tpch/q19.sdql")
   }
-  it should "compile and run TPCH Q20" in {
-    compileAndRunFile("progs/tpch/q20.sdql")
+  it should "codegen TPCH Q20" in {
+    compilesFile("progs/tpch/q20.sdql")
   }
-  it should "compile and run TPCH Q21" in {
-    compileAndRunFile("progs/tpch/q21.sdql")
+  it should "codegen TPCH Q21" in {
+    compilesFile("progs/tpch/q21.sdql")
   }
-  it should "compile and run TPCH Q22" in {
-    compileAndRunFile("progs/tpch/q22.sdql")
+  it should "codegen TPCH Q22" in {
+    compilesFile("progs/tpch/q22.sdql")
   }
 
-//  TODO rid of compilesFile - but since we're using compileAndRunFile create test files in datasets/tpch/tests/*.sdql
-//  private def compilesFile(path: String) = compilesExp(SourceCode.fromFile(path).exp)
-  private def compileAndRunFile(path: String) =
-    CppCompilation.compile(java.nio.file.Path.of(path), CppCodegen(SourceCode.fromFile(path).exp))
-  private def compilesExp(e: Exp) = assert(compile(e) == 0)
-  private def compile(exp: Exp) = fromCpp(CppCodegen(exp))
-  private def fromCpp(cpp: String) = CppCompilation.inGeneratedDir(Seq("bash", "-c", cmd(escape(cpp)))).run().exitValue()
-  private def cmd(cpp: String) = s"${CppCompilation.clangCmd.mkString(" ")} -xc++ -fsyntax-only - <<< '$cpp'"
-  // TODO avoid escaping single quotes in source code
+  private def compilesFile(path: String) = compilesExp(SourceCode.fromFile(path).exp)
+  private def compilesExp(e: Exp) = assert(fromCpp(CppCodegen(e)) == 0)
+  private def fromCpp(cpp: String) = inGeneratedDir(Seq("bash", "-c", cmd(escape(cpp)))).run().exitValue()
+  private def cmd(cpp: String) = s"${clangCmd.mkString(" ")} -xc++ -fsyntax-only - <<< '$cpp'"
+  // silly hack - escape single quotes in C++ source code so we can pass it to bash
   private def escape(cpp: String) = cpp.replace(singleQuote.toString, s"char(${singleQuote.toInt})")
   private val singleQuote = '\''
 }
