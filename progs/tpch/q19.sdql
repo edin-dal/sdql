@@ -48,8 +48,7 @@ let p_h =
     else
       { }
 
-//TODO
-//let res =
+let res =
   sum(<l,l_v> in lineitem)
     let p_brand = p_h(l.l_partkey)(0)
     if(
@@ -75,5 +74,4 @@ let p_h =
     else
       0.0
 
-// TODO relational format
-//{ < _ = res > -> 1 }
+{ < _ = res > -> 1 }

@@ -6,21 +6,21 @@ import sdql.analysis.TypeInference
 import sdql.ir.ExternalFunctions._
 import sdql.ir._
 
-import java.util.UUID
 import scala.PartialFunction.{cond, condOpt}
 
 object CppCodegen {
   private type TypesCtx = TypeInference.Ctx
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
-  private case class LetCtx() extends CallCtx
-  private case class LoopCtx(maybe_agg: Option[String] = None) extends CallCtx
+  private case class LetCtx(name: String) extends CallCtx
   private case class LoopBodyCtx(k:String, v: String, agg: String, isSum: Boolean) extends CallCtx
   private type LoadsCtx = Set[Sym]
 
   private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
 
-  private def uuid = UUID.randomUUID.toString.replace("-", "_")
+//  TODO get rid of this? (either use sdql's variable names or use a global counter for simpler, unique variable names)
+//  import java.util.UUID
+//  private def uuid = UUID.randomUUID.toString.replace("-", "_")
 
   def apply(e: Exp): String = {
     val (csvBody, loadsCtx) = CsvBodyWithLoadsCtx(e)
@@ -53,33 +53,25 @@ object CppCodegen {
   }
 
   def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
-    if (
-      !cond(e) { case _: LetBinding | _: ForLoop | _: Sum => true } &&
-      !callsCtx.exists(cond(_) { case _: LetCtx | _: LoopBodyCtx => true })
-    ) {
-      return s"auto result = ${run(e)(typesCtx, List(LetCtx()) ++ callsCtx, loadsCtx)};"
+    if (!cond(e) { case _: LetBinding => true } && !callsCtx.exists(cond(_) { case _: LetCtx  => true })) {
+      return run(LetBinding(Sym("result"), e, DictNode(Nil)))
     }
 
     e match {
       case LetBinding(x @ Sym(name), e1, e2) =>
         val cpp_e1 = e1 match {
-          case Load(_, DictType(RecordType(_), IntType)) =>
-            // handled in a previous separate tree traversal
-            ""
-          case _: ForLoop | _: Sum =>
-            val callsLocal = List(LoopCtx(Some(name)), LetCtx()) ++ callsCtx
-            s"auto $name = ${generateLoop(e1)(typesCtx, callsLocal, loadsCtx)}"
-          case _ =>
-            val callsLocal = List(LetCtx()) ++ callsCtx
-            s"auto $name = ${run(e1)(typesCtx, callsLocal, loadsCtx)};"
+          // loads were handled in a separate tree traversal
+          case Load(_, DictType(RecordType(_), IntType)) => ""
+          case _ => s"auto $name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ callsCtx, loadsCtx)};"
         }
-        val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
-        val cpp_e2 = run(e2)(typesLocal, callsCtx, loadsCtx)
+        val cpp_e2 = e2 match {
+          case DictNode(Nil) => ""
+          case _ => run(e2)(typesCtx ++ Map(x -> TypeInference.run(e1)), callsCtx, loadsCtx)
+        }
         cpp_e1 + cpp_e2
 
       case _: ForLoop | _: Sum =>
-        val callsLocal = List(LoopCtx()) ++ callsCtx
-        generateLoop(e)(typesCtx, callsLocal, loadsCtx)
+        generateLoop(e).dropRight(2) // FIXME redundant ;
 
       // not case
       case IfThenElse(a, Const(false), Const(true)) =>
@@ -95,7 +87,7 @@ object CppCodegen {
           case DictNode(Nil) => ""
           case _ => s" else {\n${ifElseBody(e2)}\n}"
         }
-        s"""if (${run(cond)}) {${ifElseBody(e1)}\n}$elseBody""".stripMargin
+        s"if (${run(cond)}) {${ifElseBody(e1)}\n}$elseBody"
 
       case Cmp(e1, e2: Sym, "∈") =>
         TypeInference.run(e2) match {
@@ -149,7 +141,7 @@ object CppCodegen {
 
       case DictNode(Nil) =>
         ""
-      // TODO check it's used by Q8 / Q12 (also Q19 to return its result?)
+      // TODO check it's used by Q8 / Q12
       case DictNode(seq) =>
         seq.map( { case (e1, e2) => s"{${run(e1)}, ${run(e2)}}" })
           .mkString(s"${cppType(TypeInference.run(e))}({", ", ", "})")
@@ -219,22 +211,8 @@ object CppCodegen {
     val e1Sym = e1 match { case e1: Sym => e1 }
     var (tpe, typesLocal) = TypeInference.loop_infer_type_and_ctx(e)
 
-    val iter = callsCtx.flatMap(x => condOpt(x) { case LoopCtx(maybe_agg) => maybe_agg }).iterator
-    assert(iter.hasNext)
-    val maybe_agg = iter.next
-
-    val agg = maybe_agg match {
-      case None => if (callsCtx.exists(cond(_) { case LetCtx() => true })) s"v_$uuid" else "result"
-      case Some(agg) => agg
-    }
+    val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).iterator.next
     typesLocal ++= Map(Sym(agg) -> tpe)
-
-    val init = maybe_agg match {
-      case None => s"${cppType(tpe)} $agg(${cppInit(tpe)});"
-      // when an aggregation variable name is passed
-      // we assume the loop is bound to a let statement
-      case Some(_) => s"${cppType(tpe)} (${cppInit(tpe)});"
-    }
 
     val isSum = cond(e) { case _: Sum => true }
     val callsLocal = List(LoopBodyCtx(k=k.name, v=v.name, agg=agg, isSum=isSum)) ++ callsCtx
@@ -248,14 +226,14 @@ object CppCodegen {
     // TODO use it to assign Values()
     val _ = loadsCtx.contains(e1Sym)
 
-    s"""$init
-        |const auto &${k.name} = ${e1Sym.name};
-        |constexpr auto ${v.name} = ${e1Sym.name.capitalize}Values();
-        |for (int i = 0; i < ${e1Sym.name.toLowerCase}.size(); i++) {
-        |$loopBody
-        |}
-        |
-        |""".stripMargin
+    s"""${cppType(tpe)} (${cppInit(tpe)});
+       |const auto &${k.name} = ${e1Sym.name};
+       |constexpr auto ${v.name} = ${e1Sym.name.capitalize}Values();
+       |for (int i = 0; i < ${e1Sym.name.toLowerCase}.size(); i++) {
+       |$loopBody
+       |}
+       |
+       |""".stripMargin
   }
 
   private def ifElseBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
