@@ -13,7 +13,7 @@ object CppCodegen {
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
   private case class LetCtx(name: String) extends CallCtx
-  private case class LoopBodyCtx(k:String, v: String, agg: String, isSum: Boolean) extends CallCtx
+  private case class LoopBodyCtx(k:String, v: String, isSum: Boolean) extends CallCtx
   private type LoadsCtx = Set[Sym]
 
   private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
@@ -131,7 +131,7 @@ object CppCodegen {
 
       case Sym(name) =>
         val iter =
-          callsCtx.flatMap(x => condOpt(x) { case LoopBodyCtx(k, v, _, _) => (k, v) }).iterator
+          callsCtx.flatMap(x => condOpt(x) { case LoopBodyCtx(k, v, _) => (k, v) }).iterator
         if (iter.hasNext) {
           val(k, v) = iter.next()
           if (name == k || name == v)
@@ -215,7 +215,7 @@ object CppCodegen {
     typesLocal ++= Map(Sym(agg) -> tpe)
 
     val isSum = cond(e) { case _: Sum => true }
-    val callsLocal = List(LoopBodyCtx(k=k.name, v=v.name, agg=agg, isSum=isSum)) ++ callsCtx
+    val callsLocal = List(LoopBodyCtx(k=k.name, v=v.name, isSum=isSum)) ++ callsCtx
     val loopBody = e2 match {
       case _: LetBinding | _: IfThenElse =>
         run(e2)(typesLocal, callsLocal, loadsCtx)
@@ -237,13 +237,16 @@ object CppCodegen {
   }
 
   private def ifElseBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
-    val iter =
-      callsCtx.flatMap(x => condOpt(x) { case LoopBodyCtx(_, _, agg, isSum) => (agg, isSum) }).iterator
-    val (agg, isSum) = if (iter.hasNext) iter.next() else raise(
-      s"${IfThenElse.getClass.getSimpleName.init}"
-        + s" inside ${Sum.getClass.getSimpleName.init}"
-        + " needs to know sum context"
-    )
+    val isSum = callsCtx.find(x => cond(x) { case _: LoopBodyCtx => true }) match {
+        case Some(ctx: LoopBodyCtx) => ctx.isSum
+        case _ => raise(
+          s"${IfThenElse.getClass.getSimpleName.init}"
+            + s" inside ${Sum.getClass.getSimpleName.init}"
+            + " needs to know sum context"
+        )
+      }
+    val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
+
      e match {
       case DictNode(Seq((e1, e2))) =>
         assert(cond(typesCtx.get(Sym(agg))) { case Some(_: DictType) => true })
