@@ -16,41 +16,14 @@ object CppCodegen {
   private case class SumCtx(k:String, v: String) extends CallCtx
   private type LoadsCtx = Set[Sym]
 
-  private def checkNoLetBindings(e: Exp)(implicit callsCtx: CallsCtx) =
-    !cond(e) { case _: LetBinding => true } && !callsCtx.exists(cond(_) { case _: LetCtx  => true })
-
-  private def checkInSum()(implicit callsCtx: CallsCtx) =
-    callsCtx.exists(cond(_) { case _: SumCtx  => true })
-
   private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
-
-//  TODO get rid of this? (either use sdql's variable names or use a global counter for simpler, unique variable names)
-//  import java.util.UUID
-//  private def uuid = UUID.randomUUID.toString.replace("-", "_")
+  private val resultName = "result"
 
   def apply(e: Exp): String = {
     val (csvBody, loadsCtx) = CsvBodyWithLoadsCtx(e)
     val mainBody = run(e)(Map(), List(), loadsCtx)
-    // slightly wasteful to redo type inference - but spares us having return the type at every recursive call
+    // slightly wasteful to redo type inference - but spares us having to return the type at every recursive call
     val tpe = TypeInference(e)
-    val resultName = "result"
-    val printBody = tpe match {
-      case _: DictType =>
-        s"""for (const auto &[key, val] : $resultName) {
-           |std::cout << key << ":" << val << std::endl;
-           |}""".stripMargin
-      case RecordType(attrs) =>
-        val body =
-          attrs.map(_.name).zipWithIndex.map(
-            { case (name, i) => s""""$name = " << std::get<$i>($resultName)""" }
-          ).mkString(""" << ", " << """)
-        s"""std::stringstream ss;
-          |ss << $body;
-          |std::cout << "<" << ss.str() << ">" << std::endl;
-          |""".stripMargin
-      case _ if tpe.isScalar =>
-        s"std::cout << $resultName << std::endl;"
-    }
     s"""|#include "../runtime/headers.h"
         |
         |const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
@@ -59,14 +32,14 @@ object CppCodegen {
         |
         |int main() {
         |$mainBody
-        |$printBody
+        |${cppPrintResult(tpe)}
         |}
         |""".stripMargin
   }
 
   def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
     if (checkNoLetBindings(e)) {
-      return run(LetBinding(Sym("result"), e, DictNode(Nil)))
+      return run(LetBinding(Sym(resultName), e, DictNode(Nil)))
     }
 
     e match {
@@ -146,7 +119,6 @@ object CppCodegen {
 
       case DictNode(Nil) =>
         ""
-      // TODO check it's used by Q8 / Q12
       case DictNode(seq) =>
         seq.map( { case (e1, e2) => s"{${run(e1)}, ${run(e2)}}" })
           .mkString(s"${cppType(TypeInference.run(e))}({", ", ", "})")
@@ -391,5 +363,29 @@ object CppCodegen {
              |${munitPrint(this)}""".stripMargin
         )
       }
-      )
+    )
+
+  private def checkNoLetBindings(e: Exp)(implicit callsCtx: CallsCtx) =
+    !cond(e) { case _: LetBinding => true } && !callsCtx.exists(cond(_) { case _: LetCtx  => true })
+
+  private def checkInSum()(implicit callsCtx: CallsCtx) =
+    callsCtx.exists(cond(_) { case _: SumCtx  => true })
+
+  private def cppPrintResult(tpe: Type) = tpe match {
+    case _: DictType =>
+      s"""for (const auto &[key, val] : $resultName) {
+         |std::cout << key << ":" << val << std::endl;
+         |}""".stripMargin
+    case RecordType(attrs) =>
+      val body =
+        attrs.map(_.name).zipWithIndex.map(
+          { case (name, i) => s""""$name = " << std::get<$i>($resultName)""" }
+        ).mkString(""" << ", " << """)
+      s"""std::stringstream ss;
+         |ss << $body;
+         |std::cout << "<" << ss.str() << ">" << std::endl;
+         |""".stripMargin
+    case _ if tpe.isScalar =>
+      s"std::cout << $resultName << std::endl;"
+  }
 }
