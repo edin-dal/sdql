@@ -20,7 +20,7 @@ object Value {
         s"${toString(kv._1)} -> ${toString(kv._2)}"
       ).mkString("{", ", ", "}")
     case RecordValue(vals) =>
-      vals.map(fv => s"${toString(fv._1)} = ${toString(fv._2)}").mkString("<", ", ", ">")
+      vals.map(fv => s"${fv._1} = ${fv._2}").mkString("<", ", ", ">")
     case ZeroValue =>
       ZeroValue.toString
     case _ => raise(s"Doesn't know how to convert `$v` to string")
