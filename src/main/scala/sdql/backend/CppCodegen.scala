@@ -14,7 +14,8 @@ object CppCodegen {
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
   private case class LetCtx() extends CallCtx
-  private case class LoopCtx(k:String, v: String, agg: String, isSum: Boolean) extends CallCtx
+  private case class LoopCtx(maybe_agg: Option[String] = None) extends CallCtx
+  private case class LoopBodyCtx(k:String, v: String, agg: String, isSum: Boolean) extends CallCtx
   private type LoadsCtx = Set[Sym]
 
   private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
@@ -54,7 +55,7 @@ object CppCodegen {
   def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
     if (
       !cond(e) { case _: LetBinding | _: ForLoop | _: Sum => true } &&
-      !callsCtx.exists(cond(_) { case _: LetCtx | _: LoopCtx => true })
+      !callsCtx.exists(cond(_) { case _: LetCtx | _: LoopBodyCtx => true })
     ) {
       return s"auto result = ${run(e)(typesCtx, List(LetCtx()) ++ callsCtx, loadsCtx)};"
     }
@@ -66,8 +67,8 @@ object CppCodegen {
             // handled in a previous separate tree traversal
             ""
           case _: ForLoop | _: Sum =>
-            val callsLocal = List(LetCtx()) ++ callsCtx
-            s"auto $name = ${generateLoop(e1, Some(name))(typesCtx, callsLocal, loadsCtx)}"
+            val callsLocal = List(LoopCtx(Some(name)), LetCtx()) ++ callsCtx
+            s"auto $name = ${generateLoop(e1)(typesCtx, callsLocal, loadsCtx)}"
           case _ =>
             val callsLocal = List(LetCtx()) ++ callsCtx
             s"auto $name = ${run(e1)(typesCtx, callsLocal, loadsCtx)};"
@@ -77,7 +78,8 @@ object CppCodegen {
         cpp_e1 + cpp_e2
 
       case _: ForLoop | _: Sum =>
-        generateLoop(e)
+        val callsLocal = List(LoopCtx()) ++ callsCtx
+        generateLoop(e)(typesCtx, callsLocal, loadsCtx)
 
       // not case
       case IfThenElse(a, Const(false), Const(true)) =>
@@ -91,10 +93,7 @@ object CppCodegen {
       case IfThenElse(cond, e1, e2) =>
         val elseBody = e2 match {
           case DictNode(Nil) => ""
-          case _ =>
-            s""" else {
-               |${ifElseBody(e2)}
-               |}""".stripMargin
+          case _ => s" else {\n${ifElseBody(e2)}\n}"
         }
         s"""if (${run(cond)}) {${ifElseBody(e1)}\n}$elseBody""".stripMargin
 
@@ -139,7 +138,8 @@ object CppCodegen {
         v.toString
 
       case Sym(name) =>
-        val iter = callsCtx.flatMap(x => condOpt(x) { case LoopCtx(k, v, _, _) => (k, v) }).iterator
+        val iter =
+          callsCtx.flatMap(x => condOpt(x) { case LoopBodyCtx(k, v, _, _) => (k, v) }).iterator
         if (iter.hasNext) {
           val(k, v) = iter.next()
           if (name == k || name == v)
@@ -214,12 +214,14 @@ object CppCodegen {
     }
   }
 
-  private def generateLoop
-  (e: Exp, maybe_agg: Option[String] = None)
-  (implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
+  private def generateLoop(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
     val (k, v, e1, e2) = TypeInference.unpack_loop(e)
     val e1Sym = e1 match { case e1: Sym => e1 }
     var (tpe, typesLocal) = TypeInference.loop_infer_type_and_ctx(e)
+
+    val iter = callsCtx.flatMap(x => condOpt(x) { case LoopCtx(maybe_agg) => maybe_agg }).iterator
+    assert(iter.hasNext)
+    val maybe_agg = iter.next
 
     val agg = maybe_agg match {
       case None => if (callsCtx.exists(cond(_) { case LetCtx() => true })) s"v_$uuid" else "result"
@@ -235,7 +237,7 @@ object CppCodegen {
     }
 
     val isSum = cond(e) { case _: Sum => true }
-    val callsLocal = List(LoopCtx(k=k.name, v=v.name, agg=agg, isSum=isSum)) ++ callsCtx
+    val callsLocal = List(LoopBodyCtx(k=k.name, v=v.name, agg=agg, isSum=isSum)) ++ callsCtx
     val loopBody = e2 match {
       case _: LetBinding | _: IfThenElse =>
         run(e2)(typesLocal, callsLocal, loadsCtx)
@@ -257,15 +259,14 @@ object CppCodegen {
   }
 
   private def ifElseBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
-    val iter = callsCtx.flatMap(x => condOpt(x) { case LoopCtx(_, _, agg, isSum) => (agg, isSum) }).iterator
+    val iter =
+      callsCtx.flatMap(x => condOpt(x) { case LoopBodyCtx(_, _, agg, isSum) => (agg, isSum) }).iterator
     val (agg, isSum) = if (iter.hasNext) iter.next() else raise(
       s"${IfThenElse.getClass.getSimpleName.init}"
         + s" inside ${Sum.getClass.getSimpleName.init}"
         + " needs to know sum context"
     )
      e match {
-      case DictNode(Nil) =>
-        ""
       case DictNode(Seq((e1, e2))) =>
         assert(cond(typesCtx.get(Sym(agg))) { case Some(_: DictType) => true })
         if (isSum)
