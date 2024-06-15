@@ -149,7 +149,7 @@ object Parser {
       case "+" => Add(acc, cur._2)
       case "-" => Add(acc, Neg(cur._2))
     } ))
-  def addSubCmp[_: P]: P[Exp] = P( addSub ~ (StringIn("<", "==", "<=", "!=", "∈").! ~/ addSub).? ).map(x =>
+  def addSubCmp[_: P]: P[Exp] = P( addSub ~ (StringIn("<", "==", "<=", "!=").! ~/ addSub).? ).map(x => 
       x._2 match {
         case Some((op, y)) => Cmp(x._1, y, op)
         case None => x._1

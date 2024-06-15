@@ -17,21 +17,21 @@ let nationkey_to_name =
 
 let custkey_to_name =
   sum(<c,c_v> in customer)
-    if(c.c_nationkey ∈ nationkey_to_name) then
+    if(nationkey_to_name(c.c_nationkey) != {}) then
       { c.c_custkey -> nationkey_to_name(c.c_nationkey)(0) }
     else
       { }
 
 let orderkey_to_name =
   sum(<o,o_v> in orders)
-    if(o.o_custkey ∈ custkey_to_name) then
+    if(custkey_to_name(o.o_custkey) != {}) then
       { o.o_orderkey -> custkey_to_name(o.o_custkey) }
     else
       { }
 
 let suppkey_to_name =
   sum(<s,s_v> in supplier)
-    if(s.s_nationkey ∈ orderkey_to_name) then
+    if(orderkey_to_name(s.s_nationkey) != {}) then
       { s.s_suppkey -> orderkey_to_name(s.s_nationkey) }
     else
       { }
@@ -39,7 +39,7 @@ let suppkey_to_name =
 sum(<l,l_v> in lineitem)
   if(
       (date(19950101) <= l.l_shipdate) && (l.l_shipdate <= date(19961231)) &&
-      (l.l_orderkey ∈ orderkey_to_name) && (l.l_suppkey ∈ suppkey_to_name) &&
+      (orderkey_to_name(l.l_orderkey) != {}) && (suppkey_to_name(l.l_suppkey) != {}) &&
       (
         ((orderkey_to_name(l.l_orderkey) == "FRANCE") && (suppkey_to_name(l.l_suppkey) == "GERMANY")) ||
         ((orderkey_to_name(l.l_orderkey) == "GERMANY") && (suppkey_to_name(l.l_suppkey) == "FRANCE"))

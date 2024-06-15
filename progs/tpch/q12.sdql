@@ -16,7 +16,7 @@ let l_h =
       { }
 
 sum(<o,o_v> in orders)
-  if(o.o_orderkey ∈ l_h) then
+  if(l_h(o.o_orderkey) != {}) then
     sum(<l_orderkey,l_shipmode> in l_h)
       {
         < _ = l_shipmode >

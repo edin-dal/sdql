@@ -95,15 +95,12 @@ object CppCodegen {
         }
         s"if (${run(cond)}) {${ifElseBody(e1)}\n}$elseBody"
 
-      case Cmp(e1, e2: Sym, "∈") =>
-        TypeInference.run(e2) match {
-          case _: DictType =>
-          case tpe => raise(
-            s"expression ${e2.simpleName} should be of type " +
-              s"${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
-          )
-        }
-        s"${run(e2)}.contains(${run(e1)})"
+      case Cmp(Get(e1, e2), DictNode(Nil), "!=")
+        if cond(TypeInference.run(e1)) { case DictType(kt, _) => TypeInference.run(e2) == kt } =>
+          s"${run(e1)}.contains(${run(e2)})"
+      case Cmp(DictNode(Nil), Get(e1, e2), "!=")
+        if cond(TypeInference.run(e1)) { case DictType(kt, _) => TypeInference.run(e2) == kt } =>
+        s"${run(e1)}.contains(${run(e2)})"
       case Cmp(e1, e2, cmp) =>
         s"${run(e1)} $cmp ${run(e2)}"
 

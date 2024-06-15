@@ -19,14 +19,14 @@ let r_h =
 
 let n_h =
   sum(<n,n_v> in nation)
-    if(n.n_regionkey ∈ r_h) then
+    if(r_h(n.n_regionkey) != {}) then
       { n.n_nationkey -> n.n_name }
     else
       { }
 
 let c_h =
   sum(<c,c_v> in customer)
-    if(c.c_nationkey ∈ n_h) then
+    if(n_h(c.c_nationkey) != {}) then
       { c.c_custkey -> < _ =n_h(c.c_nationkey), _ = c.c_nationkey > }
     else
       { }
@@ -36,7 +36,7 @@ let o_h =
     if(
         (o.o_orderdate < date(19950101))
         && (date(19940101) <= o.o_orderdate)
-        && (o.o_custkey ∈ c_h)
+        && (c_h(o.o_custkey) != {})
       ) then
       { o.o_orderkey -> < _ = c_h(o.o_custkey)(0), _ = c_h(o.o_custkey)(1) > }
     else
@@ -50,8 +50,8 @@ let s_h =
 // let li_h =
   sum(<l, l_v> <- lineitem)
     if(
-        (l.l_orderkey ∈ o_h)
-        && (< _ = l.l_suppkey, _ = o_h(l.l_orderkey)(1) > ∈ s_h)
+        (o_h(l.l_orderkey) != {})
+        && (s_h(< _ = l.l_suppkey, _ = o_h(l.l_orderkey)(1) >) != {})
       ) then
       { o_h(l.l_orderkey)(0) -> l.l_extendedprice * (1.0 - l.l_discount) }
     else

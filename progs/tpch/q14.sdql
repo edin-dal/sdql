@@ -16,7 +16,7 @@ let a =
   sum(<la,la_v> <- lineitem)
     if(
       (date(19950901) <= la.l_shipdate) && (la.l_shipdate < date(19951001))
-      && (la.l_partkey ∈ p_h)
+      && (p_h(la.l_partkey) != {})
     ) then
       la.l_extendedprice * (1.0 - la.l_discount)
     else

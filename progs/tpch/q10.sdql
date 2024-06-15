@@ -30,7 +30,7 @@ let o_h =
     if(
          (date(19931001)  <= o.o_orderdate)
          && (o.o_orderdate < date(19940101))
-         && (o.o_custkey ∈ c_h)
+         && (c_h(o.o_custkey) != {})
        ) then
       {
         o.o_orderkey ->
@@ -50,7 +50,7 @@ let o_h =
 //TODO
 //let l_h =
   sum(<l,l_v> in lineitem)
-    if((l.l_returnflag == "R") && (l.l_orderkey ∈ o_h)) then
+    if((l.l_returnflag == "R") && (o_h(l.l_orderkey) != {})) then
       {
         <
           c_custkey = o_h(l.l_orderkey)(0),

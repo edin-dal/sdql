@@ -24,7 +24,7 @@ let n_h =
 
 let s_h =
   sum(<s,s_v> in supplier)
-    if(s.s_nationkey ∈ n_h) then
+    if(n_h(s.s_nationkey) != {}) then
       { s.s_suppkey -> < _ = s.s_suppkey > }
     else
       { }
@@ -33,7 +33,7 @@ let l_h =
   sum(<l,l_v> in lineitem)
     if(
       (date(19940101) < l.l_shipdate) && (date(19950101) < l.l_shipdate)
-      && (l.l_partkey ∈ n_h) && (l.l_suppkey ∈ s_h)
+      && (n_h(l.l_partkey) != {}) && (s_h(l.l_suppkey) != {})
       ) then
       { < _ = l.l_partkey, _ = l.l_suppkey > -> 0.5 * l.l_quantity }
     else
@@ -42,14 +42,14 @@ let l_h =
 let ps_h =
   sum(<ps,ps_v> in partsupp)
     let key = <_ = ps.ps_partkey, _ = ps.ps_suppkey >
-    if((key ∈ l_h) && (l_h(key) < ps.ps_availqty)) then
+    if((l_h(key) != {}) && (l_h(key) < ps.ps_availqty)) then
       { ps.ps_suppkey -> < _ = ps.ps_suppkey > }
     else
       { }
 
 // TODO fix so we can reuse variable names <s,s_v>
 sum(<k,v> in supplier)
-  if(k.s_suppkey ∈ ps_h) then
+  if(ps_h(k.s_suppkey) != {}) then
     { < _ = k.s_name, _ = k.s_address > -> 1 }
   else
     { }

@@ -13,7 +13,7 @@ let o_h =
 
 // TODO is this valid SDQL? (looks ok and codegen worked out-of-the-box)
 sum(<c,c_v> in customer)
-  if(c.c_custkey ∈ o_h) then
+  if(o_h(c.c_custkey) != {}) then
     { < _ = c.c_custkey > -> < _ = 1 > }
   else
     { < _ = 0 > -> < _ = 1 > }

@@ -21,7 +21,7 @@ let r_h =
 
 let n_h =
   sum(<n,n_v> in nation)
-    if(n.n_regionkey ∈ r_h) then
+    if(r_h(n.n_regionkey) != {}) then
       { n.n_nationkey -> true }
     else
       { }
@@ -57,7 +57,7 @@ let o_h =
 // TODO need to support nested lets and ifs
 let l_h =
   sum(<l,l_v> in lineitem)
-      if((l.l_partkey ∈ p_h) && (l.l_orderkey ∈ n_h) && (c_h(o_h(l.l_orderkey)(0)) ∈ n_h)) then
+      if((p_h(l.l_partkey) != {}) && (n_h(l.l_orderkey) != {}) && (n_h(c_h(o_h(l.l_orderkey)(0))) != {})) then
         let orderdate = o_h(l.l_orderkey)(1)
         let orderyear = ext(`SubString`, orderdate, 0, 4)
         let volume = l.l_extendedprice * (1.0 - l.l_discount)

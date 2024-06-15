@@ -28,7 +28,7 @@ let p_h =
 
 let ps_h =
   sum(<ps,ps_v> in partsupp)
-    if(ps.ps_partkey ∈ p_h) then
+    if(p_h(ps.ps_partkey) != {}) then
       { < _ = ps.ps_partkey, _ = ps.ps_suppkey > -> < _ = s_h(ps.ps_suppkey), _ = ps.ps_supplycost > }
     else
       { }
@@ -41,7 +41,7 @@ let o_h =
 // TODO
 // let li_h =
   sum(<li,li_v> <- lineitem)
-    if(< _ = li.l_partkey, _ = li.l_suppkey > ∈ ps_h) then
+    if(ps_h(< _ = li.l_partkey, _ = li.l_suppkey >) != {}) then
       {
         <
           nation = ps_h(< _ = li.l_partkey, _ = li.l_suppkey >)(0),

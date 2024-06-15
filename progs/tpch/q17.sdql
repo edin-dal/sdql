@@ -13,7 +13,7 @@ let p_h =
 
 let l_h =
   sum(<la,la_v> <- lineitem)
-    if(la.l_partkey ∈ p_h) then
+    if(p_h(la.l_partkey) != {}) then
       { la.l_partkey -> < _ = la.l_quantity, _ = 1.0 > }
     else
       { }
@@ -21,7 +21,7 @@ let l_h =
 let tot =
   sum(<lb,lb_v> <- lineitem)
     let avg = 0.2 * l_h(lb.l_partkey)(0) / l_h(lb.l_partkey)(1)
-    if((lb.l_partkey ∈ l_h) && (lb.l_quantity < avg )) then
+    if((l_h(lb.l_partkey) != {}) && (lb.l_quantity < avg )) then
       lb.l_extendedprice
     else
       0.0

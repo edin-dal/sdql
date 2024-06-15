@@ -15,7 +15,7 @@ let n_h =
 
 let s_h =
   sum(<s,s_v> <- supplier)
-    if(s.s_nationkey ∈ n_h) then
+    if(n_h(s.s_nationkey) != {}) then
       { s.s_suppkey -> s.s_name }
     else
       { }

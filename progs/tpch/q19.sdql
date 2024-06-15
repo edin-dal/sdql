@@ -52,7 +52,7 @@ let res =
   sum(<l,l_v> in lineitem)
     let p_brand = p_h(l.l_partkey)(0)
     if(
-      (l.l_partkey ∈ p_h)
+      (p_h(l.l_partkey) != {})
       && ((l.l_shipmode == "AIR") || (l.l_shipmode == "AIR REG"))
       && (l.l_shipinstruct == "DELIVER IN PERSON")
       && (

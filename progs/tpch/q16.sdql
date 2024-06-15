@@ -36,7 +36,7 @@ let s_h =
 // TODO
 //let ps_h =
   sum(<ps,ps_v> <- partsupp)
-    if ((ps.ps_partkey ∈ p_h) && (!(ps.ps_suppkey ∈ s_h))) then
+    if ((p_h(ps.ps_partkey) != {}) && (!(s_h(ps.ps_suppkey) != {}))) then
     {
       <
         _ = p_h(ps.ps_partkey)(0),

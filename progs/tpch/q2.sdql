@@ -17,14 +17,14 @@ let l_h =
 
 let n_h =
   sum(<n,n_v> <- nation)
-    if(n.n_regionkey ∈ l_h) then
+    if(l_h(n.n_regionkey) != {}) then
       { n.n_nationkey -> < _ = n.n_name > }
     else
       { }
 
 let s_h =
   sum(<s,s_v> <- supplier)
-    if(s.s_nationkey ∈ n_h) then
+    if(n_h(s.s_nationkey) != {}) then
       {
         s.s_suppkey ->
         <
@@ -48,7 +48,7 @@ let p_h =
 
 let ps_h =
   sum(<ps,ps_v> <- partsupp)
-    if (ps.ps_partkey ∈ s_h) then
+    if (s_h(ps.ps_partkey) != {}) then
       { ps.ps_partkey -> ps.ps_supplycost }
     else
       { }
@@ -56,9 +56,9 @@ let ps_h =
 // TODO avoid redefining ps,ps_v twice in codegen
 sum(<key,val> <- partsupp)
   if(
-      (key.ps_partkey ∈ ps_h)
+      (ps_h(key.ps_partkey) != {})
       && (ps_h(key.ps_partkey) == key.ps_supplycost)
-      && (key.ps_suppkey ∈ n_h)
+      && (n_h(key.ps_suppkey) != {})
     ) then
     {
       <

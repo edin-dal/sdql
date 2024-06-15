@@ -24,7 +24,7 @@ let custkey_to_name =
 
 let o_h =
   sum(<o,o_v> in orders)
-    if((o.o_orderkey ∈ orderkeys) && (o.o_custkey ∈ custkey_to_name)) then
+    if((orderkeys(o.o_orderkey) != {}) && (custkey_to_name(o.o_custkey) != {})) then
       let name = custkey_to_name(o.o_custkey)(0)
       {
         o.o_orderkey ->
@@ -36,7 +36,7 @@ let o_h =
       { }
 
 sum(<lb,lb_v> in lineitem)
-  if(lb.l_orderkey ∈ o_h) then
+  if(o_h(lb.l_orderkey) != {}) then
     {
       <
         _ = o_h(l.l_orderkey)(0),
