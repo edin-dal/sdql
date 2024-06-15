@@ -33,17 +33,23 @@ object CppCodegen {
     val mainBody = run(e)(Map(), List(), loadsCtx)
     // slightly wasteful to redo type inference - but spares us having return the type at every recursive call
     val tpe = TypeInference(e)
-    val name = "result"
+    val resultName = "result"
     val printBody = tpe match {
       case _: DictType =>
-        s"""for (const auto &[key, val] : $name) {
+        s"""for (const auto &[key, val] : $resultName) {
            |std::cout << key << ":" << val << std::endl;
            |}""".stripMargin
-      case _: RecordType =>
-        // TODO print out attribute names
-        s"std::cout << $name << std::endl;"
+      case RecordType(attrs) =>
+        val body =
+          attrs.map(_.name).zipWithIndex.map(
+            { case (name, i) => s""""$name = " << std::get<$i>($resultName)""" }
+          ).mkString(""" << ", " << """)
+        s"""std::stringstream ss;
+          |ss << $body;
+          |std::cout << "<" << ss.str() << ">" << std::endl;
+          |""".stripMargin
       case _ if tpe.isScalar =>
-        s"std::cout << $name << std::endl;"
+        s"std::cout << $resultName << std::endl;"
     }
     s"""|#include "../runtime/headers.h"
         |
