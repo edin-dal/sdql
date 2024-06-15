@@ -271,7 +271,7 @@ object CppCodegen {
               (path, name, attrs)
           }
         )
-        .distinct
+        .toSet
 
     val csvConsts =
       pathNameAttrs.map({ case (path, name, _) => makeCsvConst(name, path) } ).mkString("", "\n", "\n")
@@ -284,7 +284,7 @@ object CppCodegen {
 
     (
       List(csvConsts, structDefs, structInits, valueClasses).mkString("\n"),
-      pathNameAttrs.map(_._2).map(Sym.apply).toSet,
+      pathNameAttrs.map(_._2).map(Sym.apply),
     )
   }
 
@@ -319,12 +319,12 @@ object CppCodegen {
        |};
        |""".stripMargin
 
-  private def flattenExps(e: Exp): List[Exp] =
-    List(e) ++ (
+  private def flattenExps(e: Exp): Iterator[Exp] =
+    Iterator(e) ++ (
       e match {
         // 0-ary
         case _: Sym | _: Const | _: RangeNode | _: Load =>
-          List()
+          Iterator()
         // 1-ary
         case Neg(e) =>
           flattenExps(e)
