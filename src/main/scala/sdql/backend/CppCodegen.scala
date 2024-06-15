@@ -13,7 +13,7 @@ object CppCodegen {
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
   private case class LetCtx(name: String) extends CallCtx
-  private case class SumCtx(k:String, v: String) extends CallCtx
+  private case class SumCtx(k:String, v: String, isLoad: Boolean) extends CallCtx
   private type LoadsCtx = Set[Sym]
 
   private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
@@ -113,7 +113,7 @@ object CppCodegen {
 
       case Sym(name) =>
         callsCtx.flatMap(x => condOpt(x) { case ctx: SumCtx => ctx }).headOption match {
-          case Some(SumCtx(k, v)) if (name == k || name == v) => s"$name[i]"
+          case Some(SumCtx(k, v, _)) if (name == k || name == v) => s"$name[i]"
           case _ => name
         }
 
@@ -190,16 +190,13 @@ object CppCodegen {
     val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).iterator.next
     typesLocal ++= Map(Sym(agg) -> tpe)
 
-    val callsLocal = List(SumCtx(k=k.name, v=v.name)) ++ callsCtx
+    val callsLocal = List(SumCtx(k=k.name, v=v.name, isLoad = loadsCtx.contains(e1Sym))) ++ callsCtx
     val sumBody = e2 match {
       case _: LetBinding | _: IfThenElse =>
         run(e2)(typesLocal, callsLocal, loadsCtx)
       case _ =>
         ifElseBody(e2)(typesLocal, callsLocal, loadsCtx)
     }
-
-    // TODO use it to assign Values()
-    val _ = loadsCtx.contains(e1Sym)
 
     s"""${cppType(tpe)} (${cppInit(tpe)});
        |const auto &${k.name} = ${e1Sym.name};
