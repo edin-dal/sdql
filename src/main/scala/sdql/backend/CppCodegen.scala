@@ -83,11 +83,16 @@ object CppCodegen {
       case Cmp(e1, e2, cmp) =>
         s"${run(e1)} $cmp ${run(e2)}"
 
-      case e @ FieldNode(Sym(name), f) =>
-        // FIXME hack for Q3, Q5, Q9, Q20 (Q1, Q6 work even with fromLoad=true)
-        // val fromLoad = name != "k" && name != "v"
-        val fromLoad = true
-        fieldNode(e, fromLoad)
+      case FieldNode(sym @ Sym(name), f) =>
+        TypeInference.run(sym) match {
+          case tpe: RecordType =>
+            val idx = tpe.indexOf(f) match { case Some(idx) => idx }
+            val isLoad = callsCtx.exists(x => cond(x) { case SumCtx(k, v, isLoad) => isLoad && (name == k || name == v) })
+            if (isLoad) s"$name.$f[i]" else s" /* $f */ std::get<$idx>($name)"
+          case tpe => raise(
+            s"expected ${RecordType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
+          )
+        }
 
       case Add(e1, Neg(e2)) =>
         s"(${run(e1)} - ${run(e2)})"
@@ -225,18 +230,6 @@ object CppCodegen {
         assert(TypeInference.run(e).isScalar)
         s"$agg += ${run(e)};"
     }
-  }
-
-  private def fieldNode(e: FieldNode, fromLoad: Boolean)(implicit typesCtx: TypesCtx) = e match {
-    case FieldNode(sym @ Sym(name), f) =>
-      TypeInference.run(sym) match {
-        case t: RecordType =>
-          val idx = t.indexOf(f) match { case Some(idx) => idx}
-          if (fromLoad) s"$name.$f[i]" else s" /* $f */ std::get<$idx>($name)"
-        case tpe => raise(
-          s"expected ${RecordType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
-        )
-      }
   }
 
   private def cppInit(tpe: ir.Type): String = tpe match {
