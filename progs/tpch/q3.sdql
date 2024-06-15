@@ -23,7 +23,7 @@ let o_h =
 
 // TODO
 // let li_h =
-  for(<li,li_v> in lineitem)
+  sum(<li,li_v> in lineitem)
     if(
         (date(19950315) < li.l_shipdate)
         && (li.l_orderkey ∈ o_h)
