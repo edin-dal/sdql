@@ -45,7 +45,7 @@ object CppCodegen {
     e match {
       case LetBinding(x @ Sym(name), e1, e2) =>
         val cpp_e1 = e1 match {
-          // loads were handled in a separate tree traversal
+          // codegen for loads was handled in a separate tree traversal
           case Load(_, DictType(RecordType(_), IntType)) => ""
           case _ => s"auto $name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ callsCtx, loadsCtx)};"
         }
