@@ -153,16 +153,16 @@ object CppCodegen {
         )
       }
 
-      case External(name, args) => args match {
-        case Seq(str, prefix) if name == StrStartsWith.SYMBOL =>
+      case External(name, args) => (name, args) match {
+        case (StrStartsWith.SYMBOL, Seq(str, prefix)) =>
           s"${run(str)}.starts_with(${run(prefix)})"
-        case Seq(str, suffix) if name == StrEndsWith.SYMBOL =>
+        case (StrEndsWith.SYMBOL, Seq(str, suffix)) =>
           s"${run(str)}.ends_with(${run(suffix)})"
-        case Seq(str, start, end) if name == SubString.SYMBOL =>
+        case (SubString.SYMBOL, Seq(str, start, end)) =>
           s"${run(str)}.substr(${run(start)}, ${run(end)})"
-        case Seq(field: FieldNode, elem, from) if name == StrIndexOf.SYMBOL =>
+        case (StrIndexOf.SYMBOL, Seq(field: FieldNode, elem, from)) =>
           s"${run(field)}.find(${run(elem)}, ${run(from)})"
-        case _ if name == Inv.SYMBOL =>
+        case (Inv.SYMBOL, _) =>
           raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
         case _ =>
           raise(s"unhandled function name: $name")

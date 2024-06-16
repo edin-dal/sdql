@@ -102,26 +102,18 @@ object TypeInference {
       case External(name, args) =>
         import ExternalFunctions._
         name match {
-          case _ if name == StrContains.SYMBOL =>
+          case StrContains.SYMBOL | StrStartsWith.SYMBOL | StrEndsWith.SYMBOL | StrContainsN.SYMBOL =>
             BoolType
-          case _ if name == StrStartsWith.SYMBOL =>
-            BoolType
-          case _ if name == StrEndsWith.SYMBOL =>
-            BoolType
-          case _ if name == StrContainsN.SYMBOL =>
-            BoolType
-          case _ if name == SubString.SYMBOL =>
+          case SubString.SYMBOL =>
             StringType
-          case _ if name == StrIndexOf.SYMBOL =>
+          case StrIndexOf.SYMBOL | Year.SYMBOL =>
             IntType
-          case _ if name == Year.SYMBOL =>
-            IntType
-          case _ if name == ParseDate.SYMBOL =>
+          case ParseDate.SYMBOL =>
             DateType
-          case _ if name == Inv.SYMBOL =>
+          case Inv.SYMBOL =>
             val arg = args match { case Seq(e) => e}
             run(arg)
-          case _ if Set(TopN.SYMBOL, CStore.SYMBOL, Log.SYMBOL).contains(name) =>
+          case TopN.SYMBOL | CStore.SYMBOL | Log.SYMBOL =>
             raise(s"unimplemented function name: $name")
           case _ =>
             raise(s"unknown function name: $name")

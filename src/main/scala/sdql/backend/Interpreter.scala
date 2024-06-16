@@ -340,43 +340,43 @@ object Interpreter {
     def raiseTp(tp: String) = raise(s"ext(`$name`, ...) expects $tp, but given: ${args.mkString(", ")}.")
     implicit def bool2double(b: Boolean): Double = if(b) 1 else 0
     name match {
-      case x if x == ParseDate.SYMBOL => args(0) match {
+      case ParseDate.SYMBOL => args(0) match {
         case v: String =>
           val arr = v.split('-')
           val Array(y, m, d) = arr.map(_.toInt)
           DateValue(y * 10000 + m * 100 + d)
         case _ => raiseTp("string")
       }
-      case x if x == Year.SYMBOL => args(0) match {
+      case Year.SYMBOL => args(0) match {
         case DateValue(r) => r / 10000
         case _ => raiseTp("date")
       }
-      case x if x == SubString.SYMBOL => (args(0), args(1), args(2)) match {
+      case SubString.SYMBOL => (args(0), args(1), args(2)) match {
         case (str: String, s: Int, l: Int) =>
           str.substring(s, s + l)
         case _ => raiseTp("string, int, int")
       }
-      case x if x == StrStartsWith.SYMBOL => (args(0), args(1)) match {
+      case StrStartsWith.SYMBOL => (args(0), args(1)) match {
         case (str1: String, str2: String) => str1.startsWith(str2)
         case _ => raiseTp("string, string")
       }
-      case x if x == StrEndsWith.SYMBOL => (args(0), args(1)) match {
+      case StrEndsWith.SYMBOL => (args(0), args(1)) match {
         case (str1: String, str2: String) => str1.endsWith(str2)
         case _ => raiseTp("string, string")
       }
-      case x if x == StrContains.SYMBOL => (args(0), args(1)) match {
+      case StrContains.SYMBOL => (args(0), args(1)) match {
         case (str1: String, str2: String) => str1.contains(str2)
         case _ => raiseTp("string, string")
       }
-      case x if x == StrContainsN.SYMBOL => 
+      case StrContainsN.SYMBOL =>
         val as = args.map(_.asInstanceOf[String])
         val (obj, xs) = as.head ->  as.tail
         xs.forall(x => obj.contains(x))
-      case x if x == StrIndexOf.SYMBOL => (args(0), args(1), args(2)) match {
+      case StrIndexOf.SYMBOL => (args(0), args(1), args(2)) match {
         case (str1: String, str2: String, idx: Int) => str1.indexOf(str2, idx)
         case _ => raiseTp("string, string, int")
       }
-      case x if x == Inv.SYMBOL => args(0) match {
+      case Inv.SYMBOL => args(0) match {
         case r: Int => 1.0 / r
         case r: Double => 1 / r
         case v => raise(s"`inv($v)` not handled")
