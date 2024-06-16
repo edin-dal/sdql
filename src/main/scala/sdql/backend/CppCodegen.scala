@@ -86,7 +86,7 @@ object CppCodegen {
       case FieldNode(sym @ Sym(name), f) =>
         TypeInference.run(sym) match {
           case tpe: RecordType =>
-            val idx = tpe.indexOf(f) match { case Some(idx) => idx }
+            val idx = (tpe.indexOf(f): @unchecked) match { case Some(idx) => idx }
             val isLoad =
               callsCtx.exists(x => cond(x) { case SumCtx(k, v, isLoad) => isLoad && (name == k || name == v) })
             if (isLoad) s"$name.$f[i]" else s" /* $f */ std::get<$idx>($name)"
@@ -213,7 +213,7 @@ object CppCodegen {
     }
 
     if (isLoad) {
-      val e1Name = e1 match { case Sym(e1Name) => e1Name }
+      val e1Name = (e1: @unchecked) match { case Sym(e1Name) => e1Name }
       s"""${cppType(tpe)} (${cppInit(tpe)});
          |const auto &${k.name} = $e1Name;
          |constexpr auto ${v.name} = ${e1Name.capitalize}Values();
