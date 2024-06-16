@@ -11,8 +11,14 @@ A prototype implementation of SDQL in Scala.
 
 # Tests
 
-```
+```sh
 sbt test
+```
+
+To automatically run `sbt test` before each push, configure the local git hooks in `hooks`:
+
+```sh
+git config core.hooksPath hooks
 ```
 
 # Running the Interpreter
