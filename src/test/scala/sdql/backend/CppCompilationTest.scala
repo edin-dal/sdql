@@ -82,10 +82,9 @@ class CppCompilationTest extends AnyFlatSpec with ParallelTestExecution {
     assertOutputs("progs/tpch/q17.sdql", "src/test/tpch/q17.result")
   }
 
-  // FIXME
-  //  it should "compile and run TPCH Q18" in {
-  //    assertOutputs("progs/tpch/q18.sdql", "src/test/tpch/q18.result")
-  //  }
+  it should "compile and run TPCH Q18" in {
+    assertOutputs("progs/tpch/q18.sdql", "src/test/tpch/q18.result")
+  }
 
   it should "compile and run TPCH Q19" in {
     assertOutputs("progs/tpch/q19.sdql", "src/test/tpch/q19.result")
