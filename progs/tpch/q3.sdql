@@ -21,8 +21,7 @@ let o_h =
     else
       { }
 
-// TODO
-// let li_h =
+let li_h =
   sum(<li,li_v> in lineitem)
     if(
         (date(19950315) < li.l_shipdate)
@@ -39,7 +38,5 @@ let o_h =
     else
       { }
 
-// TODO flatten li_h by concatenating keys and values (map to 1)
-// note: sum or for loop should both work as keys are distinct
-// sum(<k, v> <- li_h)
-//  { < _ = k._0, _ = k._1, _ = k._2, _ = v._0 > -> 1 }
+sum(<k, v> <- li_h)
+  { < _ = k._0, _ = k._1, _ = k._2, _ = v._0 > -> 1 }

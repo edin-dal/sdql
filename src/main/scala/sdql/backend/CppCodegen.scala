@@ -56,7 +56,7 @@ object CppCodegen {
         cpp_e1 + cpp_e2
 
       case Sum(k, v, e1, e2) =>
-        generateSum(k, v, e1, e2).dropRight(2) // FIXME redundant ;
+        generateSum(k, v, e1, e2)
 
       // not case
       case IfThenElse(a, Const(false), Const(true)) =>
@@ -192,10 +192,11 @@ object CppCodegen {
     val e1Sym = e1 match { case e1: Sym => e1 }
     var (tpe, typesLocal) = TypeInference.sum_infer_type_and_ctx(k, v, e1, e2)
 
-    val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).iterator.next
+    val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
     typesLocal ++= Map(Sym(agg) -> tpe)
 
-    val callsLocal = List(SumCtx(k=k.name, v=v.name, isLoad = loadsCtx.contains(e1Sym))) ++ callsCtx
+    val isLoad = loadsCtx.contains(e1Sym)
+    val callsLocal = List(SumCtx(k=k.name, v=v.name, isLoad=isLoad)) ++ callsCtx
     val sumBody = e2 match {
       case _: LetBinding | _: IfThenElse =>
         run(e2)(typesLocal, callsLocal, loadsCtx)
@@ -203,14 +204,22 @@ object CppCodegen {
         ifElseBody(e2)(typesLocal, callsLocal, loadsCtx)
     }
 
-    s"""${cppType(tpe)} (${cppInit(tpe)});
-       |const auto &${k.name} = ${e1Sym.name};
-       |constexpr auto ${v.name} = ${e1Sym.name.capitalize}Values();
-       |for (int i = 0; i < ${e1Sym.name.toLowerCase}.size(); i++) {
-       |$sumBody
-       |}
-       |
-       |""".stripMargin
+    if (isLoad) {
+      s"""${cppType(tpe)} (${cppInit(tpe)});
+         |const auto &${k.name} = ${e1Sym.name};
+         |constexpr auto ${v.name} = ${e1Sym.name.capitalize}Values();
+         |for (int i = 0; i < ${e1Sym.name.capitalize}::size(); i++) {
+         |$sumBody
+         |}
+         |
+         |""".stripMargin
+    } else {
+      s"""${cppType(tpe)} (${cppInit(tpe)});
+         |for (const auto &[${k.name}, ${v.name}] : ${e1Sym.name}) {
+         |$sumBody
+         |}
+         |""".stripMargin
+    }
   }
 
   private def ifElseBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
