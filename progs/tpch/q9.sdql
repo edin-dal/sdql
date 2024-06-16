@@ -38,8 +38,7 @@ let o_h =
   sum(<o,o_v> in orders)
     { o.o_orderkey -> o.o_orderdate }
 
-// TODO
-// let li_h =
+let li_h =
   sum(<li,li_v> <- lineitem)
     if(ps_h(< _ = li.l_partkey, _ = li.l_suppkey >) != {}) then
       {
@@ -52,7 +51,5 @@ let o_h =
     else
       { }
 
-// TODO flatten li_h by concatenating keys and values (map to 1)
-// note: sum or for loop should both work as keys are distinct
-// sum(<k, v> <- li_h)
-//  { < nation = k.nation, o_year = k.o_year, um_profit = v.um_profit > -> 1 }
+sum(<k,v> <- li_h)
+  { concat(k,v) -> 1 }

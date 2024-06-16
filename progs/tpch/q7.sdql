@@ -36,23 +36,27 @@ let suppkey_to_name =
     else
       { }
 
-sum(<l,l_v> in lineitem)
-  if(
-      (date(19950101) <= l.l_shipdate) && (l.l_shipdate <= date(19961231)) &&
-      (orderkey_to_name(l.l_orderkey) != {}) && (suppkey_to_name(l.l_suppkey) != {}) &&
-      (
-        ((orderkey_to_name(l.l_orderkey) == "FRANCE") && (suppkey_to_name(l.l_suppkey) == "GERMANY")) ||
-        ((orderkey_to_name(l.l_orderkey) == "GERMANY") && (suppkey_to_name(l.l_suppkey) == "FRANCE"))
-      )
-  ) then
-    {
-      <
-        supp_nation = suppkey_to_name(l.l_suppkey),
-        cust_nation = orderkey_to_name(l.l_orderkey),
-        l_year = ext(`SubString`, l.l_shipdate, 0, 4)
-      > -> <
-        revenue = l.l_extendedprice * (1.0 - l.l_discount)
-      >
-    }
-  else
-    { }
+let l_h =
+  sum(<l,l_v> in lineitem)
+    if(
+        (date(19950101) <= l.l_shipdate) && (l.l_shipdate <= date(19961231)) &&
+        (orderkey_to_name(l.l_orderkey) != {}) && (suppkey_to_name(l.l_suppkey) != {}) &&
+        (
+          ((orderkey_to_name(l.l_orderkey) == "FRANCE") && (suppkey_to_name(l.l_suppkey) == "GERMANY")) ||
+          ((orderkey_to_name(l.l_orderkey) == "GERMANY") && (suppkey_to_name(l.l_suppkey) == "FRANCE"))
+        )
+    ) then
+      {
+        <
+          supp_nation = suppkey_to_name(l.l_suppkey),
+          cust_nation = orderkey_to_name(l.l_orderkey),
+          l_year = ext(`SubString`, l.l_shipdate, 0, 4)
+        > -> <
+          revenue = l.l_extendedprice * (1.0 - l.l_discount)
+        >
+      }
+    else
+      { }
+
+sum(<k,v> <- l_h)
+  { < _ = k, _ = v > -> 1 }

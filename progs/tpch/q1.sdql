@@ -15,5 +15,5 @@ let li_h =
     else
       { }
 
-sum(<li,li_v> <- li_h)
-  { concat(li, li_v) -> 1 }
+sum(<k,v> <- li_h)
+  { concat(k,v) -> 1 }

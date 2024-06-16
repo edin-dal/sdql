@@ -9,8 +9,7 @@ let li_h =
     else
       { }
 
-// TODO
-//let li_o =
+let o_h =
   sum(<o,o_v> in orders)
     if(
       (date(19930701) <= o.o_orderdate)
@@ -21,6 +20,5 @@ let li_h =
     else
       { }
 
-// TODO flatten li_o (note: k,v are scalars)
-// sum(<k, v> <- li_h)
-//  { < _ = k, _ = k > -> 1 }
+sum(<k, v> <- o_h)
+  { < _ = k, _ = v > -> 1 }

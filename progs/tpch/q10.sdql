@@ -47,8 +47,7 @@ let o_h =
       else
         { }
 
-//TODO
-//let l_h =
+let l_h =
   sum(<l,l_v> in lineitem)
     if((l.l_returnflag == "R") && (o_h(l.l_orderkey) != {})) then
       {
@@ -66,18 +65,17 @@ let o_h =
       else
         { }
 
-// TODO flatten l_h
-//sum(<k,v> in l_h)
-//  {
-//    <
-//      c_custkey = k.c_custkey,
-//      c_name = k.c_name,
-//      revenue = v,
-//      c_acctbal = k.c_acctbal,
-//      n_name = k.n_name,
-//      c_address = k.c_address,
-//      c_phone = k.c_phone,
-//      c_comment = k.c_comment
-//    >
-//    -> 1
-//  }
+sum(<k,v> in l_h)
+  {
+    <
+      c_custkey = k.c_custkey,
+      c_name = k.c_name,
+      revenue = v,
+      c_acctbal = k.c_acctbal,
+      n_name = k.n_name,
+      c_address = k.c_address,
+      c_phone = k.c_phone,
+      c_comment = k.c_comment
+    >
+    -> 1
+  }

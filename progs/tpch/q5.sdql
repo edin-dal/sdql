@@ -46,8 +46,7 @@ let s_h =
   sum(<s,s_v> in supplier)
     { < _ = s.s_suppkey, _ = s.s_nationkey > -> 1 }
 
-// TODO
-// let li_h =
+let l_h =
   sum(<l, l_v> <- lineitem)
     if(
         (o_h(l.l_orderkey) != {})
@@ -57,7 +56,5 @@ let s_h =
     else
       { }
 
-// TODO flatten li_h by concatenating keys and values (map to 1)
-// note: sum or for loop should both work as keys are distinct
-// sum(<k, v> <- li_h)
-//  { < _ = k._0, _ = v._0 > -> 1 }
+sum(<k,v> <- l_h)
+  { < _ = k, _ = v > -> 1 }
