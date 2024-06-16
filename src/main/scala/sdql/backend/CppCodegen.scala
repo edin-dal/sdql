@@ -87,7 +87,8 @@ object CppCodegen {
         TypeInference.run(sym) match {
           case tpe: RecordType =>
             val idx = tpe.indexOf(f) match { case Some(idx) => idx }
-            val isLoad = callsCtx.exists(x => cond(x) { case SumCtx(k, v, isLoad) => isLoad && (name == k || name == v) })
+            val isLoad =
+              callsCtx.exists(x => cond(x) { case SumCtx(k, v, isLoad) => isLoad && (name == k || name == v) })
             if (isLoad) s"$name.$f[i]" else s" /* $f */ std::get<$idx>($name)"
           case tpe => raise(
             s"expected ${RecordType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
@@ -167,7 +168,8 @@ object CppCodegen {
       case Concat(v1 @ RecNode(fs1), v2 @ RecNode(fs2)) => run(
         {
           val (fs1m, fs2m) = fs1.toMap -> fs2.toMap
-          val common = fs1.filter(x1 => fs2m.contains(x1._1)).map(x1 => (x1._1, x1._2, fs2m(x1._1)))
+          val common =
+            fs1.filter(x1 => fs2m.contains(x1._1)).map(x1 => (x1._1, x1._2, fs2m(x1._1)))
           if(common.isEmpty)
             RecNode(fs1 ++ fs2)
           else
@@ -194,7 +196,8 @@ object CppCodegen {
     }
   }
 
-  private def generateSum(k: Sym, v: Sym, e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
+  private def generateSum(k: Sym, v: Sym, e1: Exp, e2: Exp)
+                         (implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
     val e1Sym = e1 match { case e1: Sym => e1 }
     var (tpe, typesLocal) = TypeInference.sum_infer_type_and_ctx(k, v, e1, e2)
 
