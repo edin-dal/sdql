@@ -48,8 +48,4 @@ let ps_h =
       { }
 
 sum(<k,v> in ps_h)
-  { < brand = k.brand, type = k.type, size = k.size,  supplier_cnt = ext(`Size`, v) > -> 1 }
-
-// TODO
-//sum(<k,v> in ps_h)
-//  { concat(k, < _ = ext(`Size`, v) >) -> 1 }
+  { concat(k, < _ = ext(`Size`, v) >) -> 1 }

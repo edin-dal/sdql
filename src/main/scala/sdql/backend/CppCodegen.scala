@@ -195,13 +195,17 @@ object CppCodegen {
               raise(s"`concat($v1, $v2)` with different values for the same field name")
         }
       )
-      case Concat(Sym(name1), Sym(name2)) =>
-        s"std::tuple_cat($name1, $name2)"
+      case Concat(e1: Sym, e2: Sym) =>
+        s"std::tuple_cat(${run(e1)}, ${run(e2)})"
+      case Concat(e1: Sym, e2: RecNode) =>
+        s"std::tuple_cat(${run(e1)}, ${run(e2)})"
+      case Concat(e1: RecNode, e2: Sym) =>
+        s"std::tuple_cat(${run(e1)}, ${run(e2)})"
       case Concat(e1, e2) =>
         val _ = TypeInference.run(e)
         raise(
-          s"${Concat.getClass.getSimpleName} currently requires both arguments " +
-            s"${RecNode.getClass.getSimpleName.init} or ${Sym.getClass.getSimpleName.init}, " +
+          s"${Concat.getClass.getSimpleName} requires arguments " +
+            s"${RecNode.getClass.getSimpleName.init} and/or ${Sym.getClass.getSimpleName.init}, " +
             s"not ${e1.simpleName} and ${e2.simpleName}"
         )
 
