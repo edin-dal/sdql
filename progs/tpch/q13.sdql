@@ -19,13 +19,9 @@ let o_h =
 let c_h =
   sum(<c,c_v> in customer)
     if(o_h(c.c_custkey) != {}) then
-      { < _ = c.c_custkey > -> < _ = 1 > }
+      { < custkey = c.c_custkey > -> < count = 1 > }
     else
-      { < _ = 0 > -> < _ = 1 > }
-
-// TODO concat
-//sum(<k,v> in c_h)
-//  { concat(k, v) -> 1 }
+      { < custkey = 0 > -> < count = 1 > }
 
 sum(<k,v> in c_h)
-  { < custkey = k(0), count = v(0) > -> 1 }
+  { concat(k, v) -> 1 }
