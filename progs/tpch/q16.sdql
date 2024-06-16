@@ -43,7 +43,7 @@ let s_h =
         _ = p_h(ps.ps_partkey)(1),
         _ = p_h(ps.ps_partkey)(2)
       > ->
-      { ps.ps_suppkey -> true }
+      { ps.ps_suppkey -> 1 }
     }
     else
       { }

@@ -22,7 +22,7 @@ let r_h =
 let n_h =
   sum(<n,n_v> in nation)
     if(r_h(n.n_regionkey) != {}) then
-      { n.n_nationkey -> true }
+      { n.n_nationkey -> 1 }
     else
       { }
 

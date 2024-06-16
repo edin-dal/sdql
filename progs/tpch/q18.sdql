@@ -11,7 +11,7 @@ let l_h =
 let orderkeys =
   sum(<l_orderkey,l_quantity> in l_h)
     if(300 < l_quantity) then
-      { l_orderkey -> true }
+      { l_orderkey -> 1 }
     else
       { }
 

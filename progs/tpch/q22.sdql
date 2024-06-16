@@ -5,7 +5,7 @@ let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_to
 // TODO sdqlpy stores o_h as a vector
 let o_h =
   sum(<o,o_v> <- orders)
-    { o.o_custkey -> true }
+    { o.o_custkey -> 1 }
 
 let a =
   sum(<c,c_v> <- customer)

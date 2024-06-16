@@ -5,7 +5,7 @@ let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenum
 let li_h =
   sum(<l,l_v> in lineitem)
     if((l.l_commitdate < l.l_receiptdate)) then
-      { l.l_orderkey -> true }
+      { l.l_orderkey -> 1 }
     else
       { }
 

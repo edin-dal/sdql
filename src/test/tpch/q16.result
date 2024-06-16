@@ -1,8 +1,8 @@
-<Brand#14,MEDIUM POLISHED TIN,49>:{ 71 -> true, 12 -> true, 53 -> true, 94 -> true }
-<Brand#33,MEDIUM POLISHED BRASS,49>:{ 23 -> true, 73 -> true, 48 -> true, 98 -> true }
-<Brand#31,MEDIUM POLISHED BRASS,36>:{ 70 -> true, 18 -> true, 44 -> true, 92 -> true }
-<Brand#24,MEDIUM POLISHED BRASS,9>:{ 59 -> true, 29 -> true, 89 -> true, 99 -> true }
-<Brand#32,MEDIUM POLISHED BRASS,9>:{ 26 -> true, 60 -> true, 92 -> true, 94 -> true }
-<Brand#11,MEDIUM POLISHED COPPER,3>:{ 77 -> true, 12 -> true, 7 -> true, 42 -> true }
-<Brand#41,MEDIUM POLISHED BRASS,14>:{ 54 -> true, 28 -> true, 17 -> true, 91 -> true }
-<Brand#13,MEDIUM POLISHED STEEL,14>:{ 66 -> true, 59 -> true, 28 -> true, 97 -> true }
+<Brand#14,MEDIUM POLISHED TIN,49>:{ 71 -> 1, 12 -> 1, 53 -> 1, 94 -> 1 }
+<Brand#33,MEDIUM POLISHED BRASS,49>:{ 23 -> 1, 73 -> 1, 48 -> 1, 98 -> 1 }
+<Brand#31,MEDIUM POLISHED BRASS,36>:{ 70 -> 1, 18 -> 1, 44 -> 1, 92 -> 1 }
+<Brand#24,MEDIUM POLISHED BRASS,9>:{ 59 -> 1, 29 -> 1, 89 -> 1, 99 -> 1 }
+<Brand#32,MEDIUM POLISHED BRASS,9>:{ 26 -> 1, 60 -> 1, 92 -> 1, 94 -> 1 }
+<Brand#11,MEDIUM POLISHED COPPER,3>:{ 77 -> 1, 12 -> 1, 7 -> 1, 42 -> 1 }
+<Brand#41,MEDIUM POLISHED BRASS,14>:{ 54 -> 1, 28 -> 1, 17 -> 1, 91 -> 1 }
+<Brand#13,MEDIUM POLISHED STEEL,14>:{ 66 -> 1, 59 -> 1, 28 -> 1, 97 -> 1 }

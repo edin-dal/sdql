@@ -24,7 +24,7 @@ let s_h =
 // let o_h =
   sum(<o,o_v> <- orders)
     if(o.o_orderstatus == "F") then
-      { o.o_orderkey -> true }
+      { o.o_orderkey -> 1 }
     else
       { }
 
