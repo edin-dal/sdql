@@ -4,14 +4,12 @@ let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_to
 
 let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
 
-// TODO fix so we can reuse variable names <l,l_v>
-
-let la_h =
-  sum(<la,la_v> in lineitem)
-    { la.l_orderkey -> la.l_quantity }
+let l_h =
+  sum(<l,l_v> in lineitem)
+    { l.l_orderkey -> l.l_quantity }
 
 let orderkeys =
-  sum(<l_orderkey,l_quantity> in la_h)
+  sum(<l_orderkey,l_quantity> in l_h)
     if(300 < l_quantity) then
       { l_orderkey -> true }
     else
@@ -37,12 +35,12 @@ let o_h =
     else
       { }
 
-let lb_h =
-  sum(<lb,lb_v> in lineitem)
-    if(o_h(lb.l_orderkey) != {}) then
-      { o_h(lb.l_orderkey) -> < _ = lb.l_quantity > }
+let result_h =
+  sum(<l,l_v> in lineitem)
+    if(o_h(l.l_orderkey) != {}) then
+      { o_h(l.l_orderkey) -> < _ = l.l_quantity > }
     else
       { }
 
-sum(<k,v> <- lb_h)
+sum(<k,v> <- result_h)
   { concat(k,v) -> 1 }

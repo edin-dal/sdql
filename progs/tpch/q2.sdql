@@ -53,23 +53,22 @@ let ps_h =
     else
       { }
 
-// TODO avoid redefining ps,ps_v twice in codegen
-sum(<key,val> <- partsupp)
+sum(<ps,ps_v> <- partsupp)
   if(
-      (ps_h(key.ps_partkey) != {})
-      && (ps_h(key.ps_partkey) == key.ps_supplycost)
-      && (n_h(key.ps_suppkey) != {})
+      (ps_h(ps.ps_partkey) != {})
+      && (ps_h(ps.ps_partkey) == ps.ps_supplycost)
+      && (n_h(ps.ps_suppkey) != {})
     ) then
     {
       <
-        _ = s_h(key.ps_suppkey)(0),
-        _ = s_h(key.ps_suppkey)(1),
-        _ = s_h(key.ps_suppkey)(2),
-        _ = key.ps_partkey,
-        _ = p_h(key.ps_partkey)(0),
-        _ = s_h(key.ps_suppkey)(3),
-        _ = s_h(key.ps_suppkey)(4),
-        _ = s_h(key.ps_suppkey)(5)
+        _ = s_h(ps.ps_suppkey)(0),
+        _ = s_h(ps.ps_suppkey)(1),
+        _ = s_h(ps.ps_suppkey)(2),
+        _ = ps.ps_partkey,
+        _ = p_h(ps.ps_partkey)(0),
+        _ = s_h(ps.ps_suppkey)(3),
+        _ = s_h(ps.ps_suppkey)(4),
+        _ = s_h(ps.ps_suppkey)(5)
       > -> 1
     }
   else

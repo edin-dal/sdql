@@ -9,20 +9,18 @@ let p_h =
     else
       { }
 
-// TODO avoid redefining l,l_v twice in codegen
-
 let l_h =
-  sum(<la,la_v> <- lineitem)
-    if(p_h(la.l_partkey) != {}) then
-      { la.l_partkey -> < _ = la.l_quantity, _ = 1.0 > }
+  sum(<l,l_v> <- lineitem)
+    if(p_h(l.l_partkey) != {}) then
+      { l.l_partkey -> < _ = l.l_quantity, _ = 1.0 > }
     else
       { }
 
 let tot =
-  sum(<lb,lb_v> <- lineitem)
-    let avg = 0.2 * l_h(lb.l_partkey)(0) / l_h(lb.l_partkey)(1)
-    if((l_h(lb.l_partkey) != {}) && (lb.l_quantity < avg )) then
-      lb.l_extendedprice
+  sum(<l,l_v> <- lineitem)
+    let avg = 0.2 * l_h(l.l_partkey)(0) / l_h(l.l_partkey)(1)
+    if((l_h(l.l_partkey) != {}) && (l.l_quantity < avg )) then
+      l.l_extendedprice
     else
       0.0
 

@@ -47,9 +47,8 @@ let ps_h =
     else
       { }
 
-// TODO fix so we can reuse variable names <s,s_v>
-sum(<k,v> in supplier)
-  if(ps_h(k.s_suppkey) != {}) then
-    { < _ = k.s_name, _ = k.s_address > -> 1 }
+sum(<s,s_v> in supplier)
+  if(ps_h(s.s_suppkey) != {}) then
+    { < _ = s.s_name, _ = s.s_address > -> 1 }
   else
     { }

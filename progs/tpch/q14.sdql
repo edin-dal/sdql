@@ -9,25 +9,24 @@ let p_h =
     else
       { }
 
-// TODO avoid redefining l,l_v twice in codegen
 // TODO loop fusion like sdqlpy (i.e. aggregate into a tuple)
 
 let a =
-  sum(<la,la_v> <- lineitem)
+  sum(<l,l_v> <- lineitem)
     if(
-      (date(19950901) <= la.l_shipdate) && (la.l_shipdate < date(19951001))
-      && (p_h(la.l_partkey) != {})
+      (date(19950901) <= l.l_shipdate) && (l.l_shipdate < date(19951001))
+      && (p_h(l.l_partkey) != {})
     ) then
-      la.l_extendedprice * (1.0 - la.l_discount)
+      l.l_extendedprice * (1.0 - l.l_discount)
     else
       0.0
 
 let b =
-  sum(<lb,lb_v> <- lineitem)
+  sum(<l,l_v> <- lineitem)
     if(
-      (date(19950901) <= lb.l_shipdate) && (lb.l_shipdate < date(19951001))
+      (date(19950901) <= l.l_shipdate) && (l.l_shipdate < date(19951001))
     ) then
-      lb.l_extendedprice * (1.0 - lb.l_discount)
+      l.l_extendedprice * (1.0 - l.l_discount)
     else
       0.0
 

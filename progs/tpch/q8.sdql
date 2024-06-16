@@ -27,9 +27,8 @@ let n_h =
       { }
 
 let nationkey_to_name =
-  // TODO fix so we can reuse variable names <n,n_v>
-  sum(<na,na_v> in nation)
-    { na.n_nationkey -> < _ = na.n_name > }
+  sum(<n,n_v> in nation)
+    { n.n_nationkey -> < _ = n.n_name > }
 
 let s_h =
   sum(<s,s_v> in supplier)
