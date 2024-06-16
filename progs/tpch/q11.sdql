@@ -18,9 +18,9 @@ let s_h =
     else
       { }
 
-// TODO aggregate into a tuple
+// TODO
 
-let ps_h =
+//let ps_h =
   sum(<ps,ps_v> in partsupp)
     if(s_h(ps.ps_suppkey) != {}) then
       <
@@ -28,15 +28,11 @@ let ps_h =
         _ = { ps.ps_partkey -> ps.ps_supplycost }
       >
     else
-      { }
-// TODO proper way but requires type inference backtracking
-//      <
-//        _ = 0.0,
-//        _ = { }
-//      >
+      < >
 
-sum(<ps_partkey,ps_supplycost> in ps_h(1))
-  if(ps_h(0) < ps_supplycost) then
-    { < _ = ps_partkey, _ = ps_supplycost > -> true }
-  else
-    { }
+// TODO
+//sum(<ps_partkey,ps_supplycost> in ps_h(1))
+//  if(ps_h(0) < ps_supplycost) then
+//    { < _ = ps_partkey, _ = ps_supplycost > -> true }
+//  else
+//    { }

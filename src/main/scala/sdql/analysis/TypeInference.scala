@@ -24,6 +24,12 @@ object TypeInference {
         run(e2)
       case IfThenElse(_, e1, DictNode(Nil)) =>
         run(e1)
+      case IfThenElse(_, RecNode(vs1), RecNode(vs2)) if vs1.isEmpty && vs2.isEmpty =>
+        raise("both branches empty")
+      case IfThenElse(_, RecNode(Seq()), e2: RecNode) =>
+        run(e2)
+      case IfThenElse(_, e1: RecNode, RecNode(Seq())) =>
+        run(e1)
       case _: IfThenElse | _: Add | _: Mult =>
         branching(e)
 
@@ -37,11 +43,14 @@ object TypeInference {
         }
 
       case DictNode(Nil) =>
-        // TODO backtrack up the parse tree to check branch with non-empty dict
+        // TODO backtrack up the parse tree to check if there's a non-empty branch
         raise("Type inference needs backtracking to infer empty type { }")
       case DictNode(seq) =>
         DictType(seq.map(_._1).map(run).reduce(promote), seq.map(_._2).map(run).reduce(promote))
 
+      case RecNode(Seq()) =>
+        // TODO backtrack up the parse tree to check if there's a non-empty branch
+        raise("Type inference needs backtracking to infer empty type < >")
       case RecNode(values) =>
         RecordType(values.map(v => Attribute(name=v._1, tpe=run(v._2))))
 
@@ -189,6 +198,8 @@ object TypeInference {
       case (t1, t2) if t1 == t2 =>
         t1
       case (t1, t2) =>
+        println(t1)
+        println(t2)
         raise(s"can't promote types: ${t1.simpleName} ≠ ${t2.simpleName}")
     }
   }
