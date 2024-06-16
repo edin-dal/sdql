@@ -83,13 +83,16 @@ object CppCodegen {
       case Cmp(e1, e2, cmp) =>
         s"${run(e1)} $cmp ${run(e2)}"
 
-      case FieldNode(sym @ Sym(name), f) =>
-        TypeInference.run(sym) match {
+      case FieldNode(e1, f) =>
+        TypeInference.run(e1) match {
           case tpe: RecordType =>
             val idx = (tpe.indexOf(f): @unchecked) match { case Some(idx) => idx }
-            val isLoad =
-              callsCtx.exists(x => cond(x) { case SumCtx(k, v, isLoad) => isLoad && (name == k || name == v) })
-            if (isLoad) s"$name.$f[i]" else s" /* $f */ std::get<$idx>($name)"
+            e1 match {
+              case Sym(name)
+                if callsCtx.exists(x => cond(x) { case SumCtx(k, v, true) => name == k || name == v})
+                => s"$name.$f[i]"
+              case _ => s" /* $f */ std::get<$idx>(${run(e1)})"
+            }
           case tpe => raise(
             s"expected ${RecordType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
           )
@@ -119,7 +122,7 @@ object CppCodegen {
 
       case Sym(name) =>
         callsCtx.flatMap(x => condOpt(x) { case ctx: SumCtx => ctx }).headOption match {
-          case Some(SumCtx(k, v, isLoad)) if isLoad && (name == k || name == v) => s"$name[i]"
+          case Some(SumCtx(k, v, true)) if name == k || name == v => s"$name[i]"
           case _ => name
         }
 

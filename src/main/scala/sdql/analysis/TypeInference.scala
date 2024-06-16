@@ -57,19 +57,23 @@ object TypeInference {
       case Cmp(_, _, _) =>
         BoolType
 
-      case FieldNode(sym @ Sym(name), f) => run(sym) match {
-        case RecordType(vals) => vals.find(_.name == f) match {
-          case Some(v) => v.tpe
-          case _ => raise(vals.map(_.name).mkString(s"$name not in: ", ", ", "."))
+      case FieldNode(e1, f) => run(e1) match {
+        case tpe @ RecordType(attrs) => tpe.indexOf(f) match {
+          case Some(idx) => attrs(idx).tpe
+          case None => raise(attrs.map(_.name).mkString(s"$f not in: ", ", ", "."))
         }
-        case t => raise(
-          s"${Sym.getClass.getSimpleName.init} $name: expected " +
-            s"${RecordType.getClass.getSimpleName.init}, not ${t.simpleName}"
-        )
+        case tpe =>
+          raise(s"expected ${RecordType.getClass.getSimpleName.init}, not ${tpe.simpleName}")
       }
 
-      case Const(v) =>
-        any(v)
+      case Const(v) => v match {
+        case _: DateValue => DateType
+        case _: Boolean => BoolType
+        case _: Integer => IntType
+        case _: Double => RealType
+        case _: String => StringType
+        case v => raise(s"unhandled class: ${v.getClass.getSimpleName}")
+      }
 
       case Get(e1, e2) => run(e1) match {
         case RecordType(attrs) => run(e2) match {
@@ -202,14 +206,5 @@ object TypeInference {
         println(t2)
         raise(s"can't promote types: ${t1.simpleName} ≠ ${t2.simpleName}")
     }
-  }
-
-  private def any(v: Any): Type = v match {
-    case _: DateValue => DateType
-    case _: Boolean => BoolType
-    case _: Integer => IntType
-    case _: Double => RealType
-    case _: String => StringType
-    case v => raise(s"unhandled class: ${v.getClass.getSimpleName}")
   }
 }
