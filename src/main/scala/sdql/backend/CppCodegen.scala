@@ -172,6 +172,11 @@ object CppCodegen {
             |return p1.second < p2.second;
             |})->second;
             |""".stripMargin
+        case (Size.SYMBOL, Seq(arg)) =>
+          condOpt(arg) { case sym @ Sym(name) if loadsCtx.contains(sym) => name } match {
+            case Some(name) => s"${name.capitalize}::size()"
+            case None => s"${run(arg)}.size()"
+          }
         case _ =>
           raise(s"unhandled function name: $name")
       }

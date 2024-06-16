@@ -8,7 +8,7 @@ let p_h =
   sum(<p,p_v> <- part)
     if(
       (p.p_brand != "Brand#45") &&
-      (ext(`StrStartsWith`, p.p_type, "MEDIUM POLISHED")) &&
+      (!ext(`StrStartsWith`, p.p_type, "MEDIUM POLISHED")) &&
       (
         (p.p_size ==  49) ||
         (p.p_size ==  14) ||
@@ -33,19 +33,23 @@ let s_h =
     else
       { }
 
-// TODO
-//let ps_h =
+let ps_h =
   sum(<ps,ps_v> <- partsupp)
     if ((p_h(ps.ps_partkey) != {}) && (!(s_h(ps.ps_suppkey) != {}))) then
     {
       <
-        _ = p_h(ps.ps_partkey)(0),
-        _ = p_h(ps.ps_partkey)(1),
-        _ = p_h(ps.ps_partkey)(2)
+        brand = p_h(ps.ps_partkey)(0),
+        type = p_h(ps.ps_partkey)(1),
+        size = p_h(ps.ps_partkey)(2)
       > ->
       { ps.ps_suppkey -> 1 }
     }
     else
       { }
 
-// TODO ho do we calculate size of the nested dictionary in SDQL?
+sum(<k,v> in ps_h)
+  { < brand = k.brand, type = k.type, size = k.size,  supplier_cnt = ext(`Size`, v) > -> 1 }
+
+// TODO
+//sum(<k,v> in ps_h)
+//  { concat(k, < _ = ext(`Size`, v) >) -> 1 }

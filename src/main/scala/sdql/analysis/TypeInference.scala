@@ -113,7 +113,7 @@ object TypeInference {
           case Inv.SYMBOL =>
             val arg = args match { case Seq(e) => e }
             run(arg)
-          case MaxValue.SYMBOL =>
+          case MaxValue.SYMBOL | Size.SYMBOL =>
             val arg = args match { case Seq(e) => e }
             run(arg) match {
               case DictType(_, vt) => vt
