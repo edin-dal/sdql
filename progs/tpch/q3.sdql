@@ -29,14 +29,14 @@ let li_h =
       ) then
       {
         <
-          _0 = li.l_orderkey,
-          _1 = o_h(li.l_orderkey)(0),
-          _2 = o_h(li.l_orderkey)(1)
+          l_orderkey = li.l_orderkey,
+          o_orderdate = o_h(li.l_orderkey)(0),
+          o_shippriority = o_h(li.l_orderkey)(1)
         > ->
-         < _0 = li.l_extendedprice * (1 - li.l_discount) >
+         < revenue = li.l_extendedprice * (1 - li.l_discount) >
       }
     else
       { }
 
-sum(<k, v> <- li_h)
-  { < _ = k._0, _ = k._1, _ = k._2, _ = v._0 > -> 1 }
+sum(<li,li_v> <- li_h)
+  { concat(li, li_v) -> 1 }

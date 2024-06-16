@@ -118,7 +118,7 @@ object CppCodegen {
 
       case Sym(name) =>
         callsCtx.flatMap(x => condOpt(x) { case ctx: SumCtx => ctx }).headOption match {
-          case Some(SumCtx(k, v, _)) if (name == k || name == v) => s"$name[i]"
+          case Some(SumCtx(k, v, isLoad)) if isLoad && (name == k || name == v) => s"$name[i]"
           case _ => name
         }
 
@@ -177,9 +177,15 @@ object CppCodegen {
               raise(s"`concat($v1, $v2)` with different values for the same field name")
         }
       )
-      case _: Concat =>
+      case Concat(Sym(name1), Sym(name2)) =>
+        s"std::tuple_cat($name1, $name2)"
+      case Concat(e1, e2) =>
         val _ = TypeInference.run(e)
-        raise(s"${Concat.getClass.getSimpleName} currently requires ${RecNode.getClass.getSimpleName} arguments")
+        raise(
+          s"${Concat.getClass.getSimpleName} currently requires both arguments " +
+            s"${RecNode.getClass.getSimpleName.init} or ${Sym.getClass.getSimpleName.init}, " +
+            s"not ${e1.simpleName} and ${e2.simpleName}"
+        )
 
       case _ => raise(
         f"""Unhandled ${e.simpleName} in
@@ -226,17 +232,15 @@ object CppCodegen {
     assert(checkInSum())
     val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
     e match {
+      case _: Sum =>
+        raise("nested sum not supported yet")
       case DictNode(seq) =>
         // TODO sdqlpy does emplace aggregating over unique keys
         //  kv => s"$agg.emplace(${run(kv._1)}, ${run(kv._2)});"
         seq.map(kv => s"$agg[${run(kv._1)}] += ${run(kv._2)};").mkString("\n")
       case RecNode(values) =>
         values.map(_._2).zipWithIndex.map({ case (exp, i) => s"get<$i>($agg) += ${run(exp)};" }).mkString("\n")
-      case _: Sum =>
-        raise("nested sum not supported yet")
       case _ =>
-        assert(typesCtx(Sym(agg)).isScalar)
-        assert(TypeInference.run(e).isScalar)
         s"$agg += ${run(e)};"
     }
   }
