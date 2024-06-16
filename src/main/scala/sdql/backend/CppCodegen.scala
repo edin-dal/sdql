@@ -69,7 +69,7 @@ object CppCodegen {
         s"(${run(a)} || ${run(b)})"
       case IfThenElse(cond, e1, e2) =>
         val elseBody = e2 match {
-          case DictNode(Nil) => ""
+          case DictNode(Nil) | RecNode(Seq()) => ""
           case _ => s" else {\n${ifElseBody(e2)}\n}"
         }
         s"if (${run(cond)}) {${ifElseBody(e1)}\n}$elseBody"
@@ -132,6 +132,8 @@ object CppCodegen {
         seq.map( { case (e1, e2) => s"{${run(e1)}, ${run(e2)}}" })
           .mkString(s"${cppType(TypeInference.run(e))}({", ", ", "})")
 
+      case RecNode(Seq()) =>
+        ""
       case RecNode(values) =>
         val tpe = TypeInference.run(e) match {
           case tpe: RecordType => tpe
@@ -251,10 +253,15 @@ object CppCodegen {
         //  kv => s"$agg.emplace(${run(kv._1)}, ${run(kv._2)});"
         seq.map(kv => s"$agg[${run(kv._1)}] += ${run(kv._2)};").mkString("\n")
       case RecNode(values) =>
-        values.map(_._2).zipWithIndex.map({ case (exp, i) => s"get<$i>($agg) += ${run(exp)};" }).mkString("\n")
+        values.map(_._2).zipWithIndex.map({ case (exp, i) => s"get<$i>($agg) += ${record(exp)};" }).mkString("\n")
       case _ =>
         s"$agg += ${run(e)};"
     }
+  }
+
+  private def record(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx) = e match {
+    case IfThenElse(cond, e1, e2) => s"(${run(cond)}) ? ${run(e1)} : ${run(e2)}"
+    case _ => run(e)
   }
 
   private def cppInit(tpe: ir.Type): String = tpe match {

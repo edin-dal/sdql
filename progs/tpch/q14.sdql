@@ -9,36 +9,14 @@ let p_h =
     else
       { }
 
-// TODO loop fusion like sdqlpy by supporting nested conditional
-//let l_t =
-//  sum(<l,l_v> <- lineitem)
-//    if((date(19950901) <= l.l_shipdate) && (l.l_shipdate < date(19951001))) then
-//      <
-//        a = l.l_extendedprice * (1.0 - l.l_discount),
-//        b = if (p_h(l.l_partkey) != {}) then l.l_extendedprice * (1.0 - l.l_discount) else 0.0
-//      >
-//    else
-//      < >
-//
-//100 * l_t.a / l_t.b
-
-let a =
+let l_t =
   sum(<l,l_v> <- lineitem)
-    if(
-      (date(19950901) <= l.l_shipdate) && (l.l_shipdate < date(19951001))
-      && (p_h(l.l_partkey) != {})
-    ) then
-      l.l_extendedprice * (1.0 - l.l_discount)
+    if((date(19950901) <= l.l_shipdate) && (l.l_shipdate < date(19951001))) then
+      <
+        a = l.l_extendedprice * (1.0 - l.l_discount),
+        b = if (p_h(l.l_partkey) != {}) then l.l_extendedprice * (1.0 - l.l_discount) else 0.0
+      >
     else
-      0.0
+      < >
 
-let b =
-  sum(<l,l_v> <- lineitem)
-    if(
-      (date(19950901) <= l.l_shipdate) && (l.l_shipdate < date(19951001))
-    ) then
-      l.l_extendedprice * (1.0 - l.l_discount)
-    else
-      0.0
-
-100 * a / b
+100 * l_t.a / l_t.b
