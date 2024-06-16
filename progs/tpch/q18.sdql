@@ -27,23 +27,22 @@ let o_h =
       {
         o.o_orderkey ->
         <
-          _ = custkey_to_name(o.o_custkey)(0),
-          _ = o.o_custkey,
-          _ = o.o_orderkey,
-          _ = o.o_orderdate,
-          _ = o.o_totalprice
+          name = custkey_to_name(o.o_custkey)(0),
+          custkey = o.o_custkey,
+          orderkey = o.o_orderkey,
+          orderdate = o.o_orderdate,
+          totalprice = o.o_totalprice
         >
       }
     else
       { }
 
-//let lb_h =
+let lb_h =
   sum(<lb,lb_v> in lineitem)
     if(o_h(lb.l_orderkey) != {}) then
       { o_h(lb.l_orderkey) -> < _ = lb.l_quantity > }
     else
       { }
 
-// TODO
-//sum(<k,v> <- lb_h)
-//  { concat(k,v) -> 1 }
+sum(<k,v> <- lb_h)
+  { concat(k,v) -> 1 }
