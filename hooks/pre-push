@@ -25,7 +25,8 @@ do
 
 		# Check sbt test passes
 		echo >&1 "******* running sbt test before pushing *******"
-		sbt test && {
+		# The flag -Dsbt.log.noformat=false enables color output
+		sbt -Dsbt.log.noformat=false test && {
         exit 0
     } || {
         echo >&2 "sbt test failed in $local_ref, not pushing"
