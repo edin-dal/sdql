@@ -21,12 +21,39 @@ let s_h =
       { }
 
 // TODO sdqlpy stores o_h as a vector
-// let o_h =
+let o_h =
   sum(<o,o_v> <- orders)
     if(o.o_orderstatus == "F") then
       { o.o_orderkey -> 1 }
     else
       { }
 
-// TODO there are vectors of vectors and emplace_back
-//  rewrite it with nested dicts? (after we support them)
+// TODO sdqlpy stores l_h as a vector or vectors
+let l_h =
+  sum(<l,l_v> <- lineitem)
+    { l.l_orderkey ->  { l.l_suppkey -> 1 } }
+
+// TODO sdqlpy stores l_h_filtered as a vector or vectors
+let l_h_filtered =
+  sum(<l,l_v> <- lineitem)
+    if(l.l_commitdate < l.l_receiptdate) then
+      { l.l_orderkey ->  { l.l_suppkey -> 1 } }
+    else
+      { }
+
+let result_h =
+  sum(<l,l_v> <- lineitem)
+    if(
+      (l.l_commitdate < l.l_receiptdate) &&
+      (s_h(l.l_suppkey) != {}) &&
+      (l_h(l.l_orderkey) != {}) &&
+      (1 < ext(`Size`, l_h(l.l_orderkey))) &&
+      // TODO simplify this condition?
+      (((0 < ext(`Size`, l_h_filtered(l.l_orderkey))) && (1 < ext(`Size`, l_h_filtered(l.l_orderkey)))) == false)
+    ) then
+      { < name = s_h(l.l_suppkey) > -> < numwait = 1> }
+    else
+      { }
+
+sum(<k,v> <- result_h)
+  { concat(k,v) -> 1 }
