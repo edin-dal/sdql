@@ -40,16 +40,7 @@ let o_h =
 //let lb_h =
   sum(<lb,lb_v> in lineitem)
     if(o_h(lb.l_orderkey) != {}) then
-      {
-        <
-          _ = o_h(lb.l_orderkey)(0),
-          _ = o_h(lb.l_orderkey)(1),
-          _ = o_h(lb.l_orderkey)(2),
-          _ = o_h(lb.l_orderkey)(3),
-          _ = o_h(lb.l_orderkey)(4)
-        > ->
-        < _ = lb.l_quantity >
-      }
+      { o_h(lb.l_orderkey) -> < _ = lb.l_quantity > }
     else
       { }
 
