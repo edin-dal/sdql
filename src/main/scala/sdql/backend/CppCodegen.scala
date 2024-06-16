@@ -164,6 +164,12 @@ object CppCodegen {
           s"${run(field)}.find(${run(elem)}, ${run(from)})"
         case (Inv.SYMBOL, _) =>
           raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
+        case (MaxValue.SYMBOL, Seq(arg)) =>
+          assert(!cond(arg) { case sym: Sym => loadsCtx.contains(sym) })
+          s"""std::ranges::max_element(${run(arg)}, [](const auto &p1, const auto &p2) {
+            |return p1.second < p2.second;
+            |})->second;
+            |""".stripMargin
         case _ =>
           raise(s"unhandled function name: $name")
       }

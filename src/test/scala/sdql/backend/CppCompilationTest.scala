@@ -8,7 +8,7 @@ import sdql.frontend.SourceCode
 
 import java.nio.file.Path
 
-// TODO Q2, Q7, Q11, Q15, Q17, Q20 have empty/zero output - craft better test datasets
+// TODO Q2, Q7, Q11, Q17, Q20 have empty/zero output - craft better test datasets
 
 class CppCompilationTest extends AnyFlatSpec with ParallelTestExecution {
 

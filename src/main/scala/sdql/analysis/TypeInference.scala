@@ -111,8 +111,16 @@ object TypeInference {
           case ParseDate.SYMBOL =>
             DateType
           case Inv.SYMBOL =>
-            val arg = args match { case Seq(e) => e}
+            val arg = args match { case Seq(e) => e }
             run(arg)
+          case MaxValue.SYMBOL =>
+            val arg = args match { case Seq(e) => e }
+            run(arg) match {
+              case DictType(_, vt) => vt
+              case tpe => raise(
+                s"${MaxValue.SYMBOL} expects arg ${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
+              )
+            }
           case TopN.SYMBOL | CStore.SYMBOL | Log.SYMBOL =>
             raise(s"unimplemented function name: $name")
           case _ =>
