@@ -48,8 +48,7 @@ let result_h =
       (s_h(l.l_suppkey) != {}) &&
       (l_h(l.l_orderkey) != {}) &&
       (1 < ext(`Size`, l_h(l.l_orderkey))) &&
-      // TODO simplify this condition?
-      (((0 < ext(`Size`, l_h_filtered(l.l_orderkey))) && (1 < ext(`Size`, l_h_filtered(l.l_orderkey)))) == false)
+      (ext(`Size`, l_h_filtered(l.l_orderkey)) <= 1)
     ) then
       { < name = s_h(l.l_suppkey) > -> < numwait = 1> }
     else
