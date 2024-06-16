@@ -198,14 +198,13 @@ object CppCodegen {
 
   private def generateSum(k: Sym, v: Sym, e1: Exp, e2: Exp)
                          (implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
-    val e1Sym = e1 match { case e1: Sym => e1 }
-    var (tpe, typesLocal) = TypeInference.sum_infer_type_and_ctx(k, v, e1, e2)
-
     val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
+    var (tpe, typesLocal) = TypeInference.sum_infer_type_and_ctx(k, v, e1, e2)
     typesLocal ++= Map(Sym(agg) -> tpe)
 
-    val isLoad = loadsCtx.contains(e1Sym)
+    val isLoad = cond(e1) { case e1Sym: Sym => loadsCtx.contains(e1Sym) }
     val callsLocal = List(SumCtx(k=k.name, v=v.name, isLoad=isLoad)) ++ callsCtx
+
     val sumBody = e2 match {
       case _: LetBinding | _: IfThenElse =>
         run(e2)(typesLocal, callsLocal, loadsCtx)
@@ -214,17 +213,18 @@ object CppCodegen {
     }
 
     if (isLoad) {
+      val e1Name = e1 match { case Sym(e1Name) => e1Name }
       s"""${cppType(tpe)} (${cppInit(tpe)});
-         |const auto &${k.name} = ${e1Sym.name};
-         |constexpr auto ${v.name} = ${e1Sym.name.capitalize}Values();
-         |for (int i = 0; i < ${e1Sym.name.capitalize}::size(); i++) {
+         |const auto &${k.name} = $e1Name;
+         |constexpr auto ${v.name} = ${e1Name.capitalize}Values();
+         |for (int i = 0; i < ${e1Name.capitalize}::size(); i++) {
          |$sumBody
          |}
          |
          |""".stripMargin
     } else {
       s"""${cppType(tpe)} (${cppInit(tpe)});
-         |for (const auto &[${k.name}, ${v.name}] : ${e1Sym.name}) {
+         |for (const auto &[${k.name}, ${v.name}] : ${run(e1)}) {
          |$sumBody
          |}
          |""".stripMargin

@@ -18,9 +18,7 @@ let s_h =
     else
       { }
 
-// TODO
-
-//let ps_h =
+let ps_h =
   sum(<ps,ps_v> in partsupp)
     if(s_h(ps.ps_suppkey) != {}) then
       <
@@ -30,9 +28,8 @@ let s_h =
     else
       < >
 
-// TODO
-//sum(<ps_partkey,ps_supplycost> in ps_h(1))
-//  if(ps_h(0) < ps_supplycost) then
-//    { < _ = ps_partkey, _ = ps_supplycost > -> true }
-//  else
-//    { }
+sum(<ps_partkey,ps_supplycost> in ps_h(1))
+  if(ps_h(0) < ps_supplycost) then
+    { < _ = ps_partkey, _ = ps_supplycost > -> true }
+  else
+    { }

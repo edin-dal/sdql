@@ -8,7 +8,7 @@ import sdql.frontend.SourceCode
 
 import java.nio.file.Path
 
-// TODO Q2, Q7, Q17, Q20 have empty/zero output - craft better test datasets
+// TODO Q2, Q7, Q11, Q17, Q20 have empty/zero output - craft better test datasets
 
 class CppCompilationTest extends AnyFlatSpec with ParallelTestExecution {
 
@@ -53,10 +53,9 @@ class CppCompilationTest extends AnyFlatSpec with ParallelTestExecution {
     assertOutputs("progs/tpch/q10.sdql", "src/test/tpch/q10.result")
   }
 
-  // FIXME
-  //  it should "compile and run TPCH Q11" in {
-  //    assertOutputs("progs/tpch/q11.sdql", "src/test/tpch/q11.result")
-  //  }
+  it should "compile and run TPCH Q11" in {
+      assertOutputs("progs/tpch/q11.sdql", "src/test/tpch/q11.result")
+    }
 
   // FIXME
   //  it should "compile and run TPCH Q12" in {
