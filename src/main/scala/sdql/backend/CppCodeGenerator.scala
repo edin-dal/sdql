@@ -73,7 +73,7 @@ object CppCodeGenerator {
 			case _ => raise(s"not supported cmp: $e")
 		}
 
-		case DictNode(Nil) => ("abcd", None)
+		case DictNode(Nil) => ("", None)
 		case DictNode(ArrayBuffer((_, htValue))) => (srun(htValue), None)
 
 		case FieldNode(Sym(name), column) => (s"$name.$column[i]", None)
@@ -168,13 +168,6 @@ object CppCodeGenerator {
 		case _ =>
 			val iter = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, _, resVar) => resVar }).iterator
 			val resVar = if (iter.hasNext) iter.next() else raise("there is no next")
-			println(resVar, typesCtx.get(Sym(resVar)))
-			println("########################################################")
-			val resType = typesCtx.get(Sym(resVar)) match {
-				case Some(tpe) => tpe
-				case None => raise(s"$resVar doesn't exist in typesCtx in scopeBody")
-			}
-			println(resType)
 			val lhs = separateSides(body)
 			lhs match {
 				case "" => ""
