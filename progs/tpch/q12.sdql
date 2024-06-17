@@ -15,15 +15,19 @@ let l_h =
     else
       { }
 
-sum(<o,o_v> in orders)
-  if(l_h(o.o_orderkey) != {}) then
-    sum(<l_orderkey,l_shipmode> in l_h)
-      {
-        < _ = l_shipmode >
-        -> <
-          _ = ((o.o_orderpriority == "1-URGENT") || (o.o_orderpriority == "2-HIGH")),
-          _ = ((o.o_orderpriority != "1-URGENT") && (o.o_orderpriority != "2-HIGH"))
-        >
-      }
-  else
-    { }
+let o_h =
+  sum(<o,o_v> in orders)
+    if(l_h(o.o_orderkey) != {}) then
+      sum(<l_shipmode,_> in l_h(o.o_orderkey))
+        {
+          < _ = l_shipmode >
+          -> <
+          high_line_count = if ((o.o_orderpriority == "1-URGENT") || (o.o_orderpriority == "2-HIGH")) then 1 else 0,
+          low_line_count = if ((o.o_orderpriority != "1-URGENT") && (o.o_orderpriority != "2-HIGH")) then 1 else 0
+          >
+        }
+    else
+      { }
+
+sum(<k,v> <- o_h)
+  { concat(k,v) -> 1 }

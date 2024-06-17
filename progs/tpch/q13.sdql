@@ -11,17 +11,9 @@ let o_h =
     else
       { }
 
-// TODO ternary notation
-//let c_h =
-//  sum(<c,c_v> in customer)
-//    { < _ = if(o_h(c.c_custkey) != {}) then o_h(c.c_custkey) else 0 > -> < _ = 1 > }
-
 let c_h =
   sum(<c,c_v> in customer)
-    if(o_h(c.c_custkey) != {}) then
-      { < custkey = c.c_custkey > -> < count = 1 > }
-    else
-      { < custkey = 0 > -> < count = 1 > }
+    { < custkey = if(o_h(c.c_custkey) != {}) then  c.c_custkey else 0 > -> < count = 1 > }
 
 sum(<k,v> in c_h)
   { concat(k, v) -> 1 }

@@ -53,18 +53,16 @@ let o_h =
       else
         { }
 
-// TODO need to support nested lets and ifs
 let l_h =
   sum(<l,l_v> in lineitem)
       if((p_h(l.l_partkey) != {}) && (n_h(l.l_orderkey) != {}) && (n_h(c_h(o_h(l.l_orderkey)(0))) != {})) then
         let orderdate = o_h(l.l_orderkey)(1)
         let orderyear = ext(`SubString`, orderdate, 0, 4)
         let volume = l.l_extendedprice * (1.0 - l.l_discount)
-        if(nationkey_to_name(s_h(l.l_suppkey)(0))(0) == "BRAZIL") then
-          { orderyear -> < _ = volume, _ = volume > }
-        else
-          { orderyear -> < _ = 0.0, _ = volume > }
+        let brazil_volume = if(nationkey_to_name(s_h(l.l_suppkey)(0))(0) == "BRAZIL") then volume else 0.0
+        { orderyear -> < _ = brazil_volume, _ = volume > }
       else
         { }
 
-l_h(0) / lh(1)
+sum(<k,v> in l_h)
+  { < _ = k, _ = v(0), _ = v(1) > -> 1 }

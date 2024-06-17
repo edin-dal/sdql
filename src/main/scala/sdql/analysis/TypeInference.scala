@@ -202,8 +202,6 @@ object TypeInference {
       case (t1, t2) if t1 == t2 =>
         t1
       case (t1, t2) =>
-        println(t1)
-        println(t2)
         raise(s"can't promote types: ${t1.simpleName} ≠ ${t2.simpleName}")
     }
   }

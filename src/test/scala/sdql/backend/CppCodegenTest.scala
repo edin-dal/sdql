@@ -1,12 +1,13 @@
 package sdql
 package backend
 
-import CppCompilation.{inGeneratedDir, clangCmd}
 import org.scalatest.ParallelTestExecution
 import org.scalatest.flatspec.AnyFlatSpec
+import sdql.backend.CppCompilation.{clangCmd, inGeneratedDir}
 import sdql.frontend.{Interpolator, SourceCode}
 import sdql.ir.{Exp, RecordValue}
 
+// comprehensive subset of tests from the parser useful for TPCH
 class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
 
   it should "codegen constant true" in {
@@ -71,9 +72,8 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
   }
   it should "codegen logical ops" in {
     compilesExp(sdql"(3 < 2) && (3 < 4)")
-    //    FIXME
-    //    compilesExp(sdql"let x=<a=1,b=2,c=3> in ((x.a < x.b) && (x.b < x.c))")
-    //    compilesExp(sdql"let x=<a=1,b=2,c=3> in ((x.a < x.b) && (x.c < x.b))")
+    compilesExp(sdql"let x=<a=1,b=2,c=3> in ((x.a < x.b) && (x.b < x.c))")
+    compilesExp(sdql"let x=<a=1,b=2,c=3> in ((x.a < x.b) && (x.c < x.b))")
   }
 
   it should "codegen comparisons on bool" in {
@@ -82,22 +82,6 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
     compilesExp(sdql"false != true")
     compilesExp(sdql"false == false")
   }
-//  FIXME
-//  it should "codegen comparisons on map" in {
-//    compilesExp(sdql"{} == {}")
-//    compilesExp(sdql"{ 1 -> 2 } == {}")
-//    compilesExp(sdql"{ 1 -> 2 } != {}")
-//    compilesExp(sdql"{ 1 -> 0 } == {}")
-//    compilesExp(sdql"{ 1 -> 2 }(1) == 2")
-//    compilesExp(sdql"{ 1 -> 2 }(2) == 0")
-//    compilesExp(sdql"{ 0 -> { 1 -> 2 } }(0) == { 1 -> 2 }")
-//    compilesExp(sdql"{ 0 -> { 1 -> 2 } }(1) == { }")
-//  }
-//  FIXME
-//  it should "codegen comparisons" in {
-//    compilesExp(sdql"""let R = {<name="Apple"> -> { <name="Apple",initial="A"> -> 1 } } in
-//      R(<name="Elephant">) == {}""")
-//  }
 
   it should "codegen records" in {
     compilesExp(sdql"< a=1, b=1.5 >")
@@ -108,143 +92,70 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
     }
   }
 
-//  TODO in future
-//  private val iList = 0 until 10
-//  private val sList = 100 until 110
-//  private val sRel = for(i <- iList; s <- sList) yield (i, s, i * s + 42)
-//  private val rRel = for(s <- sList) yield (s, s - 42)
-//  private val s = {
-//    sRel.map(e => RecordValue(Seq("i" -> e._1, "s" -> e._2, "u" -> e._3)) -> 1).toMap
-//  }
-//  private val r = {
-//    rRel.map(e => RecordValue(Seq("s" -> e._1, "c" -> e._2)) -> 1).toMap
-//  }
-//
-//  it should "codegen sums" in {
-//    compilesExp(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) s_v ")
-//    compilesExp(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) s ")
-//    compilesExp(sdql"let S = $s in sum(<s, s_v> <- S) s_v ")
-//    compilesExp(sdql"let S = { } in sum(<s, s_v> <- S) s ")
-//    compilesExp(sdql"""let S = { 1 -> 1.5, 2 -> 2.5 }
-//      let S1 = sum(<s, s_v> <- S) if(s == 1) then {s -> s_v*3} else {}
-//      sum(<s, s_v> <- S1) s_v
-//      """)
-//    compilesExp(sdql"""let S = { 1 -> 1.5, 2 -> 2.5 }
-//      let S1 = sum(<s, s_v> <- S) if(s == 3) then {s -> s_v*3} else {}
-//      sum(<s, s_v> <- S1) s_v
-//      """)
-//    compilesExp(sdql"""let S = { 1 -> 1.5, 2 -> -1.5 }
-//      sum(<s, s_v> <- S) {1 -> s_v}
-//      """)
-//  }
-//
-//  it should "codegen joins" in {
-//    compilesExp(sdql"""
-//let S = $s in
-//let R = $r in
-//let H_R = sum(<x_r, x_r_v> <- R)
-//  { < s = x_r.s > -> { < c = x_r.c > -> R(x_r) } }
-//sum(<x_s, x_s_v> <- S)
-//  let R_p = H_R(<s = x_s.s>)
-//  sum(<x_r, x_r_v> <- R_p)
-//    { < i = x_s.i, s = x_s.s, c = x_r.c > -> R_p(x_r) * S(x_s) }
-//""")
-//    compilesExp(sdql"""
-//let S = $s in
-//let R = $r in
-//sum(<x_s, x_s_v> <- S)
-//  sum(<x_r, x_r_v> <- R)
-//    if (x_r.s == x_s.s) then
-//      { < i = x_s.i, s = x_s.s, c = x_r.c > -> R(x_r) * S(x_s) }
-//    else
-//      { }
-//""")
-//  }
+  private val iList = 0 until 10
+  private val sList = 100 until 110
+  private val sRel = for(i <- iList; s <- sList) yield (i, s, i * s + 42)
+  private val rRel = for(s <- sList) yield (s, s - 42)
+  private val s = {
+    sRel.map(e => RecordValue(Seq("i" -> e._1, "s" -> e._2, "u" -> e._3)) -> 1).toMap
+  }
+  private val r = {
+    rRel.map(e => RecordValue(Seq("s" -> e._1, "c" -> e._2)) -> 1).toMap
+  }
 
-//  FIXME
-//  it should "codegen dictionaries" in {
-//    compilesExp(sdql"{ 1 -> 1.0 } + { 1 -> 2.0 }")
-//    compilesExp(sdql"{ 1 -> 1.0, 2 -> 2.0 } + { 1 -> 2.0, 3 -> 4.0 }")
-//    compilesExp(sdql"{ 1 -> 2.0 } * 2.5")
-//    compilesExp(sdql"2 * { 1 -> 2.0 }")
-//    compilesExp(sdql"{ 1 -> 2.0 } * { 2 -> 2.5 }")
-//    compilesExp(sdql"let Q = { <i=1, s=1, c=1, p=1> -> 2 } in Q")
-//    compilesExp(sdql"{ 1 -> 5.0 }(1)")
-//    compilesExp(sdql"{ 1 -> 5.0 }(2)")
-//    compilesExp(sdql"{ 1 -> 0.0 }")
-//    compilesExp(sdql"{ 1 -> 1.0 } + { 1 -> -1.0 }")
-//    compilesExp(sdql"{ 1 -> promote[enum[double]](1.0) } + { }")
-//    compilesExp(sdql"{ 1 -> promote[enum[double]](0.0) } + { }")
-//    compilesExp(sdql"{ 1 -> promote[nullable[double]](1.0) } + { 1 -> promote[nullable[double]](-1.0) }")
-//    compilesExp(sdql"{ 1 -> promote[nullable[double]](1.0) } + { }")
-//    compilesExp(sdql"{ 1 -> promote[nullable[double]](0.0) } + { }")
-//  }
+  it should "codegen sums" in {
+    compilesExp(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) s_v ")
+    compilesExp(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) s ")
+    compilesExp(sdql"let S = $s in sum(<s, s_v> <- S) s_v ")
+    compilesExp(sdql"""let S = { 1 -> 1.5, 2 -> 2.5 }
+      let S1 = sum(<s, s_v> <- S) if(s == 1) then {s -> s_v*3} else {}
+      sum(<s, s_v> <- S1) s_v
+      """)
+    compilesExp(sdql"""let S = { 1 -> 1.5, 2 -> 2.5 }
+      let S1 = sum(<s, s_v> <- S) if(s == 3) then {s -> s_v*3} else {}
+      sum(<s, s_v> <- S1) s_v
+      """)
+    compilesExp(sdql"""let S = { 1 -> 1.5, 2 -> -1.5 }
+      sum(<s, s_v> <- S) {1 -> s_v}
+      """)
+  }
 
-//  TODO in future
-//  it should "codegen semirings" in {
-//    compilesExp(sdql"promote[mxsm](1.5)")
-//    compilesExp(sdql"promote[mnpr](2)")
-//    compilesExp(sdql"promote[max_prod](-1)")
-//    compilesExp(sdql"promote[mnsm](2.7) + promote[mnsm](3.2)")
-//    compilesExp(sdql"promote[mxsm](2.7) + promote[mxsm](3.2)")
-//    compilesExp(sdql"promote[mxsm](2.7) * promote[mxsm](3.2)")
-//    compilesExp(sdql"promote[mnsm](2.7) * promote[mnsm](3.2)")
-//    compilesExp(sdql"promote[mnpr](2.7) * promote[mnpr](3.2)")
-//    compilesExp(sdql"promote[mxpr](2.7) * promote[mxpr](3.2)")
-//    compilesExp(sdql"promote[enum[double]](2.7) + promote[enum[double]](3.2)")
-//    compilesExp(sdql"promote[enum[double]](2.7) * promote[enum[double]](3.2)")
-//    compilesExp(sdql"promote[enum[double]](2.7) + promote[enum[double]](2.7)")
-//    compilesExp(sdql"promote[enum[double]](2.7) * promote[enum[double]](2.7)")
-//    compilesExp(sdql"promote[nullable[double]](2.7) + promote[nullable[double]](3.2)")
-//    compilesExp(sdql"promote[nullable[double]](2.7) * promote[nullable[double]](3.2)")
-//    compilesExp(sdql"promote[nullable[double]](2.7) + promote[nullable[double]](2.7)")
-//    compilesExp(sdql"promote[nullable[double]](2.7) * promote[nullable[double]](2.7)")
-//    compilesExp(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) promote[mxsm](s_v) ")
-//    compilesExp(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) promote[mxpr](s_v) ")
-//    compilesExp(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) promote[mnsm](s_v) ")
-//  }
+  it should "codegen joins" in {
+    compilesExp(sdql"""
+let S = $s in
+let R = $r in
+let H_R = sum(<x_r, x_r_v> <- R)
+  { < s = x_r.s > -> { < c = x_r.c > -> R(x_r) } }
+sum(<x_s, x_s_v> <- S)
+  let R_p = H_R(<s = x_s.s>)
+  sum(<x_r, x_r_v> <- R_p)
+    { < i = x_s.i, s = x_s.s, c = x_r.c > -> R_p(x_r) * S(x_s) }
+""")
+    compilesExp(sdql"""
+let S = $s in
+let R = $r in
+sum(<x_s, x_s_v> <- S)
+  sum(<x_r, x_r_v> <- R)
+    if (x_r.s == x_s.s) then
+      { < i = x_s.i, s = x_s.s, c = x_r.c > -> R(x_r) * S(x_s) }
+    else
+      { }
+""")
+  }
 
-//  FIXME
-//  it should "codegen external functions" in {
-//    compilesExp(sdql"""ext(`ParseDate`, "1989-07-13")""")
-//    compilesExp(sdql"""ext(`Year`, ext(`ParseDate`, "1989-07-13"))""")
-//    compilesExp(sdql"""ext(`SubString`, "19890713", 1, 2)""")
-//    compilesExp(sdql"""ext(`StrStartsWith`, "19890713", "1989")""")
-//    compilesExp(sdql"""ext(`StrStartsWith`, "19890713", "199")""")
-//    compilesExp(sdql"""ext(`StrEndsWith`, "19890713", "0713")""")
-//    compilesExp(sdql"""ext(`StrEndsWith`, "19890713", "113")""")
-//    compilesExp(sdql"""ext(`StrContains`, "19890713", "8907")""")
-//    compilesExp(sdql"""ext(`StrContains`, "19890713", "1989")""")
-//    compilesExp(sdql"""ext(`StrContains`, "19890713", "0713")""")
-//    compilesExp(sdql"""ext(`StrContains`, "19890713", "901")""")
-//    compilesExp(sdql"""ext(`StrContains`, "19890713", "113")""")
-//    compilesExp(sdql"""ext(`StrContainsN`, "19890713", "1989", "07")""")
-//    compilesExp(sdql"""ext(`StrContainsN`, "19890713", "8907", "1989", "0713")""")
-//    compilesExp(sdql"""ext(`StrContainsN`, "19890713", "19892", "0713")""")
-//    compilesExp(sdql"""ext(`StrIndexOf`, "19890713", "8907", 0)""")
-//    compilesExp(sdql"""ext(`StrIndexOf`, "19890713", "8907", 2)""")
-//    compilesExp(sdql"""ext(`StrIndexOf`, "19890713", "8907", 3)""")
-//    compilesExp(sdql"""ext(`StrIndexOf`, "19890713", "1989", 0)""")
-//    compilesExp(sdql"""ext(`StrIndexOf`, "19890713", "1989", 1)""")
-//    compilesExp(sdql"""ext(`StrIndexOf`, "19890713", "0713", 0)""")
-//    compilesExp(sdql"""ext(`StrIndexOf`, "19890713", "901", 0)""")
-//    compilesExp(sdql"""ext(`StrIndexOf`, "19890713", "113", 0)""")
-//  }
+  it should "codegen simple graph queries" in {
+    compilesExp(sdql"""let Nodes = {
+      0 -> <label = {"Person" -> true, "Director" -> true, "Singer" -> true}, name="Oliver Stone", age=30>,
+      1 -> <label = {"Person" -> true, "Director" -> true}, name="Michael Douglas", age=35>,
+      2 -> <label = {"Person" -> true, "Actor" -> true}, name="Charlie Sheen",age=32>}
+    sum(<k,v> in Nodes)
+      if(v.name=="Charlie Sheen") then
+        {<age=v.age> -> 1}
+      else
+        {}
+    """)
+  }
 
-//  TODO
-//  it should "codegen simple graph queries" in {
-//    compilesExp(sdql"""let Nodes = {
-//      0 -> <label = {"Person" -> true, "Director" -> true, "Singer" -> true}, name="Oliver Stone", age=30>,
-//      1 -> <label = {"Person" -> true, "Director" -> true}, name="Michael Douglas", age=35>,
-//      2 -> <label = {"Person" -> true, "Actor" -> true}, name="Charlie Sheen",age=32>}
-//    sum(<k,v> in Nodes)
-//      if(v.name=="Charlie Sheen") then
-//        {<age=v.age> -> 1}
-//      else
-//        {}
-//    """)
-//  }
-  
   it should "codegen TPCH Q1" in {
     compilesFile("progs/tpch/q1.sdql")
   }
@@ -266,44 +177,39 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
   it should "codegen TPCH Q7" in {
     compilesFile("progs/tpch/q7.sdql")
   }
-// FIXME
-//  it should "codegen TPCH Q8" in {
-//    compilesFile("progs/tpch/q8.sdql")
-//  }
+  it should "codegen TPCH Q8" in {
+    compilesFile("progs/tpch/q8.sdql")
+  }
   it should "codegen TPCH Q9" in {
     compilesFile("progs/tpch/q9.sdql")
   }
   it should "codegen TPCH Q10" in {
     compilesFile("progs/tpch/q10.sdql")
   }
-// FIXME
-//  it should "codegen TPCH Q11" in {
-//    compilesFile("progs/tpch/q11.sdql")
-//  }
-// FIXME
-//  it should "codegen TPCH Q12" in {
-//    compilesFile("progs/tpch/q12.sdql")
-//  }
+  it should "codegen TPCH Q11" in {
+    compilesFile("progs/tpch/q11.sdql")
+  }
+  it should "codegen TPCH Q12" in {
+    compilesFile("progs/tpch/q12.sdql")
+  }
   it should "codegen TPCH Q13" in {
     compilesFile("progs/tpch/q13.sdql")
   }
   it should "codegen TPCH Q14" in {
     compilesFile("progs/tpch/q14.sdql")
   }
-// FIXME
-//  it should "codegen TPCH Q15" in {
-//    compilesFile("progs/tpch/q15.sdql")
-//  }
+  it should "codegen TPCH Q15" in {
+    compilesFile("progs/tpch/q15.sdql")
+  }
   it should "codegen TPCH Q16" in {
     compilesFile("progs/tpch/q16.sdql")
   }
   it should "codegen TPCH Q17" in {
     compilesFile("progs/tpch/q17.sdql")
   }
-// FIXME
-//  it should "codegen TPCH Q18" in {
-//    compilesFile("progs/tpch/q18.sdql")
-//  }
+  it should "codegen TPCH Q18" in {
+    compilesFile("progs/tpch/q18.sdql")
+  }
   it should "codegen TPCH Q19" in {
     compilesFile("progs/tpch/q19.sdql")
   }

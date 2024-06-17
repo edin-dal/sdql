@@ -8,8 +8,9 @@ import sdql.frontend.SourceCode
 
 import java.nio.file.Path
 
-// TODO Q2, Q7, Q11, Q17, Q20 have empty/zero output - craft better test datasets
+// TODO Q2, Q7, Q8, Q11, Q17, Q20 have empty/zero output - craft better test datasets
 
+// run these tests on dbgen TPCH datasets with scaling factor 0.01
 class CppCompilationTest extends AnyFlatSpec with ParallelTestExecution {
 
   it should "compile and run TPCH Q1" in {
@@ -40,10 +41,9 @@ class CppCompilationTest extends AnyFlatSpec with ParallelTestExecution {
     assertOutputs("progs/tpch/q7.sdql", "src/test/tpch/q7.result")
   }
 
-  // FIXME
-  //  it should "compile and run TPCH Q8" in {
-  //    assertOutputs("progs/tpch/q8.sdql", "src/test/tpch/q8.result")
-  //  }
+  it should "compile and run TPCH Q8" in {
+    assertOutputs("progs/tpch/q8.sdql", "src/test/tpch/q8.result")
+  }
 
   it should "compile and run TPCH Q9" in {
     assertOutputs("progs/tpch/q9.sdql", "src/test/tpch/q9.result")
@@ -57,10 +57,9 @@ class CppCompilationTest extends AnyFlatSpec with ParallelTestExecution {
     assertOutputs("progs/tpch/q11.sdql", "src/test/tpch/q11.result")
   }
 
-  // FIXME
-  //  it should "compile and run TPCH Q12" in {
-  //    assertOutputs("progs/tpch/q12.sdql", "src/test/tpch/q12.result")
-  //  }
+  it should "compile and run TPCH Q12" in {
+     assertOutputs("progs/tpch/q12.sdql", "src/test/tpch/q12.result")
+  }
 
   it should "compile and run TPCH Q13" in {
     assertOutputs("progs/tpch/q13.sdql", "src/test/tpch/q13.result")
