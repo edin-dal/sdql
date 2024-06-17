@@ -17,10 +17,12 @@ object CppCodeGenerator {
 
 	private case class SumCtx(key: String, value: String, itVar: String, resVar: String) extends CallCtx
 
+	private def defaultResultsVar = "res"
+
 	def apply(e: Exp): String = {
-		val (mainBody, Some((Sym(name), tpe))) = run(e)(Map(), List())
+		val (mainBody, Some((Sym(name), tpe))) = run(e)(Map(), List(), defaultResultsVar)
 		val printBody = tpe match {
-			case _: DictType => s"std::cout << res.size() << std::endl;"
+			case _: DictType => s"std::cout << $defaultResultsVar.size() << std::endl;"
 			case _ if tpe.isScalar => s"std::cout << $name << std::endl;"
 		}
 		s"""|#include "../runtime/headers.h"
@@ -32,7 +34,7 @@ object CppCodeGenerator {
 			|class Values { public: int operator [](int _) const { return 1; } };
 			|
 			|int main() {
-			|auto res = ${toCpp(tpe)}();
+			|${resVarInit(name, tpe)}
 			|
 			|$mainBody
 			|
@@ -40,19 +42,22 @@ object CppCodeGenerator {
 			|}""".stripMargin
 	}
 
-	def srun(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = run(e)._1
+	def srun(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = run(e)._1
 
-	def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): (String, Option[(Sym, Type)]) = e match {
+	def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, Option[(Sym, Type)]) = e match {
 		case LetBinding(x@Sym(varName), e1, e2) =>
 			val cpp_e1 = e1 match {
 				case Load(path, tp) => load(varName, path, tp)
 				case e1: Sum =>
-					s"auto $varName = ${sum(e1, Some(varName))._1}"
+					val (sum_cpp, Some((_, tpe))) = sum(e1)(typesCtx, callsCtx, varName)
+					s"""${resVarInit(varName, tpe)}
+					   |$sum_cpp
+					   |""".stripMargin
 				case _: Get => s"const auto $varName = ${srun(e1)};\n"
 				case _ => raise(s"Unhandled bind value $e1")
 			}
 			val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
-			val (cpp_e2, info) = run(e2)(typesLocal, callsCtx)
+			val (cpp_e2, info) = run(e2)(typesLocal, callsCtx, resVar)
 			(cpp_e1 + cpp_e2, info)
 
 		case e: Sum => sum(e)
@@ -106,41 +111,25 @@ object CppCodeGenerator {
 		}
 	}
 
-	private def sum(e: Sum, canResVarName: Option[String] = None)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): (String, Option[(Sym, Type)]) = {
+	private def sum(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, Option[(Sym, Type)]) = {
 		val (key, value, itVar, sumBody) = e match {
 			case Sum(key: Sym, value: Sym, itVar: Sym, body: Exp) => (key.name, value.name, itVar.name, body)
 			case _ => raise(s"not supported sum: $e")
 		}
 		var (resType, typesLocal) = TypeInference.sum_with_ctx(e)
-		val resVar = canResVarName match {
-			case None => s"res"
-			case Some(varName) => varName
-		}
 		typesLocal ++= Map(Sym(resVar) -> resType)
-
-		val zeroValue = resType match {
-			case RealType | IntType => "0"
-			case DictType(_, _) => ""
-			case _ => raise(s"unhandled type: $resType")
-		}
-		val resVarInit = canResVarName match {
-			case Some(_) => s"${toCpp(resType)} ($zeroValue);"
-			case None => ""
-		}
 
 		val callsLocal = List(SumCtx(key = key, value = value, itVar = itVar, resVar = resVar)) ++ callsCtx
 
 		(
-			s"""$resVarInit
-			   |${loop(key, value, itVar, sumBody)(typesLocal, callsLocal)}
-			   |""".stripMargin,
+			loop(key, value, itVar, sumBody)(typesLocal, callsLocal, resVar),
 			Some(Sym(resVar), resType)
 		)
 	}
 
-	private def loop(canLoopKey: String, canLoopVal: String, itVar: String, sumBody: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
-		val loopKey = if (canLoopKey == "_") randomVar() else canLoopKey
-		val loopVal = if (canLoopVal == "_") randomVar() else canLoopVal
+	private def loop(canLoopKey: String, canLoopVal: String, itVar: String, sumBody: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = {
+		val loopKey = if (canLoopKey == "_") randomVar else canLoopKey
+		val loopVal = if (canLoopVal == "_") randomVar else canLoopVal
 
 		val (loopHeader, loopBody) = typesCtx.get(Sym(itVar)) match {
 			case Some(RelationType(_)) =>
@@ -162,13 +151,11 @@ object CppCodeGenerator {
 		   |""".stripMargin
 	}
 
-	private def scopeBody(body: Exp, isTrieBody: Boolean = false)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = body match {
+	private def scopeBody(body: Exp, isTrieBody: Boolean = false)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = body match {
 		case _: LetBinding => srun(body)
 		case _: IfThenElse => srun(body)
 		case _: Sum => srun(body)
 		case _ =>
-			val iter = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, _, resVar) => resVar }).iterator
-			val resVar = if (iter.hasNext) iter.next() else raise("there is no next")
 			val assignment = dictAssign(body, isTrieBody)
 			assignment match {
 				case "" => ""
@@ -176,7 +163,7 @@ object CppCodeGenerator {
 			}
 	}
 
-	private def dictAssign(body: Exp, isTrieBody: Boolean)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
+	private def dictAssign(body: Exp, isTrieBody: Boolean)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = {
 		body match {
 			case DictNode(ArrayBuffer((FieldNode(Sym(tupleVar), column), valueNode))) =>
 				val idx = if (isTrieBody) "i" else s"${tupleVar}_off"
@@ -184,8 +171,18 @@ object CppCodeGenerator {
 			case _: Const => s"+= ${srun(body)}"
 			case DictNode(Nil) => ""
 			case DictNode(ArrayBuffer((_: Sym, _: Const))) => ".push_back(i)"
+			case DictNode(ArrayBuffer((_: RecNode, _: Const))) => ".push_back(XXX)"
 			case _ => raise(s"not supported sides: $body")
 		}
+	}
+
+	private def resVarInit(varName: String, tpe: Type): String = {
+		val zero = tpe match {
+			case DictType(_, _) => "{}"
+			case _ if tpe.isScalar => "0"
+			case _ => raise(s"unsupported type in resVarInit: $tpe")
+		}
+		s"${toCpp(tpe)} $varName($zero);"
 	}
 
 	private def toCpp(tpe: Type): String = tpe match {
@@ -206,5 +203,5 @@ object CppCodeGenerator {
 
 	private def typeVar(name: String) = s"${name.toUpperCase}_TYPE"
 
-	private def randomVar() = s"v_${UUID.randomUUID.toString.replace("-", "_")}"
+	private def randomVar = s"v_${UUID.randomUUID.toString.replace("-", "_")}"
 }
