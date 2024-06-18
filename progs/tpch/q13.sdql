@@ -13,7 +13,7 @@ let o_h =
 
 let c_h =
   sum(<c,c_v> in customer)
-    { < custkey = if(o_h(c.c_custkey) != {}) then  c.c_custkey else 0 > -> < count = 1 > }
+    { < custkey = if(o_h(c.c_custkey) != {}) then o_h(c.c_custkey) else 0 > -> < count = 1 > }
 
 sum(<k,v> in c_h)
   { concat(k, v) -> 1 }

@@ -2,6 +2,7 @@ package sdql
 package analysis
 
 import munit.Assertions.munitPrint
+import sdql.ir.ExternalFunctions._
 import sdql.ir._
 
 object TypeInference {
@@ -99,33 +100,42 @@ object TypeInference {
         )
       }
 
-      case External(name, args) =>
-        import ExternalFunctions._
-        name match {
-          case StrContains.SYMBOL | StrStartsWith.SYMBOL | StrEndsWith.SYMBOL | StrContainsN.SYMBOL =>
-            BoolType
-          case SubString.SYMBOL =>
-            StringType
-          case StrIndexOf.SYMBOL | Year.SYMBOL =>
-            IntType
-          case ParseDate.SYMBOL =>
-            DateType
-          case Inv.SYMBOL =>
-            val arg = args match { case Seq(e) => e }
-            run(arg)
-          case MaxValue.SYMBOL | Size.SYMBOL =>
-            val arg = args match { case Seq(e) => e }
-            run(arg) match {
-              case DictType(_, vt) => vt
-              case tpe => raise(
-                s"${MaxValue.SYMBOL} expects arg ${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
-              )
-            }
-          case TopN.SYMBOL | CStore.SYMBOL | Log.SYMBOL =>
-            raise(s"unimplemented function name: $name")
-          case _ =>
-            raise(s"unknown function name: $name")
+      case External(StrContains.SYMBOL | StrStartsWith.SYMBOL | StrEndsWith.SYMBOL | StrContainsN.SYMBOL, _) =>
+        BoolType
+      case External(SubString.SYMBOL,_) =>
+        StringType
+      case External(StrIndexOf.SYMBOL | Year.SYMBOL, _) =>
+        IntType
+      case External(ParseDate.SYMBOL, _) =>
+        DateType
+      case External(Inv.SYMBOL, args) =>
+        val arg = args match { case Seq(e) => e }
+        run(arg)
+      case External(MaxValue.SYMBOL | Size.SYMBOL, args) =>
+        val arg = args match { case Seq(e) => e }
+        run(arg) match {
+          case DictType(_, vt) => vt
+          case tpe => raise(
+            s"${MaxValue.SYMBOL} or ${Size.SYMBOL} expect arg " +
+              s"${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
+          )
         }
+      case External(name @ Limit.SYMBOL, args) =>
+        val arg = args match { case Seq(e, _, _) => e}
+        run(arg) match {
+          case tpe: DictType => tpe
+          case tpe => raise(
+            s"$name expects arg ${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
+          )
+        }
+      case External(TopN.SYMBOL, _) =>
+        raise(s"unimplemented function name: ${TopN.SYMBOL}")
+      case External(CStore.SYMBOL, _) =>
+        raise(s"unimplemented function name: ${CStore.SYMBOL}")
+      case External(Log.SYMBOL, _) =>
+        raise(s"unimplemented function name: ${Log.SYMBOL}")
+      case External(name, _) =>
+        raise(s"unknown function name: $name")
 
       case LetBinding(x, e1, e2) =>
         val t1 = TypeInference.run(e1)
@@ -137,7 +147,8 @@ object TypeInference {
       case Concat(e1, e2) => (run(e1), run(e2)) match {
         case (v1 @ RecordType(fs1), v2 @ RecordType(fs2)) =>
           val (fs1m, fs2m) = fs1.map(x1 => (x1.name, x1.tpe)).toMap -> fs2.map(x2 => (x2.name, x2.tpe)).toMap
-          val common = fs1.filter(x1 => fs2m.contains(x1.name)).map(x1 => (x1.name, x1.tpe, fs2m(x1.name)))
+          val common =
+            fs1.filter(x1 => fs2m.contains(x1.name)).map(x1 => (x1.name, x1.tpe, fs2m(x1.name)))
           if(common.isEmpty)
             RecordType(fs1 ++ fs2)
           else

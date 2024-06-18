@@ -65,7 +65,9 @@ let l_h =
       else
         { }
 
-sum(<k,v> in l_h)
+let limit = ext(`Limit`, l_h, 20, true)
+
+sum(<k,v> in limit)
   {
     <
       c_custkey = k.c_custkey,

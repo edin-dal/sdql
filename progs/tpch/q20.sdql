@@ -32,8 +32,8 @@ let s_h =
 let l_h =
   sum(<l,l_v> in lineitem)
     if(
-      (date(19940101) < l.l_shipdate) && (date(19950101) < l.l_shipdate)
-      && (n_h(l.l_partkey) != {}) && (s_h(l.l_suppkey) != {})
+      (date(19940101) <= l.l_shipdate) && (l.l_shipdate < date(19950101))
+      && (p_h(l.l_partkey) != {}) && (s_h(l.l_suppkey) != {})
       ) then
       { < _ = l.l_partkey, _ = l.l_suppkey > -> 0.5 * l.l_quantity }
     else

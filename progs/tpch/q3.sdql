@@ -38,5 +38,7 @@ let li_h =
     else
       { }
 
-sum(<k,v> <- li_h)
+let limit = ext(`Limit`, li_h, 10, true)
+
+sum(<k,v> <- limit)
   { concat(k,v) -> 1 }

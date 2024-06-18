@@ -18,7 +18,7 @@ let l_h =
 let n_h =
   sum(<n,n_v> <- nation)
     if(l_h(n.n_regionkey) != {}) then
-      { n.n_nationkey -> < _ = n.n_name > }
+      { n.n_nationkey -> n.n_name }
     else
       { }
 
@@ -46,9 +46,10 @@ let p_h =
     else
       { }
 
+// Note: SDQL doesn't yet implement min, so we select sum(ps_supplycost) instead of select min(ps_supplycost)
 let ps_h =
   sum(<ps,ps_v> <- partsupp)
-    if (s_h(ps.ps_partkey) != {}) then
+    if ((p_h(ps.ps_partkey) != {}) && (s_h(ps.ps_suppkey) != {})) then
       { ps.ps_partkey -> ps.ps_supplycost }
     else
       { }
@@ -57,7 +58,7 @@ sum(<ps,ps_v> <- partsupp)
   if(
       (ps_h(ps.ps_partkey) != {})
       && (ps_h(ps.ps_partkey) == ps.ps_supplycost)
-      && (n_h(ps.ps_suppkey) != {})
+      && (s_h(ps.ps_suppkey) != {})
     ) then
     {
       <

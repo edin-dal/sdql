@@ -5,7 +5,7 @@ import java.nio.file.{Path, Paths}
 import scala.sys.process.{Process, ProcessBuilder}
 
 object CppCompilation {
-  def compile(sdqlFilePath: Path, cpp: String): String = {
+  def compile(sdqlFilePath: String, cpp: String): String = {
     val noExtension = getNoExtension(sdqlFilePath)
     reflect.io.File(cppPath(noExtension).toString).writeAll(cpp)
     inGeneratedDir(clang_format(noExtension)).!!
@@ -19,11 +19,11 @@ object CppCompilation {
   private def clang(noExtension: String) = clangCmd ++ Seq(s"$noExtension.cpp", "-o", s"$noExtension.out")
   private def run(noExtension: String) = Seq(s"./$noExtension.out")
   private def cppPath(noExtension: String) = Paths.get(generatedDir.toString, s"$noExtension.cpp")
-  private def getNoExtension(path: Path) = reFilename.findAllIn(path.toString).matchData.next().group(2)
+  def getNoExtension(path: String) = reFilename.findAllIn(path).matchData.next().group(2)
   private val reFilename = "^(.+/)*(.+)\\.(.+)$".r
 
   def cmake(dirPath: Path, fileNames: Array[String]): Unit = {
-    val contents = cmakeContents(fileNames.map(dirPath.resolve).map(getNoExtension))
+    val contents = cmakeContents(fileNames.map(dirPath.resolve).map(_.toString).map(getNoExtension))
     val path = Paths.get(generatedDir.toString, cmakeFileName)
     reflect.io.File(path.toString).writeAll(contents)
   }
@@ -43,5 +43,5 @@ object CppCompilation {
   private val generatedDir = new java.io.File("generated")
 
   private val cppStandard = 20
-  val clangCmd: Seq[String] = Seq("clang++", "-Wno-deprecated-builtins", "--std", s"c++$cppStandard")
+  val clangCmd: Seq[String] = Seq("clang++", "-O3", "-Wno-deprecated-builtins", "--std", s"c++$cppStandard")
 }

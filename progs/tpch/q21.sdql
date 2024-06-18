@@ -46,7 +46,7 @@ let result_h =
     if(
       (l.l_commitdate < l.l_receiptdate) &&
       (s_h(l.l_suppkey) != {}) &&
-      (l_h(l.l_orderkey) != {}) &&
+      (o_h(l.l_orderkey) != {}) &&
       (1 < ext(`Size`, l_h(l.l_orderkey))) &&
       (ext(`Size`, l_h_filtered(l.l_orderkey)) <= 1)
     ) then
@@ -54,5 +54,7 @@ let result_h =
     else
       { }
 
-sum(<k,v> <- result_h)
+let limit_h = ext(`Limit`, result_h, 100, true)
+
+sum(<k,v> <- limit_h)
   { concat(k,v) -> 1 }

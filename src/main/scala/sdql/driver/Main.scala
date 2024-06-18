@@ -39,9 +39,25 @@ object Main {
           val prog = SourceCode.fromFile(filePath.toString).exp
           val res = CppCodegen(prog)
           println(fileName)
-          println(CppCompilation.compile(filePath, res))
+          println(CppCompilation.compile(filePath.toString, res))
           println()
         }
+      // hidden setting - useful for benchmarks
+      case "compile-batched" =>
+        if(args.length < 3) {
+          raise("usage: `run compile-batched <path> <sdql_files>*`")
+        }
+        val dirPath = Path.of(args(1))
+        val fileNames = args.drop(2)
+        val fakeName = "batched.sdql"
+        CppCompilation.cmake(dirPath, Array(fakeName))
+        val res = CppCodegen(fileNames.map(fileName => {
+          val filePath = dirPath.resolve(fileName)
+          val prog = SourceCode.fromFile(filePath.toString).exp
+          val noExtension = CppCompilation.getNoExtension(filePath.toString)
+          (prog, noExtension)
+        }))
+        println(CppCompilation.compile(fakeName, res))
       case arg =>
         raise(s"`run $arg` not supported")
     }

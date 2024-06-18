@@ -31,8 +31,8 @@ let orderkey_to_name =
 
 let suppkey_to_name =
   sum(<s,s_v> in supplier)
-    if(orderkey_to_name(s.s_nationkey) != {}) then
-      { s.s_suppkey -> orderkey_to_name(s.s_nationkey) }
+    if(nationkey_to_name(s.s_nationkey) != {}) then
+      { s.s_suppkey -> nationkey_to_name(s.s_nationkey)(0) }
     else
       { }
 

@@ -6,6 +6,7 @@ import sdql.analysis.TypeInference
 import sdql.ir.ExternalFunctions._
 import sdql.ir._
 
+import java.util.UUID
 import scala.PartialFunction.{cond, condOpt}
 
 object CppCodegen {
@@ -21,22 +22,51 @@ object CppCodegen {
   private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
   private val resultName = "result"
 
-  def apply(e: Exp): String = {
-    val (csvBody, loadsCtx) = CsvBodyWithLoadsCtx(e)
-    val mainBody = run(e)(Map(), List(), loadsCtx)
-    // slightly wasteful to redo type inference - but spares us having to return the type at every recursive call
-    val tpe = TypeInference(e)
-    s"""|#include "../runtime/headers.h"
-        |
-        |const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
-        |const auto SEPARATOR = rapidcsv::SeparatorParams('|');
-        |$csvBody
-        |
-        |int main() {
-        |$mainBody
-        |${cppPrintResult(tpe)}
-        |}
+  private val header = """#include "../runtime/headers.h""""
+  private val consts =
+    s"""const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
+       |const auto SEPARATOR = rapidcsv::SeparatorParams('|');
+       |""".stripMargin
+
+  // overload to run multiple queries that share same datasets)
+  def apply(expsWithNames: Seq[(Exp, String)]): String = {
+    val csvBody = CsvBodyWithLoadsCtx(expsWithNames.map(_._1))._1
+    val benchHeader =
+      """#include <chrono>
+        |using namespace std::chrono;
         |""".stripMargin
+    val preamble = s"""$header\n$benchHeader\n\n$consts\n$csvBody\n"""
+    val main = expsWithNames
+      .map( x =>
+        s"""std::cout << "\\n${x._2}" << std::endl;
+           |${x._2}();
+           |""".stripMargin)
+      .mkString(s"int main() {\n", "", "\n}")
+    expsWithNames.map( x => this.apply(x._1, Some(x._2), isBenchmark = true)).mkString(preamble, "\n\n", s"\n\n$main")
+  }
+
+  def apply(e: Exp, batchedName: Option[String] = None, isBenchmark: Boolean = false): String = {
+    val (csvBody, loadsCtx) = CsvBodyWithLoadsCtx(Seq(e))
+    val queryBody = run(e)(Map(), List(), loadsCtx)
+    val benchStart = if(!isBenchmark) "" else "auto start = high_resolution_clock::now();\n"
+    val benchEnd = if(!isBenchmark) "" else
+      """auto stop = high_resolution_clock::now();
+        |auto duration = duration_cast<milliseconds>(stop - start);
+        |""".stripMargin
+    // slightly wasteful to redo type inference - but spares us having to return the type at every recursive run call
+    val tpe = TypeInference(e)
+    val printBody =
+      if(isBenchmark) """cout << "Runtime (ms): " << duration.count() << endl;""" else cppPrintResult(tpe)
+    val queryBodyWithPrint =
+      s"""$benchStart
+         |$queryBody
+         |$benchEnd
+         |$printBody
+         |""".stripMargin
+    batchedName match {
+      case None => s"""$header\n\n$consts\n$csvBody\n""" ++ s"int main() { $queryBodyWithPrint }"
+      case Some(name) => s"void $name() { $queryBodyWithPrint }"
+    }
   }
 
   def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
@@ -70,12 +100,14 @@ object CppCodegen {
 
     e match {
       case LetBinding(x @ Sym(name), e1, e2) =>
+        val isTernary = !cond(e1) { case _: Sum => true }
+        val localCalls = if (isTernary) List(IsTernary()) ++ callsCtx else callsCtx
         val e1Cpp = e1 match {
           // codegen for loads was handled in a separate tree traversal
           case Load(_, DictType(RecordType(_), IntType)) => ""
+          case External(Limit.SYMBOL, _) =>
+            s"${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls, loadsCtx)}\n"
           case _ =>
-            val isTernary = !cond(e1) { case _: Sum => true }
-            val localCalls = if (isTernary) List(IsTernary()) ++ callsCtx else callsCtx
             s"auto $name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls, loadsCtx)};"
         }
         val e2Cpp = e2 match {
@@ -226,31 +258,43 @@ object CppCodegen {
         )
       }
 
-      case External(name, args) => (name, args) match {
-        case (StrStartsWith.SYMBOL, Seq(str, prefix)) =>
-          s"${run(str)}.starts_with(${run(prefix)})"
-        case (StrEndsWith.SYMBOL, Seq(str, suffix)) =>
-          s"${run(str)}.ends_with(${run(suffix)})"
-        case (SubString.SYMBOL, Seq(str, start, end)) =>
-          s"${run(str)}.substr(${run(start)}, ${run(end)})"
-        case (StrIndexOf.SYMBOL, Seq(field: FieldNode, elem, from)) =>
-          s"${run(field)}.find(${run(elem)}, ${run(from)})"
-        case (Inv.SYMBOL, _) =>
-          raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
-        case (MaxValue.SYMBOL, Seq(arg)) =>
-          assert(!cond(arg) { case sym: Sym => loadsCtx.contains(sym) })
-          s"""std::ranges::max_element(${run(arg)}, [](const auto &p1, const auto &p2) {
-            |return p1.second < p2.second;
-            |})->second;
-            |""".stripMargin
-        case (Size.SYMBOL, Seq(arg)) =>
-          condOpt(arg) { case sym @ Sym(name) if loadsCtx.contains(sym) => name } match {
-            case Some(name) => s"${name.capitalize}::size()"
-            case None => s"${run(arg)}.size()"
-          }
-        case _ =>
-          raise(s"unhandled function name: $name")
-      }
+      case External(StrStartsWith.SYMBOL, Seq(str, prefix)) =>
+        s"${run(str)}.starts_with(${run(prefix)})"
+      case External(StrEndsWith.SYMBOL, Seq(str, suffix)) =>
+        s"${run(str)}.ends_with(${run(suffix)})"
+      case External(SubString.SYMBOL, Seq(str, start, end)) =>
+        s"${run(str)}.substr(${run(start)}, ${run(end)})"
+      case External(StrIndexOf.SYMBOL, Seq(field: FieldNode, elem, from)) =>
+        s"${run(field)}.find(${run(elem)}, ${run(from)})"
+      case External(name @ Inv.SYMBOL, _) =>
+        raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
+      case External(MaxValue.SYMBOL, Seq(arg)) =>
+        assert(!cond(arg) { case sym: Sym => loadsCtx.contains(sym) })
+        s"""std::ranges::max_element(${run(arg)}, [](const auto &p1, const auto &p2) {
+          |return p1.second < p2.second;
+          |})->second;
+          |""".stripMargin
+      case External(Size.SYMBOL, Seq(arg)) =>
+        condOpt(arg) { case sym @ Sym(name) if loadsCtx.contains(sym) => name } match {
+          case Some(name) => s"${name.capitalize}::size()"
+          case None => s"${run(arg)}.size()"
+        }
+      case External(Limit.SYMBOL, Seq(sym @ Sym(arg), Const(n: Int), Const(isDescending: Boolean))) =>
+        val limit = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
+        val tmp = s"tmp_$uuid"
+        val (dictTpe, kt, vt) =
+          (TypeInference.run(sym): @unchecked) match { case dictTpe @ DictType(kt, vt) => (dictTpe, kt, vt) }
+        val recTpe = RecordType(Seq(Attribute("_1", kt), Attribute("_2", vt)))
+        val recTpeCpp = cppType(recTpe)
+        val cmp = if(isDescending) ">" else "<"
+        s"""std::vector<$recTpeCpp> $tmp($n);
+           |std::partial_sort_copy(
+           |    $arg.begin(), $arg.end(), $tmp.begin(), $tmp.end(),
+           |    []($recTpeCpp const &l, $recTpeCpp const &r) { return std::get<1>(l) $cmp std::get<1>(r); });
+           |auto $limit = ${cppType(dictTpe)}($tmp.begin(), $tmp.end());
+           |""".stripMargin
+      case External(name, _)  =>
+        raise(s"unhandled function name: $name")
 
       case Concat(v1 @ RecNode(fs1), v2 @ RecNode(fs2)) => run(
         {
@@ -287,6 +331,7 @@ object CppCodegen {
     }
   }
 
+  // TODO no longer needed
   private def record(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx) = e match {
     case IfThenElse(cond, e1, e2) => s"(${run(cond)}) ? ${run(e1)} : ${run(e2)}"
     case _ => run(e)
@@ -305,23 +350,23 @@ object CppCodegen {
   private def cppType(tpe: ir.Type): String = tpe match {
     case BoolType => "bool"
     case RealType => "double"
-    case IntType => "int"
+    case IntType => "long"
     case StringType | DateType => "std::string"
     case DictType(key, value) => s"phmap::flat_hash_map<${cppType(key)}, ${cppType(value)}>"
     case RecordType(attrs) => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
     case tpe => raise(s"unimplemented type: $tpe")
   }
 
-  private def CsvBodyWithLoadsCtx(e: Exp): (String, LoadsCtx) = {
-    val pathNameAttrs =
-      flattenExps(e)
+  private def CsvBodyWithLoadsCtx(exps: Seq[Exp]): (String, LoadsCtx) = {
+    val pathNameAttrs = exps.flatMap( e =>
+      iterExps(e)
         .flatMap(
           e => condOpt(e) {
             case LetBinding(Sym(name), Load(path, DictType(RecordType(attrs), IntType)), _) =>
               (path, name, attrs)
           }
         )
-        .toSet
+    ).toSet
 
     val csvConsts =
       pathNameAttrs.map({ case (path, name, _) => makeCsvConst(name, path) } ).mkString("", "\n", "\n")
@@ -369,7 +414,7 @@ object CppCodegen {
        |};
        |""".stripMargin
 
-  private def flattenExps(e: Exp): Iterator[Exp] =
+  private def iterExps(e: Exp): Iterator[Exp] =
     Iterator(e) ++ (
       e match {
         // 0-ary
@@ -377,36 +422,36 @@ object CppCodegen {
           Iterator()
         // 1-ary
         case Neg(e) =>
-          flattenExps(e)
+          iterExps(e)
         case FieldNode(e, _) =>
-          flattenExps(e)
+          iterExps(e)
         case Promote(_, e) =>
-          flattenExps(e)
+          iterExps(e)
         // 2-ary
         case Add(e1, e2) =>
-          flattenExps(e1) ++ flattenExps(e2)
+          iterExps(e1) ++ iterExps(e2)
         case Mult(e1, e2) =>
-          flattenExps(e1) ++ flattenExps(e2)
+          iterExps(e1) ++ iterExps(e2)
         case Cmp(e1, e2, _) =>
-          flattenExps(e1) ++ flattenExps(e2)
+          iterExps(e1) ++ iterExps(e2)
         case Sum(_, _, e1, e2) =>
-          flattenExps(e1) ++ flattenExps(e2)
+          iterExps(e1) ++ iterExps(e2)
         case Get(e1, e2) =>
-          flattenExps(e1) ++ flattenExps(e2)
+          iterExps(e1) ++ iterExps(e2)
         case Concat(e1, e2) =>
-          flattenExps(e1) ++ flattenExps(e2)
+          iterExps(e1) ++ iterExps(e2)
         case LetBinding(_, e1, e2) =>
-          flattenExps(e1) ++ flattenExps(e2)
+          iterExps(e1) ++ iterExps(e2)
         // 3-ary
         case IfThenElse(e1, e2, e3) =>
-          flattenExps(e1) ++ flattenExps(e2) ++ flattenExps(e3)
+          iterExps(e1) ++ iterExps(e2) ++ iterExps(e3)
         // n-ary
         case RecNode(values) =>
-          values.map(_._2).flatMap(flattenExps).toList
+          values.map(_._2).flatMap(iterExps).toList
         case DictNode(dict) =>
-          dict.flatMap(x => flattenExps(x._1) ++ flattenExps(x._2)).toList
+          dict.flatMap(x => iterExps(x._1) ++ iterExps(x._2)).toList
         case External(_, args) =>
-          args.flatMap(flattenExps).toList
+          args.flatMap(iterExps).toList
         // unhandled
         case _ => raise(
           f"""Unhandled ${e.simpleName} in
@@ -439,7 +484,7 @@ object CppCodegen {
   private def cppPrintResult(tpe: Type) = tpe match {
     case _: DictType =>
       s"""for (const auto &[key, val] : $resultName) {
-         |std::cout << key << ":" << val << std::endl;
+         |$stdCout << key << ":" << val << std::endl;
          |}""".stripMargin
     case RecordType(attrs) =>
       val body =
@@ -448,9 +493,13 @@ object CppCodegen {
         ).mkString(""" << ", " << """)
       s"""std::stringstream ss;
          |ss << $body;
-         |std::cout << "<" << ss.str() << ">" << std::endl;
+         |$stdCout << "<" << ss.str() << ">" << std::endl;
          |""".stripMargin
     case _ if tpe.isScalar =>
-      s"std::cout << $resultName << std::endl;"
+      s"$stdCout << $resultName << std::endl;"
   }
+
+  private val stdCout = s"std::cout << std::setprecision (std::numeric_limits<double>::digits10)"
+
+  private def uuid = UUID.randomUUID.toString.replace("-", "_")
 }

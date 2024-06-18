@@ -26,4 +26,5 @@ object ExternalFunctions {
   object Log extends ExternalFactory("log")
   object MaxValue extends ExternalFactory("MaxValue")
   object Size extends ExternalFactory("Size")
+  object Limit extends ExternalFactory("Limit")
 }

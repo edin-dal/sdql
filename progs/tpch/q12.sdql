@@ -6,7 +6,7 @@ let l_h =
   sum(<l,l_v> in lineitem)
     if(
       ((l.l_shipmode == "MAIL") || (l.l_shipmode == "SHIP"))
-      && (date(19940101) < l.l_receiptdate)
+      && (date(19940101) <= l.l_receiptdate)
       && (l.l_receiptdate < date(19950101))
       && (l.l_shipdate < l.l_commitdate)
       && (l.l_commitdate < l.l_receiptdate)
@@ -18,12 +18,12 @@ let l_h =
 let o_h =
   sum(<o,o_v> in orders)
     if(l_h(o.o_orderkey) != {}) then
-      sum(<l_shipmode,_> in l_h(o.o_orderkey))
+      sum(<l_shipmode,c> in l_h(o.o_orderkey))
         {
           < _ = l_shipmode >
           -> <
-          high_line_count = if ((o.o_orderpriority == "1-URGENT") || (o.o_orderpriority == "2-HIGH")) then 1 else 0,
-          low_line_count = if ((o.o_orderpriority != "1-URGENT") && (o.o_orderpriority != "2-HIGH")) then 1 else 0
+          high_line_count = if ((o.o_orderpriority == "1-URGENT") || (o.o_orderpriority == "2-HIGH")) then c else 0,
+          low_line_count = if ((o.o_orderpriority != "1-URGENT") && (o.o_orderpriority != "2-HIGH")) then c else 0
           >
         }
     else

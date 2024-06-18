@@ -23,7 +23,7 @@ let ps_t =
     if(s_h(ps.ps_suppkey) != {}) then
       <
         _ = ps.ps_supplycost * ps.ps_availqty * 0.0001,
-        _ = { ps.ps_partkey -> ps.ps_supplycost }
+        _ = { ps.ps_partkey -> ps.ps_supplycost * ps.ps_availqty }
       >
     else
       < >
