@@ -50,7 +50,8 @@ object CppCodeGenerator {
 				case Load(path, tp) => load(varName, path, tp)
 				case e1: Sum =>
 					val (sum_cpp, Some((_, tpe))) = sum(e1)(typesCtx, callsCtx, varName)
-					s"""${resVarInit(varName, tpe)}
+					s"""${intermStruct(varName, tpe)}
+					   |${resVarInit(varName, tpe)}
 					   |$sum_cpp
 					   |""".stripMargin
 				case _: Get => s"const auto $varName = ${srun(e1)};\n"
@@ -156,24 +157,39 @@ object CppCodeGenerator {
 		case _: IfThenElse => srun(body)
 		case _: Sum => srun(body)
 		case _ =>
-			val assignment = dictAssign(body, isTrieBody)
-			assignment match {
+			val (assignParams, preLines) = dictAssign(body, isTrieBody)
+			assignParams match {
 				case "" => ""
-				case _ => s"$resVar$assignment;"
+				case _ =>
+					s"""$preLines
+					   |$resVar$assignParams;""".stripMargin
 			}
 	}
 
-	private def dictAssign(body: Exp, isTrieBody: Boolean)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = {
+	private def dictAssign(body: Exp, isTrieBody: Boolean)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, String) = {
 		body match {
 			case DictNode(ArrayBuffer((FieldNode(Sym(tupleVar), column), valueNode))) =>
 				val idx = if (isTrieBody) "i" else s"${tupleVar}_off"
-				s"[$tupleVar.$column[$idx]]${dictAssign(valueNode, isTrieBody)}"
-			case _: Const => s"+= ${srun(body)}"
-			case DictNode(Nil) => ""
-			case DictNode(ArrayBuffer((_: Sym, _: Const))) => ".push_back(i)"
-			case DictNode(ArrayBuffer((_: RecNode, _: Const))) => ".push_back(XXX)"
+				val (rhs, preLines) = dictAssign(valueNode, isTrieBody)
+				(s"[$tupleVar.$column[$idx]]$rhs", preLines)
+			case _: Const => (s"+= ${srun(body)}", "")
+			case DictNode(Nil) => ("", "")
+			case DictNode(ArrayBuffer((_: Sym, _: Const))) => (".push_back(i)", "")
+			case DictNode(ArrayBuffer((RecNode(tpl), _: Const))) =>
+				val intermVar = resVar.slice(0, 7)
+				(s".push_back(${intermVar}_col0.size() - 1)", tpl.map(foo).map(x => s"${intermVar}_$x").mkString("\n"))
 			case _ => raise(s"not supported sides: $body")
 		}
+	}
+
+	private def foo(inp: (Field, Exp)): String = {
+		val (intermCol, FieldNode(Sym(relTuple), col)) = inp
+		s"$intermCol.push_back($relTuple.$col[${relTuple}_off]);"
+	}
+
+	private def intermStruct(varName: String, tp: Type): String = {
+//		println(varName, tp)
+		""
 	}
 
 	private def resVarInit(varName: String, tpe: Type): String = {
@@ -188,14 +204,8 @@ object CppCodeGenerator {
 	private def toCpp(tpe: Type): String = tpe match {
 		case IntType => "int"
 		case StringType => "std::string"
-		case DictType(key, value) =>
-			val value_cpp = value match {
-				case IntType => toCpp(value)
-				case DictType(IntType, valueValue) => s"phmap::flat_hash_map<int, ${toCpp(valueValue)}>"
-				case DictType(_: RecordType, IntType) => "std::vector<int>"
-			}
-			s"phmap::flat_hash_map<${toCpp(key)}, $value_cpp>"
-		case RecordType(fs) => fs.map(_.tpe).map(toCpp).mkString("std::tuple<", ", ", ">")
+		case DictType(_: RecordType, IntType) => "std::vector<int>"
+		case DictType(key, value) => s"phmap::flat_hash_map<${toCpp(key)}, ${toCpp(value)}>"
 		case _ => raise(s"unsupported type in toCpp: $tpe")
 	}
 
