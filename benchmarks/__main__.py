@@ -14,15 +14,15 @@ INDICES_AND_QUERIES = (
     # (10, q10), // last column has commas
     (11, q11),
     (12, q12),
-    (13, q13),
+    (13, q13),  # TODO investigate later
     # (14, q14), // scalar
-    (15, q15),
+    (15, q15),  # TODO investigate later
     (16, q16),
     # (17, q17), // scalar
     (18, q18),
     (19, q19),
     # (20, q20), // last column has commas
-    (21, q21),
+    (21, q21),  # TODO investigate later
     # (22, q22),  // map
 )
 
@@ -39,9 +39,15 @@ if __name__ == "__main__":
     indexes = (
         1,
         3,
+        4,
         5,
+        8,
         9,
+        11,
+        12,
+        16,
         18,
+        19,
     )
     queries = [eval(f"q{i}") for i in indexes]
 
