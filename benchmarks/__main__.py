@@ -28,14 +28,8 @@ INDICES_AND_QUERIES = (
 
 # TODO reconcile diffs in sdqlpy_private SQL queries / TPCH originals / sdqlpy *.sdql
 
-if __name__ == "__main__":
-    # # checks SDQL results can't be parsed into csv
-    # for i, q in INDICES_AND_QUERIES:
-    #     try:
-    #         write_sdql_csvs([i])
-    #     except:
-    #         print(f"ignore: {i}")
 
+def assert_correctness():
     indexes = (
         1,
         3,
@@ -51,15 +45,26 @@ if __name__ == "__main__":
     )
     queries = [eval(f"q{i}") for i in indexes]
 
+    duckdb_dfs = read_duckdb_csvs(indexes, queries)
+    sdql_dfs = read_sdql_csvs(indexes)
+
+    for i, (sdql_df, duckdb_df) in zip(indexes, (zip(duckdb_dfs, sdql_dfs))):
+        print(f"TPCH {i} - checking correctness")
+        assert_df_equal(sdql_df, duckdb_df)
+
+
+if __name__ == "__main__":
+    # # checks SDQL results can't be parsed into csv
+    # for i, q in INDICES_AND_QUERIES:
+    #     try:
+    #         write_sdql_csvs([i])
+    #     except:
+    #         print(f"ignore: {i}")
+
     # # forces a rewrite
     # from helpers import write_duckdb_csvs, write_sdql_csvs
     #
     # write_duckdb_csvs(indexes, queries)
     # write_sdql_csvs(indexes)
 
-    duckdb_dfs = read_duckdb_csvs(indexes, queries)
-    sdql_dfs = read_sdql_csvs(indexes)
-
-    for i, (sdql_df, duckdb_df) in zip(indexes, (zip(duckdb_dfs, sdql_dfs))):
-        print(f"TPCH {i}")
-        assert_df_equal(sdql_df, duckdb_df)
+    assert_correctness()

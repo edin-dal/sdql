@@ -26,9 +26,9 @@ def assert_df_equal(df1: pd.DataFrame, df2: pd.DataFrame):
     for (_, s1), (_, s2) in zip(df1.items(), df2.items()):
         if is_numeric_dtype(s1) or is_numeric_dtype(s2):
             try:
-                s1 = s1.astype(pd.Float64Dtype())
-                s2 = s2.astype(pd.Float64Dtype())
-                assert_series_equal(s1, s2, check_exact=False, rtol=1.0e-12)
+                promo1 = s1.astype(pd.Float64Dtype())
+                promo2 = s2.astype(pd.Float64Dtype())
+                assert_series_equal(promo1, promo2, check_exact=False, rtol=1.0e-12)
             except (AssertionError, ValueError):
                 raise TypeError(f"dtypes: {s1.dtype} != {s2.dtype}")
         else:
