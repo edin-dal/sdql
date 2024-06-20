@@ -2,6 +2,8 @@ from benches import benchmark_duckdb
 from queries import *
 from validation import assert_correctness
 
+from loaders import *
+
 INDICES_AND_QUERIES = (
     (1, q1),
     (2, q2),

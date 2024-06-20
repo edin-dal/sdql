@@ -7,7 +7,7 @@ import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from pandas.testing import assert_series_equal
 
-from loaders import read_sdql_csvs, read_duckdb_csvs
+from readers import read_sdql_csvs, read_duckdb_csvs
 
 RTOL = 1.0e-13
 
