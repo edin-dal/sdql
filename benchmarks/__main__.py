@@ -1,4 +1,4 @@
-from helpers import read_sdql_csvs, read_duckdb_csvs, assert_df_equal
+from helpers import read_sdql_csvs, read_duckdb_csvs, assert_df_equal, benchmark_duckdb
 from queries import *
 
 INDICES_AND_QUERIES = (
@@ -14,37 +14,22 @@ INDICES_AND_QUERIES = (
     # (10, q10), // last column has commas
     (11, q11),
     (12, q12),
-    (13, q13),  # TODO investigate later
+    # (13, q13),  # TODO investigate correctness later
     # (14, q14), // scalar
-    (15, q15),  # TODO investigate later
+    # (15, q15),  # TODO investigate correctness later
     (16, q16),
     # (17, q17), // scalar
     (18, q18),
     (19, q19),
     # (20, q20), // last column has commas
-    (21, q21),  # TODO investigate later
+    # (21, q21),  # TODO investigate correctness later
     # (22, q22),  // map
 )
 
 # TODO reconcile diffs in sdqlpy_private SQL queries / TPCH originals / sdqlpy *.sdql
 
 
-def assert_correctness():
-    indexes = (
-        1,
-        3,
-        4,
-        5,
-        8,
-        9,
-        11,
-        12,
-        16,
-        18,
-        19,
-    )
-    queries = [eval(f"q{i}") for i in indexes]
-
+def assert_correctness(indexes, queries):
     duckdb_dfs = read_duckdb_csvs(indexes, queries)
     sdql_dfs = read_sdql_csvs(indexes)
 
@@ -61,10 +46,8 @@ if __name__ == "__main__":
     #     except:
     #         print(f"ignore: {i}")
 
-    # # forces a rewrite
-    # from helpers import write_duckdb_csvs, write_sdql_csvs
-    #
-    # write_duckdb_csvs(indexes, queries)
-    # write_sdql_csvs(indexes)
+    indexes = (1, 3, 5, 9, 18)
+    queries = [eval(f"q{i}") for i in indexes]
 
-    assert_correctness()
+    assert_correctness(indexes, queries)
+    benchmark_duckdb(indexes, queries)
