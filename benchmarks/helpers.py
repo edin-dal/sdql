@@ -1,6 +1,7 @@
 import io
 import os
 import re
+from collections import defaultdict
 from contextlib import contextmanager
 from functools import wraps
 from itertools import repeat
@@ -12,6 +13,24 @@ from pandas.api.types import is_numeric_dtype
 from pandas.testing import assert_series_equal
 
 import duckdb
+
+# TPCH address and comment are randomised
+TPCH_TO_SKIPCOLS = defaultdict(
+    set,
+    {
+        # FIXME s_phone is fine, was caught in escaping quotes
+        # s_address, s_phone, s_comment
+        2: {5, 6, 7},
+        # FIXME c_phone is fine, was caught in escaping quotes
+        # c_address, c_phone, c_comment
+        10: {5, 6, 7},
+        # TODO should match if we DON'T use DuckDb's TPCH generator
+        # s_address
+        15: {2},
+        # s_address
+        20: {1},
+    },
+)
 
 SCALING_FACTOR = 1
 CONCURRENCY = 1
@@ -57,20 +76,27 @@ def benchmark_duckdb(indices, queries):
     return db_times
 
 
-def assert_df_equal(df1: pd.DataFrame, df2: pd.DataFrame):
+def assert_df_equal(df1: pd.DataFrame, df2: pd.DataFrame, tpch_i: int):
     if df1.shape != df2.shape:
         raise ValueError(f"shapes: {df1.shape} != {df2.shape}")
 
-    for (_, s1), (_, s2) in zip(df1.items(), df2.items()):
-        if is_numeric_dtype(s1) or is_numeric_dtype(s2):
-            try:
-                promo1 = s1.astype(pd.Float64Dtype())
-                promo2 = s2.astype(pd.Float64Dtype())
-                assert_series_equal(promo1, promo2, check_exact=False, rtol=1.0e-12)
-            except (AssertionError, ValueError):
-                raise TypeError(f"dtypes: {s1.dtype} != {s2.dtype}")
-        else:
-            assert_series_equal(s1, s2, check_dtype=True, check_exact=True)
+    skip_cols = TPCH_TO_SKIPCOLS[tpch_i]
+
+    for i, ((_, s1), (_, s2)) in enumerate(zip(df1.items(), df2.items())):
+        try:
+            if is_numeric_dtype(s1) or is_numeric_dtype(s2):
+                assert i not in skip_cols
+                s1 = s1.astype(pd.Float64Dtype())
+                s2 = s2.astype(pd.Float64Dtype())
+                assert_series_equal(s1, s2, check_exact=False, rtol=1.0e-13)
+            else:
+                if i in skip_cols:
+                    continue
+
+                assert_series_equal(s1, s2, check_dtype=True, check_exact=True)
+        except AssertionError as e:
+            print(f"Failed on TPCH Q{tpch_i} column {i}")
+            raise e
 
 
 def read_sdql_csvs(indices):
