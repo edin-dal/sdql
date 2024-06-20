@@ -24,6 +24,7 @@ object CppCodeGenerator {
 		val printBody = tpe match {
 			case _: DictType => s"std::cout << $defaultResultsVar.size() << std::endl;"
 			case _ if tpe.isScalar => s"std::cout << $name << std::endl;"
+			case RecordType(fs) => fs.map(attr => s"$defaultResultsVar.${attr.name}").mkString("std::cout << ", """ << " | " << """, " << std::endl;")
 		}
 		s"""|#include "../runtime/headers.h"
 			|#include <vector>
@@ -48,14 +49,7 @@ object CppCodeGenerator {
 		case LetBinding(x@Sym(varName), e1, e2) =>
 			val cpp_e1 = e1 match {
 				case Load(path, tp) => load(varName, path, tp)
-				case e1: Sum =>
-					val (sum_cpp, Some((_, tpe))) = sum(e1)(typesCtx, callsCtx, varName)
-					s"""${intermStruct(varName, tpe)}
-					   |${resVarInit(varName, tpe)}
-					   |$sum_cpp
-					   |""".stripMargin
-				case _: Get => s"const auto $varName = ${srun(e1)};\n"
-				case _ => raise(s"Unhandled bind value $e1")
+				case e1: Sum => letSum(e1)(typesCtx, callsCtx, varName)
 			}
 			val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
 			val (cpp_e2, info) = run(e2)(typesLocal, callsCtx, resVar)
@@ -63,21 +57,12 @@ object CppCodeGenerator {
 
 		case e: Sum => sum(e)
 
-		case IfThenElse(cond, thenp, elsep) =>
-			val cppCond = srun(cond)
-			val cppThen = scopeBody(thenp)
-			val cppElse = scopeBody(elsep)
-			(s"if ($cppCond) {\n$cppThen\n} else {\n$cppElse\n}\n", None)
-
 		case Cmp(e1, e2, cmp) => cmp match {
 			case "∈" => (s"${srun(e2)}.contains(${srun(e1)})", None)
-			case _ => raise(s"not supported cmp: $e")
 		}
 
 		case DictNode(Nil) => ("", None)
 		case DictNode(ArrayBuffer((_, htValue))) => (srun(htValue), None)
-
-		case FieldNode(Sym(name), column) => (s"$name.$column[i]", None)
 
 		case Get(Sym(htName), Sym(htKeyName)) => (s"$htName.at($htKeyName)", None)
 
@@ -86,15 +71,12 @@ object CppCodeGenerator {
 			typesCtx.get(Sym(itVar)) match {
 				case Some(_: RelationType) => (s"$name[i]", None)
 				case Some(_) => (name, None)
-				case None => raise(s"itVar of $name doesn't exist")
 			}
 
 		case Const(v) => v match {
 			case v: String => (s""""$v"""", None)
 			case _ => (v.toString, None)
 		}
-
-		case _ => raise(s"not supported in run: $e")
 	}
 
 	private def load(varName: String, path: String, tp: Type): String = {
@@ -108,14 +90,30 @@ object CppCodeGenerator {
 					{ case (attr, i) => s"${docVar(varName)}.GetColumn<${toCpp(attr.tpe)}>($i)," }
 				).mkString(s"const ${typeVar(varName)} $varName {\n", "\n", "\n};\n")
 				s"$doc_def\n$struct_def\n$struct_init\n".stripMargin
-			case _ => raise(s"`load[$tp]('$path')` only supports the type `{ < ... > -> int }`")
 		}
 	}
 
-	private def sum(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, Option[(Sym, Type)]) = {
+	private def letSum(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = {
+		val itVar = e.e1 match {
+			case Sym(name) => name
+		}
+
+		val (sum_cpp, Some((_, tpe))) = sum(e)
+
+		val struct = typesCtx.get(Sym(itVar)) match {
+			case Some(_: DictType) => intermStruct(resVar, tpe)
+			case Some(_) => ""
+		}
+
+		s"""$struct
+		   |${resVarInit(resVar, tpe)}
+		   |$sum_cpp
+		   |""".stripMargin
+	}
+
+	private def sum(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, Option[(Sym, Type)]) = {
 		val (key, value, itVar, sumBody) = e match {
 			case Sum(key: Sym, value: Sym, itVar: Sym, body: Exp) => (key.name, value.name, itVar.name, body)
-			case _ => raise(s"not supported sum: $e")
 		}
 		var (resType, typesLocal) = TypeInference.sum_with_ctx(e)
 		typesLocal ++= Map(Sym(resVar) -> resType)
@@ -142,8 +140,6 @@ object CppCodeGenerator {
 				)
 			case Some(DictType(IntType, _)) => (s"for (const auto &[$loopKey, $loopVal] : $itVar)", scopeBody(sumBody))
 			case Some(DictType(_: RecordType, _)) => (s"for (const auto &${loopKey}_off : $itVar)", scopeBody(sumBody))
-			case Some(tpe) => raise(s"Unhandled type for iteration $tpe")
-			case None => raise(s"$itVar doesn't exist in typesCtx")
 		}
 
 		s"""$loopHeader {
@@ -153,9 +149,16 @@ object CppCodeGenerator {
 	}
 
 	private def scopeBody(body: Exp, isTrieBody: Boolean = false)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = body match {
-		case _: LetBinding => srun(body)
-		case _: IfThenElse => srun(body)
-		case _: Sum => srun(body)
+		case LetBinding(x@Sym(varName), e1, e2) =>
+			val cpp_e1 = e1 match {
+				case e1: Sum => letSum(e1)(typesCtx, callsCtx, varName)
+				case _: Get => s"const auto $varName = ${srun(e1)};\n"
+			}
+			val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
+			val cpp_e2 = scopeBody(e2)(typesLocal, callsCtx, resVar)
+			cpp_e1 + cpp_e2
+		case IfThenElse(cond, thenp, _) => s"if (${srun(cond)}) {\n${scopeBody(thenp)}\n}\n"
+		case _: Sum => sum(body)._1
 		case _ =>
 			val (assignParams, preLines) = dictAssign(body, isTrieBody)
 			assignParams match {
@@ -168,37 +171,53 @@ object CppCodeGenerator {
 
 	private def dictAssign(body: Exp, isTrieBody: Boolean)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, String) = {
 		body match {
+			case _: Const => (s"+= ${srun(body)}", "")
+			case FieldNode(Sym(tupleVar), column) =>
+				val idx = if (isTrieBody) "i" else s"${tupleVar}_off"
+				(s"+= $tupleVar.$column[$idx]", "")
 			case DictNode(ArrayBuffer((FieldNode(Sym(tupleVar), column), valueNode))) =>
 				val idx = if (isTrieBody) "i" else s"${tupleVar}_off"
 				val (rhs, preLines) = dictAssign(valueNode, isTrieBody)
 				(s"[$tupleVar.$column[$idx]]$rhs", preLines)
-			case _: Const => (s"+= ${srun(body)}", "")
 			case DictNode(Nil) => ("", "")
 			case DictNode(ArrayBuffer((_: Sym, _: Const))) => (".push_back(i)", "")
 			case DictNode(ArrayBuffer((RecNode(tpl), _: Const))) =>
 				val intermVar = resVar.slice(0, 7)
-				(s".push_back(${intermVar}_col0.size() - 1)", tpl.map(foo).map(x => s"${intermVar}_$x").mkString("\n"))
-			case _ => raise(s"not supported sides: $body")
+				(s".push_back(${intermVar}_cnt++)", tpl.map(intermColPushBack).map(col => s"$intermVar.$col").mkString("\n"))
+			case RecNode(fs) => (s".min(${fs.map(x => srun(x._2)).mkString(", ")})", "")
 		}
 	}
 
-	private def foo(inp: (Field, Exp)): String = {
+	private def intermColPushBack(inp: (Field, Exp)): String = {
 		val (intermCol, FieldNode(Sym(relTuple), col)) = inp
 		s"$intermCol.push_back($relTuple.$col[${relTuple}_off]);"
 	}
 
-	private def intermStruct(varName: String, tp: Type): String = {
-//		println(varName, tp)
-		""
+	private def intermStruct(varName: String, tp: Type): String = tp match {
+		case DictType(IntType, value) => intermStruct(varName, value)
+		case DictType(RecordType(fs), IntType) =>
+			val intermVar = varName.slice(0, 7)
+			val vecs = fs.map(attr => s"std::vector<${toCpp(attr.tpe)}> ${attr.name};").mkString("\n")
+			s"""struct ${typeVar(intermVar)} { $vecs } $intermVar;
+			   |auto &${intermVar}_tuple = $intermVar;
+			   |int ${intermVar}_cnt = 0;""".stripMargin
+		case StringType | IntType | RealType => ""
 	}
 
-	private def resVarInit(varName: String, tpe: Type): String = {
-		val zero = tpe match {
-			case DictType(_, _) => "{}"
-			case _ if tpe.isScalar => "0"
-			case _ => raise(s"unsupported type in resVarInit: $tpe")
-		}
-		s"${toCpp(tpe)} $varName($zero);"
+	private def resVarInit(varName: String, tpe: Type): String = tpe match {
+		case DictType(_, _) => s"${toCpp(tpe)} $varName({});"
+		case IntType => s"${toCpp(tpe)} $varName = 0;"
+		case StringType => s"""${toCpp(tpe)} $varName = "";"""
+		case RecordType(fs) =>
+			s"""struct ${typeVar(varName)} {
+			   |${fs.map(attr => s"${toCpp(attr.tpe)} ${attr.name};").mkString("\n")}
+			   |${typeVar(varName)}() : ${fs.map(attr => s"${attr.name}(${inf(attr.tpe)})").mkString(", ")} {}
+			   |${typeVar(varName)}(${fs.map(attr => s"${toCpp(attr.tpe)} ${attr.name}").mkString(", ")}) : ${fs.map(attr => s"${attr.name}(${attr.name})").mkString(", ")} {}
+			   |void min(${fs.map(attr => s"${toCpp(attr.tpe)} other_${attr.name}").mkString(", ")}) {
+			   |${fs.map(attr => s"${attr.name} = std::min(${attr.name}, other_${attr.name});").mkString("\n")}
+			   |}
+			   |} $varName;
+			   |""".stripMargin
 	}
 
 	private def toCpp(tpe: Type): String = tpe match {
@@ -206,7 +225,11 @@ object CppCodeGenerator {
 		case StringType => "std::string"
 		case DictType(_: RecordType, IntType) => "std::vector<int>"
 		case DictType(key, value) => s"phmap::flat_hash_map<${toCpp(key)}, ${toCpp(value)}>"
-		case _ => raise(s"unsupported type in toCpp: $tpe")
+	}
+
+	private def inf(tp: Type): String = tp match {
+		case IntType => "numeric_limits<int>::max()"
+		case StringType => """"zzzzzzzzzzzzzzzzzz""""
 	}
 
 	private def docVar(name: String) = s"${name.toUpperCase}_DOC"

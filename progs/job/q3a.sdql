@@ -26,7 +26,7 @@ sum(<x0, mi_trie1> <- mi_trie0)
 				let mn_interm0_col2 = sum(<interm0_tuple, _> <- interm0_trie2) interm0_tuple.col2 in
 				<col2=mn_interm0_col2>
 			else
-				<col2={}>
+				<col2="">
 	else
 		{}
 

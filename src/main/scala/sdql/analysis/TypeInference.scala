@@ -93,7 +93,7 @@ object TypeInference {
 		}
 	}
 
-	def sum_with_ctx(e: Sum)(implicit ctx: Ctx): (Type, Ctx) = {
+	def sum_with_ctx(e: Exp)(implicit ctx: Ctx): (Type, Ctx) = {
 		val (k, v, e1Sym, e2) = e match {
 			case Sum(k, v, e1Sym: Sym, e2) => (k, v, e1Sym, e2)
 		}
