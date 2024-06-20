@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "pipeline"
+name = "benchmarks"
 version = "0.1.0"
 description = ""
-authors = ["amascolo <12738821+amascolo@users.noreply.github.com>"]
+authors = [""]
 readme = "README.md"
 
 [tool.poetry.dependencies]
