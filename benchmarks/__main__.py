@@ -1,3 +1,5 @@
+import warnings
+
 from helpers import (
     read_sdql_csvs,
     read_duckdb_csvs,
@@ -5,6 +7,7 @@ from helpers import (
     benchmark_duckdb,
 )
 from queries import *
+from sdqlpy_utils import validate_results
 
 INDICES_AND_QUERIES = (
     (1, q1),
@@ -45,10 +48,17 @@ def assert_correctness(indices, queries):
         print(f"TPCH {i} - checking correctness")
         assert_df_equal(sdql_df, duckdb_df, i)
 
+    # double-check results on the old sdqlpy validator
+    invalid_queries, unknown_queries = validate_results("duckdb", "sdql")
+    assert not unknown_queries
+    if invalid_queries:
+        # TODO change this to raise an exception
+        warnings.warn(f"invalid: {', '.join(invalid_queries)}")
+
 
 if __name__ == "__main__":
     indices = [i for i, _ in INDICES_AND_QUERIES]
     queries = [q for _, q in INDICES_AND_QUERIES]
 
     assert_correctness(indices, queries)
-    # benchmark_duckdb(indices, queries)
+    benchmark_duckdb(indices, queries)

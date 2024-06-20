@@ -14,14 +14,15 @@ from pandas.testing import assert_series_equal
 
 import duckdb
 
+RTOL = 1.0e-13
+
 # TPCH address and comment are randomised
 TPCH_TO_SKIPCOLS = defaultdict(
     set,
     {
-        # FIXME s_phone is fine, was caught in escaping quotes
+        # s_phone is fine - just caught in escaping quotes
         # s_address, s_phone, s_comment
         2: {5, 6, 7},
-        # FIXME c_phone is fine, was caught in escaping quotes
         # c_address, c_phone, c_comment
         10: {5, 6, 7},
         # TODO should match if we DON'T use DuckDb's TPCH generator
@@ -88,7 +89,7 @@ def assert_df_equal(df1: pd.DataFrame, df2: pd.DataFrame, tpch_i: int):
                 assert i not in skip_cols
                 s1 = s1.astype(pd.Float64Dtype())
                 s2 = s2.astype(pd.Float64Dtype())
-                assert_series_equal(s1, s2, check_exact=False, rtol=1.0e-13)
+                assert_series_equal(s1, s2, check_exact=False, rtol=RTOL)
             else:
                 if i in skip_cols:
                     continue
