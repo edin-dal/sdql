@@ -28,11 +28,13 @@ object CppCompilation {
     reflect.io.File(path.toString).writeAll(contents)
   }
   private def cmakeContents(noExtensions: Seq[String]): String = {
-    val init =  s"""#this auto-generated config is handy for debugging
+    val init =  s"""#auto-generated config
                    |cmake_minimum_required(VERSION $cmakeVersion)
                    |project(generated)
                    |set(CMAKE_CXX_STANDARD $cppStandard)
-                   |set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $${CMAKE_CURRENT_SOURCE_DIR})
+                   |set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+                   |set(CMAKE_CXX_FLAGS_RELEASE "$releaseFlag")
+                   |set(CMAKE_CXX_FLAGS "$phmapWarningsFlag")
                    |""".stripMargin
     noExtensions.map(noExtension => s"add_executable($noExtension.out $noExtension.cpp)").mkString(init, "\n", "")
   }
@@ -43,5 +45,7 @@ object CppCompilation {
   private val generatedDir = new java.io.File("generated")
 
   private val cppStandard = 20
-  val clangCmd: Seq[String] = Seq("clang++", "-O3", "-Wno-deprecated-builtins", "--std", s"c++$cppStandard")
+  private val releaseFlag = "-O3"
+  private val phmapWarningsFlag = "-Wno-deprecated-builtins"
+  val clangCmd: Seq[String] = Seq("clang++", releaseFlag, phmapWarningsFlag, "--std", s"c++$cppStandard")
 }
