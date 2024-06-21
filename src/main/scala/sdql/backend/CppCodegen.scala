@@ -49,19 +49,18 @@ object CppCodegen {
     val (csvBody, loadsCtx) = CsvBodyWithLoadsCtx(Seq(e))
     val queryBody = run(e)(Map(), List(), loadsCtx)
     val benchStart = if(!isBenchmark) "" else "auto start = high_resolution_clock::now();\n"
-    val benchEnd = if(!isBenchmark) "" else
+    val benchStop = if(!isBenchmark) "" else
       """auto stop = high_resolution_clock::now();
         |auto duration = duration_cast<milliseconds>(stop - start);
+        |cout << "Runtime (ms): " << duration.count() << endl;
         |""".stripMargin
     // slightly wasteful to redo type inference - but spares us having to return the type at every recursive run call
     val tpe = TypeInference(e)
-    val printBody =
-      if(isBenchmark) """cout << "Runtime (ms): " << duration.count() << endl;""" else cppPrintResult(tpe)
     val queryBodyWithPrint =
       s"""$benchStart
          |$queryBody
-         |$benchEnd
-         |$printBody
+         |$benchStop
+         |${cppPrintResult(tpe)}
          |""".stripMargin
     batchedName match {
       case None => s"""$header\n\n$consts\n$csvBody\n""" ++ s"int main() { $queryBodyWithPrint }"

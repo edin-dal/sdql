@@ -43,9 +43,9 @@ object Main {
           println()
         }
       // hidden setting - useful for benchmarks
-      case "compile-batched" =>
+      case "benchmark" =>
         if(args.length < 3) {
-          raise("usage: `run compile-batched <path> <sdql_files>*`")
+          raise("usage: `run benchmark <path> <sdql_files>*`")
         }
         val dirPath = Path.of(args(1))
         val fileNames = args.drop(2)
