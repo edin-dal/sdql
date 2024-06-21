@@ -15,14 +15,11 @@ RTOL = 1.0e-13
 TPCH_TO_SKIPCOLS = defaultdict(
     set,
     {
-        # s_phone is fine - just caught in escaping quotes
+        # TODO s_phone / c_phone are fine - just caught in escaping quotes
         # s_address, s_phone, s_comment
         2: {5, 6, 7},
         # c_address, c_phone, c_comment
         10: {5, 6, 7},
-        # TODO should match if we DON'T use DuckDb's TPCH generator
-        # s_address
-        15: {2},
         # s_address
         20: {1},
     },

@@ -2,8 +2,6 @@ from benches import benchmark_duckdb
 from queries import *
 from validation import assert_correctness
 
-from loaders import *
-
 INDICES_AND_QUERIES = (
     (1, q1),
     (2, q2),
@@ -17,8 +15,7 @@ INDICES_AND_QUERIES = (
     (10, q10),
     (11, q11),
     (12, q12),
-    # TODO should match if we DON'T use DuckDb's TPCH generator
-    # (13, q13),
+    (13, q13),
     (14, q14),
     (15, q15),
     (16, q16),
@@ -26,11 +23,11 @@ INDICES_AND_QUERIES = (
     (18, q18),
     (19, q19),
     (20, q20),
-    # TODO investigate remaining discrepancies in Q21
-    #  (should match if we DON'T use DuckDb's TPCH generator)
+    # FIXME
     # (21, q21),
     (22, q22),
 )
+
 
 if __name__ == "__main__":
     indices = [i for i, _ in INDICES_AND_QUERIES]
