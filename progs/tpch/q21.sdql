@@ -6,55 +6,55 @@ let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_to
 
 let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
 
-let n_h =
+let nation_indexed =
   sum(<n,n_v> <- nation)
     if(n.n_name == "SAUDI ARABIA") then
       { n.n_nationkey -> < _ = n.n_nationkey > }
     else
       { }
 
-let s_h =
+let su_probed =
   sum(<s,s_v> <- supplier)
-    if(n_h(s.s_nationkey) != {}) then
+    if(nation_indexed(s.s_nationkey) != {}) then
       { s.s_suppkey -> s.s_name }
     else
       { }
 
-// TODO sdqlpy stores o_h as a vector
-let o_h =
+// TODO sdqlpy stores ord_indexed as a vector
+let ord_indexed =
   sum(<o,o_v> <- orders)
     if(o.o_orderstatus == "F") then
       { o.o_orderkey -> 1 }
     else
       { }
 
-// TODO sdqlpy stores l_h as a vector or vectors
-let l_h =
+// TODO sdqlpy stores l2_indexed as a vector or vectors
+let l2_indexed =
   sum(<l,l_v> <- lineitem)
     { l.l_orderkey ->  { l.l_suppkey -> 1 } }
 
-// TODO sdqlpy stores l_h_filtered as a vector or vectors
-let l_h_filtered =
+// TODO sdqlpy stores l3_indexed as a vector or vectors
+let l3_indexed =
   sum(<l,l_v> <- lineitem)
     if(l.l_commitdate < l.l_receiptdate) then
       { l.l_orderkey ->  { l.l_suppkey -> 1 } }
     else
       { }
 
-let result_h =
+let l1_probed =
   sum(<l,l_v> <- lineitem)
     if(
       (l.l_commitdate < l.l_receiptdate) &&
-      (s_h(l.l_suppkey) != {}) &&
-      (o_h(l.l_orderkey) != {}) &&
-      (1 < ext(`Size`, l_h(l.l_orderkey))) &&
-      (ext(`Size`, l_h_filtered(l.l_orderkey)) <= 1)
+      (su_probed(l.l_suppkey) != {}) &&
+      (ord_indexed(l.l_orderkey) != {}) &&
+      (1 < ext(`Size`, l2_indexed(l.l_orderkey))) &&
+      (ext(`Size`, l3_indexed(l.l_orderkey)) <= 1)
     ) then
-      { < name = s_h(l.l_suppkey) > -> < numwait = 1> }
+      { < name = su_probed(l.l_suppkey) > -> < numwait = 1> }
     else
       { }
 
-let limit_h = ext(`Limit`, result_h, 100, true)
+let l1_limited = ext(`Limit`, l1_probed, 100, true)
 
-sum(<k,v> <- limit_h)
+sum(<k,v> <- l1_limited)
   { concat(k,v) -> 1 }
