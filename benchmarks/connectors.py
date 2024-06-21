@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import Callable
 from typing import Dict, List, Tuple
 
@@ -12,6 +13,7 @@ from tableauhyperapi import (
     TableDefinition,
     NOT_NULLABLE,
     NULLABLE,
+    HyperException,
 )
 
 import duckdb
@@ -25,16 +27,22 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "../datasets/tpch")
 class DuckDbTpch:
 
     def __init__(self):
+        print(f"Connecting to DuckDB")
         self.conn = duckdb.connect(":memory:", read_only=False)
         self.conn.execute(f"PRAGMA threads={THREADS}")
         print(f"Reading TPCH from disk")
-        load_tpch(self._table_loader, UseConstraintsTypes.Enable)
+        try:
+            load_tpch(self._table_loader, UseConstraintsTypes.Enable)
+        except Exception as e:
+            self.__exit__(*sys.exc_info())
+            raise e
 
     def __enter__(self):
-        return self.conn
+        return self.conn.__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.conn.__exit__(exc_type, exc_val, exc_tb)
+        print(f"Disconnected from DuckDB")
 
     def execute(self, *args, **kwargs):
         return self.conn.execute(*args, **kwargs)
@@ -69,6 +77,7 @@ class DuckDbTpch:
 class HyperTpch:
 
     def __init__(self, db_name="db", version="o"):
+        print(f"Connecting to Hyper")
         parameters = {
             "log_config": "",
             "max_query_size": "10000000000",
@@ -81,13 +90,30 @@ class HyperTpch:
         self.conn = Connection(
             self.server.endpoint, f"{db_name}.hyper", CreateMode.CREATE_AND_REPLACE
         )
+        self.db_name = db_name
+        print(f"Reading TPCH from disk")
+        try:
+            load_tpch(self._table_loader, UseConstraintsTypes.Enable)
+        except HyperException as e:
+            self.__exit__(*sys.exc_info())
+            if e.main_message.startswith("too many columns in input file"):
+                raise IOError(
+                    "Tables shouldn't have EOL `|` character - run fix in README"
+                ) from e
+            else:
+                raise e
 
     def __enter__(self):
-        return self.server, self.conn
+        return self.conn.__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.conn.__exit__(exc_type, exc_val, exc_tb)
         self.server.__exit__(exc_type, exc_val, exc_tb)
+        print(f"Disconnected from Hyper")
+        try:
+            os.remove(f"{self.db_name}.hyper")
+        except FileNotFoundError:
+            pass
 
     def _table_loader(
         self,
