@@ -1,5 +1,4 @@
 import os
-import warnings
 from collections import defaultdict
 
 import numpy as np
@@ -30,15 +29,13 @@ def assert_correctness_duckdb(indices, queries):
     sdql_dfs = read_sdql_csvs(indices)
 
     for i, (sdql_df, duckdb_df) in zip(indices, (zip(duckdb_dfs, sdql_dfs))):
-        print(f"TPCH {i} - checking correctness")
+        print(f"TPCH {i} - checking correctness vs DuckDB")
         assert_df_equal(sdql_df, duckdb_df, i)
 
     # double-check results on the old sdqlpy validator
     invalid_queries, unknown_queries = validate_results("duckdb", "sdql")
-    assert not unknown_queries
-    if invalid_queries:
-        # TODO change this to raise an exception
-        warnings.warn(f"DuckDB diffs: {', '.join(invalid_queries)}")
+    assert not unknown_queries, f"DuckDB unknown queries: {unknown_queries}"
+    assert not unknown_queries, f"DuckDB invalid queries: {invalid_queries}"
 
 
 def assert_correctness_hyper(indices, queries):
@@ -46,15 +43,14 @@ def assert_correctness_hyper(indices, queries):
     sdql_dfs = read_sdql_csvs(indices)
 
     for i, (sdql_df, hyper_df) in zip(indices, (zip(hyper_dfs, sdql_dfs))):
-        print(f"TPCH {i} - checking correctness")
+        print(f"TPCH {i} - checking correctness vs Hyper")
         assert_df_equal(sdql_df, hyper_df, i)
 
     # double-check results on the old sdqlpy validator
     invalid_queries, unknown_queries = validate_results("hyper", "sdql")
-    assert not unknown_queries
-    if invalid_queries:
-        # TODO change this to raise an exception
-        warnings.warn(f"Hyper diffs: {', '.join(invalid_queries)}")
+    assert not unknown_queries, f"unknown_queries: {unknown_queries}"
+    assert not unknown_queries, f"Hyper unknown queries: {unknown_queries}"
+    assert not unknown_queries, f"Hyper invalid queries: {invalid_queries}"
 
 
 def assert_df_equal(df1: pd.DataFrame, df2: pd.DataFrame, tpch_i: int):

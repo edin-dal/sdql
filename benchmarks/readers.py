@@ -4,6 +4,7 @@ import re
 from functools import wraps
 
 import pandas as pd
+from pandas.api.types import is_string_dtype
 
 from connectors import DuckDbTpch, HyperTpch
 
@@ -86,6 +87,8 @@ def write_hyper_csvs(indices, queries):
             df = db.query_with_result(q)
             # SDQL results are unordered - so we order all dataframes for comparison
             sort_no_ties(df)
+            # strip trailing whitespaces - inserted by Hyper
+            df = df.apply(lambda s: s.str.rstrip() if is_string_dtype(s) else s)
             path = os.path.join(HYPER_CSVS_DIR, f"q{i}.csv")
             df.to_csv(path, header=False, index=False)
 
