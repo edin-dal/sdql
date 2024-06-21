@@ -35,8 +35,8 @@ select
         n_name,
         p_partkey,
         p_mfgr,
-        s_address,
         s_phone,
+        s_address,
         s_comment
 from
         part,
@@ -316,8 +316,8 @@ select
         sum(l_extendedprice * (1 - l_discount)) as revenue,
         c_acctbal,
         n_name,
-        c_address,
         c_phone,
+        c_address,
         c_comment
 from
         customer,

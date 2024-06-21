@@ -67,8 +67,8 @@ sum(<ps,ps_v> <- partsupp)
         _ = s_h(ps.ps_suppkey)(2),
         _ = ps.ps_partkey,
         _ = p_h(ps.ps_partkey)(0),
-        _ = s_h(ps.ps_suppkey)(3),
         _ = s_h(ps.ps_suppkey)(4),
+        _ = s_h(ps.ps_suppkey)(3),
         _ = s_h(ps.ps_suppkey)(5)
       > -> 1
     }

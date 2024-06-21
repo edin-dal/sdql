@@ -75,8 +75,8 @@ sum(<k,v> in limit)
       revenue = v,
       c_acctbal = k.c_acctbal,
       n_name = k.n_name,
-      c_address = k.c_address,
       c_phone = k.c_phone,
+      c_address = k.c_address,
       c_comment = k.c_comment
     >
     -> 1
