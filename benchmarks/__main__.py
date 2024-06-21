@@ -35,8 +35,8 @@ if __name__ == "__main__":
     assert_correctness_duckdb(indices, queries)
     benchmark_duckdb(indices, queries)
 
-    # TODO
-    #  Hyper correctness: Q15 empty, others have white spaces
-    #  Hyper benchmark: investigate why all zero
+    # TODO Hyper
+    #  correctness: columns have right-trailing whitespaces
+    #  benchmark: investigate why all zero
     # assert_correctness_hyper(indices, queries)
     # benchmark_hyper(indices, queries)
