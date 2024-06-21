@@ -1,8 +1,12 @@
 import os
+import re
 import sys
+from contextlib import contextmanager
+from time import process_time
 from typing import Callable
 from typing import Dict, List, Tuple
 
+import pandas as pd
 from tableauhyperapi import (
     escape_string_literal,
     HyperProcess,
@@ -20,8 +24,16 @@ import duckdb
 from benchmarks.enums import UseConstraintsTypes
 
 THREADS = 1
-
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../datasets/tpch")
+
+SEC_TO_MS = 1_000
+
+
+@contextmanager
+def Time():
+    t1 = t2 = process_time()
+    yield lambda: t2 - t1
+    t2 = process_time()
 
 
 class DuckDbTpch:
@@ -38,14 +50,19 @@ class DuckDbTpch:
             raise e
 
     def __enter__(self):
-        return self.conn.__enter__()
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.conn.__exit__(exc_type, exc_val, exc_tb)
         print(f"Disconnected from DuckDB")
 
-    def execute(self, *args, **kwargs):
-        return self.conn.execute(*args, **kwargs)
+    def query_with_result(self, query: str):
+        return self.conn.execute(query).df()
+
+    def query_with_time(self, query: str):
+        with Time() as time:
+            self.conn.execute(query)
+        return float("{:.2f}".format(time() * SEC_TO_MS))
 
     def _table_loader(
         self,
@@ -104,7 +121,7 @@ class HyperTpch:
                 raise e
 
     def __enter__(self):
-        return self.conn.__enter__()
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.conn.__exit__(exc_type, exc_val, exc_tb)
@@ -114,6 +131,37 @@ class HyperTpch:
             os.remove(f"{self.db_name}.hyper")
         except FileNotFoundError:
             pass
+
+    def query_with_result(self, query: str):
+        query = self._revise_query(query)
+        hyper_res = self.conn.execute_query(query)
+        result_df = pd.DataFrame(list(hyper_res))
+        hyper_res.close()
+        return result_df
+
+    def query_with_time(self, query: str):
+        query = self._revise_query(query)
+        with Time() as time:
+            hyper_res = self.conn.execute_query(query)
+        hyper_res.close()
+        return float("{:.2f}".format(time() * SEC_TO_MS))
+
+    @classmethod
+    def _revise_query(cls, query: str):
+        query = re.sub("MEAN\((\w+|\w+\.\w+)\)", r"AVG(\1)", query)
+        query = cls._revise_slice(query)
+        return query
+
+    @staticmethod
+    def _revise_slice(query: str):
+        matches = re.findall("(\w+|\w+\.\w+)\[(\d+):(\d+)\]", query)
+        for match in matches:
+            var_name, start_idx, end_idx = match[0], int(match[1]), int(match[2])
+            query = query.replace(
+                f"{var_name}[{start_idx}:{end_idx}]",
+                f"substring({var_name} from {start_idx + 1} for {end_idx - start_idx})",
+            )
+        return query
 
     def _table_loader(
         self,

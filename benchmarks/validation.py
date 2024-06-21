@@ -7,7 +7,7 @@ import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from pandas.testing import assert_series_equal
 
-from readers import read_sdql_csvs, read_duckdb_csvs
+from readers import read_sdql_csvs, read_duckdb_csvs, read_hyper_csvs
 
 RTOL = 1.0e-13
 
@@ -25,7 +25,7 @@ TPCH_TO_SKIPCOLS = defaultdict(
 )
 
 
-def assert_correctness(indices, queries):
+def assert_correctness_duckdb(indices, queries):
     duckdb_dfs = read_duckdb_csvs(indices, queries)
     sdql_dfs = read_sdql_csvs(indices)
 
@@ -38,7 +38,23 @@ def assert_correctness(indices, queries):
     assert not unknown_queries
     if invalid_queries:
         # TODO change this to raise an exception
-        warnings.warn(f"invalid: {', '.join(invalid_queries)}")
+        warnings.warn(f"DuckDB diffs: {', '.join(invalid_queries)}")
+
+
+def assert_correctness_hyper(indices, queries):
+    hyper_dfs = read_hyper_csvs(indices, queries)
+    sdql_dfs = read_sdql_csvs(indices)
+
+    for i, (sdql_df, hyper_df) in zip(indices, (zip(hyper_dfs, sdql_dfs))):
+        print(f"TPCH {i} - checking correctness")
+        assert_df_equal(sdql_df, hyper_df, i)
+
+    # double-check results on the old sdqlpy validator
+    invalid_queries, unknown_queries = validate_results("hyper", "sdql")
+    assert not unknown_queries
+    if invalid_queries:
+        # TODO change this to raise an exception
+        warnings.warn(f"Hyper diffs: {', '.join(invalid_queries)}")
 
 
 def assert_df_equal(df1: pd.DataFrame, df2: pd.DataFrame, tpch_i: int):

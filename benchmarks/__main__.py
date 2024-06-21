@@ -1,6 +1,6 @@
-from benches import benchmark_duckdb
+from benches import benchmark_duckdb, benchmark_hyper
 from queries import *
-from validation import assert_correctness
+from validation import assert_correctness_duckdb, assert_correctness_hyper
 
 INDICES_AND_QUERIES = (
     (1, q1),
@@ -28,10 +28,15 @@ INDICES_AND_QUERIES = (
     (22, q22),
 )
 
-
 if __name__ == "__main__":
     indices = [i for i, _ in INDICES_AND_QUERIES]
     queries = [q for _, q in INDICES_AND_QUERIES]
 
-    assert_correctness(indices, queries)
+    assert_correctness_duckdb(indices, queries)
     benchmark_duckdb(indices, queries)
+
+    # TODO
+    #  Hyper correctness: Q15 empty, others have white spaces
+    #  Hyper benchmark: investigate why all zero
+    # assert_correctness_hyper(indices, queries)
+    # benchmark_hyper(indices, queries)
