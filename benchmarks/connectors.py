@@ -148,13 +148,13 @@ class HyperTpch:
 
     @classmethod
     def _revise_query(cls, query: str):
-        query = re.sub("MEAN\((\w+|\w+\.\w+)\)", r"AVG(\1)", query)
+        query = re.sub(r"MEAN\((\w+|\w+\.\w+)\)", r"AVG(\1)", query)
         query = cls._revise_slice(query)
         return query
 
     @staticmethod
     def _revise_slice(query: str):
-        matches = re.findall("(\w+|\w+\.\w+)\[(\d+):(\d+)\]", query)
+        matches = re.findall(r"(\w+|\w+\.\w+)\[(\d+):(\d+)\]", query)
         for match in matches:
             var_name, start_idx, end_idx = match[0], int(match[1]), int(match[2])
             query = query.replace(
