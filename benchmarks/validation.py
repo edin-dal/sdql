@@ -23,22 +23,23 @@ TPCH_TO_SKIPCOLS: Final[DefaultDict[int, set[int]]] = defaultdict(
 )
 
 
-def validate_vs_duckdb(indices: Iterable[int], queries: Iterable[str]) -> None:
-    validate_vs("DuckDB", read_duckdb_csvs, indices, queries)
+def validate_vs_duckdb(indices: Iterable[int], queries: Iterable[str], threads) -> None:
+    validate_vs("DuckDB", read_duckdb_csvs, indices, queries, threads)
 
 
-def validate_vs_hyper(indices: Iterable[int], queries: Iterable[str]) -> None:
-    validate_vs("Hyper", read_hyper_csvs, indices, queries)
+def validate_vs_hyper(indices: Iterable[int], queries: Iterable[str], threads) -> None:
+    validate_vs("Hyper", read_hyper_csvs, indices, queries, threads)
 
 
 def validate_vs(
     db_name: str,
-    read_csvs: Callable[[Iterable[int], Iterable[str]], Iterable[pd.DataFrame]],
+    read_csvs: Callable[[Iterable[int], Iterable[str], int], list[pd.DataFrame]],
     indices: Iterable[int],
     queries: Iterable[str],
+    threads: int,
 ) -> None:
     sdql_dfs = read_sdql_csvs(indices)
-    dfs = read_csvs(indices, queries)
+    dfs = read_csvs(indices, queries, threads)
 
     for i, (sdql_df, df) in zip(indices, (zip(sdql_dfs, dfs))):
         print(f"TPCH {i} - validating vs {db_name}")

@@ -5,17 +5,17 @@ import duckdb
 import pandas as pd
 
 from benchmarks.timer import timer
-from .connector import Connector, THREADS, UseConstraintsTypes, SEC_TO_MS
+from .connector import Connector, UseConstraintsTypes
 
 
 class DuckDb(Connector):
 
     def __enter__(self) -> Self:
-        print(f"Connecting to DuckDB")
+        print(f"Connecting to DuckDB (threads={self.threads})")
         self.conn = duckdb.connect(":memory:", read_only=False)
-        self.conn.execute(f"PRAGMA threads={THREADS}")
+        self.conn.execute(f"PRAGMA threads={self.threads}")
 
-        print(f"Loading TPCH from disk")
+        print("Loading TPCH from disk")
         try:
             self.load_tpch(UseConstraintsTypes.Enable)
         except Exception as e:
@@ -26,7 +26,7 @@ class DuckDb(Connector):
 
     def __exit__(self, *args, **kwargs) -> None:
         self.conn.__exit__(*args, **kwargs)
-        print(f"Disconnected from DuckDB")
+        print("Disconnected from DuckDB")
 
     def execute(self, query: str) -> pd.DataFrame:
         return self.conn.execute(query).df()
@@ -34,7 +34,7 @@ class DuckDb(Connector):
     def time(self, query: str) -> float:
         with timer() as time:
             self.conn.execute(query)
-        return SEC_TO_MS * time()
+        return time()
 
     def load_table(
         self,

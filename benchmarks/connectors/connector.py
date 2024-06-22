@@ -13,12 +13,10 @@ class UseConstraintsTypes(enum.Enum):
     Disable = "disable"
 
 
-THREADS = 1
-
-SEC_TO_MS = 1_000
-
-
 class Connector(AbstractContextManager[Self], Protocol):
+
+    def __init__(self, threads: int):
+        self.threads = threads
 
     def execute(self, query: str) -> pd.DataFrame: ...
 

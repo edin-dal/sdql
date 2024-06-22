@@ -18,7 +18,7 @@ from tableauhyperapi import (
 )
 
 from benchmarks.timer import timer
-from .connector import Connector, THREADS, UseConstraintsTypes, SEC_TO_MS
+from .connector import Connector, UseConstraintsTypes
 
 
 class Hyper(Connector):
@@ -34,11 +34,11 @@ class Hyper(Connector):
     }
 
     def __enter__(self):
-        print(f"Connecting to Hyper")
+        print(f"Connecting to Hyper (threads={self.threads})")
         parameters = dict(
             log_config="",
             max_query_size="10000000000",
-            hard_concurrent_query_thread_limit=str(THREADS),
+            hard_concurrent_query_thread_limit=str(self.threads),
             initial_compilation_mode="o",
         )
         self.server = HyperProcess(
@@ -48,7 +48,7 @@ class Hyper(Connector):
             self.server.endpoint, self.DATABASE, CreateMode.CREATE_AND_REPLACE
         )
 
-        print(f"Loading TPCH from disk")
+        print("Loading TPCH from disk")
         try:
             self.load_tpch(UseConstraintsTypes.Enable)
         except HyperException as e:
@@ -62,10 +62,10 @@ class Hyper(Connector):
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.conn.__exit__(exc_type, exc_val, exc_tb)
-        self.server.__exit__(exc_type, exc_val, exc_tb)
-        print(f"Disconnected from Hyper")
+    def __exit__(self, *args, **kwargs):
+        self.conn.__exit__(*args, **kwargs)
+        self.server.__exit__(*args, **kwargs)
+        print("Disconnected from Hyper")
         try:
             os.remove(self.DATABASE)
         except FileNotFoundError:
@@ -83,7 +83,7 @@ class Hyper(Connector):
         with timer() as time:
             hyper_res = self.conn.execute_query(query)
         hyper_res.close()
-        return SEC_TO_MS * time()
+        return time()
 
     def load_table(
         self,

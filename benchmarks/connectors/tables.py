@@ -4,11 +4,11 @@ from typing import Final
 
 
 TPCH_DATASETS: Final[str] = os.path.normpath(
-    os.path.join(os.path.dirname(__file__), "../../datasets/tpch")
+    os.path.join(os.path.dirname(__file__), "../../src/test/tpch/data/SF_1")
 )
 
 
-@dataclass
+@dataclass(frozen=True)
 class Table:
     name: str
     path: str
@@ -17,7 +17,7 @@ class Table:
     foreign_keys: dict[str, tuple[str, str]] = field(default_factory=dict)
 
 
-REGION = Table(
+REGION: Final[Table] = Table(
     name="region",
     path=f"{TPCH_DATASETS}/region.tbl",
     schema=[
@@ -28,7 +28,7 @@ REGION = Table(
     primary_keys=["r_regionkey"],
 )
 
-NATION = Table(
+NATION: Final[Table] = Table(
     name="nation",
     path=f"{TPCH_DATASETS}/nation.tbl",
     schema=[
@@ -41,7 +41,7 @@ NATION = Table(
     foreign_keys={"n_regionkey": ("region", "r_regionkey")},
 )
 
-SUPPLIER = Table(
+SUPPLIER: Final[Table] = Table(
     name="supplier",
     path=f"{TPCH_DATASETS}/supplier.tbl",
     schema=[
@@ -57,7 +57,7 @@ SUPPLIER = Table(
     foreign_keys={"s_nationkey": ("nation", "n_nationkey")},
 )
 
-CUSTOMER = Table(
+CUSTOMER: Final[Table] = Table(
     name="customer",
     path=f"{TPCH_DATASETS}/customer.tbl",
     schema=[
@@ -74,7 +74,7 @@ CUSTOMER = Table(
     foreign_keys={"c_nationkey": ("nation", "n_nationkey")},
 )
 
-PART = Table(
+PART: Final[Table] = Table(
     name="part",
     path=f"{TPCH_DATASETS}/part.tbl",
     schema=[
@@ -91,7 +91,7 @@ PART = Table(
     primary_keys=["p_partkey"],
 )
 
-PARTSUPP = Table(
+PARTSUPP: Final[Table] = Table(
     name="partsupp",
     path=f"{TPCH_DATASETS}/partsupp.tbl",
     schema=[
@@ -108,7 +108,7 @@ PARTSUPP = Table(
     },
 )
 
-ORDERS = Table(
+ORDERS: Final[Table] = Table(
     name="orders",
     path=f"{TPCH_DATASETS}/orders.tbl",
     schema=[
@@ -126,7 +126,7 @@ ORDERS = Table(
     foreign_keys={"o_custkey": ("customer", "c_custkey")},
 )
 
-LINEITEM = Table(
+LINEITEM: Final[Table] = Table(
     name="lineitem",
     path=f"{TPCH_DATASETS}/lineitem.tbl",
     schema=[

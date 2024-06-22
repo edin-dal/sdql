@@ -7,9 +7,9 @@ from typing import Callable, Final, Iterable
 import pandas as pd
 from pandas.api.types import is_string_dtype
 
-from connectors import Hyper, DuckDb
+from connectors import Connector, DuckDb, Hyper
 
-SDQL_RESULTS_DIR: Final[str] = "../src/test/tpch"
+SDQL_RESULTS_DIR: Final[str] = "../src/test/tpch/results/SF_1"
 SDQL_CSVS_DIR: Final[str] = "sdql"
 DUCKDB_CSVS_DIR: Final[str] = "duckdb"
 HYPER_CSVS_DIR: Final[str] = "hyper"
@@ -24,22 +24,22 @@ def read_sdql_csvs(indices: Iterable[int]) -> list[pd.DataFrame]:
 
 
 def read_duckdb_csvs(
-    indices: Iterable[int], queries: Iterable[str]
+    indices: Iterable[int], queries: Iterable[str], threads: int
 ) -> list[pd.DataFrame]:
     return read_csvs(
         DUCKDB_CSVS_DIR,
         indices,
-        lambda: write_db_csvs(DuckDb, indices, queries, is_hyper=False),
+        lambda: write_db_csvs(DuckDb(threads), indices, queries, is_hyper=False),
     )
 
 
 def read_hyper_csvs(
-    indices: Iterable[int], queries: Iterable[str]
+    indices: Iterable[int], queries: Iterable[str], threads: int
 ) -> list[pd.DataFrame]:
     return read_csvs(
         HYPER_CSVS_DIR,
         indices,
-        lambda: write_db_csvs(Hyper, indices, queries, is_hyper=True),
+        lambda: write_db_csvs(Hyper(threads), indices, queries, is_hyper=True),
     )
 
 
@@ -61,9 +61,13 @@ def read_csvs(
 
 
 def write_db_csvs(
-    conn, indices: Iterable[int], queries: Iterable[str], *, is_hyper: bool
+    connector: Connector,
+    indices: Iterable[int],
+    queries: Iterable[str],
+    *,
+    is_hyper: bool,
 ) -> None:
-    with conn() as db:
+    with connector as db:
         for i, q in zip(indices, queries):
             df = db.execute(q)
             # SDQL results are unordered - so we order all dataframes for comparison
