@@ -2,17 +2,17 @@ from itertools import repeat
 from statistics import mean, pstdev
 from typing import Iterable
 
-from connectors import DuckDbTpch, HyperTpch
+from connectors import DuckDb, Hyper
 
 N_ITERS = 5
 
 
 def benchmark_duckdb(indices: Iterable[int], queries: Iterable[str]) -> list[float]:
-    return benchmark("DuckDB", DuckDbTpch, indices, queries)
+    return benchmark("DuckDB", DuckDb, indices, queries)
 
 
 def benchmark_hyper(indices: Iterable[int], queries: Iterable[str]) -> list[float]:
-    return benchmark("Hyper", HyperTpch, indices, queries)
+    return benchmark("Hyper", Hyper, indices, queries)
 
 
 def benchmark(
@@ -23,7 +23,7 @@ def benchmark(
         for i, q in zip(indices, queries):
             q_times = []
             for _ in repeat(None, N_ITERS):
-                t = db.query_with_time(q)
+                t = db.time(q)
                 q_times.append(t)
             mean_ms = round(mean(q_times))
             std_ms = round(pstdev(q_times))

@@ -7,7 +7,7 @@ from typing import Callable, Final, Iterable
 import pandas as pd
 from pandas.api.types import is_string_dtype
 
-from connectors import HyperTpch, DuckDbTpch
+from connectors import Hyper, DuckDb
 
 SDQL_RESULTS_DIR: Final[str] = "../src/test/tpch"
 SDQL_CSVS_DIR: Final[str] = "sdql"
@@ -29,7 +29,7 @@ def read_duckdb_csvs(
     return read_csvs(
         DUCKDB_CSVS_DIR,
         indices,
-        lambda: write_db_csvs(DuckDbTpch, indices, queries, is_hyper=False),
+        lambda: write_db_csvs(DuckDb, indices, queries, is_hyper=False),
     )
 
 
@@ -39,7 +39,7 @@ def read_hyper_csvs(
     return read_csvs(
         HYPER_CSVS_DIR,
         indices,
-        lambda: write_db_csvs(HyperTpch, indices, queries, is_hyper=True),
+        lambda: write_db_csvs(Hyper, indices, queries, is_hyper=True),
     )
 
 
@@ -65,7 +65,7 @@ def write_db_csvs(
 ) -> None:
     with conn() as db:
         for i, q in zip(indices, queries):
-            df = db.query_with_result(q)
+            df = db.execute(q)
             # SDQL results are unordered - so we order all dataframes for comparison
             stable_sort_no_ties(df)
             # Hyper results include trailing whitespaces - so we strip them everywhere
