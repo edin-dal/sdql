@@ -116,9 +116,13 @@ def validate_results(true_results_path, exp_results_path):
             os.path.join(true_results_path, filename), header=None, index_col=None
         )
         for filename in os.listdir(true_results_path)
+        if filename.endswith(".csv")
     }
 
     for filename in sorted(os.listdir(exp_results_path)):
+        if not filename.endswith(".csv"):
+            continue
+
         query_name = filename[:-4]
         try:
             exp_res = pd.read_csv(
