@@ -4,7 +4,7 @@ package backend
 import java.nio.file.{Path, Paths}
 import scala.sys.process.{Process, ProcessBuilder}
 
-object CppCompilation {
+object CppCompile {
   def compile(sdqlFilePath: String, cpp: String): String = {
     val noExtension = getNoExtension(sdqlFilePath)
     reflect.io.File(cppPath(noExtension).toString).writeAll(cpp)
@@ -19,7 +19,7 @@ object CppCompilation {
   private def clang(noExtension: String) = clangCmd ++ Seq(s"$noExtension.cpp", "-o", s"$noExtension.out")
   private def run(noExtension: String) = Seq(s"./$noExtension.out")
   private def cppPath(noExtension: String) = Paths.get(generatedDir.toString, s"$noExtension.cpp")
-  def getNoExtension(path: String) = reFilename.findAllIn(path).matchData.next().group(2)
+  def getNoExtension(path: String): String = reFilename.findAllIn(path).matchData.next().group(2)
   private val reFilename = "^(.+/)*(.+)\\.(.+)$".r
 
   def cmake(dirPath: Path, fileNames: Array[String]): Unit = {

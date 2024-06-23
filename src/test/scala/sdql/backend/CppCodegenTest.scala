@@ -3,7 +3,7 @@ package backend
 
 import org.scalatest.ParallelTestExecution
 import org.scalatest.flatspec.AnyFlatSpec
-import sdql.backend.CppCompilation.{clangCmd, inGeneratedDir}
+import sdql.backend.CppCompile.{clangCmd, inGeneratedDir}
 import sdql.frontend.{Interpolator, SourceCode}
 import sdql.ir.{Exp, RecordValue}
 

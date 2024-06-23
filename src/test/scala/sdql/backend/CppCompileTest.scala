@@ -3,7 +3,7 @@ package backend
 
 import org.scalatest.ParallelTestExecution
 import org.scalatest.flatspec.AnyFlatSpec
-import sdql.backend.CppCompilation.compile
+import sdql.backend.CppCompile.compile
 import sdql.frontend.SourceCode
 
 class CppCompileTest extends AnyFlatSpec with ParallelTestExecution {

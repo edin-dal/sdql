@@ -33,13 +33,13 @@ object Main {
         }
         val dirPath = Path.of(args(1))
         val fileNames = args.drop(2)
-        CppCompilation.cmake(dirPath, fileNames)
+        CppCompile.cmake(dirPath, fileNames)
         for (fileName <- fileNames) {
           val filePath = dirPath.resolve(fileName)
           val prog = SourceCode.fromFile(filePath.toString).exp
           val res = CppCodegen(prog)
           println(fileName)
-          println(CppCompilation.compile(filePath.toString, res))
+          println(CppCompile.compile(filePath.toString, res))
           println()
         }
       // hidden setting - useful for benchmarks
@@ -50,14 +50,14 @@ object Main {
         val dirPath = Path.of(args(1))
         val fileNames = args.drop(2)
         val fakeName = "batched.sdql"
-        CppCompilation.cmake(dirPath, Array(fakeName))
+        CppCompile.cmake(dirPath, Array(fakeName))
         val res = CppCodegen(fileNames.map(fileName => {
           val filePath = dirPath.resolve(fileName)
           val prog = SourceCode.fromFile(filePath.toString).exp
-          val noExtension = CppCompilation.getNoExtension(filePath.toString)
+          val noExtension = CppCompile.getNoExtension(filePath.toString)
           (prog, noExtension)
         }))
-        println(CppCompilation.compile(fakeName, res))
+        println(CppCompile.compile(fakeName, res))
       case arg =>
         raise(s"`run $arg` not supported")
     }
