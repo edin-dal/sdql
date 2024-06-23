@@ -28,13 +28,15 @@ object CppCompilation {
     reflect.io.File(path.toString).writeAll(contents)
   }
   private def cmakeContents(noExtensions: Seq[String]): String = {
-    val init =  s"""#auto-generated config
+    val init =  s"""# auto-generated config
                    |cmake_minimum_required(VERSION $cmakeVersion)
                    |project(generated)
                    |set(CMAKE_CXX_STANDARD $cppStandard)
-                   |set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
-                   |set(CMAKE_CXX_FLAGS_RELEASE "$releaseFlag")
+                   |# uncomment to compile in release mode
+                   |#set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+                   |#set(CMAKE_CXX_FLAGS_RELEASE "$releaseFlag")
                    |set(CMAKE_CXX_FLAGS "$phmapWarningsFlag")
+                   |set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $${CMAKE_CURRENT_SOURCE_DIR})
                    |""".stripMargin
     noExtensions.map(noExtension => s"add_executable($noExtension.out $noExtension.cpp)").mkString(init, "\n", "")
   }
