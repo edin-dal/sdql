@@ -12,7 +12,7 @@ let suppkey_to_revenue =
 let max_revenue = ext(`MaxValue`, suppkey_to_revenue)
 
 let suppkey_to_supp =
-  sum(<s,s_v> in supplier)
+  sum_unique(<s,s_v> in supplier)
     {
       s.s_suppkey ->
       <

@@ -13,41 +13,41 @@ let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_commen
 let region = load[{<r_regionkey: int, r_name: string, r_comment: string> -> int}]("datasets/tpch/region.tbl")
 
 let r_h =
-  sum(<r,r_v> in region)
+  sum_unique(<r,r_v> in region)
     if(r.r_name == "AMERICA") then
       { r.r_regionkey -> < _ = r.r_regionkey > }
     else
       { }
 
 let n_h =
-  sum(<n,n_v> in nation)
+  sum_unique(<n,n_v> in nation)
     if(r_h(n.n_regionkey) != {}) then
       { n.n_nationkey -> 1 }
     else
       { }
 
 let nationkey_to_name =
-  sum(<n,n_v> in nation)
+  sum_unique(<n,n_v> in nation)
     { n.n_nationkey -> < _ = n.n_name > }
 
 let s_h =
-  sum(<s,s_v> in supplier)
+  sum_unique(<s,s_v> in supplier)
     { s.s_suppkey -> < _ = s.s_nationkey > }
 
 // TODO sdqlpy stores c_h as a vector
 let c_h =
-  sum(<c,c_v> in customer)
+  sum_unique(<c,c_v> in customer)
     { c.c_custkey -> c.c_nationkey }
 
 let p_h =
-  sum(<p,p_v> in part)
+  sum_unique(<p,p_v> in part)
       if(p.p_type == "ECONOMY ANODIZED STEEL") then
         { p.p_partkey -> < _ = p.p_partkey > }
       else
         { }
 
 let o_h =
-  sum(<o,o_v> in orders)
+  sum_unique(<o,o_v> in orders)
       if((date(19950101) <= o.o_orderdate) && (o.o_orderdate <= date(19961231))) then
         { o.o_orderkey -> < _ = o.o_custkey, _ = o.o_orderdate > }
       else
@@ -64,5 +64,5 @@ let l_h =
       else
         { }
 
-sum(<k,v> in l_h)
+sum_unique(<k,v> in l_h)
   { < _ = k, _ = v(0) / v(1) > -> 1 }

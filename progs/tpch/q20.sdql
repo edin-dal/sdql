@@ -9,28 +9,28 @@ let partsupp = load[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_
 let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
 
 let p_h =
-  sum(<p,p_v> in part)
+  sum_unique(<p,p_v> in part)
     if(ext(`StrStartsWith`, p.p_name, "forest")) then
       { p.p_partkey -> < _ = p.p_partkey > }
     else
       { }
 
 let n_h =
-  sum(<n,n_v> in nation)
+  sum_unique(<n,n_v> in nation)
     if(n.n_name == "CANADA") then
       { n.n_nationkey -> < _ = n.n_nationkey > }
     else
       { }
 
 let s_h =
-  sum(<s,s_v> in supplier)
+  sum_unique(<s,s_v> in supplier)
     if(n_h(s.s_nationkey) != {}) then
       { s.s_suppkey -> < _ = s.s_suppkey > }
     else
       { }
 
 let l_h =
-  sum(<l,l_v> in lineitem)
+  sum_unique(<l,l_v> in lineitem)
     if(
       (date(19940101) <= l.l_shipdate) && (l.l_shipdate < date(19950101))
       && (p_h(l.l_partkey) != {}) && (s_h(l.l_suppkey) != {})
@@ -40,14 +40,14 @@ let l_h =
       { }
 
 let ps_h =
-  sum(<ps,ps_v> in partsupp)
+  sum_unique(<ps,ps_v> in partsupp)
     let key = <_ = ps.ps_partkey, _ = ps.ps_suppkey >
     if((l_h(key) != {}) && (l_h(key) < ps.ps_availqty)) then
       { ps.ps_suppkey -> < _ = ps.ps_suppkey > }
     else
       { }
 
-sum(<s,s_v> in supplier)
+sum_unique(<s,s_v> in supplier)
   if(ps_h(s.s_suppkey) != {}) then
     { < _ = s.s_name, _ = s.s_address > -> 1 }
   else

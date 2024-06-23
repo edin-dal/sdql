@@ -7,7 +7,7 @@ import fastparse._, NoWhitespace._, CharPredicates._
 
 object Parser {
   def keywords[_: P] = P (
-    StringIn("if", "then", "else", "let", "sum", "false", 
+    StringIn("if", "then", "else", "let", "sum_unique", "sum", "false",
       "true", "in", "join", "load", "ext", "iter", "int", "double", 
       "string", "date", "range", "unit", "bool", "concat", "promote",
       "mnpr", "mxpr", "mnsm", "mxsm",
@@ -88,6 +88,8 @@ object Parser {
   def letBinding[_: P]: P[LetBinding] = P( "let" ~/ variable ~/ "=" ~/ expr ~/ "in".? ~/ expr).map(x => LetBinding(x._1, x._2, x._3))
   def sum[_: P]: P[Sum] = P( "sum" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/
     expr).map(x => Sum(x._1, x._2, x._3, x._4))
+  def sumUnique[_: P]: P[Sum] = P( "sum_unique" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/
+    expr).map(x => Sum(x._1, x._2, x._3, x._4, Unique()))
   // def set[_: P]: P[DictNode] = P( "{" ~/ (expr ~ !("->")).rep(sep=","./) ~ space ~/ "}" ).map(x => SetNode(x))
   def range[_: P]: P[RangeNode] = P( ("range(" ~ int ~ space ~ ")") ).map(x => RangeNode(x.v.asInstanceOf[Int]))
   def ext[_: P]: P[External] = P( "ext(" ~/ fieldConst ~/ "," ~/ expr.rep(1, sep=","./) ~ space ~/ ")" ).map(x =>
@@ -113,7 +115,7 @@ object Parser {
 
   def factor[_: P]: P[Exp] = P(space ~ (const | neg | not | dictOrSet | 
     rec | ifThenElse | range | load | concat | promote |
-    letBinding | sum | variable |
+    letBinding | sumUnique | sum | variable |
     ext | parens) ~ space)
 
   def neg[_: P]: P[Neg] = P( "-" ~ !(">") ~ factor ).map(Neg)

@@ -14,7 +14,7 @@ object CppCodegen {
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
   private case class LetCtx(name: String) extends CallCtx
-  private case class SumCtx(k:String, v: String, isLoad: Boolean) extends CallCtx
+  private case class SumCtx(k:String, v: String, isLoad: Boolean, hint: CodegenHint) extends CallCtx
   private case class SumEnd() extends CallCtx
   private case class IsTernary() extends CallCtx
   private type LoadsCtx = Set[Sym]
@@ -75,6 +75,7 @@ object CppCodegen {
 
     if (checkIsSumBody(e)) {
       val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
+      val hint = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, _, hint) => hint }).head
       val callsLocal = List(SumEnd()) ++ callsCtx
       return e match {
         case _: Sum =>
@@ -83,9 +84,10 @@ object CppCodegen {
             kv => {
               val lhs = run(kv._1)(typesCtx, callsLocal, loadsCtx)
               val rhs = run(kv._2)(typesCtx, callsLocal, loadsCtx)
-              // TODO sdqlpy does emplace aggregating over unique keys
-              //  kv => s"$agg.emplace($lhs, $rhs);"
-              s"$agg[$lhs] += $rhs;"
+              hint match {
+                case _: NoHint => s"$agg[$lhs] += $rhs;"
+                case _: Unique => s"$agg.emplace($lhs, $rhs);"
+              }
             }
           ).mkString("\n")
         case RecNode(values) =>
@@ -115,13 +117,13 @@ object CppCodegen {
         }
         e1Cpp + e2Cpp
 
-      case Sum(k, v, e1, e2) =>
+      case Sum(k, v, e1, e2, hint) =>
         val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
         var (tpe, typesLocal) = TypeInference.sum_infer_type_and_ctx(k, v, e1, e2)
         typesLocal ++= Map(Sym(agg) -> tpe)
 
         val isLoad = cond(e1) { case e1Sym: Sym => loadsCtx.contains(e1Sym) }
-        val callsLocal = List(SumCtx(k=k.name, v=v.name, isLoad=isLoad)) ++ callsCtx
+        val callsLocal = List(SumCtx(k=k.name, v=v.name, isLoad=isLoad, hint)) ++ callsCtx
 
         val body = run(e2)(typesLocal, callsLocal, loadsCtx)
 
@@ -185,7 +187,7 @@ object CppCodegen {
             val idx = (tpe.indexOf(f): @unchecked) match { case Some(idx) => idx }
             e1 match {
               case Sym(name)
-                if callsCtx.exists(x => cond(x) { case SumCtx(k, v, true) => name == k || name == v})
+                if callsCtx.exists(x => cond(x) { case SumCtx(k, v, true, _) => name == k || name == v})
                 => s"$name.$f[i]"
               case _ => s" /* $f */ std::get<$idx>(${run(e1)})"
             }
@@ -218,7 +220,7 @@ object CppCodegen {
 
       case Sym(name) =>
         callsCtx.flatMap(x => condOpt(x) { case ctx: SumCtx => ctx }).headOption match {
-          case Some(SumCtx(k, v, true)) if name == k || name == v => s"$name[i]"
+          case Some(SumCtx(k, v, true, _)) if name == k || name == v => s"$name[i]"
           case _ => name
         }
 
@@ -433,7 +435,7 @@ object CppCodegen {
           iterExps(e1) ++ iterExps(e2)
         case Cmp(e1, e2, _) =>
           iterExps(e1) ++ iterExps(e2)
-        case Sum(_, _, e1, e2) =>
+        case Sum(_, _, e1, e2, _) =>
           iterExps(e1) ++ iterExps(e2)
         case Get(e1, e2) =>
           iterExps(e1) ++ iterExps(e2)

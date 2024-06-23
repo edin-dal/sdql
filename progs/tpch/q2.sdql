@@ -9,21 +9,21 @@ let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_commen
 let region = load[{<r_regionkey: int, r_name: string, r_comment: string> -> int}]("datasets/tpch/region.tbl")
 
 let l_h =
-  sum(<r,r_v> <- region)
+  sum_unique(<r,r_v> <- region)
     if(r.r_name == "EUROPE") then
       { r.r_regionkey -> < _ = r.r_regionkey > }
     else
       { }
 
 let n_h =
-  sum(<n,n_v> <- nation)
+  sum_unique(<n,n_v> <- nation)
     if(l_h(n.n_regionkey) != {}) then
       { n.n_nationkey -> n.n_name }
     else
       { }
 
 let s_h =
-  sum(<s,s_v> <- supplier)
+  sum_unique(<s,s_v> <- supplier)
     if(n_h(s.s_nationkey) != {}) then
       {
         s.s_suppkey ->
@@ -40,7 +40,7 @@ let s_h =
       { }
 
 let p_h =
-  sum(<p,p_v> <- part)
+  sum_unique(<p,p_v> <- part)
     if((p.p_size == 15) && (ext(`StrEndsWith`, p.p_type, "BRASS"))) then
       { p.p_partkey -> < _ = p.p_mfgr > }
     else
@@ -54,7 +54,7 @@ let ps_h =
     else
       { }
 
-sum(<ps,ps_v> <- partsupp)
+sum_unique(<ps,ps_v> <- partsupp)
   if(
       (ps_h(ps.ps_partkey) != {})
       && (ps_h(ps.ps_partkey) == ps.ps_supplycost)

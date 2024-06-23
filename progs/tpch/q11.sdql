@@ -5,14 +5,14 @@ let partsupp = load[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_
 let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
 
 let n_h =
-  sum(<n,n_v> in nation)
+  sum_unique(<n,n_v> in nation)
     if(n.n_name == "GERMANY") then
       { n.n_nationkey -> < _ = n.n_nationkey > }
     else
       { }
 
 let s_h =
-  sum(<s,s_v> in supplier)
+  sum_unique(<s,s_v> in supplier)
     if(n_h(s.s_nationkey) != {}) then
       { s.s_suppkey -> 1 }
     else

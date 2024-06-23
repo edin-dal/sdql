@@ -106,7 +106,7 @@ object Interpreter {
         case _ =>
           raise(s"`concat($v1,$v2)` needs records, but given `${v1.getClass}`, `${v2.getClass}`")
       }
-    case Sum(k, v, e1, e2) =>
+    case Sum(k, v, e1, e2, _) =>
       val v1 = run(e1)
       v1 match {
         case ZeroValue =>

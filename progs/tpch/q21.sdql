@@ -7,14 +7,14 @@ let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_to
 let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
 
 let nation_indexed =
-  sum(<n,n_v> <- nation)
+  sum_unique(<n,n_v> <- nation)
     if(n.n_name == "SAUDI ARABIA") then
       { n.n_nationkey -> < _ = n.n_nationkey > }
     else
       { }
 
 let su_probed =
-  sum(<s,s_v> <- supplier)
+  sum_unique(<s,s_v> <- supplier)
     if(nation_indexed(s.s_nationkey) != {}) then
       { s.s_suppkey -> s.s_name }
     else
@@ -22,11 +22,13 @@ let su_probed =
 
 // TODO sdqlpy stores ord_indexed as a vector
 let ord_indexed =
-  sum(<o,o_v> <- orders)
+  sum_unique(<o,o_v> <- orders)
     if(o.o_orderstatus == "F") then
       { o.o_orderkey -> 1 }
     else
       { }
+
+// TODO try sum_unique in l2_indexed and l3_indexed
 
 // TODO sdqlpy stores l2_indexed as a vector or vectors
 let l2_indexed =
@@ -56,5 +58,5 @@ let l1_probed =
 
 let l1_limited = ext(`Limit`, l1_probed, 100, true)
 
-sum(<k,v> <- l1_limited)
+sum_unique(<k,v> <- l1_limited)
   { concat(k,v) -> 1 }

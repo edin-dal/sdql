@@ -5,14 +5,14 @@ let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_to
 let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
 
 let c_h =
-  sum(<c,c_v> in customer)
+  sum_unique(<c,c_v> in customer)
     if(c.c_mktsegment == "BUILDING") then
       { c.c_custkey -> < _ = c.c_custkey > }
     else
       { }
 
 let o_h =
-  sum(<o,o_v> in orders)
+  sum_unique(<o,o_v> in orders)
     if(
         (o.o_orderdate < date(19950315))
         && (c_h(o.o_custkey) != {})
@@ -40,5 +40,5 @@ let li_h =
 
 let limit = ext(`Limit`, li_h, 10, true)
 
-sum(<k,v> <- limit)
+sum_unique(<k,v> <- limit)
   { concat(k,v) -> 1 }

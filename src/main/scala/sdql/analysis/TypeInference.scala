@@ -14,7 +14,7 @@ object TypeInference {
 
   def run(e: Exp)(implicit ctx: Ctx): Type = {
     e match {
-      case Sum(k, v, e1, e2) =>
+      case Sum(k, v, e1, e2, _) =>
         sum_infer_type_and_ctx(k, v, e1, e2)._1
 
       case IfThenElse(a, Const(false), Const(true)) =>

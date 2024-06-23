@@ -11,28 +11,28 @@ let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_commen
 let region = load[{<r_regionkey: int, r_name: string, r_comment: string> -> int}]("datasets/tpch/region.tbl")
 
 let r_h =
-  sum(<r,r_v> in region)
+  sum_unique(<r,r_v> in region)
     if(r.r_name == "ASIA") then
       { r.r_regionkey -> < _ = r.r_regionkey > }
     else
       { }
 
 let n_h =
-  sum(<n,n_v> in nation)
+  sum_unique(<n,n_v> in nation)
     if(r_h(n.n_regionkey) != {}) then
       { n.n_nationkey -> n.n_name }
     else
       { }
 
 let c_h =
-  sum(<c,c_v> in customer)
+  sum_unique(<c,c_v> in customer)
     if(n_h(c.c_nationkey) != {}) then
       { c.c_custkey -> < _ =n_h(c.c_nationkey), _ = c.c_nationkey > }
     else
       { }
 
 let o_h =
-  sum(<o,o_v> in orders)
+  sum_unique(<o,o_v> in orders)
     if(
         (o.o_orderdate < date(19950101))
         && (date(19940101) <= o.o_orderdate)
@@ -43,7 +43,7 @@ let o_h =
       { }
 
 let s_h =
-  sum(<s,s_v> in supplier)
+  sum_unique(<s,s_v> in supplier)
     { < _ = s.s_suppkey, _ = s.s_nationkey > -> 1 }
 
 let l_h =
@@ -56,5 +56,5 @@ let l_h =
     else
       { }
 
-sum(<k,v> <- l_h)
+sum_unique(<k,v> <- l_h)
   { < _ = k, _ = v > -> 1 }

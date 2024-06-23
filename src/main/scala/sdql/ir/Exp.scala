@@ -106,7 +106,7 @@ case class Cmp(e1: Exp, e2: Exp, cmp: String) extends Exp
  */
 case class IfThenElse(cond: Exp, thenp: Exp, elsep: Exp) extends Exp
 case class FieldNode(e: Exp, f: Field) extends Exp
-case class Sum(key: Sym, value: Sym, e1: Exp, body: Exp) extends Exp
+case class Sum(key: Sym, value: Sym, e1: Exp, body: Exp, hint: CodegenHint = NoHint()) extends Exp
 case class Get(e1: Exp, e2: Exp) extends Exp
 case class Concat(e1: Exp, e2: Exp) extends Exp
 case class LetBinding(x: Sym, e1: Exp, e2: Exp) extends Exp {
@@ -119,6 +119,10 @@ case class LetBinding(x: Sym, e1: Exp, e2: Exp) extends Exp {
 case class Load(path: String, tp: Type) extends Exp
 case class Promote(tp: Type, e: Exp) extends Exp
 case class External(name: String, args: Seq[Exp]) extends Exp
+
+sealed trait CodegenHint;
+case class NoHint() extends CodegenHint
+case class Unique() extends CodegenHint
 
 /**
  * This object models the multiplication of a sequence of expressions. It can
