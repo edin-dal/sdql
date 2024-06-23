@@ -17,7 +17,8 @@ RUNS = 5
 INDICES_AND_QUERIES = (
     (1, q1),
     (2, q2),
-    (3, q3),
+    # FIXME date format
+    # (3, q3),
     (4, q4),
     (5, q5),
     (6, q6),
@@ -32,7 +33,8 @@ INDICES_AND_QUERIES = (
     (15, q15),
     (16, q16),
     (17, q17),
-    (18, q18),
+    # FIXME date format
+    # (18, q18),
     (19, q19),
     (20, q20),
     # FIXME

@@ -50,7 +50,7 @@ let l_h =
         <
           supp_nation = suppkey_to_name(l.l_suppkey),
           cust_nation = orderkey_to_name(l.l_orderkey),
-          l_year = ext(`SubString`, l.l_shipdate, 0, 4)
+          l_year = l.l_shipdate / 10000
         > -> <
           revenue = l.l_extendedprice * (1.0 - l.l_discount)
         >

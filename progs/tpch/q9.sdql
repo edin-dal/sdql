@@ -44,7 +44,7 @@ let li_h =
       {
         <
           nation = ps_h(< _ = li.l_partkey, _ = li.l_suppkey >)(0),
-           o_year = ext(`SubString`, o_h(li.l_orderkey), 0, 4)
+           o_year =  o_h(li.l_orderkey) / 10000
         > ->
          < um_profit = li.l_extendedprice * (1.0 - li.l_discount) - ps_h(< _ = li.l_partkey, _ = li.l_suppkey >)(1) * li.l_quantity >
       }
