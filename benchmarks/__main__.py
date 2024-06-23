@@ -4,7 +4,9 @@ from benches import benchmark_duckdb, benchmark_hyper, benchmark_sdql
 from queries import *
 from validation import validate_vs_duckdb, validate_vs_hyper
 
-RESULTS_FILE = "benchmarks.csv"
+# Disable hyper-threading on relevant systems
+SMT_FILE = "/sys/devices/system/cpu/smt/control"
+os.system(f"if [ -f {SMT_FILE} ]; then echo off > {SMT_FILE}; fi")
 
 THREADS = 1
 
@@ -52,4 +54,4 @@ if __name__ == "__main__":
     results["DuckDB (ms)"] = pd.Series(benchmark_duckdb(indices, queries, THREADS))
     results["Hyper (ms)"] = pd.Series(benchmark_hyper(indices, queries, THREADS))
 
-    results.to_csv(RESULTS_FILE, index=False)
+    results.to_csv("benchmarks.csv", index=False)
