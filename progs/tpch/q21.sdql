@@ -28,8 +28,6 @@ let ord_indexed =
     else
       { }
 
-// TODO try sum_unique in l2_indexed and l3_indexed
-
 // TODO sdqlpy stores l2_indexed as a vector or vectors
 let l2_indexed =
   sum(<l,l_v> <- lineitem)
