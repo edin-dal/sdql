@@ -483,14 +483,18 @@ object CppCodegen {
     callsCtx.exists(cond(_) { case _: IsTernary  => true })
 
   private def cppPrintResult(tpe: Type) = tpe match {
+    // TODO pretty print nested types (e.g. dates inside a tuple which is a dict key)
     case _: DictType =>
       s"""for (const auto &[key, val] : $resultName) {
          |$stdCout << key << ":" << val << std::endl;
          |}""".stripMargin
     case RecordType(attrs) =>
       val body =
-        attrs.map(_.name).zipWithIndex.map(
-          { case (name, i) => s""""$name = " << std::get<$i>($resultName)""" }
+        attrs.zipWithIndex.map(
+          {
+            case (Attribute(name, DateType), i) => s""""$name = " << print_date(std::get<$i>($resultName))"""
+            case (Attribute(name, _), i) => s""""$name = " << std::get<$i>($resultName)"""
+          }
         ).mkString(""" << ", " << """)
       s"""std::stringstream ss;
          |ss << $body;

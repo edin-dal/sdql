@@ -1,3 +1,4 @@
+import datetime
 import io
 import os
 import re
@@ -5,7 +6,7 @@ from functools import wraps
 from typing import Callable, Final, Iterable
 
 import pandas as pd
-from pandas.api.types import is_string_dtype
+from pandas.api.types import is_string_dtype, is_numeric_dtype
 
 from connectors import Connector, DuckDb, Hyper
 
@@ -94,20 +95,63 @@ def stable_sort_no_ties(df: pd.DataFrame) -> None:
 
 
 def read_sdql_results(indices: Iterable[int]) -> list[pd.DataFrame]:
+    all_date_cols = infer_date_cols(indices)
+
     dfs = []
-    for i in indices:
-        in_path = os.path.join(SDQL_RESULTS_DIR, f"q{i}.result")
+    for q_i, date_cols in zip(indices, all_date_cols):
+        in_path = os.path.join(SDQL_RESULTS_DIR, f"q{q_i}.result")
         lines = []
         with open(in_path) as file:
             while line := file.readline():
-                line = sdql_to_csv(i)(line.rstrip())
+                line = sdql_to_csv(q_i)(line.rstrip())
                 lines.append(line)
         csv = "\n".join(lines)
         csv_io = io.StringIO(csv)
         df = pd.read_csv(csv_io, header=None)
+        for i in date_cols:
+            df[i] = (
+                df[i].astype(pd.StringDtype()).apply(lambda s: yyyymmdd_to_iso(str(s)))
+            )
+
         dfs.append(df)
 
     return dfs
+
+
+def infer_date_cols(indices: Iterable[int]) -> list[set[int]]:
+    all_date_cols = []
+
+    for q_i in indices:
+        q_date_cols = set()
+        in_path = os.path.join(SDQL_RESULTS_DIR, f"q{q_i}.result")
+
+        with open(in_path) as file:
+            head = file.readline()
+        head = sdql_to_csv(q_i)(head.rstrip())
+        head_io = io.StringIO(head)
+        df = pd.read_csv(head_io, header=None)
+        for i, (_, series) in enumerate(df.items()):
+            if is_numeric_dtype(series):
+                [elem] = series
+                str_elem = str(elem)
+                if str_elem.isdigit() and len(str_elem) == 8:
+                    iso_date = yyyymmdd_to_iso(str_elem)
+                    try:
+                        datetime.date.fromisoformat(iso_date)
+                    except ValueError:
+                        continue
+                    q_date_cols.add(i)
+
+        all_date_cols.append(q_date_cols)
+
+    return all_date_cols
+
+
+def yyyymmdd_to_iso(yyyymmdd: str) -> str:
+    yyyy = yyyymmdd[:4]
+    mm = yyyymmdd[4:6]
+    dd = yyyymmdd[6:]
+    return f"{yyyy}-{mm}-{dd}"
 
 
 def sdql_to_csv(i: int) -> Callable[[str], str]:
