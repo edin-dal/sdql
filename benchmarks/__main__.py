@@ -8,7 +8,10 @@ from validation import validate_vs_duckdb, validate_vs_hyper
 SMT_FILE = "/sys/devices/system/cpu/smt/control"
 os.system(f"if [ -f {SMT_FILE} ]; then echo off > {SMT_FILE}; fi")
 
+# for DuckDB and Hyper - SDQL is single-threaded
 THREADS = 1
+
+RUNS = 5
 
 INDICES_AND_QUERIES = (
     (1, q1),
@@ -42,16 +45,16 @@ if __name__ == "__main__":
     indices = [i for i, _ in INDICES_AND_QUERIES]
     queries = [q for _, q in INDICES_AND_QUERIES]
 
-    results = pd.Series(indices, name="Query").to_frame()
+    res = pd.Series(indices, name="Query").to_frame()
 
     validate_vs_duckdb(indices, queries, THREADS)
-    results["Validated (DuckDB)"] = pd.Series([True for _ in INDICES_AND_QUERIES])
+    res["Validated (DuckDB)"] = pd.Series([True for _ in INDICES_AND_QUERIES])
 
     validate_vs_hyper(indices, queries, THREADS)
-    results["Validated (Hyper)"] = pd.Series([True for _ in INDICES_AND_QUERIES])
+    res["Validated (Hyper)"] = pd.Series([True for _ in INDICES_AND_QUERIES])
 
-    results["SDQL (ms)"] = pd.Series(benchmark_sdql(indices))
-    results["DuckDB (ms)"] = pd.Series(benchmark_duckdb(indices, queries, THREADS))
-    results["Hyper (ms)"] = pd.Series(benchmark_hyper(indices, queries, THREADS))
+    res["SDQL (ms)"] = pd.Series(benchmark_sdql(indices, RUNS))
+    res["DuckDB (ms)"] = pd.Series(benchmark_duckdb(indices, queries, THREADS, RUNS))
+    res["Hyper (ms)"] = pd.Series(benchmark_hyper(indices, queries, THREADS, RUNS))
 
-    results.to_csv("benchmarks.csv", index=False)
+    res.to_csv("benchmarks.csv", index=False)

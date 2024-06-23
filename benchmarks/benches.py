@@ -7,8 +7,6 @@ from typing import Iterable
 
 from connectors import Connector, DuckDb, Hyper
 
-RUNS = 5
-
 SEC_TO_MS = 1_000
 RE_RUNTIME = re.compile(r"^Runtime \(ms\): ([\d]+)$")
 REPO_ROOT = os.path.normpath(
@@ -16,22 +14,22 @@ REPO_ROOT = os.path.normpath(
 )
 
 
-def benchmark_sdql(indices: Iterable[int]) -> list[int]:
-    runs = []
-    for i in range(RUNS):
+def benchmark_sdql(indices: Iterable[int], runs: int) -> list[int]:
+    individual_runs = []
+    for i in range(runs):
         print(f"Running SDQL (run {i + 1})")
         times = run_sdql(indices)
-        runs.append(times)
+        individual_runs.append(times)
     print("SDQL finished")
 
     # transpose - inner lists are now question runtimes
-    runs = list(map(list, zip(*runs)))
+    individual_runs = list(map(list, zip(*individual_runs)))
 
     times = []
-    for tpch_i, q_times in zip(indices, runs):
+    for tpch_i, q_times in zip(indices, individual_runs):
         mean_ms = round(mean(q_times))
         std_ms = round(pstdev(q_times))
-        print(f"SDQL q{tpch_i}: mean {mean_ms} ms (std {std_ms} ms - {RUNS} runs)")
+        print(f"SDQL q{tpch_i}: mean {mean_ms} ms (std {std_ms} ms - {runs} runs)")
         times.append(mean_ms)
 
     return times
@@ -54,17 +52,24 @@ def run_sdql(indices: Iterable[int]) -> list[int]:
 
 
 def benchmark_duckdb(
-    indices: Iterable[int], queries: Iterable[str], threads: int
+    indices: Iterable[int], queries: Iterable[str], threads: int, runs: int
 ) -> list[float]:
     return benchmark(
-        "DuckDB", DuckDb(threads=threads), indices, queries, round_digits=None
+        "DuckDB",
+        DuckDb(threads=threads),
+        indices,
+        queries,
+        runs,
+        round_digits=None,
     )
 
 
 def benchmark_hyper(
-    indices: Iterable[int], queries: Iterable[str], threads: int
+    indices: Iterable[int], queries: Iterable[str], threads: int, runs: int
 ) -> list[float]:
-    return benchmark("Hyper", Hyper(threads=threads), indices, queries, round_digits=3)
+    return benchmark(
+        "Hyper", Hyper(threads=threads), indices, queries, runs, round_digits=3
+    )
 
 
 def benchmark(
@@ -72,13 +77,14 @@ def benchmark(
     connector: Connector,
     indices: Iterable[int],
     queries: Iterable[str],
+    runs: int,
     round_digits: None | int,
 ) -> list[float]:
     db_times = []
     with connector as db:
         for i, q in zip(indices, queries):
             q_times = []
-            for _ in repeat(None, RUNS):
+            for _ in repeat(None, runs):
                 time_ms = db.time(q) * SEC_TO_MS
                 q_times.append(time_ms)
             mean_ms = mean(q_times)
@@ -89,7 +95,7 @@ def benchmark(
             else:
                 mean_ms = round(mean_ms, round_digits)
                 std_ms = round(std_ms, round_digits)
-            print(f"{name} q{i}: mean {mean_ms} ms (std {std_ms} ms - {RUNS} runs)")
+            print(f"{name} q{i}: mean {mean_ms} ms (std {std_ms} ms - {runs} runs)")
             db_times.append(mean_ms)
 
     return db_times
