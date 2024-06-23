@@ -8,7 +8,8 @@ import sdql.frontend.SourceCode
 
 class CppCompileTest extends AnyFlatSpec with ParallelTestExecution {
 
-// uncomment and run these tests on dbgen TPCH datasets with scaling factor 1
+// uncomment and run these tests on dbgen TPCH datasets with scaling factor 1 in src/test/tpch/data/SF_1/
+// also run this test separately from the others below - there's some concurrency bug when patching paths
 //  it should "compile and run TPCH SF=1" in {
 //    assertOutputs("progs/tpch/q1.sdql", "src/test/tpch/results/SF_1/q1.result", sf="1")
 //    assertOutputs("progs/tpch/q2.sdql", "src/test/tpch/results/SF_1/q2.result", sf="1")
