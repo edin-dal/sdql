@@ -20,6 +20,11 @@ from tableauhyperapi import (
 from benchmarks.timer import timer
 from .connector import Connector, UseConstraintsTypes
 
+LOGS_DIR: Final[str] = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), "../")
+)
+LOG_PATH: Final[str] = os.path.join(LOGS_DIR, "hyperd.log")
+
 
 class Hyper(Connector):
 
@@ -34,9 +39,16 @@ class Hyper(Connector):
     }
 
     def __enter__(self):
+        # we don't delete the log at the end of previous run - so we can analyse it
+        try:
+            os.remove(LOG_PATH)
+        except FileNotFoundError:
+            pass
         print(f"Connecting to Hyper (threads={self.threads})")
         parameters = dict(
-            log_config="",
+            log_dir=LOGS_DIR,
+            # we never need the compilation/parsing times in log_timing
+            log_timing="false",
             max_query_size="10000000000",
             hard_concurrent_query_thread_limit=str(self.threads),
             initial_compilation_mode="o",
