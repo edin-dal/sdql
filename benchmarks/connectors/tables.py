@@ -4,7 +4,9 @@ from typing import Final
 
 
 TPCH_DATASETS: Final[str] = os.path.normpath(
-    os.path.join(os.path.dirname(__file__), "../../src/test/tpch/data/SF_1")
+    os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "../../src/test/tpch/data/SF_1"
+    )
 )
 
 

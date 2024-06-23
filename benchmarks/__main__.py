@@ -1,6 +1,6 @@
 import pandas as pd
 
-from benches import benchmark_duckdb, benchmark_hyper
+from benches import benchmark_duckdb, benchmark_hyper, benchmark_sdql
 from queries import *
 from validation import validate_vs_duckdb, validate_vs_hyper
 
@@ -34,7 +34,7 @@ INDICES_AND_QUERIES = (
     (22, q22),
 )
 
-# TODO Hyper benchmark: investigate why all zero
+# TODO Hyper benchmark numbers are unbelievably low
 
 if __name__ == "__main__":
     indices = [i for i, _ in INDICES_AND_QUERIES]
@@ -48,6 +48,7 @@ if __name__ == "__main__":
     validate_vs_hyper(indices, queries, THREADS)
     results["Validated (Hyper)"] = pd.Series([True for _ in INDICES_AND_QUERIES])
 
+    results["SDQL (ms)"] = pd.Series(benchmark_sdql(indices))
     results["DuckDB (ms)"] = pd.Series(benchmark_duckdb(indices, queries, THREADS))
     results["Hyper (ms)"] = pd.Series(benchmark_hyper(indices, queries, THREADS))
 
