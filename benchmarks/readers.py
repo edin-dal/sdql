@@ -17,7 +17,7 @@ HYPER_CSVS_DIR: Final[str] = "hyper"
 
 def read_sdql_csvs(indices: Iterable[int]) -> list[pd.DataFrame]:
     return read_csvs(
-        DUCKDB_CSVS_DIR,
+        SDQL_CSVS_DIR,
         indices,
         lambda: write_sdql_csvs(indices),
     )
@@ -75,16 +75,17 @@ def write_db_csvs(
             # Hyper results include trailing whitespaces - so we strip them everywhere
             if is_hyper:
                 df = df.apply(lambda s: s.str.rstrip() if is_string_dtype(s) else s)
-            path = os.path.join(DUCKDB_CSVS_DIR, f"q{i}.csv")
+            csv_dir = HYPER_CSVS_DIR if is_hyper else DUCKDB_CSVS_DIR
+            path = os.path.join(csv_dir, f"q{i}.csv")
             df.to_csv(path, header=False, index=False)
 
 
 def write_sdql_csvs(indices: Iterable[int]) -> None:
     dfs = read_sdql_results(indices)
-    for i, df in enumerate(dfs):
+    for i, df in zip(indices, dfs):
         # SDQL results are unordered - so we order all dataframes for comparison
         stable_sort_no_ties(df)
-        out_path = os.path.join(SDQL_CSVS_DIR, f"q{i + 1}.csv")
+        out_path = os.path.join(SDQL_CSVS_DIR, f"q{i}.csv")
         df.to_csv(out_path, header=False, index=False)
 
 
