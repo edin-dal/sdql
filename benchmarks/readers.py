@@ -69,7 +69,7 @@ def write_db_csvs(
 ) -> None:
     with connector as db:
         for i, q in zip(indices, queries):
-            df = db.execute(q)
+            df = db.execute_to_df(q)
             # SDQL results are unordered - so we order all dataframes for comparison
             stable_sort_no_ties(df)
             # Hyper results include trailing whitespaces - so we strip them everywhere

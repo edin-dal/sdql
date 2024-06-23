@@ -1,7 +1,7 @@
 import enum
 from contextlib import AbstractContextManager
 from dataclasses import asdict
-from typing import Protocol, Self
+from typing import Any, Protocol, Self
 
 import pandas as pd
 
@@ -15,10 +15,11 @@ class UseConstraintsTypes(enum.Enum):
 
 class Connector(AbstractContextManager[Self], Protocol):
 
-    def __init__(self, threads: int):
+    def __init__(self, threads: int, is_log: bool = False):
         self.threads = threads
+        self.is_log = is_log
 
-    def execute(self, query: str) -> pd.DataFrame: ...
+    def execute_to_df(self, query: str) -> pd.DataFrame: ...
 
     def time(self, query: str) -> float: ...
 

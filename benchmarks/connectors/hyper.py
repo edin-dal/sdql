@@ -1,7 +1,7 @@
 import os
 import re
 import sys
-from typing import Final
+from typing import Any, Self, Final
 
 import pandas as pd
 from tableauhyperapi import (
@@ -38,15 +38,18 @@ class Hyper(Connector):
         "DATE": SqlType.date,
     }
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         # we don't delete the log at the end of previous run - so we can analyse it
         try:
             os.remove(LOG_PATH)
         except FileNotFoundError:
             pass
+
         print(f"Connecting to Hyper (threads={self.threads})")
+        if self.is_log:
+            print("Logging this instance of Hyper")
         parameters = dict(
-            log_dir=LOGS_DIR,
+            log_dir=LOGS_DIR if self.is_log else "",
             # we never need the compilation/parsing times in log_timing
             log_timing="false",
             max_query_size="10000000000",
@@ -83,7 +86,7 @@ class Hyper(Connector):
         except FileNotFoundError:
             pass
 
-    def execute(self, query: str) -> pd.DataFrame:
+    def execute_to_df(self, query: str) -> pd.DataFrame:
         query = self._revise_query(query)
         hyper_res = self.conn.execute_query(query)
         result_df = pd.DataFrame(list(hyper_res))

@@ -1,5 +1,5 @@
 import sys
-from typing import Self
+from typing import Any, Self
 
 import duckdb
 import pandas as pd
@@ -11,6 +11,9 @@ from .connector import Connector, UseConstraintsTypes
 class DuckDb(Connector):
 
     def __enter__(self) -> Self:
+        if self.is_log:
+            raise NotImplementedError("logging not handled for DuckDB")
+
         print(f"Connecting to DuckDB (threads={self.threads})")
         self.conn = duckdb.connect(":memory:", read_only=False)
         self.conn.execute(f"PRAGMA threads={self.threads}")
@@ -28,7 +31,7 @@ class DuckDb(Connector):
         self.conn.__exit__(*args, **kwargs)
         print("Disconnected from DuckDB")
 
-    def execute(self, query: str) -> pd.DataFrame:
+    def execute_to_df(self, query: str) -> pd.DataFrame:
         return self.conn.execute(query).df()
 
     def time(self, query: str) -> float:

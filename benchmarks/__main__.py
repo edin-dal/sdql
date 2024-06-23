@@ -56,7 +56,7 @@ if __name__ == "__main__":
     res["DuckDB (ms)"] = pd.Series(benchmark_duckdb(indices, queries, THREADS, RUNS))
     res["Hyper (ms)"] = pd.Series(benchmark_hyper(indices, queries, THREADS, RUNS))
 
-    elapsed_times, execution_times = extract_hyper_log_times()
+    elapsed_times, execution_times = extract_hyper_log_times(indices, queries, THREADS)
     res["Hyper (log elapsed)"] = pd.Series(elapsed_times)
     res["Hyper (log execution)"] = pd.Series(execution_times)
     res.to_csv("benchmarks.csv", index=False)
