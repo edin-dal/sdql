@@ -56,7 +56,5 @@ let l1_probed =
     else
       { }
 
-let l1_limited = ext(`Limit`, l1_probed, 100, true)
-
-sum_unique(<k,v> <- l1_limited)
+sum_unique(<k,v> <- l1_probed)
   { concat(k,v) -> 1 }
