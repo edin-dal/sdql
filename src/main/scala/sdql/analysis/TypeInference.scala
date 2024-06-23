@@ -202,6 +202,8 @@ object TypeInference {
 
   private def promote(t1: Type, t2: Type): Type = {
     (t1, t2) match {
+      case (IntType, DateType) | (DateType, IntType) =>
+        DateType
       case (IntType, RealType) | (RealType, IntType) =>
         RealType
       case (DictType(kt1, vt1), DictType(kt2, vt2)) =>

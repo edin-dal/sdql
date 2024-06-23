@@ -212,7 +212,7 @@ object CppCodegen {
 
       case Const(DateValue(v)) =>
         val yyyymmdd = reDate.findAllIn(v.toString).matchData.next()
-        s""""${yyyymmdd.group(1)}-${yyyymmdd.group(2)}-${yyyymmdd.group(3)}""""
+        s"${yyyymmdd.group(1)}${yyyymmdd.group(2)}${yyyymmdd.group(3)}"
       case Const(v: String) =>
         s""""$v""""
       case Const(v) =>
@@ -341,8 +341,8 @@ object CppCodegen {
   private def cppInit(tpe: ir.Type): String = tpe match {
     case BoolType => "false"
     case RealType => "0.0"
-    case IntType => "0"
-    case StringType | DateType => "std::string()"
+    case IntType | DateType => "0"
+    case StringType => "std::string()"
     case _: DictType => "{}"
     case RecordType(attrs) => attrs.map(_.tpe).map(cppInit).mkString(", ")
     case tpe => raise(s"unimplemented type: $tpe")
@@ -351,8 +351,8 @@ object CppCodegen {
   private def cppType(tpe: ir.Type): String = tpe match {
     case BoolType => "bool"
     case RealType => "double"
-    case IntType => "long"
-    case StringType | DateType => "std::string"
+    case IntType | DateType => "long"
+    case StringType => "std::string"
     case DictType(key, value) => s"phmap::flat_hash_map<${cppType(key)}, ${cppType(value)}>"
     case RecordType(attrs) => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
     case tpe => raise(s"unimplemented type: $tpe")
