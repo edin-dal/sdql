@@ -7,43 +7,27 @@ let o_h =
   sum_unique(<o,o_v> <- orders)
     { o.o_custkey -> 1 }
 
-let a =
+let fused =
   sum(<c,c_v> <- customer)
-    if(
-      (0.0 < c.c_acctbal) &&
-      (
-        ext(`StrStartsWith`, c.c_phone, "13") ||
-        ext(`StrStartsWith`, c.c_phone, "31") ||
-        ext(`StrStartsWith`, c.c_phone, "23") ||
-        ext(`StrStartsWith`, c.c_phone, "29") ||
-        ext(`StrStartsWith`, c.c_phone, "30") ||
-        ext(`StrStartsWith`, c.c_phone, "18") ||
-        ext(`StrStartsWith`, c.c_phone, "17")
-      )
-    ) then
-      c.c_acctbal
+    let cond = (
+                 (0.0 < c.c_acctbal) &&
+                 (
+                   ext(`StrStartsWith`, c.c_phone, "13") ||
+                   ext(`StrStartsWith`, c.c_phone, "31") ||
+                   ext(`StrStartsWith`, c.c_phone, "23") ||
+                   ext(`StrStartsWith`, c.c_phone, "29") ||
+                   ext(`StrStartsWith`, c.c_phone, "30") ||
+                   ext(`StrStartsWith`, c.c_phone, "18") ||
+                   ext(`StrStartsWith`, c.c_phone, "17")
+                 )
+               )
+    // parsing fails without this trivial conditional - C++ compiler can optimise it away
+    if(true) then
+      < total = if(cond) then c.c_acctbal else 0.0, count = if(cond) then 1.0 else 0.0 >
     else
-      0.0
+      < >
 
-let b =
-  sum(<c,c_v> <- customer)
-    if(
-      (0.0 < c.c_acctbal) &&
-      (
-        ext(`StrStartsWith`, c.c_phone, "13") ||
-        ext(`StrStartsWith`, c.c_phone, "31") ||
-        ext(`StrStartsWith`, c.c_phone, "23") ||
-        ext(`StrStartsWith`, c.c_phone, "29") ||
-        ext(`StrStartsWith`, c.c_phone, "30") ||
-        ext(`StrStartsWith`, c.c_phone, "18") ||
-        ext(`StrStartsWith`, c.c_phone, "17")
-      )
-    ) then
-      1.0
-    else
-      0.0
-
-let avg = a / b
+let avg = fused.total / fused.count
 
 sum(<c,c_v> <- customer)
   if(
