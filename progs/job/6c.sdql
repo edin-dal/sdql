@@ -1,0 +1,42 @@
+let mk = load[{<id: int, movie_id: int, keyword_id: int> -> int}]("datasets/job/movie_keyword.csv")
+let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("datasets/job/6c/t.csv")
+let k = load[{<id: int, keyword: string, phonetic_code: string> -> int}]("datasets/job/6c/k.csv")
+let ci = load[{<id: int, person_id: int, movie_id: int, person_role_id: int, note: string, nr_order: int, role_id: int> -> int}]("datasets/job/cast_info.csv")
+let n = load[{<id: int, name: string, imdb_index: string, imdb_id: string, gender: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/6c/n.csv")
+
+let mk_trie0 = sum(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> { mk_tuple.keyword_id -> { mk_tuple -> 1 } } } in
+let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
+let k_trie0 = sum(<k_tuple, _> <- k) { k_tuple.id -> { k_tuple -> 1 } } in
+let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
+	if (x0 ∈ t_trie0) then
+		let t_trie1 = t_trie0(x0) in
+		sum(<x1, mk_trie2> <- mk_trie1)
+			if (x1 ∈ k_trie0) then
+				let k_trie1 = k_trie0(x1) in
+				sum(<mk_tuple, _> <- mk_trie2)
+					sum(<t_tuple, _> <- t_trie1)
+						sum(<k_tuple, _> <- k_trie1)
+							{ mk_tuple.movie_id -> { <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=t_tuple.title, col3=k_tuple.keyword> -> 1 } }
+			else
+				{}
+	else
+		{}
+in
+
+let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.person_id -> { ci_tuple.movie_id -> { ci_tuple -> 1 } } } in
+let n_trie0 = sum(<n_tuple, _> <- n) { n_tuple.id -> { n_tuple -> 1 } } in
+sum(<x0, ci_trie1> <- ci_trie0)
+	if (x0 ∈ n_trie0) then
+		let n_trie1 = n_trie0(x0) in
+		sum(<x1, ci_trie2> <- ci_trie1)
+			if (x1 ∈ interm0_trie0) then
+				let interm0_trie1 = interm0_trie0(x1) in
+				let mn_n_name = sum(<n_tuple, _> <- n_trie1) n_tuple.name in
+				let mn_interm0_col2 = sum(<interm0_tuple, _> <- interm0_trie1) interm0_tuple.col2 in
+				let mn_interm0_col3 = sum(<interm0_tuple, _> <- interm0_trie1) interm0_tuple.col3 in
+				<col2=mn_n_name, col4=mn_interm0_col2, col5=mn_interm0_col3>
+			else
+				<col2="", col4="", col5="">
+	else
+		{}
+
