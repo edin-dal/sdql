@@ -9,7 +9,7 @@ object Parser {
   def keywords[_: P] = P (
     StringIn("if", "then", "else", "let", "sum_unique", "sum_vec", "sum", "false",
       "true", "in", "join", "load", "ext", "iter", "int", "double", 
-      "string", "date", "range", "unit", "bool", "concat", "promote",
+      "string", "varchar", "date", "range", "unit", "bool", "concat", "promote",
       "mnpr", "mxpr", "mnsm", "mxsm",
       "min_prod", "max_prod", "min_sum", "max_sum",
       "enum", "nullable",
@@ -65,14 +65,17 @@ object Parser {
   def tpeBool[_: P]       = P( "bool" ).map(_ => BoolType)
   def tpeInt[_: P]        = P( "int" ).map(_ => IntType)
   def tpeReal[_: P]       = P( "double" | "real" ).map(_ => RealType)
-  def tpeString[_: P]     = P( "string" ).map(_ => StringType)
+  def tpeString[_: P]     = P( "string" ).map(_ => StringType())
+  def tpeVarChar[_:P] = P( "varchar" ~ "(" ~ (integral.!.map(_.toInt)) ~ space ~ ")" ).map(
+    x => VarCharType(x)
+  )
   def tpeDate[_: P]       = P( "date" ).map(_ => DateType)
   def tpeIndex[_:P]       = P( "dense_int" ~ ("[" ~ space ~/ ( "-1" | integral ).!.map(_.toInt) ~/ space ~/ "]").?  ).map(x => DenseIntType(x.getOrElse(-1)))
   def fieldTpe[_: P]      = P( variable ~/ ":" ~ space ~/ tpe ).map(x => Attribute(x._1.name, x._2))
   def tpeRec[_: P]        =
     P( "<" ~/ fieldTpe.rep(sep=","./) ~ space ~/ ">").map(l => RecordType(l))
   def tpeDict[_: P]       = P( "{" ~/ tpe ~ space ~ "->" ~ space ~/ tpe ~ "}").map(x => DictType(x._1, x._2))
-  def tpe[_: P]: P[Type]  = tpeBool | tpeInt | tpeReal | tpeString | tpeDate | tpeRec | tpeDict | tpeIndex | tpeTropSR | tpeEnum | tpeNullable
+  def tpe[_: P]: P[Type]  = tpeBool | tpeInt | tpeReal | tpeString | tpeVarChar | tpeDate | tpeRec | tpeDict | tpeIndex | tpeTropSR | tpeEnum | tpeNullable
 
   def strChars[_: P] = P( CharsWhile(stringChars) )
 

@@ -33,7 +33,7 @@ object Loader {
           arg.tpe match {
             case IntType => ldr.next_int
             case RealType        => ldr.next_double
-            case StringType     => ldr.next_string
+            case _: StringType     => ldr.next_string
             case DateType         => DateValue(ldr.next_date)
             case t => raise(s"Not handled type `$t` in the loader.")
           })

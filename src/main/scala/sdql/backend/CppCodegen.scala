@@ -384,7 +384,7 @@ object CppCodegen {
     case BoolType => "false"
     case RealType => "0.0"
     case IntType | DateType => "0"
-    case StringType => "std::string()"
+    case _: StringType => "std::string()"
     case _: DictType => "{}"
     case RecordType(attrs) => attrs.map(_.tpe).map(cppInit).mkString(", ")
     case tpe => raise(s"unimplemented type: $tpe")
@@ -394,7 +394,7 @@ object CppCodegen {
     case BoolType => "bool"
     case RealType => "double"
     case IntType | DateType => "long"
-    case StringType => "std::string"
+    case _: StringType => "std::string"
     case DictType(key, value) => s"phmap::flat_hash_map<${cppType(key)}, ${cppType(value)}>"
     case RecordType(attrs) => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
     case tpe => raise(s"unimplemented type: $tpe")

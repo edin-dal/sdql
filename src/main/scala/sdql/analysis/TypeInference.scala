@@ -72,7 +72,7 @@ object TypeInference {
         case _: Boolean => BoolType
         case _: Integer => IntType
         case _: Double => RealType
-        case _: String => StringType
+        case _: String => StringType()
         case v => raise(s"unhandled class: ${v.getClass.getSimpleName}")
       }
 
@@ -103,7 +103,7 @@ object TypeInference {
       case External(StrContains.SYMBOL | StrStartsWith.SYMBOL | StrEndsWith.SYMBOL | StrContainsN.SYMBOL, _) =>
         BoolType
       case External(SubString.SYMBOL,_) =>
-        StringType
+        StringType()
       case External(StrIndexOf.SYMBOL | Year.SYMBOL, _) =>
         IntType
       case External(ParseDate.SYMBOL, _) =>

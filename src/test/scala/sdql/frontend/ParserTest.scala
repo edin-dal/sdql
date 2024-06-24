@@ -112,7 +112,7 @@ class ParserTest extends FlatSpec {
 
   it should "work for load & ext" in {
     sdql"ext(`TopN`, x)" should be (External("TopN", Seq(Sym("x"))))
-    sdql"""load[{string -> bool}]("foo.csv")""" should be (Load("foo.csv",DictType(StringType,BoolType)))
+    sdql"""load[{string -> bool}]("foo.csv")""" should be (Load("foo.csv",DictType(StringType(),BoolType)))
     sdql"""load[{<a:dense_int,b:double> -> int}]("foo.csv")""" should be (Load("foo.csv",
       DictType(RecordType(Seq(Attribute("a", DenseIntType(-1)), Attribute("b", RealType))),IntType)))
   }
@@ -122,7 +122,7 @@ class ParserTest extends FlatSpec {
     sdql"""promote[min_sum](x)""" should be (Promote(TropicalSemiRingType("min_sum"), Sym("x")))
     sdql"""promote[enum[int]](x)""" should be (Promote(EnumSemiRingType(IntType), Sym("x")))
     sdql"""promote[nullable[int]](x)""" should be (Promote(NullableSemiRingType(IntType), Sym("x")))
-    sdql"""load[{string -> min_prod}]("foo.csv")""" should be (Load("foo.csv",DictType(StringType,TropicalSemiRingType("min_prod"))))
+    sdql"""load[{string -> min_prod}]("foo.csv")""" should be (Load("foo.csv",DictType(StringType(),TropicalSemiRingType("min_prod"))))
   }
 
   it should "perform desugaring" in {

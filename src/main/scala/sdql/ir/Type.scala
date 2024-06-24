@@ -10,7 +10,7 @@ sealed trait Type {
   }
 }
 case object BottomType extends Type
-case object StringType extends Type
+case class StringType(maxLen: Option[Int] = None) extends Type
 case object RealType extends Type
 // Used as the underlying type of a RangeNode, and keys for DictNodes that will generate arrays
 case class DenseIntType(n: Int) extends Type
@@ -64,7 +64,7 @@ object PairType {
 }
 
 object VarCharType {
-  def apply(i: Int): Type = StringType
+  def apply(maxLen: Int): Type = StringType(Some(maxLen))
 }
 object DecimalType {
   def apply(i: Int): Type = RealType
@@ -73,7 +73,7 @@ object DecimalType {
 object ScalarType {
   def unapply(tp: Type): Option[Type] = if(isScalar(tp)) Some(tp) else None
   def isScalar(tp: Type) = tp match {
-    case _: DenseIntType | RealType | IntType | StringType | DateType | CharType | BoolType => true
+    case _: DenseIntType | RealType | IntType | _: StringType | DateType | CharType | BoolType => true
     case _ => false
   }
 }

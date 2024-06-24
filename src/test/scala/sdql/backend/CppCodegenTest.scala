@@ -38,7 +38,7 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
     val e = sdql"""{ "a" -> 1, "b" -> 2.5 }"""
     import sdql.analysis.TypeInference
     import sdql.ir.{DictType, RealType, StringType}
-    assert(TypeInference(e) == DictType(StringType, RealType))
+    assert(TypeInference(e) == DictType(StringType(), RealType))
     compilesExp(e)
   }
 
