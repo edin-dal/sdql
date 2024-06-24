@@ -23,10 +23,7 @@ def hyper_dry_run(indices: Iterable[int], queries: Iterable[str], threads: int) 
 
 
 def extract_hyper_log_times(
-    indices: Iterable[int],
-    queries: Iterable[str],
-    threads: int,
-    round_digits: None | int = None,
+    indices: Iterable[int], queries: Iterable[str], threads: int
 ) -> (list[float], list[float]):
     print("Generating Hyper log")
     # runs elsewhere for benchmarks don't generate logs - in case it affects performance
@@ -54,8 +51,8 @@ def extract_hyper_log_times(
     elapsed_times = []
     for i in sorted(i_to_elapsed_times):
         q_times = i_to_elapsed_times[i]
-        mean_ms = round(mean(q_times), round_digits)
-        std_ms = round(pstdev(q_times), round_digits)
+        mean_ms = round(mean(q_times))
+        std_ms = round(pstdev(q_times))
         print(
             f"Elapsed q{i}: mean {mean_ms} ms (std {std_ms} ms - {len(q_times)} runs)"
         )
@@ -66,12 +63,8 @@ def extract_hyper_log_times(
         q_times = i_to_execution_times[i]
         mean_ms = mean(q_times)
         std_ms = pstdev(q_times)
-        if round_digits is None:
-            mean_ms = round(mean_ms)
-            std_ms = round(std_ms)
-        else:
-            mean_ms = round(mean_ms, round_digits)
-            std_ms = round(std_ms, round_digits)
+        mean_ms = round(mean_ms)
+        std_ms = round(std_ms)
         print(
             f"Execution q{i}: mean {mean_ms} ms (std {std_ms} ms - {len(q_times)} runs)"
         )

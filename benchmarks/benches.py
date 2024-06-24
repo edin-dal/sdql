@@ -54,22 +54,13 @@ def run_sdql(indices: Iterable[int]) -> list[int]:
 def benchmark_duckdb(
     indices: Iterable[int], queries: Iterable[str], threads: int, runs: int
 ) -> list[float]:
-    return benchmark(
-        "DuckDB",
-        DuckDb(threads=threads),
-        indices,
-        queries,
-        runs,
-        round_digits=None,
-    )
+    return benchmark("DuckDB", DuckDb(threads=threads), indices, queries, runs)
 
 
 def benchmark_hyper(
     indices: Iterable[int], queries: Iterable[str], threads: int, runs: int
 ) -> list[float]:
-    return benchmark(
-        "Hyper", Hyper(threads=threads), indices, queries, runs, round_digits=3
-    )
+    return benchmark("Hyper", Hyper(threads=threads), indices, queries, runs)
 
 
 def benchmark(
@@ -78,7 +69,6 @@ def benchmark(
     indices: Iterable[int],
     queries: Iterable[str],
     runs: int,
-    round_digits: None | int,
 ) -> list[float]:
     db_times = []
     with connector as db:
@@ -89,12 +79,8 @@ def benchmark(
                 q_times.append(time_ms)
             mean_ms = mean(q_times)
             std_ms = pstdev(q_times)
-            if round_digits is None:
-                mean_ms = round(mean_ms)
-                std_ms = round(std_ms)
-            else:
-                mean_ms = round(mean_ms, round_digits)
-                std_ms = round(std_ms, round_digits)
+            mean_ms = round(mean_ms)
+            std_ms = round(std_ms)
             print(f"{name} q{i}: mean {mean_ms} ms (std {std_ms} ms - {runs} runs)")
             db_times.append(mean_ms)
 
