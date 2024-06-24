@@ -26,7 +26,8 @@ object CppCodeGenerator {
 			case _ if tpe.isScalar => s"std::cout << $name << std::endl;"
 			case RecordType(fs) => fs.map(attr => s"$defaultResultsVar.${attr.name}").mkString("std::cout << ", """ << " | " << """, " << std::endl;")
 		}
-		s"""|#include "../runtime/headers.h"
+		s"""|#include "../../runtime/headers.h"
+			|#include <limits>
 			|#include <vector>
 			|
 			|const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
@@ -169,23 +170,21 @@ object CppCodeGenerator {
 			}
 	}
 
-	private def dictAssign(body: Exp, isTrieBody: Boolean)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, String) = {
-		body match {
-			case _: Const => (s"+= ${srun(body)}", "")
-			case FieldNode(Sym(tupleVar), column) =>
-				val idx = if (isTrieBody) "i" else s"${tupleVar}_off"
-				(s"+= $tupleVar.$column[$idx]", "")
-			case DictNode(ArrayBuffer((FieldNode(Sym(tupleVar), column), valueNode))) =>
-				val idx = if (isTrieBody) "i" else s"${tupleVar}_off"
-				val (rhs, preLines) = dictAssign(valueNode, isTrieBody)
-				(s"[$tupleVar.$column[$idx]]$rhs", preLines)
-			case DictNode(Nil) => ("", "")
-			case DictNode(ArrayBuffer((_: Sym, _: Const))) => (".push_back(i)", "")
-			case DictNode(ArrayBuffer((RecNode(tpl), _: Const))) =>
-				val intermVar = resVar.slice(0, 7)
-				(s".push_back(${intermVar}_cnt++)", tpl.map(intermColPushBack).map(col => s"$intermVar.$col").mkString("\n"))
-			case RecNode(fs) => (s".min(${fs.map(x => srun(x._2)).mkString(", ")})", "")
-		}
+	private def dictAssign(body: Exp, isTrieBody: Boolean)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, String) = body match {
+		case _: Const => (s"+= ${srun(body)}", "")
+		case FieldNode(Sym(tupleVar), column) =>
+			val idx = if (isTrieBody) "i" else s"${tupleVar}_off"
+			(s"+= $tupleVar.$column[$idx]", "")
+		case DictNode(ArrayBuffer((FieldNode(Sym(tupleVar), column), valueNode))) =>
+			val idx = if (isTrieBody) "i" else s"${tupleVar}_off"
+			val (rhs, preLines) = dictAssign(valueNode, isTrieBody)
+			(s"[$tupleVar.$column[$idx]]$rhs", preLines)
+		case DictNode(Nil) => ("", "")
+		case DictNode(ArrayBuffer((_: Sym, _: Const))) => (".push_back(i)", "")
+		case DictNode(ArrayBuffer((RecNode(tpl), _: Const))) =>
+			val intermVar = resVar.slice(0, 7)
+			(s".push_back(${intermVar}_cnt++)", tpl.map(intermColPushBack).map(col => s"$intermVar.$col").mkString("\n"))
+		case RecNode(fs) => (s".min(${fs.map(x => srun(x._2)).mkString(", ")})", "")
 	}
 
 	private def intermColPushBack(inp: (Field, Exp)): String = {
@@ -228,7 +227,7 @@ object CppCodeGenerator {
 	}
 
 	private def inf(tp: Type): String = tp match {
-		case IntType => "numeric_limits<int>::max()"
+		case IntType => "INT_MAX"
 		case StringType => """"zzzzzzzzzzzzzzzzzz""""
 	}
 
