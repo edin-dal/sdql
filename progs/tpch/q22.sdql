@@ -2,9 +2,8 @@ let customer = load[{<c_custkey: int, c_name: string, c_address: string, c_natio
 
 let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_totalprice: double, o_orderdate: date, o_orderpriority: string, o_clerk: string, o_shippriority: int, o_comment: string> -> int}]("datasets/tpch/orders.tbl")
 
-// TODO sdqlpy stores o_h as a vector
 let o_h =
-  sum_unique(<o,o_v> <- orders)
+  sum_vec(<o,o_v> <- orders)
     { o.o_custkey -> 1 }
 
 let fused =

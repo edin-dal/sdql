@@ -19,6 +19,7 @@ object CppCodegen {
   private case class IsTernary() extends CallCtx
   private type LoadsCtx = Set[Sym]
 
+  private val vecSize = 6000001;
   private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
   private val resultName = "result"
 
@@ -86,7 +87,8 @@ object CppCodegen {
               val rhs = run(kv._2)(typesCtx, callsLocal, loadsCtx)
               hint match {
                 case _: NoHint => s"$agg[$lhs] += $rhs;"
-                case _: Unique => s"$agg.emplace($lhs, $rhs);"
+                case _: UniqueHint => s"$agg.emplace($lhs, $rhs);"
+                case _: VectorHint => s"$agg[$lhs] = $rhs;"
               }
             }
           ).mkString("\n")
@@ -104,10 +106,12 @@ object CppCodegen {
         val isTernary = !cond(e1) { case _: Sum => true }
         val localCalls = if (isTernary) List(IsTernary()) ++ callsCtx else callsCtx
         val e1Cpp = e1 match {
-          // codegen for loads was handled in a separate tree traversal
-          case Load(_, DictType(RecordType(_), IntType)) => ""
+          case Load(_, DictType(RecordType(_), IntType)) =>
+            // codegen for loads was handled in a separate tree traversal
+            ""
           case External(Limit.SYMBOL, _) =>
             s"${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls, loadsCtx)}\n"
+          // TODO add a const case for Const assignments
           case _ =>
             s"auto $name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls, loadsCtx)};"
         }
@@ -139,7 +143,19 @@ object CppCodegen {
              |""".stripMargin
         } else {
           val head = run(e1)(typesLocal, List(SumEnd()) ++ callsLocal, loadsCtx)
-          s"""${cppType(tpe)} (${cppInit(tpe)});
+          val init = hint match {
+            case _: VectorHint =>
+              tpe match {
+                case DictType(IntType, vt) =>
+                  s"vector<${cppType(vt)}>($vecSize)"
+                case tpe =>
+                  raise(s"expected ${DictType.getClass.getSimpleName.init} " +
+                    s"with ${IntType.getClass.getSimpleName.init} key, not ${tpe.simpleName}")
+              }
+            case _ =>
+              s"${cppType(tpe)} (${cppInit(tpe)})"
+          }
+          s"""$init;
              |for (const auto &[${k.name}, ${v.name}] : $head) {
              |$body
              |}

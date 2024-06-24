@@ -20,9 +20,8 @@ let su_probed =
     else
       { }
 
-// TODO sdqlpy stores ord_indexed as a vector
 let ord_indexed =
-  sum_unique(<o,o_v> <- orders)
+  sum_vec(<o,o_v> <- orders)
     if(o.o_orderstatus == "F") then
       { o.o_orderkey -> 1 }
     else

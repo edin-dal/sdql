@@ -28,13 +28,16 @@ object CppCompile {
     reflect.io.File(path.toString).writeAll(contents)
   }
   private def cmakeContents(noExtensions: Seq[String]): String = {
-    val init =  s"""# auto-generated config
+    val init =  s"""# auto-generated config - handy for Clion
                    |cmake_minimum_required(VERSION $cmakeVersion)
                    |project(generated)
                    |set(CMAKE_CXX_STANDARD $cppStandard)
-                   |# uncomment to compile in release mode
-                   |#set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
-                   |#set(CMAKE_CXX_FLAGS_RELEASE "$releaseFlag")
+                   |
+                   |# comment out to debug / set breakpoints in Clion
+                   |# note: without -O3 it will be super slow on vectors
+                   |set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+                   |set(CMAKE_CXX_FLAGS_RELEASE "$releaseFlag")
+                   |
                    |set(CMAKE_CXX_FLAGS "$phmapWarningsFlag")
                    |set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $${CMAKE_CURRENT_SOURCE_DIR})
                    |""".stripMargin

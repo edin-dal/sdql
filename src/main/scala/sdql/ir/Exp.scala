@@ -122,7 +122,8 @@ case class External(name: String, args: Seq[Exp]) extends Exp
 
 sealed trait CodegenHint;
 case class NoHint() extends CodegenHint
-case class Unique() extends CodegenHint
+case class UniqueHint() extends CodegenHint
+case class VectorHint() extends CodegenHint
 
 /**
  * This object models the multiplication of a sequence of expressions. It can
