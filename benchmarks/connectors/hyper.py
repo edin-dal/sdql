@@ -1,7 +1,7 @@
 import os
 import re
 import sys
-from typing import Any, Self, Final
+from typing import Self, Final
 
 import pandas as pd
 from tableauhyperapi import (
