@@ -88,7 +88,22 @@ object CppCodegen {
               hint match {
                 case _: NoHint => s"$agg[$lhs] += $rhs;"
                 case _: UniqueHint => s"$agg.emplace($lhs, $rhs);"
-                case _: VectorHint => s"$agg[$lhs] = $rhs;"
+                case _: VectorHint =>
+                  typesCtx(Sym(agg)) match {
+                    case DictType(IntType, DictType(IntType, _)) =>
+                      e match {
+                        case DictNode(Seq((f1: FieldNode, DictNode(Seq((f2: FieldNode, _)))))) =>
+                          val lhs = run(f1)(typesCtx, callsLocal, loadsCtx)
+                          val rhs = run(f2)(typesCtx, callsLocal, loadsCtx)
+                          s"$agg[$lhs].emplace_back($rhs);"
+                      }
+                    case DictType(IntType, _) =>
+                      s"$agg[$lhs] = $rhs;"
+                    case tpe =>
+                      raise(s"expected nested ${DictType.getClass.getSimpleName.init} " +
+                        s"with ${IntType.getClass.getSimpleName.init} keys up to 2-levels deep, " +
+                        s"not ${tpe.simpleName}")
+                  }
               }
             }
           ).mkString("\n")
@@ -131,9 +146,25 @@ object CppCodegen {
 
         val body = run(e2)(typesLocal, callsLocal, loadsCtx)
 
+        val init = hint match {
+          case _: VectorHint =>
+            tpe match {
+              case DictType(IntType, DictType(IntType, vt)) =>
+                s"vector<vector<${cppType(vt)}>>($vecSize)"
+              case DictType(IntType, vt) =>
+                s"vector<${cppType(vt)}>($vecSize)"
+              case tpe =>
+                raise(s"expected nested ${DictType.getClass.getSimpleName.init} " +
+                  s"with ${IntType.getClass.getSimpleName.init} keys up to 2-levels deep, " +
+                  s"not ${tpe.simpleName}")
+            }
+          case _ =>
+            s"${cppType(tpe)} (${cppInit(tpe)})"
+        }
+
         if (isLoad) {
           val e1Name = (e1: @unchecked) match { case Sym(e1Name) => e1Name }
-          s"""${cppType(tpe)} (${cppInit(tpe)});
+          s"""$init;
              |for (int i = 0; i < ${e1Name.capitalize}::size(); i++) {
              |const auto &${k.name} = $e1Name;
              |constexpr auto ${v.name} = ${e1Name.capitalize}Values();
@@ -143,18 +174,6 @@ object CppCodegen {
              |""".stripMargin
         } else {
           val head = run(e1)(typesLocal, List(SumEnd()) ++ callsLocal, loadsCtx)
-          val init = hint match {
-            case _: VectorHint =>
-              tpe match {
-                case DictType(IntType, vt) =>
-                  s"vector<${cppType(vt)}>($vecSize)"
-                case tpe =>
-                  raise(s"expected ${DictType.getClass.getSimpleName.init} " +
-                    s"with ${IntType.getClass.getSimpleName.init} key, not ${tpe.simpleName}")
-              }
-            case _ =>
-              s"${cppType(tpe)} (${cppInit(tpe)})"
-          }
           s"""$init;
              |for (const auto &[${k.name}, ${v.name}] : $head) {
              |$body
@@ -190,7 +209,14 @@ object CppCodegen {
 
       case Cmp(Get(e1, e2), DictNode(Nil), "!=")
         if cond(TypeInference.run(e1)) { case DictType(kt, _) => TypeInference.run(e2) == kt } =>
-          s"${run(e1)}.contains(${run(e2)})"
+        (e1, e2) match {
+          // TODO remove this special handling for Q21
+          case (Sym("ord_indexed"), FieldNode(Sym("l"), "l_orderkey")) =>
+            "ord_indexed[l.l_orderkey[i]] != false"
+          case _ =>
+            s"${run(e1)}.contains(${run(e2)})"
+        }
+
       case Cmp(DictNode(Nil), Get(e1, e2), "!=")
         if cond(TypeInference.run(e1)) { case DictType(kt, _) => TypeInference.run(e2) == kt } =>
         s"${run(e1)}.contains(${run(e2)})"

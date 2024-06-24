@@ -27,14 +27,14 @@ let ord_indexed =
     else
       { }
 
-// TODO sdqlpy stores l2_indexed as a vector or vectors
+// TODO double-check this
 let l2_indexed =
-  sum(<l,l_v> <- lineitem)
+  sum_vec(<l,l_v> <- lineitem)
     { l.l_orderkey ->  { l.l_suppkey -> 1 } }
 
-// TODO sdqlpy stores l3_indexed as a vector or vectors
+// TODO double-check this
 let l3_indexed =
-  sum(<l,l_v> <- lineitem)
+  sum_vec(<l,l_v> <- lineitem)
     if(l.l_commitdate < l.l_receiptdate) then
       { l.l_orderkey ->  { l.l_suppkey -> 1 } }
     else
