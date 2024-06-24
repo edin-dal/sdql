@@ -10,8 +10,12 @@ object CppCompile {
     reflect.io.File(cppPath(noExtension).toString).writeAll(cpp)
     inGeneratedDir(clang_format(noExtension)).!!
     inGeneratedDir(clang(noExtension)).!!
-    inGeneratedDir(run(noExtension)).!!
+    pretty_print(inGeneratedDir(run(noExtension)).!!)
   }
+
+  private def pretty_print(s: String): String =
+    s.replace("\0", "").split("\n").sorted.mkString("\n")
+
   private def clang_format(noExtension: String) = Seq(
     "clang-format", "-i", s"$noExtension.cpp", "-style", s"{ColumnLimit: $clangColumnLimit}"
   )

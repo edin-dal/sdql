@@ -100,11 +100,19 @@ object TypeInference {
         )
       }
 
+      case External(ConstantString.SYMBOL, args) =>
+        val (str, maxLen) = args match { case Seq(Const(str: String), Const(maxLen: Int)) => (str, maxLen)}
+        assert(maxLen == str.length + 1)
+        StringType(Some(str.length))
       case External(StrContains.SYMBOL | StrStartsWith.SYMBOL | StrEndsWith.SYMBOL | StrContainsN.SYMBOL, _) =>
         BoolType
-      case External(SubString.SYMBOL,_) =>
-        StringType()
-      case External(StrIndexOf.SYMBOL | Year.SYMBOL, _) =>
+      case External(SubString.SYMBOL, args) =>
+        val (str, start, end) = args match { case Seq(str, Const(start: Int), Const(end: Int)) => (str, start, end)}
+        TypeInference.run(str) match {
+          case StringType(None) => StringType(None)
+          case StringType(Some(_)) => StringType(Some(end - start))
+        }
+      case External(StrIndexOf.SYMBOL | FirstIndex.SYMBOL | Year.SYMBOL, _) =>
         IntType
       case External(ParseDate.SYMBOL, _) =>
         DateType

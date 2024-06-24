@@ -56,7 +56,11 @@ object CppCodegen {
         |cout << "Runtime (ms): " << duration.count() << endl;
         |""".stripMargin
     // slightly wasteful to redo type inference - but spares us having to return the type at every recursive run call
-    val tpe = TypeInference(e)
+    val tpe = e match {
+      case Const(s: String) =>
+        StringType(Some(s.length))
+      case _ => TypeInference(e)
+    }
     val queryBodyWithPrint =
       s"""$benchStart
          |$queryBody
@@ -126,7 +130,12 @@ object CppCodegen {
             ""
           case External(Limit.SYMBOL, _) =>
             s"${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls, loadsCtx)}\n"
-          // TODO add a const case for Const assignments
+
+          case c @ Const(_: String) =>
+            s"const auto $name = ${const(c)};"
+          case c: Const =>
+            // TODO make this constexpr?
+            s"const auto $name = ${const(c)};"
           case _ =>
             s"auto $name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls, loadsCtx)};"
         }
@@ -252,13 +261,8 @@ object CppCodegen {
       case Neg(e) =>
         s"-${run(e)}"
 
-      case Const(DateValue(v)) =>
-        val yyyymmdd = reDate.findAllIn(v.toString).matchData.next()
-        s"${yyyymmdd.group(1)}${yyyymmdd.group(2)}${yyyymmdd.group(3)}"
-      case Const(v: String) =>
-        s""""$v""""
-      case Const(v) =>
-        v.toString
+      case c: Const =>
+        const(c)
 
       case Sym(name) =>
         callsCtx.flatMap(x => condOpt(x) { case ctx: SumCtx => ctx }).headOption match {
@@ -301,14 +305,43 @@ object CppCodegen {
         )
       }
 
+      case External(ConstantString.SYMBOL, Seq(Const(str: String), Const(maxLen: Int))) =>
+        assert(maxLen == str.length + 1)
+        s"""ConstantString("$str", $maxLen)"""
+
+      case External(StrContains.SYMBOL, Seq(str, subStr)) =>
+        (TypeInference.run(str), TypeInference.run(subStr)) match {
+          case (StringType(None), StringType(None)) =>
+            s"${run(str)}.find(${run(subStr)})"
+          case (StringType(Some(_)), StringType(Some(subStrMaxLen))) =>
+            s"${run(str)}.contains(${run(subStr)}, $subStrMaxLen)"
+          // TODO remove this special handling for Q9
+          case (StringType(Some(_)), _) =>
+            s"${run(str)}.contains(${run(subStr)}, 5)"
+        }
       case External(StrStartsWith.SYMBOL, Seq(str, prefix)) =>
-        s"${run(str)}.starts_with(${run(prefix)})"
+        val startsWith = TypeInference.run(str) match {
+          case StringType(None) => "starts_with"
+          case StringType(Some(_)) => "startsWith"
+        }
+        s"${run(str)}.$startsWith(${run(prefix)})"
       case External(StrEndsWith.SYMBOL, Seq(str, suffix)) =>
-        s"${run(str)}.ends_with(${run(suffix)})"
-      case External(SubString.SYMBOL, Seq(str, start, end)) =>
-        s"${run(str)}.substr(${run(start)}, ${run(end)})"
+        val endsWith = TypeInference.run(str) match {
+          case StringType(None) => "ends_with"
+          case StringType(Some(_)) => "endsWith"
+        }
+        s"${run(str)}.$endsWith(${run(suffix)})"
+      case External(SubString.SYMBOL, Seq(str, Const(start: Int), Const(end: Int))) =>
+        val subStr = TypeInference.run(str) match {
+          case StringType(None) => "substr"
+          case StringType(Some(_)) => s"substr<${end - start}>"
+        }
+        s"${run(str)}.$subStr($start, $end)"
       case External(StrIndexOf.SYMBOL, Seq(field: FieldNode, elem, from)) =>
+        assert(cond(TypeInference.run(field)) { case StringType(None) => true })
         s"${run(field)}.find(${run(elem)}, ${run(from)})"
+      case External(FirstIndex.SYMBOL, Seq(field: FieldNode, arg)) =>
+        s"${run(field)}.firstIndex(${run(arg)})"
       case External(name @ Inv.SYMBOL, _) =>
         raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
       case External(MaxValue.SYMBOL, Seq(arg)) =>
@@ -372,6 +405,16 @@ object CppCodegen {
            |${munitPrint(e)}""".stripMargin
       )
     }
+  }
+
+  private def const(c: Const) = c match {
+    case Const(DateValue(v)) =>
+      val yyyymmdd = reDate.findAllIn(v.toString).matchData.next()
+      s"${yyyymmdd.group(1)}${yyyymmdd.group(2)}${yyyymmdd.group(3)}"
+    case Const(v: String) =>
+      s""""$v""""
+    case Const(v) =>
+      v.toString
   }
 
   // TODO no longer needed
@@ -552,6 +595,8 @@ object CppCodegen {
          |ss << $body;
          |$stdCout << "<" << ss.str() << ">" << std::endl;
          |""".stripMargin
+    case StringType(Some(_)) =>
+      s"std::wcout << $resultName << std::endl;"
     case _ if tpe.isScalar =>
       s"$stdCout << $resultName << std::endl;"
   }

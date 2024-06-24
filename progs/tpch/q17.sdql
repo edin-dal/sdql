@@ -1,10 +1,13 @@
-let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
+let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: varchar(1), l_linestatus: varchar(1), l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: varchar(25), l_shipmode: varchar(10), l_comment: varchar(44)> -> int}]("datasets/tpch/lineitem.tbl")
 
-let part = load[{<p_partkey: int, p_name: string, p_mfgr: string, p_brand: string, p_type: string, p_size: int, p_container: string, p_retailprice: double, p_comment: string> -> int}]("datasets/tpch/part.tbl")
+let part = load[{<p_partkey: int, p_name: varchar(55), p_mfgr: varchar(25), p_brand: varchar(10), p_type: varchar(25), p_size: int, p_container: varchar(10), p_retailprice: double, p_comment: varchar(23)> -> int}]("datasets/tpch/part.tbl")
+
+let brand = ext(`ConstantString`, "Brand#23", 9)
+let medbox = ext(`ConstantString`, "MED BOX", 8)
 
 let p_h =
   sum_unique(<p,p_v> <- part)
-    if((p.p_brand == "Brand#23") && (p.p_container == "MED BOX")) then
+    if((p.p_brand == brand) && (p.p_container == medbox)) then
       { p.p_partkey -> < _ = p.p_partkey > }
     else
       { }

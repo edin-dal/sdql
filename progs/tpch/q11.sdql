@@ -1,12 +1,14 @@
-let supplier = load[{<s_suppkey: int, s_name: string, s_address: string, s_nationkey: int, s_phone: string, s_acctbal: double, s_comment: string> -> int}]("datasets/tpch/supplier.tbl")
+let supplier = load[{<s_suppkey: int, s_name: varchar(25), s_address: varchar(40), s_nationkey: int, s_phone: varchar(15), s_acctbal: double, s_comment: varchar(101)> -> int}]("datasets/tpch/supplier.tbl")
 
-let partsupp = load[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_supplycost: double, ps_comment: string> -> int}]("datasets/tpch/partsupp.tbl")
+let partsupp = load[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_supplycost: double, ps_comment: varchar(199)> -> int}]("datasets/tpch/partsupp.tbl")
 
-let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
+let nation = load[{<n_nationkey: int, n_name: varchar(25), n_regionkey: int, r_comment: varchar(152)> -> int}]("datasets/tpch/nation.tbl")
+
+let germany = ext(`ConstantString`,"GERMANY", 8)
 
 let n_h =
   sum_unique(<n,n_v> in nation)
-    if(n.n_name == "GERMANY") then
+    if(n.n_name == germany) then
       { n.n_nationkey -> < _ = n.n_nationkey > }
     else
       { }

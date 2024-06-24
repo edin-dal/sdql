@@ -1,14 +1,20 @@
-let partsupp = load[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_supplycost: double, ps_comment: string> -> int}]("datasets/tpch/partsupp.tbl")
+let partsupp = load[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_supplycost: double, ps_comment: varchar(199)> -> int}]("datasets/tpch/partsupp.tbl")
 
-let part = load[{<p_partkey: int, p_name: string, p_mfgr: string, p_brand: string, p_type: string, p_size: int, p_container: string, p_retailprice: double, p_comment: string> -> int}]("datasets/tpch/part.tbl")
+let part = load[{<p_partkey: int, p_name: varchar(55), p_mfgr: varchar(25), p_brand: varchar(10), p_type: varchar(25), p_size: int, p_container: varchar(10), p_retailprice: double, p_comment: varchar(23)> -> int}]("datasets/tpch/part.tbl")
 
-let supplier = load[{<s_suppkey: int, s_name: string, s_address: string, s_nationkey: int, s_phone: string, s_acctbal: double, s_comment: string> -> int}]("datasets/tpch/supplier.tbl")
+let supplier = load[{<s_suppkey: int, s_name: varchar(25), s_address: varchar(40), s_nationkey: int, s_phone: varchar(15), s_acctbal: double, s_comment: varchar(101)> -> int}]("datasets/tpch/supplier.tbl")
+
+let brand = ext(`ConstantString`, "Brand#45", 9)
+let medpol = ext(`ConstantString`, "MEDIUM POLISHED", 16)
+let _customer = ext(`ConstantString`, "Customer", 9)
+let _complaints = ext(`ConstantString`, "Complaints", 11)
+let nchars_customer = 8
 
 let p_h =
   sum_unique(<p,p_v> <- part)
     if(
-      (p.p_brand != "Brand#45") &&
-      (!ext(`StrStartsWith`, p.p_type, "MEDIUM POLISHED")) &&
+      (p.p_brand != brand) &&
+      (!ext(`StrStartsWith`, p.p_type, medpol)) &&
       (
         (p.p_size ==  49) ||
         (p.p_size ==  14) ||
@@ -26,9 +32,8 @@ let p_h =
 
 let s_h =
   sum_unique(<s,s_v> <- supplier)
-    let idx1 = ext(`StrIndexOf`, s.s_comment, "Customer", 0)
-    let idx2 = ext(`StrIndexOf`, s.s_comment, "Complaints", idx1)
-    if((idx1 != -1) && (idx2 != -1)) then
+    let idx_customer = ext(`FirstIndex`, s.s_comment, _customer)
+    if((idx_customer != -1) && (idx_customer + nchars_customer <= ext(`FirstIndex`, s.s_comment, _complaints))) then
       { s.s_suppkey -> < _ = s.s_suppkey > }
     else
       { }

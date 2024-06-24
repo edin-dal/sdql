@@ -1,14 +1,17 @@
-let supplier = load[{<s_suppkey: int, s_name: string, s_address: string, s_nationkey: int, s_phone: string, s_acctbal: double, s_comment: string> -> int}]("datasets/tpch/supplier.tbl")
+let supplier = load[{<s_suppkey: int, s_name: varchar(25), s_address: varchar(40), s_nationkey: int, s_phone: varchar(15), s_acctbal: double, s_comment: varchar(101)> -> int}]("datasets/tpch/supplier.tbl")
 
-let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
+let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: varchar(1), l_linestatus: varchar(1), l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: varchar(25), l_shipmode: varchar(10), l_comment: varchar(44)> -> int}]("datasets/tpch/lineitem.tbl")
 
-let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_totalprice: double, o_orderdate: date, o_orderpriority: string, o_clerk: string, o_shippriority: int, o_comment: string> -> int}]("datasets/tpch/orders.tbl")
+let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
 
-let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
+let nation = load[{<n_nationkey: int, n_name: varchar(25), n_regionkey: int, r_comment: varchar(152)> -> int}]("datasets/tpch/nation.tbl")
+
+let saudi = ext(`ConstantString`, "SAUDI ARABIA", 13)
+let f = ext(`ConstantString`, "F", 2)
 
 let nation_indexed =
   sum_unique(<n,n_v> <- nation)
-    if(n.n_name == "SAUDI ARABIA") then
+    if(n.n_name == saudi) then
       { n.n_nationkey -> < _ = n.n_nationkey > }
     else
       { }
@@ -22,7 +25,7 @@ let su_probed =
 
 let ord_indexed =
   sum_vec(<o,o_v> <- orders)
-    if(o.o_orderstatus == "F") then
+    if(o.o_orderstatus == f) then
       { o.o_orderkey -> 1 }
     else
       { }

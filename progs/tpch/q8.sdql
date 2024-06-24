@@ -1,20 +1,24 @@
-let part = load[{<p_partkey: int, p_name: string, p_mfgr: string, p_brand: string, p_type: string, p_size: int, p_container: string, p_retailprice: double, p_comment: string> -> int}]("datasets/tpch/part.tbl")
+let part = load[{<p_partkey: int, p_name: varchar(55), p_mfgr: varchar(25), p_brand: varchar(10), p_type: varchar(25), p_size: int, p_container: varchar(10), p_retailprice: double, p_comment: varchar(23)> -> int}]("datasets/tpch/part.tbl")
 
-let supplier = load[{<s_suppkey: int, s_name: string, s_address: string, s_nationkey: int, s_phone: string, s_acctbal: double, s_comment: string> -> int}]("datasets/tpch/supplier.tbl")
+let supplier = load[{<s_suppkey: int, s_name: varchar(25), s_address: varchar(40), s_nationkey: int, s_phone: varchar(15), s_acctbal: double, s_comment: varchar(101)> -> int}]("datasets/tpch/supplier.tbl")
 
-let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
+let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: varchar(1), l_linestatus: varchar(1), l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: varchar(25), l_shipmode: varchar(10), l_comment: varchar(44)> -> int}]("datasets/tpch/lineitem.tbl")
 
-let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_totalprice: double, o_orderdate: date, o_orderpriority: string, o_clerk: string, o_shippriority: int, o_comment: string> -> int}]("datasets/tpch/orders.tbl")
+let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
 
-let customer = load[{<c_custkey: int, c_name: string, c_address: string, c_nationkey: int, c_phone: string, c_acctbal: double, c_mktsegment: string, c_comment: string> -> int}]("datasets/tpch/customer.tbl")
+let customer = load[{<c_custkey: int, c_name: varchar(25), c_address: varchar(40), c_nationkey: int, c_phone: varchar(15), c_acctbal: double, c_mktsegment: varchar(10), c_comment: varchar(117)> -> int}]("datasets/tpch/customer.tbl")
 
-let nation = load[{<n_nationkey: int, n_name: string, n_regionkey: int, r_comment: string> -> int}]("datasets/tpch/nation.tbl")
+let nation = load[{<n_nationkey: int, n_name: varchar(25), n_regionkey: int, r_comment: varchar(152)> -> int}]("datasets/tpch/nation.tbl")
 
-let region = load[{<r_regionkey: int, r_name: string, r_comment: string> -> int}]("datasets/tpch/region.tbl")
+let region = load[{<r_regionkey: int, r_name: varchar(25), r_comment: varchar(152)> -> int}]("datasets/tpch/region.tbl")
+
+let steel = ext(`ConstantString`,"ECONOMY ANODIZED STEEL", 23)
+let america = ext(`ConstantString`,"AMERICA", 8)
+let brazil = ext(`ConstantString`,"BRAZIL", 7)
 
 let r_h =
   sum_unique(<r,r_v> in region)
-    if(r.r_name == "AMERICA") then
+    if(r.r_name == america) then
       { r.r_regionkey -> < _ = r.r_regionkey > }
     else
       { }
@@ -40,7 +44,7 @@ let c_h =
 
 let p_h =
   sum_unique(<p,p_v> in part)
-      if(p.p_type == "ECONOMY ANODIZED STEEL") then
+      if(p.p_type == steel) then
         { p.p_partkey -> < _ = p.p_partkey > }
       else
         { }
@@ -58,7 +62,7 @@ let l_h =
         let orderdate = o_h(l.l_orderkey)(1)
         let orderyear = orderdate / 10000
         let volume = l.l_extendedprice * (1.0 - l.l_discount)
-        let brazil_volume = if(nationkey_to_name(s_h(l.l_suppkey)(0))(0) == "BRAZIL") then volume else 0.0
+        let brazil_volume = if(nationkey_to_name(s_h(l.l_suppkey)(0))(0) == brazil) then volume else 0.0
         { orderyear -> < _ = brazil_volume, _ = volume > }
       else
         { }

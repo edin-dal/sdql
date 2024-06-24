@@ -103,7 +103,7 @@ def read_sdql_results(indices: Iterable[int]) -> list[pd.DataFrame]:
         lines = []
         with open(in_path) as file:
             while line := file.readline():
-                line = sdql_to_csv(q_i)(line.rstrip())
+                line = sdql_to_csv(q_i)(line.rstrip().replace("\x00", ""))
                 lines.append(line)
         csv = "\n".join(lines)
         csv_io = io.StringIO(csv)
@@ -164,8 +164,6 @@ def sdql_to_csv(i: int) -> Callable[[str], str]:
             return q7_to_csv
         case 20:
             return unescaped_to_csv(n_cols=2)
-        case 22:
-            return q22_to_csv
         case _:
             return relational_to_csv
 
@@ -193,10 +191,5 @@ def q7_to_csv(line: str) -> str:
     return re.sub(RE_Q7, r"\1,\2", line)
 
 
-def q22_to_csv(line: str) -> str:
-    return re.sub(RE_Q22, r"\1,\2", line)
-
-
 RE_RELATIONAL: Final[re.Pattern] = re.compile("^<([^>]*)>:1$")
 RE_Q7: Final[re.Pattern] = re.compile("^<<([^>]*)>,<([^>]*)>>:1$")
-RE_Q22: Final[re.Pattern] = re.compile("^([^<]*):<([^>]*)>$")

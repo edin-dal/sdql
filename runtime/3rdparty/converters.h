@@ -45,3 +45,11 @@ std::string print_date(long yyyymmdd) {
   ss << yyyy << "-" << mm_str << "-" << dd_str;
   return ss.str();
 }
+
+// putting this here to leave untouched varchar.h
+static wchar_t* ConstantString(const char* data, int len)
+{
+    wchar_t* wc = new wchar_t[len];
+    mbstowcs (wc, data, len);
+    return wc;
+}

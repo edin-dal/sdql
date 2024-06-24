@@ -1,6 +1,14 @@
-let customer = load[{<c_custkey: int, c_name: string, c_address: string, c_nationkey: int, c_phone: string, c_acctbal: double, c_mktsegment: string, c_comment: string> -> int}]("datasets/tpch/customer.tbl")
+let customer = load[{<c_custkey: int, c_name: varchar(25), c_address: varchar(40), c_nationkey: int, c_phone: varchar(15), c_acctbal: double, c_mktsegment: varchar(10), c_comment: varchar(117)> -> int}]("datasets/tpch/customer.tbl")
 
-let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_totalprice: double, o_orderdate: date, o_orderpriority: string, o_clerk: string, o_shippriority: int, o_comment: string> -> int}]("datasets/tpch/orders.tbl")
+let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
+
+let _13 = ext(`ConstantString`, "13", 3)
+let _31 = ext(`ConstantString`, "31", 3)
+let _23 = ext(`ConstantString`, "23", 3)
+let _29 = ext(`ConstantString`, "29", 3)
+let _30 = ext(`ConstantString`, "30", 3)
+let _18 = ext(`ConstantString`, "18", 3)
+let _17 = ext(`ConstantString`, "17", 3)
 
 let o_h =
   sum_vec(<o,o_v> <- orders)
@@ -11,13 +19,13 @@ let fused =
     let cond = (
                  (0.0 < c.c_acctbal) &&
                  (
-                   ext(`StrStartsWith`, c.c_phone, "13") ||
-                   ext(`StrStartsWith`, c.c_phone, "31") ||
-                   ext(`StrStartsWith`, c.c_phone, "23") ||
-                   ext(`StrStartsWith`, c.c_phone, "29") ||
-                   ext(`StrStartsWith`, c.c_phone, "30") ||
-                   ext(`StrStartsWith`, c.c_phone, "18") ||
-                   ext(`StrStartsWith`, c.c_phone, "17")
+                   ext(`StrStartsWith`, c.c_phone, _13) ||
+                   ext(`StrStartsWith`, c.c_phone, _31) ||
+                   ext(`StrStartsWith`, c.c_phone, _23) ||
+                   ext(`StrStartsWith`, c.c_phone, _29) ||
+                   ext(`StrStartsWith`, c.c_phone, _30) ||
+                   ext(`StrStartsWith`, c.c_phone, _18) ||
+                   ext(`StrStartsWith`, c.c_phone, _17)
                  )
                )
     // parsing fails without this trivial conditional - C++ compiler can optimise it away
@@ -28,20 +36,24 @@ let fused =
 
 let avg = fused.total / fused.count
 
-sum(<c,c_v> <- customer)
-  if(
-    (avg < c.c_acctbal) &&
-    (!o_h(c.c_custkey)) &&
-    (
-      ext(`StrStartsWith`, c.c_phone, "13") ||
-      ext(`StrStartsWith`, c.c_phone, "31") ||
-      ext(`StrStartsWith`, c.c_phone, "23") ||
-      ext(`StrStartsWith`, c.c_phone, "29") ||
-      ext(`StrStartsWith`, c.c_phone, "30") ||
-      ext(`StrStartsWith`, c.c_phone, "18") ||
-      ext(`StrStartsWith`, c.c_phone, "17")
-    )
-  ) then
-    { ext(`SubString`, c.c_phone, 0, 2) -> < _ = 1, _ = c.c_acctbal > }
-  else
-    { }
+let res =
+  sum(<c,c_v> <- customer)
+    if(
+      (avg < c.c_acctbal) &&
+      (!o_h(c.c_custkey)) &&
+      (
+        ext(`StrStartsWith`, c.c_phone, _13) ||
+        ext(`StrStartsWith`, c.c_phone, _31) ||
+        ext(`StrStartsWith`, c.c_phone, _23) ||
+        ext(`StrStartsWith`, c.c_phone, _29) ||
+        ext(`StrStartsWith`, c.c_phone, _30) ||
+        ext(`StrStartsWith`, c.c_phone, _18) ||
+        ext(`StrStartsWith`, c.c_phone, _17)
+      )
+    ) then
+      { < cntrycode = ext(`SubString`, c.c_phone, 0, 2) > -> < numcust = 1, totacctbal = c.c_acctbal > }
+    else
+      { }
+
+sum_unique(<k,v> <- res)
+  { concat(k,v) -> 1 }
