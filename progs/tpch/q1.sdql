@@ -1,4 +1,4 @@
-let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
+let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: varchar(1), l_linestatus: varchar(1), l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: varchar(25), l_shipmode: varchar(10), l_comment: varchar(44)> -> int}]("datasets/tpch/lineitem.tbl")
 
 let li_h =
   sum(<li, li_v> <- lineitem)

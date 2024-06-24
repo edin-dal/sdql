@@ -384,7 +384,8 @@ object CppCodegen {
     case BoolType => "false"
     case RealType => "0.0"
     case IntType | DateType => "0"
-    case _: StringType => "std::string()"
+    case StringType(None) => "std::string()"
+    case StringType(Some(_)) => raise("initialising VarChars shouldn't be needed")
     case _: DictType => "{}"
     case RecordType(attrs) => attrs.map(_.tpe).map(cppInit).mkString(", ")
     case tpe => raise(s"unimplemented type: $tpe")
@@ -394,7 +395,8 @@ object CppCodegen {
     case BoolType => "bool"
     case RealType => "double"
     case IntType | DateType => "long"
-    case _: StringType => "std::string"
+    case StringType(None) => "std::string"
+    case StringType(Some(maxLen)) => s"VarChar<$maxLen>"
     case DictType(key, value) => s"phmap::flat_hash_map<${cppType(key)}, ${cppType(value)}>"
     case RecordType(attrs) => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
     case tpe => raise(s"unimplemented type: $tpe")
@@ -444,7 +446,15 @@ object CppCodegen {
   private def makeStructInit(name: String, attrs: Seq[Attribute]): String =
     attrs.zipWithIndex.map(
         {
-          case (attr, i) => s"${name.toUpperCase}.GetColumn<${cppType(attr.tpe)}>($i),"
+          case (Attribute(_, tpe), i) => tpe match {
+            case StringType(Some(maxLen)) =>
+              val tpe = StringType()
+              s"strings_to_varchars<$maxLen>(" +
+                s"${name.toUpperCase}.GetColumn<${cppType(tpe)}>($i)" +
+                "),"
+            case _ =>
+              s"${name.toUpperCase}.GetColumn<${cppType(tpe)}>($i),"
+          }
         }
       )
       .mkString(s"const ${name.capitalize} ${name.toLowerCase} {\n", "\n", "\n};\n")
