@@ -22,9 +22,7 @@ object CppCodeGenerator {
 	def apply(e: Exp): String = {
 		val (mainBody, Some((Sym(name), tpe))) = run(e)(Map(), List(), defaultResultsVar)
 		val printBody = tpe match {
-			case _: DictType => s"std::cout << $defaultResultsVar.size() << std::endl;"
-			case _ if tpe.isScalar => s"std::cout << $name << std::endl;"
-			case RecordType(fs) => fs.map(attr => s"$defaultResultsVar.${attr.name}").mkString("std::cout << ", """ << " | " << """, " << std::endl;")
+			case _: RecordType => s"$name.print();"
 		}
 		s"""|#include "../../runtime/headers.h"
 			|#include <limits>
@@ -214,6 +212,12 @@ object CppCodeGenerator {
 			   |${typeVar(varName)}(${fs.map(attr => s"${toCpp(attr.tpe)} ${attr.name}").mkString(", ")}) : ${fs.map(attr => s"${attr.name}(${attr.name})").mkString(", ")} {}
 			   |void min(${fs.map(attr => s"${toCpp(attr.tpe)} other_${attr.name}").mkString(", ")}) {
 			   |${fs.map(attr => s"${attr.name} = std::min(${attr.name}, other_${attr.name});").mkString("\n")}
+			   |}
+			   |void print() {
+			   |${fs.map(_.name).mkString("std::cout << ", """ << " | " << """, " << std::endl;")}
+			   |}
+			   |void clear() {
+			   |${fs.map(attr => s"${attr.name} = ${inf(attr.tpe)};").mkString("\n")}
 			   |}
 			   |} $varName;
 			   |""".stripMargin
