@@ -20,7 +20,7 @@ object CppCodeGenerator {
 	private def defaultResultsVar = "res"
 
 	def apply(e: Exp): String = {
-		val (mainBody, Some((Sym(name), tpe))) = run(e)(Map(), List(), defaultResultsVar)
+		val (loadBody, mainBody, Some((Sym(name), tpe))) = run(e)(Map(), List(), defaultResultsVar)
 		val printBody = tpe match {
 			case _: RecordType => s"$name.print();"
 		}
@@ -36,32 +36,56 @@ object CppCodeGenerator {
 			|int main() {
 			|${resVarInit(name, tpe)}
 			|
+			|$loadBody
+			|
+			|HighPrecisionTimer timer;
+			|for (int iter = 0; iter < 1 + 5; ++iter) {
+			|$name.clear();
+			|timer.Reset();
 			|$mainBody
+			|timer.StoreElapsedTime(0);
+			|}
 			|
 			|$printBody
+			|std::cout << timer.GetMean(0) << " ms" << std::endl;
 			|}""".stripMargin
 	}
 
-	def srun(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = run(e)._1
+	def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, String, Option[(Sym, Type)]) = e match {
+		case LetBinding(_, _: Load, _) =>
+			val (loadBody, e1, loadTypesCtx) = runLoad(e)
+			val (mainBody, info) = runMain(e1)(loadTypesCtx, callsCtx, resVar)
+			(loadBody, mainBody, info)
+	}
 
-	def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, Option[(Sym, Type)]) = e match {
+	def runLoad(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, Exp, TypesCtx) = e match {
+		case LetBinding(x@Sym(varName), e1@Load(path, tp), e2) =>
+			val load_e1 = load(varName, path, tp)
+			val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
+			val (load_e2, e3, typesCtxInner) = runLoad(e2)(typesLocal, callsCtx, resVar)
+			(load_e1 + load_e2, e3, typesCtxInner)
+		case _ => ("", e, typesCtx)
+	}
+
+	def srunMain(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = runMain(e)._1
+
+	def runMain(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, Option[(Sym, Type)]) = e match {
 		case LetBinding(x@Sym(varName), e1, e2) =>
 			val cpp_e1 = e1 match {
-				case Load(path, tp) => load(varName, path, tp)
 				case e1: Sum => letSum(e1)(typesCtx, callsCtx, varName)
 			}
 			val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
-			val (cpp_e2, info) = run(e2)(typesLocal, callsCtx, resVar)
+			val (cpp_e2, info) = runMain(e2)(typesLocal, callsCtx, resVar)
 			(cpp_e1 + cpp_e2, info)
 
 		case e: Sum => sum(e)
 
 		case Cmp(e1, e2, cmp) => cmp match {
-			case "∈" => (s"${srun(e2)}.contains(${srun(e1)})", None)
+			case "∈" => (s"${srunMain(e2)}.contains(${srunMain(e1)})", None)
 		}
 
 		case DictNode(Nil) => ("", None)
-		case DictNode(ArrayBuffer((_, htValue))) => (srun(htValue), None)
+		case DictNode(ArrayBuffer((_, htValue))) => (srunMain(htValue), None)
 
 		case Get(Sym(htName), Sym(htKeyName)) => (s"$htName.at($htKeyName)", None)
 
@@ -151,12 +175,12 @@ object CppCodeGenerator {
 		case LetBinding(x@Sym(varName), e1, e2) =>
 			val cpp_e1 = e1 match {
 				case e1: Sum => letSum(e1)(typesCtx, callsCtx, varName)
-				case _: Get => s"const auto $varName = ${srun(e1)};\n"
+				case _: Get => s"const auto $varName = ${srunMain(e1)};\n"
 			}
 			val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
 			val cpp_e2 = scopeBody(e2)(typesLocal, callsCtx, resVar)
 			cpp_e1 + cpp_e2
-		case IfThenElse(cond, thenp, _) => s"if (${srun(cond)}) {\n${scopeBody(thenp)}\n}\n"
+		case IfThenElse(cond, thenp, _) => s"if (${srunMain(cond)}) {\n${scopeBody(thenp)}\n}\n"
 		case _: Sum => sum(body)._1
 		case _ =>
 			val (assignParams, preLines) = dictAssign(body, isTrieBody)
@@ -169,7 +193,7 @@ object CppCodeGenerator {
 	}
 
 	private def dictAssign(body: Exp, isTrieBody: Boolean)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, String) = body match {
-		case _: Const => (s"+= ${srun(body)}", "")
+		case _: Const => (s"+= ${srunMain(body)}", "")
 		case FieldNode(Sym(tupleVar), column) =>
 			val idx = if (isTrieBody) "i" else s"${tupleVar}_off"
 			(s"+= $tupleVar.$column[$idx]", "")
@@ -182,7 +206,7 @@ object CppCodeGenerator {
 		case DictNode(ArrayBuffer((RecNode(tpl), _: Const))) =>
 			val intermVar = resVar.slice(0, 7)
 			(s".push_back(${intermVar}_cnt++)", tpl.map(intermColPushBack).map(col => s"$intermVar.$col").mkString("\n"))
-		case RecNode(fs) => (s".min(${fs.map(x => srun(x._2)).mkString(", ")})", "")
+		case RecNode(fs) => (s".min(${fs.map(x => srunMain(x._2)).mkString(", ")})", "")
 	}
 
 	private def intermColPushBack(inp: (Field, Exp)): String = {
