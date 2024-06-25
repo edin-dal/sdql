@@ -1,3 +1,4 @@
+import warnings
 from collections import defaultdict
 from typing import Callable, DefaultDict, Final, Iterable
 
@@ -41,9 +42,21 @@ def validate_vs(
     sdql_dfs = read_sdql_csvs(indices)
     dfs = read_csvs(indices, queries, threads)
 
+    failed = []
+    unhandled = []
     for i, (sdql_df, df) in zip(indices, (zip(sdql_dfs, dfs))):
         print(f"TPCH {i} - validating vs {db_name}")
-        assert_frames_equal(sdql_df, df, skipcols=TPCH_TO_SKIPCOLS[i])
+        try:
+            assert_frames_equal(sdql_df, df, skipcols=TPCH_TO_SKIPCOLS[i])
+        except AssertionError as e:
+            warnings.warn(f"Q{i} failed: {e}")
+            failed.append(i)
+        except Exception as e:
+            warnings.warn(f"Q{i} unhandled: {e}")
+            unhandled.append(i)
+
+    assert not failed, f"failed: {', '.join(f'Q{i}' for i in failed)}"
+    assert not unhandled, f"unhandled: {', '.join(f'Q{i}' for i in unhandled)}"
 
 
 def assert_frames_equal(
