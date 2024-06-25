@@ -103,48 +103,61 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 // note: DON'T run them all in parallel - unless you have ~64GB of ram
 //class CppCompileTestTPCH1 extends AnyFlatSpec with ParallelTestExecution {
 //
-//  it should "compile and run TPCH Q1-3 SF=1" in {
+//  it should "compile and run TPCH Q1-2 SF=1" in {
 //    Helpers.assertOutputs("progs/tpch/q1.sdql", "src/test/tpch/results/SF_1/q1.result", sf = "1")
 //    Helpers.assertOutputs("progs/tpch/q2.sdql", "src/test/tpch/results/SF_1/q2.result", sf = "1")
-//    Helpers.assertOutputs("progs/tpch/q3.sdql", "src/test/tpch/results/SF_1/q3.result", sf = "1")
 //  }
 //
-//  it should "compile and run TPCH Q4-6 SF=1" in {
+//  it should "compile and run TPCH Q3-4 SF=1" in {
+//    Helpers.assertOutputs("progs/tpch/q3.sdql", "src/test/tpch/results/SF_1/q3.result", sf = "1")
 //    Helpers.assertOutputs("progs/tpch/q4.sdql", "src/test/tpch/results/SF_1/q4.result", sf = "1")
+//  }
+//
+//  it should "compile and run TPCH Q5-6 SF=1" in {
 //    Helpers.assertOutputs("progs/tpch/q5.sdql", "src/test/tpch/results/SF_1/q5.result", sf = "1")
 //    Helpers.assertOutputs("progs/tpch/q6.sdql", "src/test/tpch/results/SF_1/q6.result", sf = "1")
 //  }
 //
-//    it should "compile and run TPCH Q7-9 SF=1" in {
-//      Helpers.assertOutputs("progs/tpch/q7.sdql", "src/test/tpch/results/SF_1/q7.result", sf = "1")
-//      Helpers.assertOutputs("progs/tpch/q8.sdql", "src/test/tpch/results/SF_1/q8.result", sf = "1")
-//      Helpers.assertOutputs("progs/tpch/q9.sdql", "src/test/tpch/results/SF_1/q9.result", sf = "1")
-//    }
+//  it should "compile and run TPCH Q7-8 SF=1" in {
+//    Helpers.assertOutputs("progs/tpch/q7.sdql", "src/test/tpch/results/SF_1/q7.result", sf = "1")
+//    Helpers.assertOutputs("progs/tpch/q8.sdql", "src/test/tpch/results/SF_1/q8.result", sf = "1")
+//  }
 //
-//    it should "compile and run TPCH Q10-12 SF=1" in {
-//      Helpers.assertOutputs("progs/tpch/q10.sdql", "src/test/tpch/results/SF_1/q10.result", sf = "1")
-//      Helpers.assertOutputs("progs/tpch/q11.sdql", "src/test/tpch/results/SF_1/q11.result", sf = "1")
-//      Helpers.assertOutputs("progs/tpch/q12.sdql", "src/test/tpch/results/SF_1/q12.result", sf = "1")
-//    }
+//  it should "compile and run TPCH Q9-10 SF=1" in {
+//    Helpers.assertOutputs("progs/tpch/q9.sdql", "src/test/tpch/results/SF_1/q9.result", sf = "1")
+//    Helpers.assertOutputs("progs/tpch/q10.sdql", "src/test/tpch/results/SF_1/q10.result", sf = "1")
+//  }
 //
-//    it should "compile and run TPCH Q13-15 SF=1" in {
-//      Helpers.assertOutputs("progs/tpch/q13.sdql", "src/test/tpch/results/SF_1/q13.result", sf = "1")
-//      Helpers.assertOutputs("progs/tpch/q14.sdql", "src/test/tpch/results/SF_1/q14.result", sf = "1")
-//      Helpers.assertOutputs("progs/tpch/q15.sdql", "src/test/tpch/results/SF_1/q15.result", sf = "1")
-//    }
+//  it should "compile and run TPCH Q11-12 SF=1" in {
+//    Helpers.assertOutputs("progs/tpch/q11.sdql", "src/test/tpch/results/SF_1/q11.result", sf = "1")
+//    Helpers.assertOutputs("progs/tpch/q12.sdql", "src/test/tpch/results/SF_1/q12.result", sf = "1")
+//  }
 //
-//    it should "compile and run TPCH 16-18 SF=1" in {
-//      Helpers.assertOutputs("progs/tpch/q16.sdql", "src/test/tpch/results/SF_1/q16.result", sf = "1")
-//      Helpers.assertOutputs("progs/tpch/q17.sdql", "src/test/tpch/results/SF_1/q17.result", sf = "1")
-//      Helpers.assertOutputs("progs/tpch/q18.sdql", "src/test/tpch/results/SF_1/q18.result", sf = "1")
-//    }
+//  it should "compile and run TPCH Q13-14 SF=1" in {
+//    Helpers.assertOutputs("progs/tpch/q13.sdql", "src/test/tpch/results/SF_1/q13.result", sf = "1")
+//    Helpers.assertOutputs("progs/tpch/q14.sdql", "src/test/tpch/results/SF_1/q14.result", sf = "1")
+//  }
 //
-//    it should "compile and run TPCH Q19-22 SF=1" in {
-//      Helpers.assertOutputs("progs/tpch/q19.sdql", "src/test/tpch/results/SF_1/q19.result", sf="1")
-//      Helpers.assertOutputs("progs/tpch/q20.sdql", "src/test/tpch/results/SF_1/q20.result", sf="1")
-//      Helpers.assertOutputs("progs/tpch/q21.sdql", "src/test/tpch/results/SF_1/q21.result", sf="1")
-//      Helpers.assertOutputs("progs/tpch/q22.sdql", "src/test/tpch/results/SF_1/q22.result", sf="1")
-//    }
+//  it should "compile and run TPCH Q15-16 SF=1" in {
+//    Helpers.assertOutputs("progs/tpch/q15.sdql", "src/test/tpch/results/SF_1/q15.result", sf = "1")
+//    Helpers.assertOutputs("progs/tpch/q16.sdql", "src/test/tpch/results/SF_1/q16.result", sf = "1")
+//
+//  }
+//
+//  it should "compile and run TPCH 17-18 SF=1" in {
+//    Helpers.assertOutputs("progs/tpch/q17.sdql", "src/test/tpch/results/SF_1/q17.result", sf = "1")
+//    Helpers.assertOutputs("progs/tpch/q18.sdql", "src/test/tpch/results/SF_1/q18.result", sf = "1")
+//  }
+//
+//  it should "compile and run TPCH Q19-20 SF=1" in {
+//    Helpers.assertOutputs("progs/tpch/q19.sdql", "src/test/tpch/results/SF_1/q19.result", sf="1")
+//    Helpers.assertOutputs("progs/tpch/q20.sdql", "src/test/tpch/results/SF_1/q20.result", sf="1")
+//  }
+//
+//  it should "compile and run TPCH Q21-22 SF=1" in {
+//    Helpers.assertOutputs("progs/tpch/q21.sdql", "src/test/tpch/results/SF_1/q21.result", sf="1")
+//    Helpers.assertOutputs("progs/tpch/q22.sdql", "src/test/tpch/results/SF_1/q22.result", sf="1")
+//  }
 //}
 
 object Helpers {
