@@ -32,7 +32,6 @@ def replacement(match):
 
 
 def process(filename):
-	print(filename)
 	file_path = os.path.join(os.path.dirname(__file__), filename)
 
 	with open(file_path, "r") as cpp_file:
@@ -55,5 +54,4 @@ if __name__ == '__main__':
 	else:
 		for filename in os.listdir(os.path.dirname(__file__)):
 			if filename.endswith("cpp"):
-				print(filename)
 				process(filename)
