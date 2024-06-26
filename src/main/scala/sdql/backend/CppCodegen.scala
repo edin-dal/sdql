@@ -342,6 +342,8 @@ object CppCodegen {
         s"${run(field)}.find(${run(elem)}, ${run(from)})"
       case External(FirstIndex.SYMBOL, Seq(field: FieldNode, arg)) =>
         s"${run(field)}.firstIndex(${run(arg)})"
+      case External(LastIndex.SYMBOL, Seq(field: FieldNode, arg)) =>
+        s"${run(field)}.lastIndex(${run(arg)})"
       case External(name @ Inv.SYMBOL, _) =>
         raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
       case External(MaxValue.SYMBOL, Seq(arg)) =>

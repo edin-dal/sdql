@@ -1,15 +1,18 @@
-let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: string, o_totalprice: double, o_orderdate: date, o_orderpriority: string, o_clerk: string, o_shippriority: int, o_comment: string> -> int}]("datasets/tpch/orders.tbl")
+let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
 
-let customer = load[{<c_custkey: int, c_name: string, c_address: string, c_nationkey: int, c_phone: string, c_acctbal: double, c_mktsegment: string, c_comment: string> -> int}]("datasets/tpch/customer.tbl")
+let customer = load[{<c_custkey: int, c_name: varchar(25), c_address: varchar(40), c_nationkey: int, c_phone: varchar(15), c_acctbal: double, c_mktsegment: varchar(10), c_comment: varchar(117)> -> int}]("datasets/tpch/customer.tbl")
+
+let special = ext(`ConstantString`, "special", 8)
+let requests = ext(`ConstantString`, "requests", 9)
+let nchars_special = 7
 
 let o_h =
   sum(<o,o_v> in orders)
-    let idx1 = ext(`StrIndexOf`, o.o_comment, "special", 0)
-    let idx2 = ext(`StrIndexOf`, o.o_comment, "requests", idx1)
-    if(!((idx1 != -1) && (idx2 != -1))) then
-      { o.o_custkey -> 1 }
-    else
-      { }
+    let idx_special = ext(`FirstIndex`, o.o_comment, special)
+    if((idx_special == -1) || (ext(`LastIndex`, o.o_comment, requests) < (idx_special + nchars_special))) then
+        { o.o_custkey -> 1 }
+      else
+        { }
 
 let c_h =
   sum(<c,c_v> in customer)

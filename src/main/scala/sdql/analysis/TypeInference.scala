@@ -112,7 +112,7 @@ object TypeInference {
           case StringType(None) => StringType(None)
           case StringType(Some(_)) => StringType(Some(end - start))
         }
-      case External(StrIndexOf.SYMBOL | FirstIndex.SYMBOL | Year.SYMBOL, _) =>
+      case External(StrIndexOf.SYMBOL | FirstIndex.SYMBOL | LastIndex.SYMBOL | Year.SYMBOL, _) =>
         IntType
       case External(ParseDate.SYMBOL, _) =>
         DateType

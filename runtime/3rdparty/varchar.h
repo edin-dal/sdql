@@ -96,6 +96,19 @@ struct VarChar{
         return (tmp - &(data[0]));
     }
 
+    int lastIndex(wchar_t* other) const
+    {
+        auto tmp = data;
+        auto last = std::wcsstr(tmp, other);
+        for (; (tmp = std::wcsstr(tmp, other)) != nullptr; ++tmp) {
+            last = tmp;
+        }
+        if (last==nullptr) {
+            return -1;
+        }
+        return last - &data[0];
+    }
+
     bool startsWith(wchar_t* other) const
     {
         size_t i = 0;

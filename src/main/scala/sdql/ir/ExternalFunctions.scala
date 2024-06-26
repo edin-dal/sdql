@@ -21,6 +21,7 @@ object ExternalFunctions {
   object SubString extends ExternalFactory("SubString")
   object StrIndexOf extends ExternalFactory("StrIndexOf")
   object FirstIndex extends ExternalFactory("FirstIndex")
+  object LastIndex extends ExternalFactory("LastIndex")
   object Year extends ExternalFactory("Year")
   object CStore extends ExternalFactory("CStore")
   object ParseDate extends ExternalFactory("ParseDate")
