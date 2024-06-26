@@ -17,10 +17,10 @@ REPO_ROOT = os.path.normpath(
 def benchmark_sdql(indices: Iterable[int], runs: int) -> list[int]:
     individual_runs = []
     for i in range(runs):
-        print(f"Running SDQL (run {i + 1})")
+        print(f"SDQL running (run {i + 1}/{runs})")
         times = run_sdql(indices)
         individual_runs.append(times)
-    print("SDQL finished")
+        print(f"SDQL finished (run {i + 1}/{runs})")
 
     # transpose - inner lists are now question runtimes
     individual_runs = list(map(list, zip(*individual_runs)))
@@ -35,10 +35,10 @@ def benchmark_sdql(indices: Iterable[int], runs: int) -> list[int]:
     return times
 
 
-def run_sdql(indices: Iterable[int]) -> list[int]:
+def run_sdql(indices: list[int]) -> list[int]:
     files = " ".join(f"q{i}.sdql" for i in indices)
     args = f"run benchmark progs/tpch {files}"
-    print(f"Launching SBT")
+    print(f"SBT launching")
     res = subprocess.run(["sbt", args], cwd=REPO_ROOT, stdout=subprocess.PIPE)
     print(f"SBT finished")
 
@@ -46,6 +46,8 @@ def run_sdql(indices: Iterable[int]) -> list[int]:
     for line in res.stdout.decode().splitlines():
         if m := RE_RUNTIME.match(line):
             time_ms = int(m.group(1))
+            i = indices[len(times)]
+            print(f"SDQL q{i} runtime: {time_ms} ms")
             times.append(time_ms)
 
     return times
