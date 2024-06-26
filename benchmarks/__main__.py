@@ -13,8 +13,7 @@ os.system(f"if [ -f {SMT_FILE} ]; then echo off > {SMT_FILE}; fi")
 THREADS: Final[int] = 1
 
 RUNS: Final[int] = 5
-# we use the minium by default to aggregate runs - to avoid outliers that skew the mean
-AGG: Final[Aggregation] = Aggregation.min
+AGG: Final[Aggregation] = Aggregation.mean
 
 INDICES_AND_QUERIES = (
     (1, q1),
