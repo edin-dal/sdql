@@ -5,8 +5,7 @@ import subprocess
 from collections import defaultdict
 from typing import Iterable, Final
 
-from benches import SEC_TO_MS
-from benches import aggregate_times
+from benches import Aggregation, aggregate_times, SEC_TO_MS
 from connectors.hyper import LOG_PATH, Hyper
 
 REPO_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)))
@@ -23,7 +22,7 @@ def hyper_dry_run(indices: Iterable[int], queries: Iterable[str], threads: int) 
 
 
 def extract_hyper_log_times(
-    indices: Iterable[int], queries: Iterable[str], threads: int, agg: str
+    indices: Iterable[int], queries: Iterable[str], threads: int, agg: Aggregation
 ) -> (list[float], list[float]):
     print("Generating Hyper log")
     # runs elsewhere for benchmarks don't generate logs - in case it affects performance

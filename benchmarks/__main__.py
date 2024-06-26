@@ -14,7 +14,7 @@ THREADS: Final[int] = 1
 
 RUNS: Final[int] = 5
 BATCH: Final[bool] = True
-AGG: Final[str] = Aggregation.min.name
+AGG: Final[Aggregation] = Aggregation.min
 
 INDICES_AND_QUERIES = (
     (1, q1),
@@ -54,16 +54,16 @@ if __name__ == "__main__":
     validate_vs_hyper(indices, queries, THREADS)
     res["Validated (Hyper)"] = pd.Series([True for _ in INDICES_AND_QUERIES])
 
-    res[f"SDQL ({AGG} ms)"] = pd.Series(benchmark_sdql(indices, RUNS, BATCH, AGG))
+    res[f"SDQL ({AGG.name} ms)"] = pd.Series(benchmark_sdql(indices, RUNS, BATCH, AGG))
 
     # just for displaying sdqlpy benchmarks ran on local dev machine (always a mean)
     # from readers import read_sdqlpy_benchmarks
     # res["sdqlpy (mean ms)"] = pd.Series(read_sdqlpy_benchmarks(indices))
 
-    res[f"DuckDB ({AGG} ms)"] = pd.Series(
+    res[f"DuckDB ({AGG.name} ms)"] = pd.Series(
         benchmark_duckdb(indices, queries, THREADS, RUNS, AGG)
     )
-    res[f"Hyper ({AGG} ms)"] = pd.Series(
+    res[f"Hyper ({AGG.name} ms)"] = pd.Series(
         benchmark_hyper(indices, queries, THREADS, RUNS, AGG)
     )
 
@@ -72,6 +72,6 @@ if __name__ == "__main__":
     elapsed_times, _execution_times = extract_hyper_log_times(
         indices, queries, THREADS, AGG
     )
-    res[f"Hyper log ({AGG} ms)"] = pd.Series(elapsed_times)
+    res[f"Hyper log ({AGG.name} ms)"] = pd.Series(elapsed_times)
 
     res.to_csv("benchmarks.csv", index=False)

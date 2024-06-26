@@ -20,7 +20,9 @@ class Aggregation(Enum):
     mean = 2
 
 
-def benchmark_sdql(indices: list[int], runs: int, batch: bool, agg: str) -> list[int]:
+def benchmark_sdql(
+    indices: list[int], runs: int, batch: bool, agg: Aggregation
+) -> list[int]:
     if batch:
         return benchmark_sdql_batch(indices, runs, agg)
     else:
@@ -28,7 +30,9 @@ def benchmark_sdql(indices: list[int], runs: int, batch: bool, agg: str) -> list
 
 
 # run separate SBT command for each query, slow but queries are isolated from each other
-def benchmark_sdql_individual(indices: list[int], runs: int, agg: str) -> list[int]:
+def benchmark_sdql_individual(
+    indices: list[int], runs: int, agg: Aggregation
+) -> list[int]:
     times = []
     for i in indices:
         args = f"run benchmark progs/tpch q{i}.sdql"
@@ -56,7 +60,7 @@ def benchmark_sdql_individual(indices: list[int], runs: int, agg: str) -> list[i
 # this is faster because it loads the datasets once for all queries in a batch
 # however, the stdev shows queries might occasionally run much more slowly when in batch
 # these outliers skew the mean - so use the minium to aggregate batches (or don't batch)
-def benchmark_sdql_batch(indices: list[int], runs: int, agg: str) -> list[int]:
+def benchmark_sdql_batch(indices: list[int], runs: int, agg: Aggregation) -> list[int]:
     assert agg == Aggregation.min.name, "use minium when benchmarking SDQL in batch"
     individual_runs = []
     for i in range(runs):
@@ -98,13 +102,21 @@ def extract_sbt_output(sbt_ouput: str, indices: list[int]) -> list[float]:
 
 
 def benchmark_duckdb(
-    indices: Iterable[int], queries: Iterable[str], threads: int, runs: int, agg: str
+    indices: Iterable[int],
+    queries: Iterable[str],
+    threads: int,
+    runs: int,
+    agg: Aggregation,
 ) -> list[int]:
     return benchmark("DuckDB", DuckDb(threads=threads), indices, queries, runs, agg)
 
 
 def benchmark_hyper(
-    indices: Iterable[int], queries: Iterable[str], threads: int, runs: int, agg: str
+    indices: Iterable[int],
+    queries: Iterable[str],
+    threads: int,
+    runs: int,
+    agg: Aggregation,
 ) -> list[int]:
     return benchmark("Hyper", Hyper(threads=threads), indices, queries, runs, agg)
 
@@ -115,7 +127,7 @@ def benchmark(
     indices: Iterable[int],
     queries: Iterable[str],
     runs: int,
-    agg: str,
+    agg: Aggregation,
 ) -> list[int]:
     db_times = []
     with connector as db:
@@ -130,14 +142,14 @@ def benchmark(
     return db_times
 
 
-def aggregate_times(times: list[float], i: int, name: str, agg: str) -> int:
+def aggregate_times(times: list[float], i: int, name: str, agg: Aggregation) -> int:
     agg_ms = round(AGG_TO_FUNC[agg](times))
     std_ms = round(pstdev(times))
-    print(f"{name} q{i}: {agg} {agg_ms} ms (std {std_ms} ms - {len(times)} runs)")
+    print(f"{name} q{i}: {agg.name} {agg_ms} ms (std {std_ms} ms - {len(times)} runs)")
     return agg_ms
 
 
-AGG_TO_FUNC: Final[Dict[str, Callable[[Iterable[float]], int]]] = {
-    Aggregation.min.name: min,
-    Aggregation.mean.name: mean,
+AGG_TO_FUNC: Final[Dict[Aggregation, Callable[[Iterable[float]], int]]] = {
+    Aggregation.min: min,
+    Aggregation.mean: mean,
 }
