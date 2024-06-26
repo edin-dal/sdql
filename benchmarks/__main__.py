@@ -13,6 +13,7 @@ os.system(f"if [ -f {SMT_FILE} ]; then echo off > {SMT_FILE}; fi")
 THREADS = 1
 
 RUNS = 5
+BATCH = True
 
 INDICES_AND_QUERIES = (
     (1, q1),
@@ -52,7 +53,7 @@ if __name__ == "__main__":
     validate_vs_hyper(indices, queries, THREADS)
     res["Validated (Hyper)"] = pd.Series([True for _ in INDICES_AND_QUERIES])
 
-    res["SDQL (ms)"] = pd.Series(benchmark_sdql(indices, RUNS))
+    res["SDQL (ms)"] = pd.Series(benchmark_sdql(indices, RUNS, BATCH))
 
     # just for displaying sdqlpy benchmarks ran on local dev machine
     # from readers import read_sdqlpy_benchmarks
