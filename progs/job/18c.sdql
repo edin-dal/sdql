@@ -1,10 +1,10 @@
-let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("datasets/job/title.csv")
-let mi_idx = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/movie_info_idx.csv")
-let mi = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/18c/mi.csv")
-let it2 = load[{<id: int, info: string> -> int}]("datasets/job/18c/it2.csv")
-let it1 = load[{<id: int, info: string> -> int}]("datasets/job/18c/it1.csv")
-let ci = load[{<id: int, person_id: int, movie_id: int, person_role_id: int, note: string, nr_order: int, role_id: int> -> int}]("datasets/job/18c/ci.csv")
-let n = load[{<id: int, name: string, imdb_index: string, imdb_id: string, gender: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/18c/n.csv")
+let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/title.csv")
+let mi_idx = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/movie_info_idx.csv")
+let mi = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/18c/mi.csv")
+let it2 = load[{<id: int, info: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/18c/it2.csv")
+let it1 = load[{<id: int, info: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/18c/it1.csv")
+let ci = load[{<id: int, person_id: int, movie_id: int, person_role_id: int, note: string, nr_order: int, role_id: int> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/18c/ci.csv")
+let n = load[{<id: int, name: string, imdb_index: string, imdb_id: string, gender: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/18c/n.csv")
 
 let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
 let mi_idx_trie0 = sum(<mi_idx_tuple, _> <- mi_idx) { mi_idx_tuple.movie_id -> { mi_idx_tuple -> 1 } } in
@@ -49,10 +49,8 @@ sum(<x0, ci_trie1> <- ci_trie0)
 		sum(<x1, ci_trie2> <- ci_trie1)
 			if (x1 ∈ interm1_trie0) then
 				let interm1_trie1 = interm1_trie0(x1) in
-				let mn_interm1_col2 = sum(<interm1_tuple, _> <- interm1_trie1) interm1_tuple.col2 in
-				let mn_interm1_col4 = sum(<interm1_tuple, _> <- interm1_trie1) interm1_tuple.col4 in
-				let mn_interm1_col5 = sum(<interm1_tuple, _> <- interm1_trie1) interm1_tuple.col5 in
-				<col3=mn_interm1_col2, col5=mn_interm1_col4, col6=mn_interm1_col5>
+				let mn_interm1 = sum(<interm1_tuple, _> <- interm1_trie1) <col2=interm1_tuple.col2, col4=interm1_tuple.col4, col5=interm1_tuple.col5> in
+				<col3=mn_interm1.col2, col5=mn_interm1.col4, col6=mn_interm1.col5>
 			else
 				<col3="", col5="", col6="">
 	else

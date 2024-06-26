@@ -5,7 +5,6 @@ import sdql.analysis.TypeInference
 import sdql.ir._
 
 import java.util.UUID
-import scala.PartialFunction.condOpt
 import scala.collection.mutable.ArrayBuffer
 
 
@@ -34,7 +33,7 @@ object CppCodeGenerator {
 			|class Values { public: int operator [](int _) const { return 1; } };
 			|
 			|int main() {
-			|${resVarInit(name, tpe)}
+			|${resInit2Cpp(name, tpe)}
 			|
 			|$loadBody
 			|
@@ -58,80 +57,23 @@ object CppCodeGenerator {
 			(loadBody, mainBody, info)
 	}
 
-	def runLoad(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, Exp, TypesCtx) = e match {
+	private def runLoad(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, Exp, TypesCtx) = e match {
 		case LetBinding(x@Sym(varName), e1@Load(path, tp), e2) =>
-			val load_e1 = load(varName, path, tp)
+			val e1Cpp = load2Cpp(varName, path, tp)
 			val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
-			val (load_e2, e3, typesCtxInner) = runLoad(e2)(typesLocal, callsCtx, resVar)
-			(load_e1 + load_e2, e3, typesCtxInner)
+			val (e2Cpp, e3, typesCtxInner) = runLoad(e2)(typesLocal, callsCtx, resVar)
+			(e1Cpp + e2Cpp, e3, typesCtxInner)
 		case _ => ("", e, typesCtx)
 	}
 
-	def srunMain(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = runMain(e)._1
-
-	def runMain(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, Option[(Sym, Type)]) = e match {
-		case LetBinding(x@Sym(varName), e1, e2) =>
-			val cpp_e1 = e1 match {
-				case e1: Sum => letSum(e1)(typesCtx, callsCtx, varName)
-			}
+	private def runMain(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, Option[(Sym, Type)]) = e match {
+		case LetBinding(x@Sym(varName), e1: Sum, e2) =>
+			val e1Cpp = letSum(e1)(typesCtx, callsCtx, varName)
 			val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
-			val (cpp_e2, info) = runMain(e2)(typesLocal, callsCtx, resVar)
-			(cpp_e1 + cpp_e2, info)
+			val (e2Cpp, info) = runMain(e2)(typesLocal, callsCtx, resVar)
+			(e1Cpp + e2Cpp, info)
 
 		case e: Sum => sum(e)
-
-		case Cmp(e1, e2, cmp) => cmp match {
-			case "∈" => (s"${srunMain(e2)}.contains(${srunMain(e1)})", None)
-		}
-
-		case DictNode(Nil) => ("", None)
-		case DictNode(ArrayBuffer((_, htValue))) => (srunMain(htValue), None)
-
-		case Get(Sym(htName), Sym(htKeyName)) => (s"$htName.at($htKeyName)", None)
-
-		case Sym(name) =>
-			val itVar = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, itVar, _) => itVar }).iterator.next()
-			typesCtx.get(Sym(itVar)) match {
-				case Some(_: RelationType) => (s"$name[i]", None)
-				case Some(_) => (name, None)
-			}
-
-		case Const(v) => v match {
-			case v: String => (s""""$v"""", None)
-			case _ => (v.toString, None)
-		}
-	}
-
-	private def load(varName: String, path: String, tp: Type): String = {
-		val doc_def = s"""const rapidcsv::Document ${docVar(varName)}("$path", NO_HEADERS, SEPARATOR);\n"""
-		tp match {
-			case DictType(RecordType(fs), IntType) =>
-				val struct_def = fs.map(
-					attr => s"std::vector<${toCpp(attr.tpe)}> ${attr.name};"
-				).mkString(s"struct ${typeVar(varName)} {\n", "\n", "\n};\n")
-				val struct_init = fs.zipWithIndex.map(
-					{ case (attr, i) => s"${docVar(varName)}.GetColumn<${toCpp(attr.tpe)}>($i)," }
-				).mkString(s"const ${typeVar(varName)} $varName {\n", "\n", "\n};\n")
-				s"$doc_def\n$struct_def\n$struct_init\n".stripMargin
-		}
-	}
-
-	private def letSum(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = {
-		val itVar = e.e1 match {
-			case Sym(name) => name
-		}
-
-		val (sum_cpp, Some((_, tpe))) = sum(e)
-
-		val struct = typesCtx.get(Sym(itVar)) match {
-			case Some(_: DictType) => intermStruct(resVar, tpe)
-			case Some(_) => ""
-		}
-
-		s"""$struct
-		   |${resVarInit(resVar, tpe)}
-		   |$sum_cpp
-		   |""".stripMargin
 	}
 
 	private def sum(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, Option[(Sym, Type)]) = {
@@ -143,13 +85,44 @@ object CppCodeGenerator {
 
 		val callsLocal = List(SumCtx(key = key, value = value, itVar = itVar, resVar = resVar)) ++ callsCtx
 
-		(
-			loop(key, value, itVar, sumBody)(typesLocal, callsLocal, resVar),
-			Some(Sym(resVar), resType)
-		)
+		(loop2Cpp(key, value, itVar, sumBody)(typesLocal, callsLocal, resVar), Some(Sym(resVar), resType))
 	}
 
-	private def loop(canLoopKey: String, canLoopVal: String, itVar: String, sumBody: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = {
+	private def letSum(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = {
+		val (sumCpp, Some((_, tpe))) = sum(e)
+
+		val itVar = e.e1 match {
+			case Sym(name) => Sym(name)
+		}
+		val structDef = typesCtx.get(itVar) match {
+			case Some(_: DictType) => struct2Cpp(resVar, tpe)
+			case Some(_) => ""
+		}
+
+		s"""$structDef
+		   |${resInit2Cpp(resVar, tpe)}
+		   |$sumCpp
+		   |""".stripMargin
+	}
+
+	private def load2Cpp(varName: String, path: String, tp: Type): String = {
+		tp match {
+			case DictType(RecordType(fs), IntType) =>
+				val doc_def = s"""const rapidcsv::Document ${docVar(varName)}("$path", NO_HEADERS, SEPARATOR);"""
+				val struct_def = fs.map(
+					attr => s"std::vector<${type2Cpp(attr.tpe)}> ${attr.name};"
+				).mkString(s"struct ${typeVar(varName)} {\n", "\n", "\n};")
+				val struct_init = fs.zipWithIndex.map(
+					{ case (attr, i) => s"${docVar(varName)}.GetColumn<${type2Cpp(attr.tpe)}>($i)," }
+				).mkString(s"const ${typeVar(varName)} $varName {\n", "\n", "\n};")
+				s"""$doc_def
+				   |$struct_def
+				   |$struct_init
+				   |""".stripMargin
+		}
+	}
+
+	private def loop2Cpp(canLoopKey: String, canLoopVal: String, itVar: String, sumBody: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = {
 		val loopKey = if (canLoopKey == "_") randomVar else canLoopKey
 		val loopVal = if (canLoopVal == "_") randomVar else canLoopVal
 
@@ -159,10 +132,10 @@ object CppCodeGenerator {
 					s"""const ${typeVar(itVar)} &$loopKey = $itVar;
 					   |constexpr auto $loopVal = Values();
 					   |for (int i = 0; i < ${docVar(itVar)}.GetRowCount(); ++i)""".stripMargin,
-					scopeBody(sumBody, isTrieBody = true)
+					scope2Cpp(sumBody)
 				)
-			case Some(DictType(IntType, _)) => (s"for (const auto &[$loopKey, $loopVal] : $itVar)", scopeBody(sumBody))
-			case Some(DictType(_: RecordType, _)) => (s"for (const auto &${loopKey}_off : $itVar)", scopeBody(sumBody))
+			case Some(DictType(IntType, _)) => (s"for (const auto &[$loopKey, $loopVal] : $itVar)", scope2Cpp(sumBody))
+			case Some(DictType(_: RecordType, _)) => (s"for (const auto &${loopKey}_off : $itVar)", scope2Cpp(sumBody, isOffAvail = true))
 		}
 
 		s"""$loopHeader {
@@ -171,90 +144,97 @@ object CppCodeGenerator {
 		   |""".stripMargin
 	}
 
-	private def scopeBody(body: Exp, isTrieBody: Boolean = false)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = body match {
+	private def scope2Cpp(body: Exp, isOffAvail: Boolean = false)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): String = body match {
 		case LetBinding(x@Sym(varName), e1, e2) =>
 			val cpp_e1 = e1 match {
 				case e1: Sum => letSum(e1)(typesCtx, callsCtx, varName)
-				case _: Get => s"const auto $varName = ${srunMain(e1)};\n"
+				case Get(Sym(trieVar), Sym(xVar)) => s"const auto $varName = $trieVar.at($xVar);\n"
 			}
 			val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
-			val cpp_e2 = scopeBody(e2)(typesLocal, callsCtx, resVar)
+			val cpp_e2 = scope2Cpp(e2)(typesLocal, callsCtx, resVar)
 			cpp_e1 + cpp_e2
-		case IfThenElse(cond, thenp, _) => s"if (${srunMain(cond)}) {\n${scopeBody(thenp)}\n}\n"
+		case IfThenElse(Cmp(Sym(xVar), Sym(trieVar), "∈"), thenp, _) => s"if ($trieVar.contains($xVar)) {\n${scope2Cpp(thenp)}\n}\n"
 		case _: Sum => sum(body)._1
 		case _ =>
-			val (assignParams, preLines) = dictAssign(body, isTrieBody)
-			assignParams match {
-				case "" => ""
-				case _ =>
-					s"""$preLines
-					   |$resVar$assignParams;""".stripMargin
-			}
+			val (assignParams, preLines) = assign2Cpp(body, isOffAvail)
+			s"""$preLines
+			   |$resVar$assignParams;
+			   |""".stripMargin
 	}
 
-	private def dictAssign(body: Exp, isTrieBody: Boolean)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, String) = body match {
-		case _: Const => (s"+= ${srunMain(body)}", "")
+	private def assign2Cpp(body: Exp, isOffAvail: Boolean)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, resVar: String): (String, String) = body match {
+		case Const(v) =>
+			val valueCpp = v match {
+				case v: String => s""""$v""""
+				case _ => v.toString
+			}
+			(s"+= $valueCpp", "")
 		case FieldNode(Sym(tupleVar), column) =>
-			val idx = if (isTrieBody) "i" else s"${tupleVar}_off"
+			val idx = if (isOffAvail) s"${tupleVar}_off" else "i"
 			(s"+= $tupleVar.$column[$idx]", "")
 		case DictNode(ArrayBuffer((FieldNode(Sym(tupleVar), column), valueNode))) =>
-			val idx = if (isTrieBody) "i" else s"${tupleVar}_off"
-			val (rhs, preLines) = dictAssign(valueNode, isTrieBody)
+			val idx = if (isOffAvail) s"${tupleVar}_off" else "i"
+			val (rhs, preLines) = assign2Cpp(valueNode, isOffAvail)
 			(s"[$tupleVar.$column[$idx]]$rhs", preLines)
 		case DictNode(Nil) => ("", "")
 		case DictNode(ArrayBuffer((_: Sym, _: Const))) => (".push_back(i)", "")
-		case DictNode(ArrayBuffer((RecNode(tpl), _: Const))) =>
+		case DictNode(ArrayBuffer((RecNode(tpl: Seq[(Field, FieldNode)]), _: Const))) =>
 			val intermVar = resVar.slice(0, 7)
-			(s".push_back(${intermVar}_cnt++)", tpl.map(intermColPushBack).map(col => s"$intermVar.$col").mkString("\n"))
-		case RecNode(fs) => (s".min(${fs.map(x => srunMain(x._2)).mkString(", ")})", "")
+			(
+				s".push_back(${intermVar}_cnt++)",
+				tpl.map { case (intermCol, FieldNode(Sym(relTuple), relCol: Field)) => s"$intermVar.$intermCol.push_back($relTuple.$relCol[${relTuple}_off]);" }.mkString("\n")
+			)
+		case RecNode(fs) =>
+			(
+				fs.map { case (_, FieldNode(Sym(tupleVar), column)) =>
+					val subs = if (isOffAvail) s"[${tupleVar}_off]" else ""
+					s"$tupleVar.$column$subs"
+				}.mkString(".min(", ", ", ")"),
+				""
+			)
 	}
 
-	private def intermColPushBack(inp: (Field, Exp)): String = {
-		val (intermCol, FieldNode(Sym(relTuple), col)) = inp
-		s"$intermCol.push_back($relTuple.$col[${relTuple}_off]);"
-	}
-
-	private def intermStruct(varName: String, tp: Type): String = tp match {
-		case DictType(IntType, value) => intermStruct(varName, value)
-		case DictType(RecordType(fs), IntType) =>
-			val intermVar = varName.slice(0, 7)
-			val vecs = fs.map(attr => s"std::vector<${toCpp(attr.tpe)}> ${attr.name};").mkString("\n")
-			s"""struct ${typeVar(intermVar)} { $vecs } $intermVar;
-			   |auto &${intermVar}_tuple = $intermVar;
-			   |int ${intermVar}_cnt = 0;""".stripMargin
-		case StringType | IntType | RealType => ""
-	}
-
-	private def resVarInit(varName: String, tpe: Type): String = tpe match {
-		case DictType(_, _) => s"${toCpp(tpe)} $varName({});"
-		case IntType => s"${toCpp(tpe)} $varName = 0;"
-		case StringType => s"""${toCpp(tpe)} $varName = "";"""
+	private def resInit2Cpp(varName: String, tpe: Type): String = tpe match {
+		case IntType => s"${type2Cpp(tpe)} $varName = 0;"
+		case StringType => s"""${type2Cpp(tpe)} $varName = "";"""
+		case DictType(_, _) => s"${type2Cpp(tpe)} $varName({});"
 		case RecordType(fs) =>
 			s"""struct ${typeVar(varName)} {
-			   |${fs.map(attr => s"${toCpp(attr.tpe)} ${attr.name};").mkString("\n")}
-			   |${typeVar(varName)}() : ${fs.map(attr => s"${attr.name}(${inf(attr.tpe)})").mkString(", ")} {}
-			   |${typeVar(varName)}(${fs.map(attr => s"${toCpp(attr.tpe)} ${attr.name}").mkString(", ")}) : ${fs.map(attr => s"${attr.name}(${attr.name})").mkString(", ")} {}
-			   |void min(${fs.map(attr => s"${toCpp(attr.tpe)} other_${attr.name}").mkString(", ")}) {
+			   |${fs.map(attr => s"${type2Cpp(attr.tpe)} ${attr.name};").mkString("\n")}
+			   |${typeVar(varName)}() : ${fs.map(attr => s"${attr.name}(${inf2Cpp(attr.tpe)})").mkString(", ")} {}
+			   |${typeVar(varName)}(${fs.map(attr => s"${type2Cpp(attr.tpe)} ${attr.name}").mkString(", ")}) : ${fs.map(attr => s"${attr.name}(${attr.name})").mkString(", ")} {}
+			   |void min(${fs.map(attr => s"${type2Cpp(attr.tpe)} other_${attr.name}").mkString(", ")}) {
 			   |${fs.map(attr => s"${attr.name} = std::min(${attr.name}, other_${attr.name});").mkString("\n")}
 			   |}
 			   |void print() {
 			   |${fs.map(_.name).mkString("std::cout << ", """ << " | " << """, " << std::endl;")}
 			   |}
 			   |void clear() {
-			   |${fs.map(attr => s"${attr.name} = ${inf(attr.tpe)};").mkString("\n")}
+			   |${fs.map(attr => s"${attr.name} = ${inf2Cpp(attr.tpe)};").mkString("\n")}
 			   |}
 			   |} $varName;
 			   |""".stripMargin
 	}
 
-	private def toCpp(tpe: Type): String = tpe match {
+	private def struct2Cpp(varName: String, tp: Type): String = tp match {
+		case DictType(IntType, value) => struct2Cpp(varName, value)
+		case DictType(RecordType(fs), IntType) =>
+			val intermVar = varName.dropRight(6)
+			val vecs = fs.map(attr => s"std::vector<${type2Cpp(attr.tpe)}> ${attr.name};").mkString("\n")
+			s"""struct ${typeVar(intermVar)} { $vecs } $intermVar;
+			   |auto &${intermVar}_tuple = $intermVar;
+			   |int ${intermVar}_cnt = 0;""".stripMargin
+		case _ => ""
+	}
+
+	private def type2Cpp(tpe: Type): String = tpe match {
 		case IntType => "int"
 		case StringType => "std::string"
 		case DictType(_: RecordType, IntType) => "std::vector<int>"
-		case DictType(key, value) => s"phmap::flat_hash_map<${toCpp(key)}, ${toCpp(value)}>"
+		case DictType(key, value) => s"phmap::flat_hash_map<${type2Cpp(key)}, ${type2Cpp(value)}>"
 	}
 
-	private def inf(tp: Type): String = tp match {
+	private def inf2Cpp(tp: Type): String = tp match {
 		case IntType => "INT_MAX"
 		case StringType => """"zzzzzzzzzzzzzzzzzz""""
 	}

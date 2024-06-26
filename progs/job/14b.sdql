@@ -1,11 +1,11 @@
-let mk = load[{<id: int, movie_id: int, keyword_id: int> -> int}]("datasets/job/movie_keyword.csv")
-let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("datasets/job/14b/t.csv")
-let mi_idx = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/14b/mi_idx.csv")
-let mi = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/14b/mi.csv")
-let kt = load[{<id: int, kind: string> -> int}]("datasets/job/14b/kt.csv")
-let k = load[{<id: int, keyword: string, phonetic_code: string> -> int}]("datasets/job/14b/k.csv")
-let it2 = load[{<id: int, info: string> -> int}]("datasets/job/14b/it2.csv")
-let it1 = load[{<id: int, info: string> -> int}]("datasets/job/14b/it1.csv")
+let mk = load[{<id: int, movie_id: int, keyword_id: int> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/movie_keyword.csv")
+let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/14b/t.csv")
+let mi_idx = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/14b/mi_idx.csv")
+let mi = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/14b/mi.csv")
+let kt = load[{<id: int, kind: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/14b/kt.csv")
+let k = load[{<id: int, keyword: string, phonetic_code: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/14b/k.csv")
+let it2 = load[{<id: int, info: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/14b/it2.csv")
+let it1 = load[{<id: int, info: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/14b/it1.csv")
 
 let mk_trie0 = sum(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> { mk_tuple -> 1 } } in
 let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
@@ -45,9 +45,8 @@ sum(<x0, mi_trie1> <- mi_trie0)
 								sum(<x4, mi_trie2> <- mi_trie1)
 									if (x4 ∈ it1_trie0) then
 										let it1_trie1 = it1_trie0(x4) in
-										let mn_interm0_col2 = sum(<interm0_tuple, _> <- interm0_trie4) interm0_tuple.col2 in
-										let mn_interm0_col5 = sum(<interm0_tuple, _> <- interm0_trie4) interm0_tuple.col5 in
-										<col5=mn_interm0_col2, col6=mn_interm0_col5>
+										let mn_interm0 = sum(<interm0_tuple, _> <- interm0_trie4) <col2=interm0_tuple.col2, col5=interm0_tuple.col5> in
+										<col5=mn_interm0.col2, col6=mn_interm0.col5>
 									else
 										<col5="", col6="">
 							else

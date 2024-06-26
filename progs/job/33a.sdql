@@ -1,17 +1,17 @@
-let ml = load[{<id: int, movie_id: int, linked_movie_id: int, link_type_id: int> -> int}]("datasets/job/movie_link.csv")
-let lt = load[{<id: int, link: string> -> int}]("datasets/job/33a/lt.csv")
-let mi_idx1 = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/movie_info_idx.csv")
-let it1 = load[{<id: int, info: string> -> int}]("datasets/job/33a/it1.csv")
-let mi_idx2 = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/33a/mi_idx2.csv")
-let it2 = load[{<id: int, info: string> -> int}]("datasets/job/33a/it2.csv")
-let t1 = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("datasets/job/title.csv")
-let kt1 = load[{<id: int, kind: string> -> int}]("datasets/job/33a/kt1.csv")
-let t2 = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("datasets/job/33a/t2.csv")
-let kt2 = load[{<id: int, kind: string> -> int}]("datasets/job/33a/kt2.csv")
-let mc1 = load[{<id: int, movie_id: int, company_id: int, company_type_id: int, note: string> -> int}]("datasets/job/movie_companies.csv")
-let cn1 = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("datasets/job/33a/cn1.csv")
-let mc2 = load[{<id: int, movie_id: int, company_id: int, company_type_id: int, note: string> -> int}]("datasets/job/movie_companies.csv")
-let cn2 = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("datasets/job/company_name.csv")
+let ml = load[{<id: int, movie_id: int, linked_movie_id: int, link_type_id: int> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/movie_link.csv")
+let lt = load[{<id: int, link: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/33a/lt.csv")
+let mi_idx1 = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/movie_info_idx.csv")
+let it1 = load[{<id: int, info: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/33a/it1.csv")
+let mi_idx2 = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/33a/mi_idx2.csv")
+let it2 = load[{<id: int, info: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/33a/it2.csv")
+let t1 = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/title.csv")
+let kt1 = load[{<id: int, kind: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/33a/kt1.csv")
+let t2 = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/33a/t2.csv")
+let kt2 = load[{<id: int, kind: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/33a/kt2.csv")
+let mc1 = load[{<id: int, movie_id: int, company_id: int, company_type_id: int, note: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/movie_companies.csv")
+let cn1 = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/33a/cn1.csv")
+let mc2 = load[{<id: int, movie_id: int, company_id: int, company_type_id: int, note: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/movie_companies.csv")
+let cn2 = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/company_name.csv")
 
 let ml_trie0 = sum(<ml_tuple, _> <- ml) { ml_tuple.link_type_id -> { ml_tuple -> 1 } } in
 let lt_trie0 = sum(<lt_tuple, _> <- lt) { lt_tuple.id -> { lt_tuple -> 1 } } in
@@ -118,13 +118,9 @@ sum(<x0, mc2_trie1> <- mc2_trie0)
 		sum(<x1, mc2_trie2> <- mc2_trie1)
 			if (x1 ∈ interm5_trie0) then
 				let interm5_trie1 = interm5_trie0(x1) in
-				let mn_cn2_name = sum(<cn2_tuple, _> <- cn2_trie1) cn2_tuple.name in
-				let mn_interm5_col2 = sum(<interm5_tuple, _> <- interm5_trie1) interm5_tuple.col2 in
-				let mn_interm5_col5 = sum(<interm5_tuple, _> <- interm5_trie1) interm5_tuple.col5 in
-				let mn_interm5_col7 = sum(<interm5_tuple, _> <- interm5_trie1) interm5_tuple.col7 in
-				let mn_interm5_col9 = sum(<interm5_tuple, _> <- interm5_trie1) interm5_tuple.col9 in
-				let mn_interm5_col11 = sum(<interm5_tuple, _> <- interm5_trie1) interm5_tuple.col11 in
-				<col2=mn_cn2_name, col5=mn_interm5_col2, col7=mn_interm5_col5, col9=mn_interm5_col7, col11=mn_interm5_col9, col13=mn_interm5_col11>
+				let mn_cn2 = sum(<cn2_tuple, _> <- cn2_trie1) <name=cn2_tuple.name> in
+				let mn_interm5 = sum(<interm5_tuple, _> <- interm5_trie1) <col2=interm5_tuple.col2, col5=interm5_tuple.col5, col7=interm5_tuple.col7, col9=interm5_tuple.col9, col11=interm5_tuple.col11> in
+				<col2=mn_cn2.name, col5=mn_interm5.col2, col7=mn_interm5.col5, col9=mn_interm5.col7, col11=mn_interm5.col9, col13=mn_interm5.col11>
 			else
 				<col2="", col5="", col7="", col9="", col11="", col13="">
 	else

@@ -1,11 +1,11 @@
-let mc = load[{<id: int, movie_id: int, company_id: int, company_type_id: int, note: string> -> int}]("datasets/job/9a/mc.csv")
-let cn = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("datasets/job/9a/cn.csv")
-let ci = load[{<id: int, person_id: int, movie_id: int, person_role_id: int, note: string, nr_order: int, role_id: int> -> int}]("datasets/job/9a/ci.csv")
-let n = load[{<id: int, name: string, imdb_index: string, imdb_id: string, gender: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/9a/n.csv")
-let rt = load[{<id: int, role: string> -> int}]("datasets/job/9a/rt.csv")
-let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("datasets/job/9a/t.csv")
-let chn = load[{<id: int, name: string, imdb_index: string, imdb_id: int, name_pcode_cf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/char_name.csv")
-let an = load[{<id: int, person_id: int, name: string, imdb_index: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/aka_name.csv")
+let mc = load[{<id: int, movie_id: int, company_id: int, company_type_id: int, note: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/9a/mc.csv")
+let cn = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/9a/cn.csv")
+let ci = load[{<id: int, person_id: int, movie_id: int, person_role_id: int, note: string, nr_order: int, role_id: int> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/9a/ci.csv")
+let n = load[{<id: int, name: string, imdb_index: string, imdb_id: string, gender: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/9a/n.csv")
+let rt = load[{<id: int, role: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/9a/rt.csv")
+let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/9a/t.csv")
+let chn = load[{<id: int, name: string, imdb_index: string, imdb_id: int, name_pcode_cf: string, surname_pcode: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/char_name.csv")
+let an = load[{<id: int, person_id: int, name: string, imdb_index: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/aka_name.csv")
 
 let mc_trie0 = sum(<mc_tuple, _> <- mc) { mc_tuple.company_id -> { mc_tuple -> 1 } } in
 let cn_trie0 = sum(<cn_tuple, _> <- cn) { cn_tuple.id -> { cn_tuple -> 1 } } in
@@ -40,10 +40,10 @@ sum(<x0, ci_trie1> <- ci_trie0)
 									let chn_trie1 = chn_trie0(x4) in
 									if (x0 ∈ an_trie0) then
 										let an_trie1 = an_trie0(x0) in
-										let mn_t_title = sum(<t_tuple, _> <- t_trie1) t_tuple.title in
-										let mn_chn_name = sum(<chn_tuple, _> <- chn_trie1) chn_tuple.name in
-										let mn_an_name = sum(<an_tuple, _> <- an_trie1) an_tuple.name in
-										<col5=mn_t_title, col6=mn_chn_name, col7=mn_an_name>
+										let mn_t = sum(<t_tuple, _> <- t_trie1) <title=t_tuple.title> in
+										let mn_chn = sum(<chn_tuple, _> <- chn_trie1) <name=chn_tuple.name> in
+										let mn_an = sum(<an_tuple, _> <- an_trie1) <name=an_tuple.name> in
+										<col5=mn_t.title, col6=mn_chn.name, col7=mn_an.name>
 									else
 										<col5="", col6="", col7="">
 								else

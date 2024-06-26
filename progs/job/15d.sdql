@@ -1,12 +1,12 @@
-let mk = load[{<id: int, movie_id: int, keyword_id: int> -> int}]("datasets/job/movie_keyword.csv")
-let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("datasets/job/15d/t.csv")
-let mi = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/15d/mi.csv")
-let mc = load[{<id: int, movie_id: int, company_id: int, company_type_id: int, note: string> -> int}]("datasets/job/movie_companies.csv")
-let k = load[{<id: int, keyword: string, phonetic_code: string> -> int}]("datasets/job/keyword.csv")
-let it1 = load[{<id: int, info: string> -> int}]("datasets/job/15d/it1.csv")
-let ct = load[{<id: int, kind: string> -> int}]("datasets/job/company_type.csv")
-let cn = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("datasets/job/15d/cn.csv")
-let at = load[{<id: int, movie_id: int, title: string, imdb_index: string, kind_id: int, production_year: int, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, note: string, md5sum: string> -> int}]("datasets/job/aka_title.csv")
+let mk = load[{<id: int, movie_id: int, keyword_id: int> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/movie_keyword.csv")
+let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/15d/t.csv")
+let mi = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/15d/mi.csv")
+let mc = load[{<id: int, movie_id: int, company_id: int, company_type_id: int, note: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/movie_companies.csv")
+let k = load[{<id: int, keyword: string, phonetic_code: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/keyword.csv")
+let it1 = load[{<id: int, info: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/15d/it1.csv")
+let ct = load[{<id: int, kind: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/company_type.csv")
+let cn = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/15d/cn.csv")
+let at = load[{<id: int, movie_id: int, title: string, imdb_index: string, kind_id: int, production_year: int, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, note: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/aka_title.csv")
 
 let mk_trie0 = sum(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> { mk_tuple -> 1 } } in
 let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
@@ -46,9 +46,9 @@ sum(<x0, mi_trie1> <- mi_trie0)
 											let cn_trie1 = cn_trie0(x4) in
 											if (x0 ∈ at_trie0) then
 												let at_trie1 = at_trie0(x0) in
-												let mn_interm0_col2 = sum(<interm0_tuple, _> <- interm0_trie2) interm0_tuple.col2 in
-												let mn_at_title = sum(<at_tuple, _> <- at_trie1) at_tuple.title in
-												<col3=mn_interm0_col2, col6=mn_at_title>
+												let mn_interm0 = sum(<interm0_tuple, _> <- interm0_trie2) <col2=interm0_tuple.col2> in
+												let mn_at = sum(<at_tuple, _> <- at_trie1) <title=at_tuple.title> in
+												<col3=mn_interm0.col2, col6=mn_at.title>
 											else
 												<col3="", col6="">
 										else
