@@ -3,10 +3,10 @@ import os
 import re
 import subprocess
 from collections import defaultdict
-from statistics import mean, pstdev
 from typing import Iterable, Final
 
 from benches import SEC_TO_MS
+from benches import aggregate_times
 from connectors.hyper import LOG_PATH, Hyper
 
 REPO_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)))
@@ -23,7 +23,7 @@ def hyper_dry_run(indices: Iterable[int], queries: Iterable[str], threads: int) 
 
 
 def extract_hyper_log_times(
-    indices: Iterable[int], queries: Iterable[str], threads: int
+    indices: Iterable[int], queries: Iterable[str], threads: int, agg: str
 ) -> (list[float], list[float]):
     print("Generating Hyper log")
     # runs elsewhere for benchmarks don't generate logs - in case it affects performance
@@ -51,24 +51,14 @@ def extract_hyper_log_times(
     elapsed_times = []
     for i in sorted(i_to_elapsed_times):
         q_times = i_to_elapsed_times[i]
-        mean_ms = round(mean(q_times))
-        std_ms = round(pstdev(q_times))
-        print(
-            f"Elapsed q{i}: mean {mean_ms} ms (std {std_ms} ms - {len(q_times)} runs)"
-        )
-        elapsed_times.append(mean_ms)
+        agg_ms = aggregate_times(q_times, i, "Elapsed", agg)
+        elapsed_times.append(agg_ms)
 
     execution_times = []
     for i in sorted(i_to_execution_times):
         q_times = i_to_execution_times[i]
-        mean_ms = mean(q_times)
-        std_ms = pstdev(q_times)
-        mean_ms = round(mean_ms)
-        std_ms = round(std_ms)
-        print(
-            f"Execution q{i}: mean {mean_ms} ms (std {std_ms} ms - {len(q_times)} runs)"
-        )
-        execution_times.append(mean_ms)
+        agg_ms = aggregate_times(q_times, i, "Execution", agg)
+        execution_times.append(agg_ms)
 
     print("Hyper log processed")
     return elapsed_times, execution_times

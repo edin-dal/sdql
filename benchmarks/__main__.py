@@ -1,6 +1,6 @@
 import pandas as pd
 
-from benches import benchmark_duckdb, benchmark_hyper, benchmark_sdql
+from benches import Aggregation, benchmark_duckdb, benchmark_hyper, benchmark_sdql
 from extractor import extract_hyper_log_times
 from queries import *
 from validation import validate_vs_duckdb, validate_vs_hyper
@@ -10,10 +10,11 @@ SMT_FILE = "/sys/devices/system/cpu/smt/control"
 os.system(f"if [ -f {SMT_FILE} ]; then echo off > {SMT_FILE}; fi")
 
 # for DuckDB and Hyper - SDQL is single-threaded
-THREADS = 1
+THREADS: Final[int] = 1
 
-RUNS = 5
-BATCH = True
+RUNS: Final[int] = 5
+BATCH: Final[bool] = True
+AGG: Final[str] = Aggregation.min.name
 
 INDICES_AND_QUERIES = (
     (1, q1),
@@ -53,18 +54,24 @@ if __name__ == "__main__":
     validate_vs_hyper(indices, queries, THREADS)
     res["Validated (Hyper)"] = pd.Series([True for _ in INDICES_AND_QUERIES])
 
-    res["SDQL (ms)"] = pd.Series(benchmark_sdql(indices, RUNS, BATCH))
+    res[f"SDQL ({AGG} ms)"] = pd.Series(benchmark_sdql(indices, RUNS, BATCH, AGG))
 
-    # just for displaying sdqlpy benchmarks ran on local dev machine
+    # just for displaying sdqlpy benchmarks ran on local dev machine (always a mean)
     # from readers import read_sdqlpy_benchmarks
-    # res["sdqlpy (ms)"] = pd.Series(read_sdqlpy_benchmarks(indices))
+    # res["sdqlpy (mean ms)"] = pd.Series(read_sdqlpy_benchmarks(indices))
 
-    res["DuckDB (ms)"] = pd.Series(benchmark_duckdb(indices, queries, THREADS, RUNS))
-    res["Hyper (ms)"] = pd.Series(benchmark_hyper(indices, queries, THREADS, RUNS))
+    res[f"DuckDB ({AGG} ms)"] = pd.Series(
+        benchmark_duckdb(indices, queries, THREADS, RUNS, AGG)
+    )
+    res[f"Hyper ({AGG} ms)"] = pd.Series(
+        benchmark_hyper(indices, queries, THREADS, RUNS, AGG)
+    )
 
     # we use perf_counter rather than process_time
     # accordingly elapsed times are more appropriate than execution times
-    elapsed_times, _execution_times = extract_hyper_log_times(indices, queries, THREADS)
-    res["Hyper log (ms)"] = pd.Series(elapsed_times)
+    elapsed_times, _execution_times = extract_hyper_log_times(
+        indices, queries, THREADS, AGG
+    )
+    res[f"Hyper log ({AGG} ms)"] = pd.Series(elapsed_times)
 
     res.to_csv("benchmarks.csv", index=False)
