@@ -2,6 +2,7 @@ import datetime
 import io
 import os
 import re
+import warnings
 from functools import wraps
 from typing import Callable, Final, Iterable
 
@@ -14,6 +15,7 @@ SDQL_RESULTS_DIR: Final[str] = "../src/test/tpch/results/SF_1"
 SDQL_CSVS_DIR: Final[str] = "sdql"
 DUCKDB_CSVS_DIR: Final[str] = "duckdb"
 HYPER_CSVS_DIR: Final[str] = "hyper"
+SDQLPY_PATH = "sdqlpy_benchmarks.txt"
 
 
 def read_sdql_csvs(indices: Iterable[int]) -> list[pd.DataFrame]:
@@ -193,3 +195,17 @@ def q7_to_csv(line: str) -> str:
 
 RE_RELATIONAL: Final[re.Pattern] = re.compile("^<([^>]*)>:1$")
 RE_Q7: Final[re.Pattern] = re.compile("^<<([^>]*)>,<([^>]*)>>:1$")
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=FutureWarning)
+    RE_SDQLPY = re.compile(r"^Q\d?\d: Mean: (\d+[[.]\d+]?) \| StDev: \d+[[.]\d+]?$")
+
+
+def read_sdqlpy_benchmarks(indices: Iterable[int]) -> list[float]:
+    times = []
+    with open(SDQLPY_PATH) as file:
+        while line := file.readline():
+            if (m := RE_SDQLPY.match(line)) is not None:
+                times.append(round(float(m.group(1))))
+
+    return [times[i - 1] for i in indices]

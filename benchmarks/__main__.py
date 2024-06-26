@@ -53,10 +53,17 @@ if __name__ == "__main__":
     res["Validated (Hyper)"] = pd.Series([True for _ in INDICES_AND_QUERIES])
 
     res["SDQL (ms)"] = pd.Series(benchmark_sdql(indices, RUNS))
+
+    # just for displaying sdqlpy benchmarks ran on local dev machine
+    # from readers import read_sdqlpy_benchmarks
+    # res["sdqlpy (ms)"] = pd.Series(read_sdqlpy_benchmarks(indices))
+
     res["DuckDB (ms)"] = pd.Series(benchmark_duckdb(indices, queries, THREADS, RUNS))
     res["Hyper (ms)"] = pd.Series(benchmark_hyper(indices, queries, THREADS, RUNS))
+
     # we use perf_counter rather than process_time
     # accordingly elapsed times are more appropriate than execution times
     elapsed_times, _execution_times = extract_hyper_log_times(indices, queries, THREADS)
     res["Hyper log (ms)"] = pd.Series(elapsed_times)
+
     res.to_csv("benchmarks.csv", index=False)
