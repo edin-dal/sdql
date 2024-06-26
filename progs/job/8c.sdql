@@ -1,10 +1,10 @@
-let mc = load[{<id: int, movie_id: int, company_id: int, company_type_id: int, note: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/movie_companies.csv")
-let cn = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/8c/cn.csv")
-let ci = load[{<id: int, person_id: int, movie_id: int, person_role_id: int, note: string, nr_order: int, role_id: int> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/cast_info.csv")
-let n1 = load[{<id: int, name: string, imdb_index: string, imdb_id: string, gender: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/name.csv")
-let rt = load[{<id: int, role: string> -> int}]("/Users/s2522996/Documents/free-join/queries/preprocessed/join-order-benchmark/data/8c/rt.csv")
-let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/title.csv")
-let a1 = load[{<id: int, person_id: int, name: string, imdb_index: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("/Users/s2522996/Documents/free-join/data/imdb_csv/aka_name.csv")
+let mc = load[{<id: int, movie_id: int, company_id: int, company_type_id: int, note: string> -> int}]("datasets/job/movie_companies.csv")
+let cn = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("datasets/job/8c/cn.csv")
+let ci = load[{<id: int, person_id: int, movie_id: int, person_role_id: int, note: string, nr_order: int, role_id: int> -> int}]("datasets/job/cast_info.csv")
+let n1 = load[{<id: int, name: string, imdb_index: string, imdb_id: string, gender: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/name.csv")
+let rt = load[{<id: int, role: string> -> int}]("datasets/job/8c/rt.csv")
+let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("datasets/job/title.csv")
+let a1 = load[{<id: int, person_id: int, name: string, imdb_index: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/aka_name.csv")
 
 let mc_trie0 = sum(<mc_tuple, _> <- mc) { mc_tuple.company_id -> { mc_tuple -> 1 } } in
 let cn_trie0 = sum(<cn_tuple, _> <- cn) { cn_tuple.id -> { cn_tuple -> 1 } } in
