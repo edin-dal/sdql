@@ -13,7 +13,7 @@ os.system(f"if [ -f {SMT_FILE} ]; then echo off > {SMT_FILE}; fi")
 THREADS: Final[int] = 1
 
 RUNS: Final[int] = 5
-BATCH: Final[bool] = True
+# we use the minium by default to aggregate runs - to avoid outliers that skew the mean
 AGG: Final[Aggregation] = Aggregation.min
 
 INDICES_AND_QUERIES = (
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     validate_vs_hyper(indices, queries, THREADS)
     res["Validated (Hyper)"] = pd.Series([True for _ in INDICES_AND_QUERIES])
 
-    res[f"SDQL ({AGG.name} ms)"] = pd.Series(benchmark_sdql(indices, RUNS, BATCH, AGG))
+    res[f"SDQL ({AGG.name} ms)"] = pd.Series(benchmark_sdql(indices, RUNS, AGG))
 
     # just for displaying sdqlpy benchmarks ran on local dev machine (always a mean)
     # from readers import read_sdqlpy_benchmarks

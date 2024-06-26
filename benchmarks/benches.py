@@ -20,52 +20,11 @@ class Aggregation(Enum):
     mean = 2
 
 
-def benchmark_sdql(
-    indices: list[int], runs: int, batch: bool, agg: Aggregation
-) -> list[int]:
-    if batch:
-        return benchmark_sdql_batch(indices, runs, agg)
-    else:
-        return benchmark_sdql_individual(indices, runs, agg)
-
-
-# run separate SBT command for each query, slow but queries are isolated from each other
-def benchmark_sdql_individual(
-    indices: list[int], runs: int, agg: Aggregation
-) -> list[int]:
-    times = []
-    for i in indices:
-        args = f"run benchmark progs/tpch q{i}.sdql"
-
-        q_times = []
-        for _ in repeat(None, runs):
-            print(f"SBT launching")
-            res = subprocess.run(["sbt", args], cwd=REPO_ROOT, stdout=subprocess.PIPE)
-            print(f"SBT finished")
-
-            for line in res.stdout.decode().splitlines():
-                if m := RE_RUNTIME.match(line):
-                    time_ms = int(m.group(1))
-                    print(f"SDQL q{i} runtime: {time_ms} ms")
-                    q_times.append(time_ms)
-                    break
-
-            agg_ms = aggregate_times(q_times, i, "SDQL", agg)
-            times.append(agg_ms)
-
-    return times
-
-
-# runs SBT command for a batch of queries
-# this is faster because it loads the datasets once for all queries in a batch
-# however, the stdev shows queries might occasionally run much more slowly when in batch
-# these outliers skew the mean - so use the minium to aggregate batches (or don't batch)
-def benchmark_sdql_batch(indices: list[int], runs: int, agg: Aggregation) -> list[int]:
-    assert agg == Aggregation.min.name, "use minium when benchmarking SDQL in batch"
+def benchmark_sdql(indices: list[int], runs: int, agg: Aggregation) -> list[int]:
     individual_runs = []
     for i in range(runs):
         print(f"SDQL running (run {i + 1}/{runs})")
-        times = run_sdql_batch(indices)
+        times = run_sdql(indices)
         individual_runs.append(times)
         print(f"SDQL finished (run {i + 1}/{runs})")
 
@@ -80,7 +39,7 @@ def benchmark_sdql_batch(indices: list[int], runs: int, agg: Aggregation) -> lis
     return times
 
 
-def run_sdql_batch(indices: list[int]) -> list[float]:
+def run_sdql(indices: list[int]) -> list[float]:
     files = " ".join(f"q{i}.sdql" for i in indices)
     args = f"run benchmark progs/tpch {files}"
     print(f"SBT launching")
