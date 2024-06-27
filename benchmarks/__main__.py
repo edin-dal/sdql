@@ -28,7 +28,8 @@ INDICES_AND_QUERIES = (
     (10, q10),
     (11, q11),
     (12, q12),
-    (13, q13),
+    # FIXME Q13 compiled in dev due to https://github.com/llvm/llvm-project/issues/62638
+    # (13, q13),
     (14, q14),
     (15, q15),
     (16, q16),
