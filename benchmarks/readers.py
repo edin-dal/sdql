@@ -11,11 +11,14 @@ from pandas.api.types import is_string_dtype, is_numeric_dtype
 
 from connectors import Connector, DuckDb, Hyper
 
-SDQL_RESULTS_DIR: Final[str] = "../src/test/tpch/results/SF_1"
-SDQL_CSVS_DIR: Final[str] = "sdql"
-DUCKDB_CSVS_DIR: Final[str] = "duckdb"
-HYPER_CSVS_DIR: Final[str] = "hyper"
-SDQLPY_PATH = "sdqlpy_benchmarks.txt"
+DIR: Final[str] = os.path.dirname(os.path.realpath(__file__))
+SDQL_RESULTS_DIR: Final[str] = os.path.normpath(
+    os.path.join(DIR, "../src/test/tpch/results/SF_1")
+)
+SDQL_CSVS_DIR: Final[str] = os.path.join(DIR, "sdql")
+DUCKDB_CSVS_DIR: Final[str] = os.path.join(DIR, "duckdb")
+HYPER_CSVS_DIR: Final[str] = os.path.join(DIR, "hyper")
+SDQLPY_PATH = os.path.join(DIR, "sdqlpy_benchmarks.txt")
 
 
 def read_sdql_csvs(indices: Iterable[int]) -> list[pd.DataFrame]:
