@@ -23,14 +23,14 @@ git config core.hooksPath hooks
 
 # Running the Interpreter
 
-```
+```sh
 sbt
 run interpret <path> <sdql_files>*
 ```
 
 For example, to run TPCH Q6, first make sure that the folder `datasets/tpch` contains TPCH tables (with a small scale factor). Then, run the following command:
 
-```
+```sh
 sbt
 run interpret progs/tpch q6.sdql
 ```
@@ -39,32 +39,36 @@ run interpret progs/tpch q6.sdql
 
 Similar to the above:
 
-```
+```sh
 sbt
 run compile <path> <sdql_files>*
 ```
 
 For example, to run compiled TPCH Q1 and Q6:
 
-```
+```sh
 sbt
 run compile progs/tpch q1.sdql q6.sdql
 ```
 
 Note: compilation requires `clang++` and `clang-format` installed.
 
-## TPCH tables format
+# Running benchmarks
+
+See README in the `benchmarks` directory.
+
+# TPCH tables format
 
 The data loader does not expect TPCH tables to have end-of-line `|` characters.
 
 Strip them as follows:
 
-```bash
+```sh
 sed -i 's/|$//' datasets/tpch/*.tbl
 ```
 
-On OSX:
+On macOS:
 
-```bash
+```sh
 sed -i '' 's/|$//' datasets/tpch/*.tbl
 ```
