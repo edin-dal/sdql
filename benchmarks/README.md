@@ -54,5 +54,5 @@ poetry install
 
 Run benchmarks as follows:
 ```sh
-export PYTHONPATH=.. && python __main__.py
+export PYTHONPATH=. && python __main__.py
 ```
