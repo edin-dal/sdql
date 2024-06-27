@@ -7,7 +7,7 @@ from validation import validate_vs_duckdb, validate_vs_hyper
 
 # Disable hyper-threading on relevant systems
 SMT_FILE = "/sys/devices/system/cpu/smt/control"
-os.system(f"if [ -f {SMT_FILE} ]; then echo off > {SMT_FILE}; fi")
+os.system(f"if [ -f {SMT_FILE} ]; then echo off | sudo tee {SMT_FILE}; fi")
 
 # for DuckDB and Hyper - SDQL is single-threaded
 THREADS: Final[int] = 1
