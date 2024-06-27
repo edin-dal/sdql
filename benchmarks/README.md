@@ -50,9 +50,20 @@ Install the required packages to your environment:
 poetry install
 ```
 
+## Datasets
+
+Copy over the TPCH datasets you generated to this directory:
+
+```sh
+cp ../datasets/tpch/*.tbl ../src/test/tpch/data/SF_1
+```
+
+Note: these must have been generated with a scaling factor of `s -1`
+
 ## Run
 
-Run benchmarks as follows:
+Run the benchmarks as follows:
+
 ```sh
 export PYTHONPATH=. && python __main__.py
 ```
