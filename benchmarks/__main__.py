@@ -12,7 +12,7 @@ os.system(f"if [ -f {SMT_FILE} ]; then echo off > {SMT_FILE}; fi")
 # for DuckDB and Hyper - SDQL is single-threaded
 THREADS: Final[int] = 1
 
-RUNS: Final[int] = 5
+RUNS: Final[int] = 10
 AGG: Final[Aggregation] = Aggregation.mean
 
 INDICES_AND_QUERIES = (
