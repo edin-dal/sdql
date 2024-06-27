@@ -17,8 +17,8 @@ from tableauhyperapi import (
     HyperException,
 )
 
-from benchmarks.timer import timer
 from .connector import Connector, UseConstraintsTypes
+from .timer import timer
 
 LOGS_DIR: Final[str] = os.path.normpath(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), "../")

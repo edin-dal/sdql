@@ -1,7 +1,7 @@
 import enum
 from contextlib import AbstractContextManager
 from dataclasses import asdict
-from typing import Any, Protocol, Self
+from typing import Protocol, Self
 
 import pandas as pd
 

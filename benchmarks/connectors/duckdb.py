@@ -1,11 +1,11 @@
 import sys
-from typing import Any, Self
+from typing import Self
 
 import duckdb
 import pandas as pd
 
-from benchmarks.timer import timer
 from .connector import Connector, UseConstraintsTypes
+from .timer import timer
 
 
 class DuckDb(Connector):
