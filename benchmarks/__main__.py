@@ -12,7 +12,7 @@ os.system(f"if [ -f {SMT_FILE} ]; then echo off | sudo tee {SMT_FILE}; fi")
 # for DuckDB and Hyper - SDQL is single-threaded
 THREADS: Final[int] = 1
 
-RUNS: Final[int] = 10
+RUNS: Final[int] = 5
 AGG: Final[Aggregation] = Aggregation.mean
 
 INDICES_AND_QUERIES = (
@@ -28,8 +28,7 @@ INDICES_AND_QUERIES = (
     (10, q10),
     (11, q11),
     (12, q12),
-    # FIXME Q13 compiled in dev due to https://github.com/llvm/llvm-project/issues/62638
-    # (13, q13),
+    (13, q13),
     (14, q14),
     (15, q15),
     (16, q16),
@@ -37,8 +36,7 @@ INDICES_AND_QUERIES = (
     (18, q18),
     (19, q19),
     (20, q20),
-    # FIXME
-    # (21, q21),
+    (21, q21),
     (22, q22),
 )
 

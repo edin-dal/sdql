@@ -118,6 +118,12 @@ Runtime (ms): 19
 Runtime (ms): 19
 Runtime (ms): 19
 Runtime (ms): 19
+q21
+Runtime (ms): 285
+Runtime (ms): 286
+Runtime (ms): 286
+Runtime (ms): 285
+Runtime (ms): 286
 q22
 Runtime (ms): 5
 Runtime (ms): 5

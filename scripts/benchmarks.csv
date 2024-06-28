@@ -19,4 +19,5 @@ Query,SDQL (mean ms),sdqlpy (mean ms),DuckDB (mean ms),Hyper (mean ms)
 18,128,120,377,85
 19,221,92,149,14
 20,19,15,39,30
+21,286,335,149,44
 22,5,3,26,14
