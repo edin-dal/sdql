@@ -1,0 +1,126 @@
+q1
+Runtime (ms): 42
+Runtime (ms): 41
+Runtime (ms): 42
+Runtime (ms): 41
+Runtime (ms): 41
+q2
+Runtime (ms): 8
+Runtime (ms): 8
+Runtime (ms): 8
+Runtime (ms): 8
+Runtime (ms): 8
+q3
+Runtime (ms): 41
+Runtime (ms): 42
+Runtime (ms): 42
+Runtime (ms): 42
+Runtime (ms): 42
+q4
+Runtime (ms): 93
+Runtime (ms): 93
+Runtime (ms): 95
+Runtime (ms): 96
+Runtime (ms): 94
+q5
+Runtime (ms): 55
+Runtime (ms): 55
+Runtime (ms): 55
+Runtime (ms): 55
+Runtime (ms): 54
+q6
+Runtime (ms): 24
+Runtime (ms): 24
+Runtime (ms): 24
+Runtime (ms): 24
+Runtime (ms): 24
+q7
+Runtime (ms): 52
+Runtime (ms): 53
+Runtime (ms): 52
+Runtime (ms): 52
+Runtime (ms): 53
+q8
+Runtime (ms): 82
+Runtime (ms): 82
+Runtime (ms): 82
+Runtime (ms): 82
+Runtime (ms): 82
+q9
+Runtime (ms): 123
+Runtime (ms): 123
+Runtime (ms): 123
+Runtime (ms): 124
+Runtime (ms): 125
+q10
+Runtime (ms): 280
+Runtime (ms): 281
+Runtime (ms): 282
+Runtime (ms): 281
+Runtime (ms): 282
+q11
+Runtime (ms): 10
+Runtime (ms): 10
+Runtime (ms): 10
+Runtime (ms): 11
+Runtime (ms): 11
+q12
+Runtime (ms): 81
+Runtime (ms): 81
+Runtime (ms): 81
+Runtime (ms): 82
+Runtime (ms): 81
+q13
+Runtime (ms): 106
+Runtime (ms): 106
+Runtime (ms): 106
+Runtime (ms): 106
+Runtime (ms): 106
+q14
+Runtime (ms): 10
+Runtime (ms): 10
+Runtime (ms): 10
+Runtime (ms): 10
+Runtime (ms): 10
+q15
+Runtime (ms): 11
+Runtime (ms): 11
+Runtime (ms): 11
+Runtime (ms): 11
+Runtime (ms): 11
+q16
+Runtime (ms): 31
+Runtime (ms): 31
+Runtime (ms): 31
+Runtime (ms): 31
+Runtime (ms): 31
+q17
+Runtime (ms): 168
+Runtime (ms): 169
+Runtime (ms): 168
+Runtime (ms): 168
+Runtime (ms): 169
+q18
+Runtime (ms): 129
+Runtime (ms): 127
+Runtime (ms): 128
+Runtime (ms): 127
+Runtime (ms): 128
+q19
+Runtime (ms): 222
+Runtime (ms): 223
+Runtime (ms): 219
+Runtime (ms): 220
+Runtime (ms): 221
+q20
+Runtime (ms): 20
+Runtime (ms): 19
+Runtime (ms): 19
+Runtime (ms): 19
+Runtime (ms): 19
+q22
+Runtime (ms): 5
+Runtime (ms): 5
+Runtime (ms): 5
+Runtime (ms): 5
+Runtime (ms): 5
