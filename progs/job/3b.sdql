@@ -15,8 +15,8 @@ let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 		{}
 in
 
-let mi_trie0 = sum(<mi_tuple, _> <- mi) { mi_tuple.movie_id -> { mi_tuple -> 1 } } in
-let k_trie0 = sum(<k_tuple, _> <- k) { k_tuple.id -> { k_tuple -> 1 } } in
+let mi_trie0 = sum(<mi_tuple, _> <- mi) { mi_tuple.movie_id -> 1 } in
+let k_trie0 = sum(<k_tuple, _> <- k) { k_tuple.id -> 1 } in
 sum(<x0, mi_trie1> <- mi_trie0)
 	if (x0 ∈ interm0_trie0) then
 		let interm0_trie1 = interm0_trie0(x0) in

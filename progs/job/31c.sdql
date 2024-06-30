@@ -69,7 +69,7 @@ let interm1_trie0 = sum(<x0, mi_trie1> <- mi_trie0)
 		{}
 in
 
-let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.person_id -> { ci_tuple.movie_id -> { ci_tuple -> 1 } } } in
+let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.person_id -> { ci_tuple.movie_id -> 1 } } in
 let n_trie0 = sum(<n_tuple, _> <- n) { n_tuple.id -> { n_tuple -> 1 } } in
 sum(<x0, ci_trie1> <- ci_trie0)
 	if (x0 ∈ n_trie0) then

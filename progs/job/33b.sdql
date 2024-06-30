@@ -110,7 +110,7 @@ let interm5_trie0 = sum(<x0, mc1_trie1> <- mc1_trie0)
 		{}
 in
 
-let mc2_trie0 = sum(<mc2_tuple, _> <- mc2) { mc2_tuple.company_id -> { mc2_tuple.movie_id -> { mc2_tuple -> 1 } } } in
+let mc2_trie0 = sum(<mc2_tuple, _> <- mc2) { mc2_tuple.company_id -> { mc2_tuple.movie_id -> 1 } } in
 let cn2_trie0 = sum(<cn2_tuple, _> <- cn2) { cn2_tuple.id -> { cn2_tuple -> 1 } } in
 sum(<x0, mc2_trie1> <- mc2_trie0)
 	if (x0 ∈ cn2_trie0) then

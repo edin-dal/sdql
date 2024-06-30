@@ -27,6 +27,8 @@ object CppCodeGenerator {
 			|#include <limits>
 			|#include <vector>
 			|
+			|using namespace std;
+			|
 			|const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
 			|const auto SEPARATOR = rapidcsv::SeparatorParams('|');
 			|
@@ -35,18 +37,22 @@ object CppCodeGenerator {
 			|int main() {
 			|${resInit2Cpp(name, tpe)}
 			|
-			|$loadBody
-			|
 			|HighPrecisionTimer timer;
+			|
+			|$loadBody
+			|cout << timer.GetElapsedTime() / 1000.0 << " s" << endl;
+			|
 			|for (int iter = 0; iter < 1 + 5; ++iter) {
 			|$name.clear();
 			|timer.Reset();
 			|$mainBody
 			|timer.StoreElapsedTime(0);
+			|cerr << "*" << " " << flush;
 			|}
+			|cerr << endl;
 			|
 			|$printBody
-			|std::cout << timer.GetMean(0) << " ms" << std::endl;
+			|cout << timer.GetMean(0) << " ms" << endl;
 			|}""".stripMargin
 	}
 
@@ -110,7 +116,7 @@ object CppCodeGenerator {
 			case DictType(RecordType(fs), IntType) =>
 				val doc_def = s"""const rapidcsv::Document ${docVar(varName)}("$path", NO_HEADERS, SEPARATOR);"""
 				val struct_def = fs.map(
-					attr => s"std::vector<${type2Cpp(attr.tpe)}> ${attr.name};"
+					attr => s"vector<${type2Cpp(attr.tpe)}> ${attr.name};"
 				).mkString(s"struct ${typeVar(varName)} {\n", "\n", "\n};")
 				val struct_init = fs.zipWithIndex.map(
 					{ case (attr, i) => s"${docVar(varName)}.GetColumn<${type2Cpp(attr.tpe)}>($i)," }
@@ -148,7 +154,7 @@ object CppCodeGenerator {
 		case LetBinding(x@Sym(varName), e1, e2) =>
 			val cpp_e1 = e1 match {
 				case e1: Sum => letSum(e1)(typesCtx, callsCtx, varName)
-				case Get(Sym(trieVar), Sym(xVar)) => s"const auto $varName = $trieVar.at($xVar);\n"
+				case Get(Sym(trieVar), Sym(xVar)) => s"const auto &$varName = $trieVar.at($xVar);\n"
 			}
 			val typesLocal = typesCtx ++ Map(x -> TypeInference.run(e1))
 			val cpp_e2 = scope2Cpp(e2)(typesLocal, callsCtx, resVar)
@@ -203,13 +209,13 @@ object CppCodeGenerator {
 			   |${fs.map(attr => s"${type2Cpp(attr.tpe)} ${attr.name};").mkString("\n")}
 			   |${typeVar(varName)}() : ${fs.map(attr => s"${attr.name}(${inf2Cpp(attr.tpe)})").mkString(", ")} {}
 			   |${typeVar(varName)}(${fs.map(attr => s"${type2Cpp(attr.tpe)} ${attr.name}").mkString(", ")}) : ${fs.map(attr => s"${attr.name}(${attr.name})").mkString(", ")} {}
-			   |void min(${fs.map(attr => s"${type2Cpp(attr.tpe)} other_${attr.name}").mkString(", ")}) {
+			   |inline void min(${fs.map(attr => s"${type2Cpp(attr.tpe)} other_${attr.name}").mkString(", ")}) {
 			   |${fs.map(attr => s"${attr.name} = std::min(${attr.name}, other_${attr.name});").mkString("\n")}
 			   |}
-			   |void print() {
-			   |${fs.map(_.name).mkString("std::cout << ", """ << " | " << """, " << std::endl;")}
+			   |inline void print() {
+			   |${fs.map(_.name).mkString("cout << ", """ << " | " << """, " << endl;")}
 			   |}
-			   |void clear() {
+			   |inline void clear() {
 			   |${fs.map(attr => s"${attr.name} = ${inf2Cpp(attr.tpe)};").mkString("\n")}
 			   |}
 			   |} $varName;
@@ -220,7 +226,7 @@ object CppCodeGenerator {
 		case DictType(IntType, value) => struct2Cpp(varName, value)
 		case DictType(RecordType(fs), IntType) =>
 			val intermVar = varName.dropRight(6)
-			val vecs = fs.map(attr => s"std::vector<${type2Cpp(attr.tpe)}> ${attr.name};").mkString("\n")
+			val vecs = fs.map(attr => s"vector<${type2Cpp(attr.tpe)}> ${attr.name};").mkString("\n")
 			s"""struct ${typeVar(intermVar)} { $vecs } $intermVar;
 			   |auto &${intermVar}_tuple = $intermVar;
 			   |int ${intermVar}_cnt = 0;""".stripMargin
@@ -229,8 +235,8 @@ object CppCodeGenerator {
 
 	private def type2Cpp(tpe: Type): String = tpe match {
 		case IntType => "int"
-		case StringType => "std::string"
-		case DictType(_: RecordType, IntType) => "std::vector<int>"
+		case StringType => "string"
+		case DictType(_: RecordType, IntType) => "vector<int>"
 		case DictType(key, value) => s"phmap::flat_hash_map<${type2Cpp(key)}, ${type2Cpp(value)}>"
 	}
 

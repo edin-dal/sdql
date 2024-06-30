@@ -69,9 +69,9 @@ let interm2_trie0 = sum(<x0, n_trie1> <- n_trie0)
 		{}
 in
 
-let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.person_role_id -> { ci_tuple.role_id -> { ci_tuple.person_id -> { ci_tuple.movie_id -> { ci_tuple -> 1 } } } } } in
+let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.person_role_id -> { ci_tuple.role_id -> { ci_tuple.person_id -> { ci_tuple.movie_id -> 1 } } } } in
 let chn_trie0 = sum(<chn_tuple, _> <- chn) { chn_tuple.id -> { chn_tuple -> 1 } } in
-let rt_trie0 = sum(<rt_tuple, _> <- rt) { rt_tuple.id -> { rt_tuple -> 1 } } in
+let rt_trie0 = sum(<rt_tuple, _> <- rt) { rt_tuple.id -> 1 } in
 sum(<x0, ci_trie1> <- ci_trie0)
 	if (x0 ∈ chn_trie0) then
 		let chn_trie1 = chn_trie0(x0) in

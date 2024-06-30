@@ -24,9 +24,9 @@ let interm0_trie0 = sum(<x0, t1_trie1> <- t1_trie0)
 		{}
 in
 
-let mk_trie0 = sum(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> { mk_tuple.keyword_id -> { mk_tuple -> 1 } } } in
+let mk_trie0 = sum(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> { mk_tuple.keyword_id -> 1 } } in
 let lt_trie0 = sum(<lt_tuple, _> <- lt) { lt_tuple.id -> { lt_tuple -> 1 } } in
-let k_trie0 = sum(<k_tuple, _> <- k) { k_tuple.id -> { k_tuple -> 1 } } in
+let k_trie0 = sum(<k_tuple, _> <- k) { k_tuple.id -> 1 } in
 sum(<x0, mk_trie1> <- mk_trie0)
 	if (x0 ∈ interm0_trie0) then
 		let interm0_trie1 = interm0_trie0(x0) in

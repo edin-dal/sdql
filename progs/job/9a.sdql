@@ -18,9 +18,9 @@ let interm0_trie0 = sum(<x0, mc_trie1> <- mc_trie0)
 		{}
 in
 
-let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.person_id -> { ci_tuple.movie_id -> { ci_tuple.role_id -> { ci_tuple.person_role_id -> { ci_tuple -> 1 } } } } } in
-let n_trie0 = sum(<n_tuple, _> <- n) { n_tuple.id -> { n_tuple -> 1 } } in
-let rt_trie0 = sum(<rt_tuple, _> <- rt) { rt_tuple.id -> { rt_tuple -> 1 } } in
+let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.person_id -> { ci_tuple.movie_id -> { ci_tuple.role_id -> { ci_tuple.person_role_id -> 1 } } } } in
+let n_trie0 = sum(<n_tuple, _> <- n) { n_tuple.id -> 1 } in
+let rt_trie0 = sum(<rt_tuple, _> <- rt) { rt_tuple.id -> 1 } in
 let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
 let chn_trie0 = sum(<chn_tuple, _> <- chn) { chn_tuple.id -> { chn_tuple -> 1 } } in
 let an_trie0 = sum(<an_tuple, _> <- an) { an_tuple.person_id -> { an_tuple -> 1 } } in
