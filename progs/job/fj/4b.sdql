@@ -1,0 +1,35 @@
+let mk = load[{<id: int, movie_id: int, keyword_id: int> -> int}]("datasets/job/movie_keyword.csv")
+let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("datasets/job/4b/t.csv")
+let mi_idx = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/4b/mi_idx.csv")
+let k = load[{<id: int, keyword: string, phonetic_code: string> -> int}]("datasets/job/4b/k.csv")
+let it = load[{<id: int, info: string> -> int}]("datasets/job/4b/it.csv")
+
+let k_trie0 = sum(<k_tuple, _> <- k) { k_tuple.id -> 1 } in
+let mi_idx_trie0 = sum(<mi_idx_tuple, _> <- mi_idx) { mi_idx_tuple.movie_id -> { mi_idx_tuple -> 1 } } in
+let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
+let it_trie0 = sum(<it_tuple, _> <- it) { it_tuple.id -> 1 } in
+sum(<mk_tuple, _> <- mk)
+	let x0 = mk_tuple.keyword_id in
+	if (x0 ∈ k_trie0) then
+		let k_trie1 = k_trie0(x0) in
+		let x1 = mk_tuple.movie_id in
+		if (x1 ∈ mi_idx_trie0) then
+			if (x1 ∈ t_trie0) then
+				let mi_idx_trie1 = mi_idx_trie0(x1) in
+				let t_trie1 = t_trie0(x1) in
+				sum(<mi_idx_tuple, _> <- mi_idx_trie1)
+					let x2 = mi_idx_tuple.info_type_id in
+					if (x2 ∈ it_trie0) then
+						let it_trie1 = it_trie0(x2) in
+						let mn_t = sum(<t_tuple, _> <- t_trie1) <title=t_tuple.title> in
+						let mn_mi_idx = <info=mi_idx_tuple.info> in
+						<col2=mn_t.title, col4=mn_mi_idx.info>
+					else
+						<col2="", col4="">
+			else
+				{}
+		else
+			{}
+	else
+		{}
+

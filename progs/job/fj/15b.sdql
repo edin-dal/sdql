@@ -1,0 +1,68 @@
+let mk = load[{<id: int, movie_id: int, keyword_id: int> -> int}]("datasets/job/movie_keyword.csv")
+let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("datasets/job/15b/t.csv")
+let mi = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/15b/mi.csv")
+let mc = load[{<id: int, movie_id: int, company_id: int, company_type_id: int, note: string> -> int}]("datasets/job/15b/mc.csv")
+let k = load[{<id: int, keyword: string, phonetic_code: string> -> int}]("datasets/job/keyword.csv")
+let it1 = load[{<id: int, info: string> -> int}]("datasets/job/15b/it1.csv")
+let ct = load[{<id: int, kind: string> -> int}]("datasets/job/company_type.csv")
+let cn = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("datasets/job/15b/cn.csv")
+let at = load[{<id: int, movie_id: int, title: string, imdb_index: string, kind_id: int, production_year: int, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, note: string, md5sum: string> -> int}]("datasets/job/aka_title.csv")
+
+let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
+let interm0_trie0 = sum(<mk_tuple, _> <- mk)
+	let x0 = mk_tuple.movie_id in
+	if (x0 ∈ t_trie0) then
+		let t_trie1 = t_trie0(x0) in
+		sum(<t_tuple, _> <- t_trie1)
+			{ mk_tuple.movie_id -> { mk_tuple.keyword_id -> { <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=t_tuple.title> -> 1 } } }
+	else
+		{}
+in
+
+let mc_trie0 = sum(<mc_tuple, _> <- mc) { mc_tuple.movie_id -> { mc_tuple -> 1 } } in
+let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) { interm0_tuple.col0 -> { interm0_tuple -> 1 } } in
+let k_trie0 = sum(<k_tuple, _> <- k) { k_tuple.id -> 1 } in
+let it1_trie0 = sum(<it1_tuple, _> <- it1) { it1_tuple.id -> 1 } in
+let ct_trie0 = sum(<ct_tuple, _> <- ct) { ct_tuple.id -> 1 } in
+let cn_trie0 = sum(<cn_tuple, _> <- cn) { cn_tuple.id -> 1 } in
+let at_trie0 = sum(<at_tuple, _> <- at) { at_tuple.movie_id -> 1 } in
+sum(<mi_tuple, _> <- mi)
+	let x0 = mi_tuple.movie_id in
+	if (x0 ∈ mc_trie0) then
+		if (x0 ∈ interm0_trie0) then
+			let mc_trie1 = mc_trie0(x0) in
+			let interm0_trie1 = interm0_trie0(x0) in
+			sum(<interm0_tuple, _> <- interm0_trie1)
+				let x1 = interm0_tuple.col1 in
+				if (x1 ∈ k_trie0) then
+					let k_trie1 = k_trie0(x1) in
+					let x2 = mi_tuple.info_type_id in
+					if (x2 ∈ it1_trie0) then
+						let it1_trie1 = it1_trie0(x2) in
+						sum(<mc_tuple, _> <- mc_trie1)
+							let x3 = mc_tuple.company_type_id in
+							if (x3 ∈ ct_trie0) then
+								let ct_trie1 = ct_trie0(x3) in
+								let x4 = mc_tuple.company_id in
+								if (x4 ∈ cn_trie0) then
+									let cn_trie1 = cn_trie0(x4) in
+									if (x0 ∈ at_trie0) then
+										let at_trie1 = at_trie0(x0) in
+										let mn_mi = <info=mi_tuple.info> in
+										let mn_interm0 = <col2=interm0_tuple.col2> in
+										<col2=mn_mi.info, col4=mn_interm0.col2>
+									else
+										<col2="", col4="">
+								else
+									{}
+							else
+								{}
+					else
+						{}
+				else
+					{}
+		else
+			{}
+	else
+		{}
+
