@@ -62,4 +62,4 @@ let l_h =
       { }
 
 sum_unique(<k,v> <- l_h)
-  { < _ = k, _ = v > -> 1 }
+  { concat(k,v) -> 1 }

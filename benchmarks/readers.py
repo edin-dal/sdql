@@ -165,8 +165,6 @@ def sdql_to_csv(i: int) -> Callable[[str], str]:
             return unescaped_to_csv(n_cols=8)
         case 6 | 14 | 17:
             return scalar_to_csv
-        case 7:
-            return q7_to_csv
         case 20:
             return unescaped_to_csv(n_cols=2)
         case _:
@@ -192,12 +190,7 @@ def relational_to_csv(line: str) -> str:
     return RE_RELATIONAL.match(line).group(1)
 
 
-def q7_to_csv(line: str) -> str:
-    return re.sub(RE_Q7, r"\1,\2", line)
-
-
 RE_RELATIONAL: Final[re.Pattern] = re.compile("^<([^>]*)>:1$")
-RE_Q7: Final[re.Pattern] = re.compile("^<<([^>]*)>,<([^>]*)>>:1$")
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=FutureWarning)

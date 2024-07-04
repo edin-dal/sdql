@@ -580,27 +580,30 @@ object CppCodegen {
     callsCtx.exists(cond(_) { case _: IsTernary  => true })
 
   private def cppPrintResult(tpe: Type) = tpe match {
-    // TODO pretty print nested types (e.g. dates inside a tuple which is a dict key)
-    case _: DictType =>
+    case DictType(kt, vt) =>
       s"""for (const auto &[key, val] : $resultName) {
-         |$stdCout << key << ":" << val << std::endl;
+         |$stdCout << ${_cppPrintResult(kt, "key")} << ":" << ${_cppPrintResult(vt, "val")} << std::endl;
          |}""".stripMargin
-    case RecordType(attrs) =>
-      val body =
-        attrs.zipWithIndex.map(
-          {
-            case (Attribute(name, DateType), i) => s""""$name = " << print_date(std::get<$i>($resultName))"""
-            case (Attribute(name, _), i) => s""""$name = " << std::get<$i>($resultName)"""
-          }
-        ).mkString(""" << ", " << """)
-      s"""std::stringstream ss;
-         |ss << $body;
-         |$stdCout << "<" << ss.str() << ">" << std::endl;
-         |""".stripMargin
-    case StringType(Some(_)) =>
-      s"std::wcout << $resultName << std::endl;"
-    case _ if tpe.isScalar =>
-      s"$stdCout << $resultName << std::endl;"
+    case _ =>
+      s"$stdCout << ${_cppPrintResult(tpe, resultName)} << std::endl;"
+  }
+
+  private def _cppPrintResult(tpe: Type, name: String) = tpe match {
+    case _: DictType =>
+      raise(s"Nested ${tpe.simpleName} not supported")
+    case RecordType(attrs) => attrs.zipWithIndex.map(
+      {
+        case (Attribute(_, tpe: RecordType), _) =>
+          raise(s"Nested ${tpe.simpleName} not supported")
+        case (Attribute(_, DateType), i) =>
+          s"print_date(std::get<$i>($name))"
+        case (Attribute(_, _), i) =>
+          s"std::get<$i>($name)"
+      }
+    ).mkString(""""<" <<""", """ << "," << """, """<< ">"""")
+    case _ =>
+      assert(tpe.isScalar)
+      name
   }
 
   private val stdCout = s"std::cout << std::setprecision (std::numeric_limits<double>::digits10)"
