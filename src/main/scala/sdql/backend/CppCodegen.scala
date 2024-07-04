@@ -14,7 +14,7 @@ object CppCodegen {
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
   private case class LetCtx(name: String) extends CallCtx
-  private case class SumCtx(k:String, v: String, isLoad: Boolean, hint: CodegenHint) extends CallCtx
+  private case class SumCtx(k:String, v: String, isLoad: Boolean, hint: SumCodegenHint) extends CallCtx
   private case class SumEnd() extends CallCtx
   private case class IsTernary() extends CallCtx
   private type LoadsCtx = Set[Sym]
@@ -90,18 +90,18 @@ object CppCodegen {
               val lhs = run(kv._1)(typesCtx, callsLocal, loadsCtx)
               val rhs = run(kv._2)(typesCtx, callsLocal, loadsCtx)
               hint match {
-                case _: NoHint => s"$agg[$lhs] += $rhs;"
-                case _: UniqueHint => s"$agg.emplace($lhs, $rhs);"
-                case _: VectorHint =>
+                case _: SumNoHint => s"$agg[$lhs] += $rhs;"
+                case _: SumUniqueHint => s"$agg.emplace($lhs, $rhs);"
+                case _: SumVectorHint =>
                   typesCtx(Sym(agg)) match {
-                    case DictType(IntType, DictType(IntType, _)) =>
+                    case DictType(IntType, DictType(IntType, _, _), _) =>
                       e match {
                         case DictNode(Seq((f1: FieldNode, DictNode(Seq((f2: FieldNode, _)))))) =>
                           val lhs = run(f1)(typesCtx, callsLocal, loadsCtx)
                           val rhs = run(f2)(typesCtx, callsLocal, loadsCtx)
                           s"$agg[$lhs].emplace_back($rhs);"
                       }
-                    case DictType(IntType, _) =>
+                    case DictType(IntType, _, _) =>
                       s"$agg[$lhs] = $rhs;"
                     case tpe =>
                       raise(s"expected nested ${DictType.getClass.getSimpleName.init} " +
@@ -125,7 +125,7 @@ object CppCodegen {
         val isTernary = !cond(e1) { case _: Sum => true }
         val localCalls = if (isTernary) List(IsTernary()) ++ callsCtx else callsCtx
         val e1Cpp = e1 match {
-          case Load(_, DictType(RecordType(_), IntType)) =>
+          case Load(_, DictType(RecordType(_), IntType, _)) =>
             // codegen for loads was handled in a separate tree traversal
             ""
           case External(Limit.SYMBOL, _) =>
@@ -147,7 +147,7 @@ object CppCodegen {
 
       case Sum(k, v, e1, e2, hint) =>
         val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
-        var (tpe, typesLocal) = TypeInference.sum_infer_type_and_ctx(k, v, e1, e2)
+        var (tpe, typesLocal) = TypeInference.sum_infer_type_and_ctx(k, v, e1, e2, hint)
         typesLocal ++= Map(Sym(agg) -> tpe)
 
         val isLoad = cond(e1) { case e1Sym: Sym => loadsCtx.contains(e1Sym) }
@@ -156,11 +156,11 @@ object CppCodegen {
         val body = run(e2)(typesLocal, callsLocal, loadsCtx)
 
         val init = hint match {
-          case _: VectorHint =>
+          case _: SumVectorHint =>
             tpe match {
-              case DictType(IntType, DictType(IntType, vt)) =>
+              case DictType(IntType, DictType(IntType, vt, _), _) =>
                 s"vector<vector<${cppType(vt)}>>($vecSize)"
-              case DictType(IntType, vt) =>
+              case DictType(IntType, vt, _) =>
                 s"vector<${cppType(vt)}>($vecSize)"
               case tpe =>
                 raise(s"expected nested ${DictType.getClass.getSimpleName.init} " +
@@ -217,7 +217,7 @@ object CppCodegen {
         s"if ($condBody) {$ifBody\n}$elseBody"
 
       case Cmp(Get(e1, e2), DictNode(Nil), "!=")
-        if cond(TypeInference.run(e1)) { case DictType(kt, _) => TypeInference.run(e2) == kt } =>
+        if cond(TypeInference.run(e1)) { case DictType(kt, _, _) => TypeInference.run(e2) == kt } =>
         (e1, e2) match {
           // TODO remove this special handling for Q21
           case (Sym("ord_indexed"), FieldNode(Sym("l"), "l_orderkey")) =>
@@ -227,7 +227,7 @@ object CppCodegen {
         }
 
       case Cmp(DictNode(Nil), Get(e1, e2), "!=")
-        if cond(TypeInference.run(e1)) { case DictType(kt, _) => TypeInference.run(e2) == kt } =>
+        if cond(TypeInference.run(e1)) { case DictType(kt, _, _) => TypeInference.run(e2) == kt } =>
         s"${run(e1)}.contains(${run(e2)})"
       case Cmp(e1, e2, cmp) =>
         s"${run(e1)} $cmp ${run(e2)}"
@@ -361,7 +361,7 @@ object CppCodegen {
         val limit = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
         val tmp = s"tmp_$uuid"
         val (dictTpe, kt, vt) =
-          (TypeInference.run(sym): @unchecked) match { case dictTpe @ DictType(kt, vt) => (dictTpe, kt, vt) }
+          (TypeInference.run(sym): @unchecked) match { case dictTpe @ DictType(kt, vt, _) => (dictTpe, kt, vt) }
         val recTpe = RecordType(Seq(Attribute("_1", kt), Attribute("_2", vt)))
         val recTpeCpp = cppType(recTpe)
         val cmp = if(isDescending) ">" else "<"
@@ -442,7 +442,7 @@ object CppCodegen {
     case IntType | DateType => "long"
     case StringType(None) => "std::string"
     case StringType(Some(maxLen)) => s"VarChar<$maxLen>"
-    case DictType(key, value) => s"phmap::flat_hash_map<${cppType(key)}, ${cppType(value)}>"
+    case DictType(key, value, _) => s"phmap::flat_hash_map<${cppType(key)}, ${cppType(value)}>"
     case RecordType(attrs) => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
     case tpe => raise(s"unimplemented type: $tpe")
   }
@@ -452,7 +452,7 @@ object CppCodegen {
       iterExps(e)
         .flatMap(
           e => condOpt(e) {
-            case LetBinding(Sym(name), Load(path, DictType(RecordType(attrs), IntType)), _) =>
+            case LetBinding(Sym(name), Load(path, DictType(RecordType(attrs), IntType, _)), _) =>
               (path, name, attrs)
           }
         )
@@ -580,7 +580,14 @@ object CppCodegen {
     callsCtx.exists(cond(_) { case _: IsTernary  => true })
 
   private def cppPrintResult(tpe: Type) = tpe match {
-    case DictType(kt, vt) =>
+    case DictType(kt, vt, DictVectorHint()) =>
+      assert(kt == IntType)
+      s"""for (auto i = 0; i < $resultName.size(); ++i) {
+         |if ($resultName[i] != 0) {
+         |$stdCout << ${_cppPrintResult(kt, "i")} << ":" << ${_cppPrintResult(vt, s"$resultName[i]")} << std::endl;
+         |}
+         |}""".stripMargin
+    case DictType(kt, vt, DictNoHint()) =>
       s"""for (const auto &[key, val] : $resultName) {
          |$stdCout << ${_cppPrintResult(kt, "key")} << ":" << ${_cppPrintResult(vt, "val")} << std::endl;
          |}""".stripMargin

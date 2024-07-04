@@ -144,7 +144,7 @@ object Interpreter {
       }
     case Load(path, tp) => 
       tp match {
-        case DictType(RecordType(fs), IntType) =>
+        case DictType(RecordType(fs), IntType, _) =>
           val arr = Loader.loadTable(Table(path, fs, path))
           arr.map(x => x -> 1).toMap
         case _ =>

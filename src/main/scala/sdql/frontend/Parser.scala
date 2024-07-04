@@ -92,9 +92,9 @@ object Parser {
   def sum[_: P]: P[Sum] = P( "sum" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/
     expr).map(x => Sum(x._1, x._2, x._3, x._4))
   def sumUnique[_: P]: P[Sum] = P( "sum_unique" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/
-    expr).map(x => Sum(x._1, x._2, x._3, x._4, UniqueHint()))
+    expr).map(x => Sum(x._1, x._2, x._3, x._4, SumUniqueHint()))
   def sumVector[_: P]: P[Sum] = P( "sum_vec" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/
-    expr).map(x => Sum(x._1, x._2, x._3, x._4, VectorHint()))
+    expr).map(x => Sum(x._1, x._2, x._3, x._4, SumVectorHint()))
   // def set[_: P]: P[DictNode] = P( "{" ~/ (expr ~ !("->")).rep(sep=","./) ~ space ~/ "}" ).map(x => SetNode(x))
   def range[_: P]: P[RangeNode] = P( ("range(" ~ int ~ space ~ ")") ).map(x => RangeNode(x.v.asInstanceOf[Int]))
   def ext[_: P]: P[External] = P( "ext(" ~/ fieldConst ~/ "," ~/ expr.rep(1, sep=","./) ~ space ~/ ")" ).map(x =>

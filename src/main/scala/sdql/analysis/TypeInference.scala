@@ -14,8 +14,8 @@ object TypeInference {
 
   def run(e: Exp)(implicit ctx: Ctx): Type = {
     e match {
-      case Sum(k, v, e1, e2, _) =>
-        sum_infer_type_and_ctx(k, v, e1, e2)._1
+      case Sum(k, v, e1, e2, hint) =>
+        sum_infer_type_and_ctx(k, v, e1, e2, hint)._1
 
       case IfThenElse(a, Const(false), Const(true)) =>
         run(a)
@@ -88,7 +88,7 @@ object TypeInference {
             s"expected ${IntType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
           )
         }
-        case DictType(kType, vType) => run(e2) match {
+        case DictType(kType, vType, _) => run(e2) match {
           case tpe if tpe == kType => vType
           case tpe => raise(
             s"can't index with ${tpe.simpleName} from ${DictType.getClass.getSimpleName.init}"
@@ -122,7 +122,7 @@ object TypeInference {
       case External(MaxValue.SYMBOL | Size.SYMBOL, args) =>
         val arg = args match { case Seq(e) => e }
         run(arg) match {
-          case DictType(_, vt) => vt
+          case DictType(_, vt, _) => vt
           case tpe => raise(
             s"${MaxValue.SYMBOL} or ${Size.SYMBOL} expect arg " +
               s"${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
@@ -175,17 +175,33 @@ object TypeInference {
     }
   }
 
-  def sum_infer_type_and_ctx(k: Sym, v: Sym, e1: Exp, e2: Exp)(implicit ctx: Ctx): (Type, Ctx) = {
+  def sum_infer_type_and_ctx(k: Sym, v: Sym, e1: Exp, e2: Exp, sumHint: SumCodegenHint)(implicit ctx: Ctx): (Type, Ctx) = {
     // from e1 infer types of k, v
     val (kType, vType) = run(e1) match {
-      case DictType(k_type, v_type) => (k_type, v_type)
+      case DictType(k_type, v_type, _) => (k_type, v_type)
       case tpe => raise(
         s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
       )
     }
     // from types of k, v infer type of e2
     val localCtx = ctx ++ Map(k -> kType, v -> vType)
-    (run(e2)(localCtx), localCtx)
+    val tpe = run(e2)(localCtx)
+    (
+      tpe match {
+        case DictType(kt, vt, DictNoHint()) =>
+          DictType(kt, vt, sumHint)
+        case DictType(_, _, _) =>
+          raise("Unreachable - codegen hints are handled here")
+        case _ =>
+          tpe
+      },
+      localCtx
+    )
+  }
+
+  private implicit def convertHint(hint: SumCodegenHint): DictCodegenHint = hint match {
+    case SumVectorHint() => DictVectorHint()
+    case SumUniqueHint() | SumNoHint() => DictNoHint()
   }
 
   private def branching(e: Exp)(implicit ctx: Ctx): Type = {
@@ -214,12 +230,13 @@ object TypeInference {
         IntType
       case (IntType, RealType) | (RealType, IntType) =>
         RealType
-      case (DictType(kt1, vt1), DictType(kt2, vt2)) =>
+      case (DictType(kt1, vt1, hint1), DictType(kt2, vt2, hint2)) =>
+        assert(hint1 == hint2)
         DictType(promote(kt1, kt2), promote(vt1, vt2))
-      case (DictType(kt, vt), t) if t.isScalar =>
-        DictType(kt, promote(vt, t))
-      case (t, DictType(kt, vt)) if t.isScalar =>
-        DictType(kt, promote(vt, t))
+      case (DictType(kt, vt, hint), t) if t.isScalar =>
+        DictType(kt, promote(vt, t), hint)
+      case (t, DictType(kt, vt, hint)) if t.isScalar =>
+        DictType(kt, promote(vt, t), hint)
       case (t1, t2) if t1 == t2 =>
         t1
       case (t1, t2) =>

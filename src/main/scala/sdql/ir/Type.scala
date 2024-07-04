@@ -18,10 +18,10 @@ case object BoolType extends Type
 case object IntType extends Type
 case object CharType extends Type
 case object DateType extends Type
-case class DictType(key: Type, value: Type) extends Type
+case class DictType(key: Type, value: Type, hint: DictCodegenHint = DictNoHint()) extends Type
 case class RecordType(attrs: Seq[Attribute]) extends Type {
   override def equals(o: Any): Boolean = o match {
-    case RecordType(attrs2) if attrs.size == attrs2.size => 
+    case RecordType(attrs2) if attrs.size == attrs2.size =>
       // attrs.zip(attrs2).forall(x => x._1.name == x._2.name)
       attrs.zip(attrs2).forall(x => x._1.name == x._2.name && x._1.tpe == x._2.tpe)
     case _ => false
@@ -31,7 +31,7 @@ case class RecordType(attrs: Seq[Attribute]) extends Type {
       attrs.zip(attrs2).forall(x => x._1.name == x._2.name && x._1.tpe =~= x._2.tpe)
     case _ => false
   }
-  override def hashCode(): Int = 
+  override def hashCode(): Int =
     attrs.map(_.name).hashCode()
   def indexOf(name: Field): Option[Int] = {
     val names = attrs.map(_.name)
@@ -39,6 +39,10 @@ case class RecordType(attrs: Seq[Attribute]) extends Type {
     names.zipWithIndex.find(_._1 == name).map(_._2)
   }
 }
+
+sealed trait DictCodegenHint;
+case class DictNoHint() extends DictCodegenHint
+case class DictVectorHint() extends DictCodegenHint
 
 object TupleType {
   def index(idx: Int): String = s"__$idx"
