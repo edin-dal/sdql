@@ -94,19 +94,19 @@ object CppCodegen {
                 case _: SumUniqueHint => s"$agg.emplace($lhs, $rhs);"
                 case _: SumVectorHint =>
                   typesCtx(Sym(agg)) match {
-                    case DictType(IntType, DictType(IntType, _, _), _) =>
+                    case DictType(IntType, DictType(IntType, _, DictVectorHint()), DictVectorHint()) =>
                       e match {
                         case DictNode(Seq((f1: FieldNode, DictNode(Seq((f2: FieldNode, _)))))) =>
                           val lhs = run(f1)(typesCtx, callsLocal, loadsCtx)
                           val rhs = run(f2)(typesCtx, callsLocal, loadsCtx)
                           s"$agg[$lhs].emplace_back($rhs);"
                       }
-                    case DictType(IntType, _, _) =>
+                    case DictType(IntType, _, DictVectorHint()) =>
                       s"$agg[$lhs] = $rhs;"
                     case tpe =>
                       raise(s"expected nested ${DictType.getClass.getSimpleName.init} " +
-                        s"with ${IntType.getClass.getSimpleName.init} keys up to 2-levels deep, " +
-                        s"not ${tpe.simpleName}")
+                        s"with ${IntType.getClass.getSimpleName.init} keys up to 2-levels deep " +
+                        s"and vector hints, not ${tpe.simpleName}")
                   }
               }
             }
@@ -155,18 +155,11 @@ object CppCodegen {
 
         val body = run(e2)(typesLocal, callsLocal, loadsCtx)
 
-        val init = hint match {
-          case _: SumVectorHint =>
-            tpe match {
-              case DictType(IntType, DictType(IntType, vt, _), _) =>
-                s"vector<vector<${cppType(vt)}>>($vecSize)"
-              case DictType(IntType, vt, _) =>
-                s"vector<${cppType(vt)}>($vecSize)"
-              case tpe =>
-                raise(s"expected nested ${DictType.getClass.getSimpleName.init} " +
-                  s"with ${IntType.getClass.getSimpleName.init} keys up to 2-levels deep, " +
-                  s"not ${tpe.simpleName}")
-            }
+        val init = tpe match {
+          case DictType(IntType, DictType(IntType, vt, DictVectorHint()), DictVectorHint()) =>
+            s"vector<vector<${cppType(vt)}>>($vecSize)"
+          case DictType(IntType, vt, DictVectorHint()) =>
+            s"vector<${cppType(vt)}>($vecSize)"
           case _ =>
             s"${cppType(tpe)} (${cppInit(tpe)})"
         }

@@ -175,7 +175,7 @@ object TypeInference {
     }
   }
 
-  def sum_infer_type_and_ctx(k: Sym, v: Sym, e1: Exp, e2: Exp, sumHint: SumCodegenHint)(implicit ctx: Ctx): (Type, Ctx) = {
+  def sum_infer_type_and_ctx(k: Sym, v: Sym, e1: Exp, e2: Exp, hint: SumCodegenHint)(implicit ctx: Ctx): (Type, Ctx) = {
     // from e1 infer types of k, v
     val (kType, vType) = run(e1) match {
       case DictType(k_type, v_type, _) => (k_type, v_type)
@@ -186,17 +186,16 @@ object TypeInference {
     // from types of k, v infer type of e2
     val localCtx = ctx ++ Map(k -> kType, v -> vType)
     val tpe = run(e2)(localCtx)
-    (
-      tpe match {
-        case DictType(kt, vt, DictNoHint()) =>
-          DictType(kt, vt, sumHint)
-        case DictType(_, _, _) =>
-          raise("Unreachable - codegen hints are handled here")
-        case _ =>
-          tpe
-      },
-      localCtx
-    )
+    (applyHint(tpe)(hint), localCtx)
+  }
+
+  private def applyHint(tpe: Type)(implicit hint: DictCodegenHint): Type = tpe match {
+    case DictType(kt, vt, DictNoHint()) =>
+      DictType(kt, applyHint(vt), hint)
+    case DictType(_, _, _) =>
+      raise("Unreachable - codegen hints are handled here")
+    case _ =>
+      tpe
   }
 
   private implicit def convertHint(hint: SumCodegenHint): DictCodegenHint = hint match {
