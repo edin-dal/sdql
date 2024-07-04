@@ -30,12 +30,10 @@ let ord_indexed =
     else
       { }
 
-// TODO double-check this
 let l2_indexed =
   sum_vec(<l,l_v> <- lineitem)
     { l.l_orderkey ->  { l.l_suppkey -> 1 } }
 
-// TODO double-check this
 let l3_indexed =
   sum_vec(<l,l_v> <- lineitem)
     if(l.l_commitdate < l.l_receiptdate) then

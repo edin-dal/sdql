@@ -211,17 +211,10 @@ object CppCodegen {
 
       case Cmp(Get(e1, e2), DictNode(Nil), "!=")
         if cond(TypeInference.run(e1)) { case DictType(kt, _, _) => TypeInference.run(e2) == kt } =>
-        (e1, e2) match {
-          // TODO remove this special handling for Q21
-          case (Sym("ord_indexed"), FieldNode(Sym("l"), "l_orderkey")) =>
-            "ord_indexed[l.l_orderkey[i]] != false"
-          case _ =>
-            s"${run(e1)}.contains(${run(e2)})"
-        }
-
+          dictCmpNil(e1, e2)
       case Cmp(DictNode(Nil), Get(e1, e2), "!=")
         if cond(TypeInference.run(e1)) { case DictType(kt, _, _) => TypeInference.run(e2) == kt } =>
-        s"${run(e1)}.contains(${run(e2)})"
+          dictCmpNil(e1, e2)
       case Cmp(e1, e2, cmp) =>
         s"${run(e1)} $cmp ${run(e2)}"
 
@@ -400,6 +393,14 @@ object CppCodegen {
            |${munitPrint(e)}""".stripMargin
       )
     }
+  }
+
+  private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx) = {
+    val isVector = cond(TypeInference.run(e1)) { case DictType(_, _, DictVectorHint()) => true }
+    if (isVector)
+      s"${run(e1)}[${run(e2)}] != 0"
+    else
+      s"${run(e1)}.contains(${run(e2)})"
   }
 
   private def const(c: Const) = c match {
