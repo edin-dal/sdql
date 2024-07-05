@@ -24,53 +24,34 @@ object CppCodegen {
   private val resultName = "result"
 
   private val header = """#include "../runtime/headers.h""""
-  private val consts =
+  private val csvConsts =
     s"""const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
        |const auto SEPARATOR = rapidcsv::SeparatorParams('|');
        |""".stripMargin
 
-  // overload to run multiple queries that share same datasets)
-  def apply(expsWithNames: Seq[(Exp, String)]): String = {
-    val csvBody = CsvBodyWithLoadsCtx(expsWithNames.map(_._1))._1
-    val benchHeader =
-      """#include <chrono>
-        |using namespace std::chrono;
-        |""".stripMargin
-    val preamble = s"""$header\n$benchHeader\n\n$consts\n$csvBody\n"""
-    val main = expsWithNames
-      .map( x =>
-        s"""std::cout << "\\n${x._2}" << std::endl;
-           |${x._2}();
-           |""".stripMargin)
-      .mkString(s"int main() {\n", "", "\n}")
-    expsWithNames.map( x => this.apply(x._1, Some(x._2), isBenchmark = true)).mkString(preamble, "\n\n", s"\n\n$main")
-  }
-
-  def apply(e: Exp, batchedName: Option[String] = None, isBenchmark: Boolean = false): String = {
+  def apply(e: Exp, isBenchmark: Boolean = false): String = {
     val (csvBody, loadsCtx) = CsvBodyWithLoadsCtx(Seq(e))
     val queryBody = run(e)(Map(), List(), loadsCtx)
-    val benchStart = if(!isBenchmark) "" else "auto start = high_resolution_clock::now();\n"
+    val benchStart = if(!isBenchmark) "" else
+      s"""auto start = std::chrono::high_resolution_clock::now();
+        |""".stripMargin
     val benchStop = if(!isBenchmark) "" else
-      """auto stop = high_resolution_clock::now();
-        |auto duration = duration_cast<milliseconds>(stop - start);
+      """
+        |auto stop = std::chrono::high_resolution_clock::now();
+        |auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
         |cout << "Runtime (ms): " << duration.count() << endl;
         |""".stripMargin
     // slightly wasteful to redo type inference - but spares us having to return the type at every recursive run call
-    val tpe = e match {
-      case Const(s: String) =>
-        StringType(Some(s.length))
-      case _ => TypeInference(e)
-    }
-    val queryBodyWithPrint =
-      s"""$benchStart
-         |$queryBody
-         |$benchStop
-         |${cppPrintResult(tpe)}
-         |""".stripMargin
-    batchedName match {
-      case None => s"""$header\n\n$consts\n$csvBody\n""" ++ s"int main() { $queryBodyWithPrint }"
-      case Some(name) => s"void $name() { $queryBodyWithPrint }"
-    }
+    val tpe = TypeInference(e)
+    s"""$header
+       |$csvConsts
+       |$csvBody
+       |int main() {
+       |$benchStart
+       |$queryBody
+       |$benchStop
+       |${cppPrintResult(tpe)}
+       |}""".stripMargin
   }
 
   def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {

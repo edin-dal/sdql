@@ -6,24 +6,33 @@ import scala.sys.process.{Process, ProcessBuilder}
 
 object CppCompile {
   def compile(sdqlFilePath: String, cpp: String): String = {
-    val noExtension = getNoExtension(sdqlFilePath)
-    reflect.io.File(cppPath(noExtension).toString).writeAll(cpp)
-    inGeneratedDir(clang_format(noExtension)).!!
-    inGeneratedDir(clang(noExtension)).!!
-    pretty_print(inGeneratedDir(run(noExtension)).!!)
+    writeFormat(sdqlFilePath, cpp)
+    compileRun(sdqlFilePath)
   }
 
-  private def pretty_print(s: String): String =
+  def writeFormat(sdqlFilePath: String, cpp: String): Unit = {
+    val noExtension = getNoExtension(sdqlFilePath)
+    reflect.io.File(cppPath(noExtension).toString).writeAll(cpp)
+    inGeneratedDir(clangFormat(noExtension)).!!
+  }
+
+  private def compileRun(sdqlFilePath: String): String = {
+    val noExtension = getNoExtension(sdqlFilePath)
+    inGeneratedDir(clang(noExtension)).!!
+    prettyPrint(inGeneratedDir(run(noExtension)).!!)
+  }
+
+  private def prettyPrint(s: String): String =
     s.replace("\0", "").split("\n").sorted.mkString("\n")
 
-  private def clang_format(noExtension: String) = Seq(
+  private def clangFormat(noExtension: String) = Seq(
     "clang-format", "-i", s"$noExtension.cpp", "-style", s"{ColumnLimit: $clangColumnLimit}"
   )
   private val clangColumnLimit = 120
   private def clang(noExtension: String) = clangCmd ++ Seq(s"$noExtension.cpp", "-o", s"$noExtension.out")
   private def run(noExtension: String) = Seq(s"./$noExtension.out")
   private def cppPath(noExtension: String) = Paths.get(generatedDir.toString, s"$noExtension.cpp")
-  def getNoExtension(path: String): String = reFilename.findAllIn(path).matchData.next().group(2)
+  private def getNoExtension(path: String): String = reFilename.findAllIn(path).matchData.next().group(2)
   private val reFilename = "^(.+/)*(.+)\\.(.+)$".r
 
   def cmake(dirPath: Path, fileNames: Array[String]): Unit = {

@@ -19,7 +19,8 @@ object Main {
           raise("usage: `run interpret <path> <sdql_files>*`")
         }
         val dirPath = Path.of(args(1))
-        for (fileName <- args.drop(2)) {
+        val fileNames = args.drop(2)
+        for (fileName <- fileNames) {
           val filePath = dirPath.resolve(fileName)
           val prog = SourceCode.fromFile(filePath.toString).exp
           val res = Interpreter(prog)
@@ -42,22 +43,18 @@ object Main {
           println(CppCompile.compile(filePath.toString, res))
           println()
         }
-      // hidden setting - useful for benchmarks
       case "benchmark" =>
         if(args.length < 3) {
           raise("usage: `run benchmark <path> <sdql_files>*`")
         }
         val dirPath = Path.of(args(1))
         val fileNames = args.drop(2)
-        val fakeName = "batched.sdql"
-        CppCompile.cmake(dirPath, Array(fakeName))
-        val res = CppCodegen(fileNames.map(fileName => {
+        for (fileName <- fileNames) {
           val filePath = dirPath.resolve(fileName)
           val prog = SourceCode.fromFile(filePath.toString).exp
-          val noExtension = CppCompile.getNoExtension(filePath.toString)
-          (prog, noExtension)
-        }))
-        println(CppCompile.compile(fakeName, res))
+          val res = CppCodegen(prog, isBenchmark = true)
+          CppCompile.writeFormat(filePath.toString, res)
+        }
       case arg =>
         raise(s"`run $arg` not supported")
     }
