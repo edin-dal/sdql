@@ -52,6 +52,7 @@ if __name__ == "__main__":
     validate_vs_hyper(indices, queries, THREADS)
     res["Validated (Hyper)"] = pd.Series([True for _ in INDICES_AND_QUERIES])
 
+    # note: modify the .sh scripts to avoid running all 22 queries
     res[f"SDQL ({AGG.name} ms)"] = pd.Series(benchmark_sdql(indices, RUNS, AGG))
 
     # just for displaying sdqlpy benchmarks ran on local dev machine (always a mean)
