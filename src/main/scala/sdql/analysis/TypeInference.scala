@@ -44,13 +44,11 @@ object TypeInference {
         }
 
       case DictNode(Nil) =>
-        // TODO backtrack up the parse tree to check if there's a non-empty branch
         raise("Type inference needs backtracking to infer empty type { }")
       case DictNode(seq) =>
         DictType(seq.map(_._1).map(run).reduce(promote), seq.map(_._2).map(run).reduce(promote))
 
       case RecNode(Seq()) =>
-        // TODO backtrack up the parse tree to check if there's a non-empty branch
         raise("Type inference needs backtracking to infer empty type < >")
       case RecNode(values) =>
         RecordType(values.map(v => Attribute(name=v._1, tpe=run(v._2))))
