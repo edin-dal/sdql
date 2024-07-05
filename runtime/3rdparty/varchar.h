@@ -81,7 +81,7 @@ struct VarChar{
         return !(operator==(wc));
     }
 
-    bool contains(wchar_t* other, int size) const
+    bool contains(wchar_t* other) const
     {
         if(wcsstr(data, other))
             return true;

@@ -296,14 +296,13 @@ object CppCodegen {
         s"""ConstantString("$str", $maxLen)"""
 
       case External(StrContains.SYMBOL, Seq(str, subStr)) =>
-        (TypeInference.run(str), TypeInference.run(subStr)) match {
-          case (StringType(None), StringType(None)) =>
-            s"${run(str)}.find(${run(subStr)})"
-          case (StringType(Some(_)), StringType(Some(subStrMaxLen))) =>
-            s"${run(str)}.contains(${run(subStr)}, $subStrMaxLen)"
+        val func = (TypeInference.run(str), TypeInference.run(subStr)) match {
+          case (StringType(None), StringType(None)) => "find"
+          case (StringType(Some(_)), StringType(Some(_))) => "contains"
           case (StringType(None), StringType(Some(_))) | (StringType(Some(_)), StringType(None)) =>
             raise(s"${StrContains.SYMBOL} doesn't support fixed and variable length strings together")
         }
+        s"${run(str)}.$func(${run(subStr)})"
       case External(StrStartsWith.SYMBOL, Seq(str, prefix)) =>
         val startsWith = TypeInference.run(str) match {
           case StringType(None) => "starts_with"
