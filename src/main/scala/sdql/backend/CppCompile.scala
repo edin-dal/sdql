@@ -53,8 +53,8 @@ object CppCompile {
   def inGeneratedDir(seq: Seq[String]): ProcessBuilder = Process(seq, generatedDir)
   private val generatedDir = new java.io.File("generated")
 
-  private val cppStandard = 20
+  private val cppStandard = 17
   private val releaseFlag = "-O3"
   private val phmapWarningsFlag = "-Wno-deprecated-builtins"
-  val clangCmd: Seq[String] = Seq("clang++", releaseFlag, phmapWarningsFlag, "--std", s"c++$cppStandard")
+  val clangCmd: Seq[String] = Seq("clang++", "--std", s"c++$cppStandard", releaseFlag, phmapWarningsFlag)
 }

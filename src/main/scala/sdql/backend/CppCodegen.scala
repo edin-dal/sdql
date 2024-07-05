@@ -328,8 +328,9 @@ object CppCodegen {
       case External(name @ Inv.SYMBOL, _) =>
         raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
       case External(MaxValue.SYMBOL, Seq(arg)) =>
-        assert(!cond(arg) { case sym: Sym => loadsCtx.contains(sym) })
-        s"""std::ranges::max_element(${run(arg)}, [](const auto &p1, const auto &p2) {
+        (arg: @unchecked) match { case sym: Sym => assert(!loadsCtx.contains(sym))}
+        val name = run(arg)
+        s"""std::max_element($name.begin(), $name.end(), [](const auto &p1, const auto &p2) {
           |return p1.second < p2.second;
           |})->second;
           |""".stripMargin
