@@ -301,9 +301,8 @@ object CppCodegen {
             s"${run(str)}.find(${run(subStr)})"
           case (StringType(Some(_)), StringType(Some(subStrMaxLen))) =>
             s"${run(str)}.contains(${run(subStr)}, $subStrMaxLen)"
-          // TODO remove this special handling for Q9
-          case (StringType(Some(_)), _) =>
-            s"${run(str)}.contains(${run(subStr)}, 5)"
+          case (StringType(None), StringType(Some(_))) | (StringType(Some(_)), StringType(None)) =>
+            raise(s"${StrContains.SYMBOL} doesn't support fixed and variable length strings together")
         }
       case External(StrStartsWith.SYMBOL, Seq(str, prefix)) =>
         val startsWith = TypeInference.run(str) match {
