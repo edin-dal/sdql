@@ -131,11 +131,8 @@ object CppCodegen {
           case External(Limit.SYMBOL, _) =>
             s"${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls, loadsCtx)}\n"
 
-          case c @ Const(_: String) =>
-            s"const auto $name = ${const(c)};"
           case c: Const =>
-            // TODO make this constexpr?
-            s"const auto $name = ${const(c)};"
+            s"constexpr auto $name = ${const(c)};"
           case _ =>
             s"auto $name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls, loadsCtx)};"
         }
