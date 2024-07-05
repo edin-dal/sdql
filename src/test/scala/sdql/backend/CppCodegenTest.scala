@@ -31,17 +31,16 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
   it should "codegen constant tuple" in {
     compilesExp(sdql"< a = 1, b = 2 >")
   }
-//  FIXME this broke due to printing VarChars (wchar_t types in C++)
-//  it should "codegen constant map" in {
-//    compilesExp(sdql"""{ "a" -> 1, "b" -> 2 }""")
-//  }
-//  it should "codegen constant map requiring type promotion" in {
-//    val e = sdql"""{ "a" -> 1, "b" -> 2.5 }"""
-//    import sdql.analysis.TypeInference
-//    import sdql.ir.{DictType, RealType, StringType}
-//    assert(TypeInference(e) == DictType(StringType(), RealType))
-//    compilesExp(e)
-//  }
+  it should "codegen constant map" in {
+    compilesExp(sdql"""{ "a" -> 1, "b" -> 2 }""")
+  }
+  it should "codegen constant map requiring type promotion" in {
+    val e = sdql"""{ "a" -> 1, "b" -> 2.5 }"""
+    import sdql.analysis.TypeInference
+    import sdql.ir.{DictType, RealType, StringType}
+    assert(TypeInference(e) == DictType(StringType(), RealType))
+    compilesExp(e)
+  }
 
   it should "codegen arith op *" in {
     compilesExp(sdql"1 * 2")
@@ -144,19 +143,18 @@ sum(<x_s, x_s_v> <- S)
 """)
   }
 
-//  FIXME this broke due to printing VarChars (wchar_t types in C++)
-//  it should "codegen simple graph queries" in {
-//    compilesExp(sdql"""let Nodes = {
-//      0 -> <label = {"Person" -> true, "Director" -> true, "Singer" -> true}, name="Oliver Stone", age=30>,
-//      1 -> <label = {"Person" -> true, "Director" -> true}, name="Michael Douglas", age=35>,
-//      2 -> <label = {"Person" -> true, "Actor" -> true}, name="Charlie Sheen",age=32>}
-//    sum(<k,v> in Nodes)
-//      if(v.name=="Charlie Sheen") then
-//        {<age=v.age> -> 1}
-//      else
-//        {}
-//    """)
-//  }
+  it should "codegen simple graph queries" in {
+    compilesExp(sdql"""let Nodes = {
+      0 -> <label = {"Person" -> true, "Director" -> true, "Singer" -> true}, name="Oliver Stone", age=30>,
+      1 -> <label = {"Person" -> true, "Director" -> true}, name="Michael Douglas", age=35>,
+      2 -> <label = {"Person" -> true, "Actor" -> true}, name="Charlie Sheen",age=32>}
+    sum(<k,v> in Nodes)
+      if(v.name=="Charlie Sheen") then
+        {<age=v.age> -> 1}
+      else
+        {}
+    """)
+  }
 
   it should "codegen TPCH Q1" in {
     compilesFile("progs/tpch/q1.sdql")
