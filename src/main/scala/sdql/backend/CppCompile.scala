@@ -40,7 +40,7 @@ object CppCompile {
                    |# comment out to debug / set breakpoints in Clion
                    |# note: without -O3 it will be super slow on vectors
                    |set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
-                   |set(CMAKE_CXX_FLAGS_RELEASE "$releaseFlag")
+                   |set(CMAKE_CXX_FLAGS_RELEASE "${releaseFlags.mkString(" ")}")
                    |
                    |set(CMAKE_CXX_FLAGS "$phmapWarningsFlag")
                    |set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $${CMAKE_CURRENT_SOURCE_DIR})
@@ -54,7 +54,7 @@ object CppCompile {
   private val generatedDir = new java.io.File("generated")
 
   private val cppStandard = 17
-  private val releaseFlag = "-O3"
+  private val releaseFlags = Seq("-O3", "-march=native", "-mtune=native", "-Wno-narrowing", "-ftree-vectorize")
   private val phmapWarningsFlag = "-Wno-deprecated-builtins"
-  val clangCmd: Seq[String] = Seq("clang++", "--std", s"c++$cppStandard", releaseFlag, phmapWarningsFlag)
+  val clangCmd: Seq[String] = Seq("clang++", "--std", s"c++$cppStandard") ++ releaseFlags ++ Seq(phmapWarningsFlag)
 }
