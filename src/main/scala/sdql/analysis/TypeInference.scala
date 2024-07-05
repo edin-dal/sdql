@@ -1,9 +1,10 @@
 package sdql
 package analysis
-
 import munit.Assertions.munitPrint
 import sdql.ir.ExternalFunctions._
 import sdql.ir._
+
+import scala.language.implicitConversions
 
 object TypeInference {
   type Type = ir.Type
