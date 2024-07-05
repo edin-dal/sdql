@@ -81,7 +81,7 @@ object CppCodegen {
     if (checkIsSumBody(e)) {
       val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
       val hint = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, _, hint) => hint }).head
-      val callsLocal = List(SumEnd()) ++ callsCtx
+      val callsLocal = List(SumEnd(), IsTernary()) ++ callsCtx
       return e match {
         case _: Sum =>
           raise("nested sum not supported yet")
@@ -113,7 +113,7 @@ object CppCodegen {
           ).mkString("\n")
         case RecNode(values) =>
           values.map(_._2).zipWithIndex.map(
-            { case (exp, i) => s"get<$i>($agg) += ${record(exp)(typesCtx, callsLocal, loadsCtx)};" }
+            { case (exp, i) => s"get<$i>($agg) += ${run(exp)(typesCtx, callsLocal, loadsCtx)};" }
           ).mkString("\n")
         case _ =>
           s"$agg += ${run(e)(typesCtx, callsLocal, loadsCtx)};"
@@ -407,12 +407,6 @@ object CppCodegen {
       s""""$v""""
     case Const(v) =>
       v.toString
-  }
-
-  // TODO no longer needed
-  private def record(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx) = e match {
-    case IfThenElse(cond, e1, e2) => s"(${run(cond)}) ? ${run(e1)} : ${run(e2)}"
-    case _ => run(e)
   }
 
   private def cppInit(tpe: ir.Type): String = tpe match {
