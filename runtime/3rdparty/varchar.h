@@ -99,7 +99,7 @@ struct VarChar{
     int lastIndex(wchar_t* other) const
     {
         auto tmp = data;
-        auto last = std::wcsstr(tmp, other);
+        const wchar_t* last = std::wcsstr(tmp, other);
         for (; (tmp = std::wcsstr(tmp, other)) != nullptr; ++tmp) {
             last = tmp;
         }
