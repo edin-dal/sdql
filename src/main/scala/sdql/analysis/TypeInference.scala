@@ -184,17 +184,20 @@ object TypeInference {
     }
     // from types of k, v infer type of e2
     val localCtx = ctx ++ Map(k -> kType, v -> vType)
-    val tpe = run(e2)(localCtx)
-    (applyHint(tpe)(hint), localCtx)
+    val tpe = run(e2)(localCtx) match {
+      case dt: DictType => applyHint(dt)(hint)
+      case t => t
+    }
+    (tpe, localCtx)
   }
 
-  private def applyHint(tpe: Type)(implicit hint: DictCodegenHint): Type = tpe match {
+  private def applyHint(dt: DictType)(implicit hint: DictCodegenHint): Type = dt match {
+    case DictType(kt, dt: DictType, _) =>
+      DictType(kt, applyHint(dt)(hint), hint)
     case DictType(kt, vt, DictNoHint()) =>
-      DictType(kt, applyHint(vt), hint)
-    case DictType(_, _, _) =>
-      raise("Unreachable - codegen hints are handled here")
-    case _ =>
-      tpe
+      DictType(kt, vt, hint)
+    case DictType(_, _, DictVectorHint()) =>
+      raise("Unreachable - codegen hints can't already have been applied")
   }
 
   private implicit def convertHint(hint: SumCodegenHint): DictCodegenHint = hint match {
