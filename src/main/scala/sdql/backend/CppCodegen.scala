@@ -552,8 +552,17 @@ object CppCodegen {
          |}""".stripMargin
     case DictType(kt, vt, DictVectorHint()) =>
       assert(kt == IntType)
+      val cond = vt match {
+        case _: DictType =>
+          s"!$resultName[i].empty()"
+        case _: RecordType =>
+          raise(s"Print not implemented for ${vt.simpleName} inside vector")
+        case t =>
+          assert(t.isScalar)
+          s"$resultName[i] != 0"
+      }
       s"""for (auto i = 0; i < $resultName.size(); ++i) {
-         |if ($resultName[i] != 0) {
+         |if ($cond) {
          |$stdCout << ${_cppPrintResult(kt, "i")} << ":" << ${_cppPrintResult(vt, s"$resultName[i]")} << std::endl;
          |}
          |}""".stripMargin
