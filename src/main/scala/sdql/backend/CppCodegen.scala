@@ -417,8 +417,8 @@ object CppCodegen {
       iterExps(e)
         .flatMap(
           e => condOpt(e) {
-            case LetBinding(Sym(name), Load(path, DictType(RecordType(attrs), IntType, _)), _) =>
-              (path, name, attrs)
+            case LetBinding(Sym(name), Load(path, DictType(recordType: RecordType, IntType, _)), _) =>
+              (path, name, recordType)
           }
         )
     ).toSet
@@ -426,9 +426,9 @@ object CppCodegen {
     val csvConsts =
       pathNameAttrs.map({ case (path, name, _) => makeCsvConst(name, path) } ).mkString("", "\n", "\n")
     val structDefs =
-      pathNameAttrs.map({ case (_, name, attrs) => makeStructDef(name, attrs) } ).mkString("\n")
+      pathNameAttrs.map({ case (_, name, recordType) => makeStructDef(name, recordType) } ).mkString("\n")
     val structInits =
-      pathNameAttrs.map({ case (_, name, attrs) => makeStructInit(name, attrs) } ).mkString("\n")
+      pathNameAttrs.map({ case (_, name, recordType) => makeStructInit(name, recordType) } ).mkString("\n")
     val valueClasses =
       pathNameAttrs.map({ case (_, name, _) => makeValuesClass(name) } ).mkString("\n")
 
@@ -441,20 +441,21 @@ object CppCodegen {
   private def makeCsvConst(name: String, path: String): String =
     s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR);"""
 
-  private def makeStructDef(name: String, attrs: Seq[Attribute]): String = {
-    attrs.map(attr => s"std::vector<${cppType(attr.tpe)}> ${attr.name};")
-      .mkString(
-        s"struct ${name.capitalize} {\n",
-        "\n",
-        s"""
-           |static unsigned long size() { return ${name.toUpperCase}_CSV.GetRowCount(); }
-           |};
-           |""".stripMargin
-      )
+  private def makeStructDef(name: String, recordType: RecordType): String = {
+    val cppFields = recordType.attrs.map(attr => s"std::vector<${cppType(attr.tpe)}> ${attr.name};").mkString("\n")
+    val cppSize = s"static unsigned long size() { return ${name.toUpperCase}_CSV.GetRowCount(); }"
+    val cppTuple = recordType.attrs.map(_.name).map(name => s"$name[i]").mkString("{", ", ", "}")
+    val cppBrackets = s"${cppType(recordType)} operator[](const int i) const { return $cppTuple; }"
+    s"""struct ${name.capitalize} {
+       |$cppFields
+       |$cppSize
+       |$cppBrackets
+       |};
+       |""".stripMargin
   }
 
-  private def makeStructInit(name: String, attrs: Seq[Attribute]): String =
-    attrs.zipWithIndex.map(
+  private def makeStructInit(name: String, recordType: RecordType): String =
+    recordType.attrs.zipWithIndex.map(
         {
           case (Attribute(_, tpe), i) => tpe match {
             case StringType(Some(maxLen)) =>
@@ -545,6 +546,10 @@ object CppCodegen {
     callsCtx.exists(cond(_) { case _: IsTernary  => true })
 
   private def cppPrintResult(tpe: Type) = tpe match {
+    case DictType(kt, vt, DictNoHint()) =>
+      s"""for (const auto &[key, val] : $resultName) {
+         |$stdCout << ${_cppPrintResult(kt, "key")} << ":" << ${_cppPrintResult(vt, "val")} << std::endl;
+         |}""".stripMargin
     case DictType(kt, vt, DictVectorHint()) =>
       assert(kt == IntType)
       s"""for (auto i = 0; i < $resultName.size(); ++i) {
@@ -552,17 +557,14 @@ object CppCodegen {
          |$stdCout << ${_cppPrintResult(kt, "i")} << ":" << ${_cppPrintResult(vt, s"$resultName[i]")} << std::endl;
          |}
          |}""".stripMargin
-    case DictType(kt, vt, DictNoHint()) =>
-      s"""for (const auto &[key, val] : $resultName) {
-         |$stdCout << ${_cppPrintResult(kt, "key")} << ":" << ${_cppPrintResult(vt, "val")} << std::endl;
-         |}""".stripMargin
     case _ =>
       s"$stdCout << ${_cppPrintResult(tpe, resultName)} << std::endl;"
   }
 
   private def _cppPrintResult(tpe: Type, name: String) = tpe match {
     case _: DictType =>
-      raise(s"Nested ${tpe.simpleName} not supported")
+      // we currently don't pretty print inside nested dicts
+      name
     case RecordType(attrs) => attrs.zipWithIndex.map(
       {
         case (Attribute(_, tpe: RecordType), _) =>
