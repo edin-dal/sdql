@@ -439,7 +439,7 @@ object CppCodegen {
   }
 
   private def makeCsvConst(name: String, path: String): String =
-    s"""const rapidcsv::Document ${name.toUpperCase}("../$path", NO_HEADERS, SEPARATOR);"""
+    s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR);"""
 
   private def makeStructDef(name: String, attrs: Seq[Attribute]): String = {
     attrs.map(attr => s"std::vector<${cppType(attr.tpe)}> ${attr.name};")
@@ -447,7 +447,7 @@ object CppCodegen {
         s"struct ${name.capitalize} {\n",
         "\n",
         s"""
-           |static unsigned long size() { return ${name.toUpperCase}.GetRowCount(); }
+           |static unsigned long size() { return ${name.toUpperCase}_CSV.GetRowCount(); }
            |};
            |""".stripMargin
       )
@@ -460,10 +460,10 @@ object CppCodegen {
             case StringType(Some(maxLen)) =>
               val tpe = StringType()
               s"strings_to_varchars<$maxLen>(" +
-                s"${name.toUpperCase}.GetColumn<${cppType(tpe)}>($i)" +
+                s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)" +
                 "),"
             case _ =>
-              s"${name.toUpperCase}.GetColumn<${cppType(tpe)}>($i),"
+              s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i),"
           }
         }
       )
@@ -473,7 +473,7 @@ object CppCodegen {
     s"""
        |class ${name.capitalize}Values{
        |public:
-       |int operator[](const int i) const { return 0 <= i < ${name.toUpperCase}.GetRowCount(); }
+       |int operator[](const int i) const { return 0 <= i < ${name.toUpperCase}_CSV.GetRowCount(); }
        |};
        |""".stripMargin
 
