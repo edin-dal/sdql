@@ -75,6 +75,8 @@ object CppCodegen {
                 case _: SumUniqueHint => s"$agg.emplace($lhs, $rhs);"
                 case _: SumVectorHint =>
                   typesCtx(Sym(agg)) match {
+                    case DictType(IntType, DictType(_: RecordType, IntType, DictVectorHint()), DictNoHint()) =>
+                      s"$agg[$lhs].emplace_back(i);"
                     case DictType(IntType, DictType(IntType, _, DictVectorHint()), DictVectorHint()) =>
                       e match {
                         case DictNode(Seq((f1: FieldNode, DictNode(Seq((f2: FieldNode, _)))))) =>
@@ -399,7 +401,7 @@ object CppCodegen {
     case StringType(None) => "std::string"
     case StringType(Some(maxLen)) => s"VarChar<$maxLen>"
     case DictType(kt, vt, DictNoHint()) => s"phmap::flat_hash_map<${cppType(kt)}, ${cppType(vt)}>"
-    case DictType(IntType, vt, DictVectorHint()) => s"vector<${cppType(vt)}>"
+    case DictType(IntType | _: RecordType, vt, DictVectorHint()) => s"vector<${cppType(vt)}>"
     case RecordType(attrs) => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
     case tpe => raise(s"unimplemented type: $tpe")
   }
