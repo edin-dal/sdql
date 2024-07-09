@@ -4,6 +4,7 @@ import munit.Assertions.munitPrint
 import sdql.ir.ExternalFunctions._
 import sdql.ir._
 
+import scala.annotation.tailrec
 import scala.language.implicitConversions
 
 object TypeInference {
@@ -174,37 +175,6 @@ object TypeInference {
     }
   }
 
-  def sum_infer_type_and_ctx(k: Sym, v: Sym, e1: Exp, e2: Exp, hint: SumCodegenHint)(implicit ctx: Ctx): (Type, Ctx) = {
-    // from e1 infer types of k, v
-    val (kType, vType) = run(e1) match {
-      case DictType(k_type, v_type, _) => (k_type, v_type)
-      case tpe => raise(
-        s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
-      )
-    }
-    // from types of k, v infer type of e2
-    val localCtx = ctx ++ Map(k -> kType, v -> vType)
-    val tpe = run(e2)(localCtx) match {
-      case dt: DictType => applyHint(dt)(hint)
-      case t => t
-    }
-    (tpe, localCtx)
-  }
-
-  private def applyHint(dt: DictType)(implicit hint: DictCodegenHint): Type = dt match {
-    case DictType(kt, dt: DictType, _) =>
-      DictType(kt, applyHint(dt)(hint), hint)
-    case DictType(kt, vt, DictNoHint()) =>
-      DictType(kt, vt, hint)
-    case DictType(_, _, DictVectorHint()) =>
-      raise("Unreachable - codegen hints can't already have been applied")
-  }
-
-  private implicit def convertHint(hint: SumCodegenHint): DictCodegenHint = hint match {
-    case SumVectorHint() => DictVectorHint()
-    case SumUniqueHint() | SumNoHint() => DictNoHint()
-  }
-
   private def branching(e: Exp)(implicit ctx: Ctx): Type = {
     val (e1, e2) = e match {
       // and case
@@ -243,5 +213,69 @@ object TypeInference {
       case (t1, t2) =>
         raise(s"can't promote types: ${t1.simpleName} ≠ ${t2.simpleName}")
     }
+  }
+
+  def sum_infer_type_and_ctx(k: Sym, v: Sym, e1: Exp, e2: Exp, hint: SumCodegenHint)(implicit ctx: Ctx): (Type, Ctx) = {
+    // from e1 infer types of k, v
+    val (kType, vType) = run(e1) match {
+      case DictType(k_type, v_type, _) => (k_type, v_type)
+      case tpe => raise(
+        s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
+      )
+    }
+    // from types of k, v infer type of e2
+    val localCtx = ctx ++ Map(k -> kType, v -> vType)
+    val tpe = applyHint(run(e2)(localCtx), hint)
+    (tpe, localCtx)
+  }
+
+  private def applyHint(tpe: Type, hint: DictCodegenHint): Type = hint match {
+    case _: DictNoHint => tpe
+    case _: DictVectorHint => tpe match {
+      case dt: DictType if isRecordToInt(dt) => vectoriseRecordToInt(dt)
+      case dt: DictType => vectoriseAll(dt)
+      case _ => tpe
+    }
+  }
+
+  @tailrec
+  private def isRecordToInt(dt: DictType): Boolean = dt match {
+    case DictType(_, dt: DictType, DictNoHint()) =>
+      isRecordToInt(dt)
+    case DictType(_: RecordType, IntType, DictNoHint()) =>
+      true
+    case DictType(_, _, DictNoHint()) =>
+      false
+    case DictType(_, _, DictVectorHint()) =>
+      raise("Unreachable - hints haven't been applied")
+  }
+
+  private def vectoriseRecordToInt(dt: DictType): Type = dt match {
+    case DictType(kt, dt: DictType, hint @ DictNoHint()) =>
+      DictType(kt, vectoriseRecordToInt(dt), hint)
+    case DictType(kt: RecordType, vt @ IntType, DictNoHint()) =>
+      DictType(kt, vt, DictVectorHint())
+    case DictType(kt, vt, DictNoHint()) =>
+      raise(
+        s"Unreachable - innermost should be ${DictType.getClass.getSimpleName.init} " +
+          s"{${RecordType.getClass.getSimpleName.init} -> ${IntType.getClass.getSimpleName.init}} " +
+          s"not {${kt.simpleName} -> ${vt.simpleName}}"
+      )
+    case DictType(_, _, DictVectorHint()) =>
+      raise("Unreachable - hints haven't been applied")
+  }
+
+  private def vectoriseAll(dt: DictType): Type = dt match {
+    case DictType(kt, dt: DictType, DictNoHint()) =>
+      DictType(kt, vectoriseAll(dt), DictVectorHint())
+    case DictType(kt, vt, DictNoHint()) =>
+      DictType(kt, vt, DictVectorHint())
+    case DictType(_, _, DictVectorHint()) =>
+      raise("Unreachable - hints haven't been applied")
+  }
+
+  private implicit def convertHint(hint: SumCodegenHint): DictCodegenHint = hint match {
+    case SumVectorHint() => DictVectorHint()
+    case SumUniqueHint() | SumNoHint() => DictNoHint()
   }
 }
