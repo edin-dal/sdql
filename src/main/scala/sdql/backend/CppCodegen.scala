@@ -195,9 +195,10 @@ object CppCodegen {
             val idx = (tpe.indexOf(f): @unchecked) match { case Some(idx) => idx }
             e1 match {
               case Sym(name)
-                if callsCtx.exists(x => cond(x) { case SumCtx(k, v, true, _) => name == k || name == v})
-                => s"$name.$f[$sumVariable]"
-              case _ => s" /* $f */ std::get<$idx>(${run(e1)})"
+                if callsCtx.exists(x => cond(x) { case SumCtx(k, v, true, _) => name == k || name == v}) =>
+                s"$name.$f[${sumVariable(name)}]"
+              case _ =>
+                s" /* $f */ std::get<$idx>(${run(e1)})"
             }
           case tpe => raise(
             s"expected ${RecordType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
@@ -544,6 +545,13 @@ object CppCodegen {
 
   private def inferSumNesting(implicit callsCtx: CallsCtx) =
     (callsCtx.takeWhile(!cond(_) { case _: SumEnd => true }).count(cond(_) { case _: SumCtx => true }) - 1).max(0)
+
+  private def sumVariable(name: String)(implicit callsCtx: CallsCtx) = {
+    val lvlMax = (callsCtx.count(cond(_) { case _: SumCtx => true }) - 1).max(0)
+    val lvl =
+      callsCtx.takeWhile(!cond(_) { case SumCtx(k, _, _, _) => k == name }).count(cond(_) { case _: SumCtx => true })
+    ('i'.toInt + (lvlMax - lvl)).toChar
+  }
 
   private def cppPrintResult(tpe: Type) = tpe match {
     case DictType(kt, vt, DictNoHint()) =>
