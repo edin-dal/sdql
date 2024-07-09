@@ -87,7 +87,7 @@ object CppCodegen {
                     case tpe =>
                       raise(s"expected nested ${DictType.getClass.getSimpleName.init} " +
                         s"with ${IntType.getClass.getSimpleName.init} keys up to 2-levels deep " +
-                        s"and vector hints, not $tpe")
+                        s"and vector hints, not ${tpe.prettyPrint}")
                   }
               }
             }

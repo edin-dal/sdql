@@ -4,6 +4,14 @@ package ir
 sealed trait Type {
   def =~=(o: Type): Boolean = equals(o)
   def isScalar: Boolean = ScalarType.isScalar(this)
+  def prettyPrint: String = this match {
+    case DictType(kt, vt, _) =>
+      s"{${kt.prettyPrint} -> ${vt.prettyPrint}}"
+    case RecordType(attrs) =>
+      attrs.map(_.tpe.prettyPrint).mkString("<", ", ", ">")
+    case _ =>
+      this.simpleName
+  }
   def simpleName: String = {
     val name = this.getClass.getSimpleName
     if (name.endsWith("$")) name.dropRight(1) else name
