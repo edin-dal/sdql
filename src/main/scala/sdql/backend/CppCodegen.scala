@@ -132,22 +132,24 @@ object CppCodegen {
         val callsLocal = List(SumCtx(k=k.name, v=v.name, isLoad=isLoad, hint)) ++ callsCtx
 
         val body = run(e2)(typesLocal, callsLocal, loadsCtx)
-        val init = s"${cppType(tpe)} (${cppInit(tpe)})"
+        // only allocation is outside the outer sum - don't make intermediate allocations
+        val init = if (inferSumNesting(callsLocal) > 0) "" else s"${cppType(tpe)} (${cppInit(tpe)});"
 
         if (isLoad) {
           val e1Name = (e1: @unchecked) match { case Sym(e1Name) => e1Name }
-          val values = if (v.name == "_") "" else s"\nconstexpr auto ${v.name} = ${e1Name.capitalize}Values();\n"
+          val values = if (v.name == "_") "" else s"constexpr auto ${v.name} = ${e1Name.capitalize}Values();"
           val sumVar = sumVariable(callsLocal)
-          s"""$init;
+          s"""$init
              |for (int $sumVar = 0; $sumVar < ${e1Name.capitalize}::size(); $sumVar++) {
-             |const auto &${k.name} = $e1Name;$values
+             |const auto &${k.name} = $e1Name;
+             |$values
              |$body
              |}
              |
              |""".stripMargin
         } else {
           val head = run(e1)(typesLocal, List(SumEnd()) ++ callsLocal, loadsCtx)
-          s"""$init;
+          s"""$init
              |for (const auto &[${k.name}, ${v.name}] : $head) {
              |$body
              |}
