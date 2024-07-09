@@ -22,6 +22,7 @@ object CppCodegen {
   private val vecSize = 6000001;
   private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
   private val resultName = "result"
+  private val noName = "_"
 
   private val header = """#include "../runtime/headers.h""""
   private val csvConsts =
@@ -137,7 +138,7 @@ object CppCodegen {
 
         if (isLoad) {
           val e1Name = (e1: @unchecked) match { case Sym(e1Name) => e1Name }
-          val values = if (v.name == "_") "" else s"constexpr auto ${v.name} = ${e1Name.capitalize}Values();"
+          val values = if (v.name == noName) "" else s"constexpr auto ${v.name} = ${e1Name.capitalize}Values();"
           val sumVar = sumVariable(callsLocal)
           s"""$init
              |for (int $sumVar = 0; $sumVar < ${e1Name.capitalize}::size(); $sumVar++) {
@@ -148,9 +149,16 @@ object CppCodegen {
              |
              |""".stripMargin
         } else {
-          val head = run(e1)(typesLocal, List(SumEnd()) ++ callsLocal, loadsCtx)
+          val iterable = run(e1)(typesLocal, List(SumEnd()) ++ callsLocal, loadsCtx)
+          val head = TypeInference.run(e1)(typesLocal) match {
+            case DictType(_, _, DictNoHint()) =>
+              s"[${k.name}, ${v.name}] : $iterable"
+            case DictType(_, _, DictVectorHint()) =>
+              assert(v.name == noName)
+              s"${k.name}_i : $iterable"
+          }
           s"""$init
-             |for (const auto &[${k.name}, ${v.name}] : $head) {
+             |for (const auto &$head) {
              |$body
              |}
              |""".stripMargin
