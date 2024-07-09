@@ -545,7 +545,7 @@ object CppCodegen {
          |$stdCout << ${_cppPrintResult(kt, "key")} << ":" << ${_cppPrintResult(vt, "val")} << std::endl;
          |}""".stripMargin
     case DictType(kt, vt, DictVectorHint()) =>
-      assert(kt == IntType)
+      assert(kt == IntType, s"${kt.simpleName} != ${IntType.simpleName}")
       val cond = vt match {
         case _: DictType =>
           s"!$resultName[i].empty()"
