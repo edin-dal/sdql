@@ -76,7 +76,7 @@ object CppCodegen {
                 case _: SumVectorHint =>
                   typesCtx(Sym(agg)) match {
                     case DictType(IntType, DictType(_: RecordType, IntType, DictVectorHint()), DictNoHint()) =>
-                      s"$agg[$lhs].emplace_back(i);"
+                      s"$agg[$lhs].emplace_back($sumVariable);"
                     case DictType(IntType, DictType(IntType, _, DictVectorHint()), DictVectorHint()) =>
                       e match {
                         case DictNode(Seq((f1: FieldNode, DictNode(Seq((f2: FieldNode, _)))))) =>
@@ -137,8 +137,9 @@ object CppCodegen {
         if (isLoad) {
           val e1Name = (e1: @unchecked) match { case Sym(e1Name) => e1Name }
           val values = if (v.name == "_") "" else s"\nconstexpr auto ${v.name} = ${e1Name.capitalize}Values();\n"
+          val sumVar = sumVariable(callsLocal)
           s"""$init;
-             |for (int i = 0; i < ${e1Name.capitalize}::size(); i++) {
+             |for (int $sumVar = 0; $sumVar < ${e1Name.capitalize}::size(); $sumVar++) {
              |const auto &${k.name} = $e1Name;$values
              |$body
              |}
@@ -195,7 +196,7 @@ object CppCodegen {
             e1 match {
               case Sym(name)
                 if callsCtx.exists(x => cond(x) { case SumCtx(k, v, true, _) => name == k || name == v})
-                => s"$name.$f[i]"
+                => s"$name.$f[$sumVariable]"
               case _ => s" /* $f */ std::get<$idx>(${run(e1)})"
             }
           case tpe => raise(
@@ -222,7 +223,7 @@ object CppCodegen {
 
       case Sym(name) =>
         callsCtx.flatMap(x => condOpt(x) { case ctx: SumCtx => ctx }).headOption match {
-          case Some(SumCtx(k, v, true, _)) if name == k || name == v => s"$name[i]"
+          case Some(SumCtx(k, v, true, _)) if name == k || name == v => s"$name[$sumVariable]"
           case _ => name
         }
 
@@ -538,6 +539,11 @@ object CppCodegen {
 
   private def checkIsTernary(implicit callsCtx: CallsCtx) =
     callsCtx.exists(cond(_) { case _: IsTernary  => true })
+
+  private def sumVariable(implicit callsCtx: CallsCtx) = ('i'.toInt + inferSumNesting).toChar
+
+  private def inferSumNesting(implicit callsCtx: CallsCtx) =
+    (callsCtx.takeWhile(!cond(_) { case _: SumEnd => true }).count(cond(_) { case _: SumCtx => true }) - 1).max(0)
 
   private def cppPrintResult(tpe: Type) = tpe match {
     case DictType(kt, vt, DictNoHint()) =>
