@@ -136,10 +136,10 @@ object CppCodegen {
 
         if (isLoad) {
           val e1Name = (e1: @unchecked) match { case Sym(e1Name) => e1Name }
+          val values = if (v.name == "_") "" else s"\nconstexpr auto ${v.name} = ${e1Name.capitalize}Values();\n"
           s"""$init;
              |for (int i = 0; i < ${e1Name.capitalize}::size(); i++) {
-             |const auto &${k.name} = $e1Name;
-             |constexpr auto ${v.name} = ${e1Name.capitalize}Values();
+             |const auto &${k.name} = $e1Name;$values
              |$body
              |}
              |
