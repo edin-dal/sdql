@@ -85,9 +85,7 @@ object CppCodegen {
                     case DictType(IntType, _, DictVectorHint()) =>
                       s"$agg[$lhs] = $rhs;"
                     case tpe =>
-                      raise(s"expected nested ${DictType.getClass.getSimpleName.init} " +
-                        s"with ${IntType.getClass.getSimpleName.init} keys up to 2-levels deep " +
-                        s"and vector hints, not ${tpe.prettyPrint}")
+                      raise(s"Unexpected ${tpe.prettyPrint}")
                   }
               }
             }
@@ -132,15 +130,7 @@ object CppCodegen {
         val callsLocal = List(SumCtx(k=k.name, v=v.name, isLoad=isLoad, hint)) ++ callsCtx
 
         val body = run(e2)(typesLocal, callsLocal, loadsCtx)
-
-        val init = tpe match {
-          case DictType(IntType, DictType(IntType, vt, DictVectorHint()), DictVectorHint()) =>
-            s"vector<vector<${cppType(vt)}>>($vecSize)"
-          case DictType(IntType, vt, DictVectorHint()) =>
-            s"vector<${cppType(vt)}>($vecSize)"
-          case _ =>
-            s"${cppType(tpe)} (${cppInit(tpe)})"
-        }
+        val init = s"${cppType(tpe)} (${cppInit(tpe)})"
 
         if (isLoad) {
           val e1Name = (e1: @unchecked) match { case Sym(e1Name) => e1Name }
@@ -396,7 +386,8 @@ object CppCodegen {
     case IntType | DateType => "0"
     case StringType(None) => "std::string()"
     case StringType(Some(_)) => raise("initialising VarChars shouldn't be needed")
-    case _: DictType => "{}"
+    case DictType(_, _, DictNoHint()) => "{}"
+    case DictType(_, _, DictVectorHint()) => vecSize.toString
     case RecordType(attrs) => attrs.map(_.tpe).map(cppInit).mkString(", ")
     case tpe => raise(s"unimplemented type: $tpe")
   }
@@ -407,7 +398,8 @@ object CppCodegen {
     case IntType | DateType => "long"
     case StringType(None) => "std::string"
     case StringType(Some(maxLen)) => s"VarChar<$maxLen>"
-    case DictType(key, value, _) => s"phmap::flat_hash_map<${cppType(key)}, ${cppType(value)}>"
+    case DictType(kt, vt, DictNoHint()) => s"phmap::flat_hash_map<${cppType(kt)}, ${cppType(vt)}>"
+    case DictType(IntType, vt, DictVectorHint()) => s"vector<${cppType(vt)}>"
     case RecordType(attrs) => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
     case tpe => raise(s"unimplemented type: $tpe")
   }
