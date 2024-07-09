@@ -9,13 +9,6 @@ namespace rapidcsv
   {
     pVal = std::stol(std::regex_replace(pStr, RE_DATE, ""));
   }
-
-  // TODO rewrite as converter - if I get C++'s template notation right
-  // template<unsigned maxLen>
-  // void Converter<VarChar<maxLen>>::ToVal(const std::string& pStr, int& pVal)
-  // {
-  //     pVal = string_to_varchar<maxLen>(str);
-  // }
 }
 
 template<unsigned maxLen>
