@@ -14,7 +14,7 @@ object CppCodegen {
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
   private case class LetCtx(name: String) extends CallCtx
-  private case class SumCtx(k:String, v: String, isLoad: Boolean, hint: SumCodegenHint) extends CallCtx
+  private case class SumCtx(on: Option[String], k:String, v: String, isLoad: Boolean, hint: SumCodegenHint) extends CallCtx
   private case class SumEnd() extends CallCtx
   private case class IsTernary() extends CallCtx
   private type LoadsCtx = Set[Sym]
@@ -62,7 +62,7 @@ object CppCodegen {
 
     if (checkIsSumBody(e)) {
       val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
-      val hint = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, _, hint) => hint }).head
+      val hint = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, _, _, hint) => hint }).head
       val callsLocal = List(SumEnd(), IsTernary()) ++ callsCtx
       return e match {
         case _: Sum =>
@@ -130,7 +130,8 @@ object CppCodegen {
         typesLocal ++= Map(Sym(agg) -> tpe)
 
         val isLoad = cond(e1) { case e1Sym: Sym => loadsCtx.contains(e1Sym) }
-        val callsLocal = List(SumCtx(k=k.name, v=v.name, isLoad=isLoad, hint)) ++ callsCtx
+        val on = condOpt(e1) { case Sym(name) => name }
+        val callsLocal = List(SumCtx(on, k=k.name, v=v.name, isLoad=isLoad, hint)) ++ callsCtx
 
         val body = run(e2)(typesLocal, callsLocal, loadsCtx)
         // only allocation is outside the outer sum - don't make intermediate allocations
@@ -205,7 +206,7 @@ object CppCodegen {
             val idx = (tpe.indexOf(f): @unchecked) match { case Some(idx) => idx }
             e1 match {
               case Sym(name)
-                if callsCtx.exists(x => cond(x) { case SumCtx(k, v, true, _) => name == k || name == v}) =>
+                if callsCtx.exists(x => cond(x) { case SumCtx(_, k, v, true, _) => name == k || name == v}) =>
                 s"$name.$f[${sumVariable(name)}]"
               case _ =>
                 s" /* $f */ std::get<$idx>(${run(e1)})"
@@ -234,7 +235,7 @@ object CppCodegen {
 
       case Sym(name) =>
         callsCtx.flatMap(x => condOpt(x) { case ctx: SumCtx => ctx }).headOption match {
-          case Some(SumCtx(k, v, true, _)) if name == k || name == v => s"$name[$sumVariable]"
+          case Some(SumCtx(_, k, v, true, _)) if name == k || name == v => s"$name[$sumVariable]"
           case _ => name
         }
 
@@ -559,7 +560,7 @@ object CppCodegen {
   private def sumVariable(name: String)(implicit callsCtx: CallsCtx) = {
     val lvlMax = (callsCtx.count(cond(_) { case _: SumCtx => true }) - 1).max(0)
     val lvl =
-      callsCtx.takeWhile(!cond(_) { case SumCtx(k, _, _, _) => k == name }).count(cond(_) { case _: SumCtx => true })
+      callsCtx.takeWhile(!cond(_) { case SumCtx(_, k, _, _, _) => k == name }).count(cond(_) { case _: SumCtx => true })
     ('i'.toInt + (lvlMax - lvl)).toChar
   }
 
