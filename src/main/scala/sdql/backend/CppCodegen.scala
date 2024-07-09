@@ -208,6 +208,9 @@ object CppCodegen {
               case Sym(name)
                 if callsCtx.exists(x => cond(x) { case SumCtx(_, k, v, true, _) => name == k || name == v}) =>
                 s"$name.$f[${sumVariable(name)}]"
+              // TODO get rid of hack for job/gj queries
+              case Sym(name) if name.endsWith("_tuple") =>
+                s"${name.dropRight("_tuple".length)}.$f[${name}_i]"
               case _ =>
                 s" /* $f */ std::get<$idx>(${run(e1)})"
             }
