@@ -65,8 +65,6 @@ object CppCodegen {
       val hint = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, _, _, hint) => hint }).head
       val callsLocal = List(SumEnd(), IsTernary()) ++ callsCtx
       return e match {
-        case _: Sum =>
-          raise("nested sum not supported yet")
         case DictNode(seq) => seq.map(
             kv => {
               val lhs = run(kv._1)(typesCtx, callsLocal, loadsCtx)
@@ -97,8 +95,10 @@ object CppCodegen {
           values.map(_._2).zipWithIndex.map(
             { case (exp, i) => s"get<$i>($agg) += ${run(exp)(typesCtx, callsLocal, loadsCtx)};" }
           ).mkString("\n")
-        case _ =>
-          s"$agg += ${run(e)(typesCtx, callsLocal, loadsCtx)};"
+        case _ => hint match {
+          case _: SumMinHint => s"${run(e)(typesCtx, callsLocal, loadsCtx)};"
+          case _ => s"$agg += ${run(e)(typesCtx, callsLocal, loadsCtx)};"
+        }
       }
     }
 
@@ -133,17 +133,19 @@ object CppCodegen {
         val on = condOpt(e1) { case Sym(name) => name }
         val callsLocal = List(SumCtx(on, k=k.name, v=v.name, isLoad=isLoad, hint)) ++ callsCtx
 
-        // only allocation is outside the outer sum - don't make intermediate allocations (unless there's a let binding)
         val isNestedSum = inferSumNesting(callsLocal) > 0
         val isLetSum = cond(callsCtx.head) { case _: LetCtx => true }
-        val init = if (isNestedSum && !isLetSum) "" else s"${cppType(tpe)} (${cppInit(tpe)});"
-
         val isMin = cond(hint) { case _: SumMinHint => true }
-        assert(!isMin, "min not supported")
+        var init = ""
+        if (isLetSum || !isNestedSum)
+          // only allocation is outside the outer sum - don't make intermediate allocations (unless there's let binding)
+          init += s"${cppType(tpe)} (${cppInit(tpe)});"
+        if (isMin && !isNestedSum)
+          init += s"\nauto mins_$agg = vector<${cppType(tpe)}>();"
 
         val body = run(e2)(typesLocal, callsLocal, loadsCtx)
 
-        if (isLoad) {
+        val res = if (isLoad) {
           val e1Name = (e1: @unchecked) match { case Sym(e1Name) => e1Name }
           val values = if (v.name == noName) "" else s"constexpr auto ${v.name} = ${e1Name.capitalize}Values();"
           val sumVar = sumVariable(callsLocal)
@@ -170,6 +172,7 @@ object CppCodegen {
              |}
              |""".stripMargin
         }
+        if (isMin && !isNestedSum) res ++ s"\n$agg = *std::min_element(mins_$agg.begin(), mins_$agg.end());" else res
 
       // not case
       case IfThenElse(a, Const(false), Const(true)) =>
@@ -206,9 +209,21 @@ object CppCodegen {
       case Cmp(e1, e2, cmp) =>
         s"${run(e1)} $cmp ${run(e2)}"
 
-      case fieldNode @ FieldNode(e1, _) =>
+      case fieldNode @ FieldNode(e1, field) =>
         TypeInference.run(e1) match {
           case recordType: RecordType => cppField(fieldNode, recordType)
+          case DictType(recordType: RecordType, IntType, _) =>
+            val e1Name = (e1: @unchecked) match { case Sym(e1Name) => e1Name }
+            val idx = (recordType.indexOf(field): @unchecked) match { case Some(idx) => idx }
+            val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
+            s"""auto min =
+               |std::get<$idx>(
+               |std::min_element($e1Name.begin(), $e1Name.end(),
+               |[](const auto &p1, const auto &p2) { return std::get<$idx>(p1.first) < std::get<$idx>(p2.first); }
+               |)->first
+               |);
+               |mins_$agg.push_back(min);
+               |""".stripMargin
           case tpe => raise(s"unexpected type: ${tpe.prettyPrint}")
         }
 
