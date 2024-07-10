@@ -138,6 +138,9 @@ object CppCodegen {
         val isLetSum = cond(callsCtx.head) { case _: LetCtx => true }
         val init = if (isNestedSum && !isLetSum) "" else s"${cppType(tpe)} (${cppInit(tpe)});"
 
+        val isMin = cond(hint) { case _: SumMinHint => true }
+        assert(!isMin, "min not supported")
+
         val body = run(e2)(typesLocal, callsLocal, loadsCtx)
 
         if (isLoad) {

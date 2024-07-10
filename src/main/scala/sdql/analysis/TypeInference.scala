@@ -281,6 +281,6 @@ object TypeInference {
 
   private implicit def convertHint(hint: SumCodegenHint): DictCodegenHint = hint match {
     case SumVectorHint() => DictVectorHint()
-    case SumUniqueHint() | SumNoHint() => DictNoHint()
+    case SumUniqueHint() | SumMinHint() | SumNoHint() => DictNoHint()
   }
 }
