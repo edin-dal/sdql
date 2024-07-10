@@ -40,7 +40,7 @@ object CppCodegen {
       """
         |auto stop = std::chrono::high_resolution_clock::now();
         |auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-        |cout << "Runtime (ms): " << duration.count() << endl;
+        |std::cout << "Runtime (ms): " << duration.count() << std::endl;
         |""".stripMargin
     // slightly wasteful to redo type inference - but spares us having to return the type at every recursive run call
     val tpe = TypeInference(e)
