@@ -133,9 +133,12 @@ object CppCodegen {
         val on = condOpt(e1) { case Sym(name) => name }
         val callsLocal = List(SumCtx(on, k=k.name, v=v.name, isLoad=isLoad, hint)) ++ callsCtx
 
+        // only allocation is outside the outer sum - don't make intermediate allocations (unless there's a let binding)
+        val isNestedSum = inferSumNesting(callsLocal) > 0
+        val isLetSum = cond(callsCtx.head) { case _: LetCtx => true }
+        val init = if (isNestedSum && !isLetSum) "" else s"${cppType(tpe)} (${cppInit(tpe)});"
+
         val body = run(e2)(typesLocal, callsLocal, loadsCtx)
-        // only allocation is outside the outer sum - don't make intermediate allocations
-        val init = if (inferSumNesting(callsLocal) > 0) "" else s"${cppType(tpe)} (${cppInit(tpe)});"
 
         if (isLoad) {
           val e1Name = (e1: @unchecked) match { case Sym(e1Name) => e1Name }
