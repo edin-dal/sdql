@@ -58,13 +58,10 @@ object TypeInference {
       case _: Cmp =>
         BoolType
 
-      case FieldNode(e1, f) => run(e1) match {
-        case tpe @ RecordType(attrs) => tpe.indexOf(f) match {
-          case Some(idx) => attrs(idx).tpe
-          case None => raise(attrs.map(_.name).mkString(s"$f not in: ", ", ", "."))
-        }
-        case tpe =>
-          raise(s"expected ${RecordType.getClass.getSimpleName.init}, not ${tpe.simpleName}")
+      case FieldNode(e1, field) => run(e1) match {
+        case tpe: RecordType => inferRecordField(tpe, field)
+        case DictType(tpe: RecordType, IntType, _) => inferRecordField(tpe, field)
+        case tpe => raise(s"unexpected type: ${tpe.prettyPrint}")
       }
 
       case Const(v) => v match {
@@ -212,6 +209,14 @@ object TypeInference {
         t1
       case (t1, t2) =>
         raise(s"can't promote types: ${t1.simpleName} ≠ ${t2.simpleName}")
+    }
+  }
+
+  private def inferRecordField(tpe: RecordType, field: Field) = {
+    val attrs = tpe match { case RecordType(attrs) => attrs }
+    tpe.indexOf(field) match {
+      case Some(idx) => attrs(idx).tpe
+      case None => raise(attrs.map(_.name).mkString(s"$field not in: ", ", ", "."))
     }
   }
 

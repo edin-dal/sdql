@@ -203,23 +203,10 @@ object CppCodegen {
       case Cmp(e1, e2, cmp) =>
         s"${run(e1)} $cmp ${run(e2)}"
 
-      case FieldNode(e1, f) =>
+      case fieldNode @ FieldNode(e1, _) =>
         TypeInference.run(e1) match {
-          case tpe: RecordType =>
-            val idx = (tpe.indexOf(f): @unchecked) match { case Some(idx) => idx }
-            e1 match {
-              case Sym(name)
-                if callsCtx.exists(x => cond(x) { case SumCtx(_, k, v, true, _) => name == k || name == v}) =>
-                s"$name.$f[${sumVariable(name)}]"
-              // TODO get rid of hack for job/gj queries
-              case Sym(name) if name.endsWith("_tuple") =>
-                s"${name.dropRight("_tuple".length)}.$f[${name}_i]"
-              case _ =>
-                s" /* $f */ std::get<$idx>(${run(e1)})"
-            }
-          case tpe => raise(
-            s"expected ${RecordType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
-          )
+          case recordType: RecordType => cppField(fieldNode, recordType)
+          case tpe => raise(s"unexpected type: ${tpe.prettyPrint}")
         }
 
       case Add(e1, Neg(e2)) =>
@@ -399,6 +386,22 @@ object CppCodegen {
       s""""$v""""
     case Const(v) =>
       v.toString
+  }
+
+  private def cppField(fieldNode: FieldNode, recordType: RecordType)(
+    implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx) = {
+    val (e1, field) = fieldNode match { case FieldNode(e1, field) => (e1, field) }
+    val idx = (recordType.indexOf(field): @unchecked) match { case Some(idx) => idx }
+    e1 match {
+      case Sym(name)
+        if callsCtx.exists(x => cond(x) { case SumCtx(_, k, v, true, _) => name == k || name == v}) =>
+        s"$name.$field[${sumVariable(name)}]"
+      // TODO get rid of hack for job/gj queries
+      case Sym(name) if name.endsWith("_tuple") =>
+        s"${name.dropRight("_tuple".length)}.$field[${name}_i]"
+      case _ =>
+        s" /* $field */ std::get<$idx>(${run(e1)})"
+    }
   }
 
   private def cppInit(tpe: ir.Type): String = tpe match {
