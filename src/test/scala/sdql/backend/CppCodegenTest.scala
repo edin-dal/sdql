@@ -223,6 +223,10 @@ sum(<x_s, x_s_v> <- S)
     compilesFile("progs/tpch/q22.sdql")
   }
 
+  it should "codegen job 3a" in {
+    compilesFile("progs/job/gj/3a.sdql")
+  }
+
   private def compilesFile(path: String) = compilesExp(SourceCode.fromFile(path).exp)
   private def compilesExp(e: Exp) = assert(fromCpp(CppCodegen(e)) == 0)
   private def fromCpp(cpp: String) = inGeneratedDir(Seq("bash", "-c", cmd(escape(cpp)))).run().exitValue()
