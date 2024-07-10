@@ -29,9 +29,9 @@ object TypeInference {
         run(e1)
       case IfThenElse(_, RecNode(vs1), RecNode(vs2)) if vs1.isEmpty && vs2.isEmpty =>
         raise("both branches empty")
-      case IfThenElse(_, RecNode(Seq()), e2: RecNode) =>
+      case IfThenElse(_, RecNode(Seq()), e2) =>
         run(e2)
-      case IfThenElse(_, e1: RecNode, RecNode(Seq())) =>
+      case IfThenElse(_, e1, RecNode(Seq())) =>
         run(e1)
       case _: IfThenElse | _: Add | _: Mult =>
         branching(e)
