@@ -16,8 +16,8 @@ let interm0_trie0 =
 	else
 		{}
 
-let mi_trie0 = sum(<mi_tuple, _> <- mi) { mi_tuple.movie_id -> 1 }
-let k_trie0 = sum(<k_tuple, _> <- k) { k_tuple.id -> 1 }
+let mi_trie0 = sum_unique(<mi_tuple, _> <- mi) { mi_tuple.movie_id -> 1 }
+let k_trie0 = sum_unique(<k_tuple, _> <- k) { k_tuple.id -> 1 }
 
 min(<x0, mi_trie1> <- mi_trie0)
 	if (interm0_trie0(x0) != {}) then
