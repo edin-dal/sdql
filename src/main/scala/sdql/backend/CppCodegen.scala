@@ -95,10 +95,12 @@ object CppCodegen {
           values.map(_._2).zipWithIndex.map(
             { case (exp, i) => s"get<$i>($agg) += ${run(exp)(typesCtx, callsLocal, loadsCtx)};" }
           ).mkString("\n")
-        case _ => hint match {
-          case _: SumMinHint => s"${run(e)(typesCtx, callsLocal, loadsCtx)};"
-          case _ => s"$agg += ${run(e)(typesCtx, callsLocal, loadsCtx)};"
-        }
+        case _ if cond(hint) { case _: SumMinHint => true } =>
+          s"""const auto min = ${run(e)(typesCtx, callsLocal, loadsCtx)};
+             |$agg = $agg.empty() ? min : std::min($agg, min);
+             |""".stripMargin
+        case _ =>
+          s"$agg += ${run(e)(typesCtx, callsLocal, loadsCtx)};"
       }
     }
 
@@ -202,21 +204,9 @@ object CppCodegen {
       case Cmp(e1, e2, cmp) =>
         s"${run(e1)} $cmp ${run(e2)}"
 
-      case fieldNode @ FieldNode(e1, field) =>
+      case fieldNode @ FieldNode(e1, _) =>
         TypeInference.run(e1) match {
           case recordType: RecordType => cppField(fieldNode, recordType)
-          case DictType(recordType: RecordType, IntType, _) =>
-            val e1Name = (e1: @unchecked) match { case Sym(e1Name) => e1Name }
-            val idx = (recordType.indexOf(field): @unchecked) match { case Some(idx) => idx }
-            val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
-            s"""const auto min =
-               |std::get<$idx>(
-               |std::min_element($e1Name.begin(), $e1Name.end(),
-               |[](const auto &p1, const auto &p2) { return std::get<$idx>(p1.first) < std::get<$idx>(p2.first); }
-               |)->first
-               |);
-               |$agg = $agg.empty() ? min : std::min($agg, min);
-               |""".stripMargin
           case tpe => raise(s"unexpected type: ${tpe.prettyPrint}")
         }
 
@@ -408,7 +398,8 @@ object CppCodegen {
         if callsCtx.exists(x => cond(x) { case SumCtx(_, k, v, true, _) => name == k || name == v}) =>
         s"$name.$field[${sumVariable(name)}]"
       // TODO get rid of hack for job/gj queries
-      case Sym(name) if name.endsWith("_tuple") =>
+      case Sym(name)
+        if name.endsWith("_tuple") && !callsCtx.exists(cond(_) { case SumCtx(_, _, _, _, SumMinHint()) => true }) =>
         s"${name.dropRight("_tuple".length)}.$field[${name}_i]"
       case _ =>
         s" /* $field */ std::get<$idx>(${run(e1)})"
