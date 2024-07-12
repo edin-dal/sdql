@@ -7,11 +7,11 @@ let mk_trie0 = sum_vec(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> { mk_tuple ->
 let t_trie0 = sum_vec(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } }
 
 let interm0_trie0 =
-  sum(<x0, mk_trie1> <- mk_trie0)
+  sum_vec(<x0, mk_trie1> <- mk_trie0)
 	if (t_trie0(x0) != {}) then
 		let t_trie1 = t_trie0(x0)
-		sum(<mk_tuple, _> <- mk_trie1)
-			sum(<t_tuple, _> <- t_trie1)
+		sum_vec(<mk_tuple, _> <- mk_trie1)
+			sum_vec(<t_tuple, _> <- t_trie1)
 				{ mk_tuple.movie_id -> { mk_tuple.keyword_id -> { <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=t_tuple.title> -> 1 } } }
 	else
 		{}

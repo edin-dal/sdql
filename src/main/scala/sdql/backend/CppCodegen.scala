@@ -15,7 +15,7 @@ object CppCodegen {
   private type CallsCtx = List[CallCtx]
   private sealed trait CallCtx
   private case class LetCtx(name: String) extends CallCtx
-  private case class SumCtx(on: Option[String], k:String, v: String, isLoad: Boolean, hint: SumCodegenHint) extends CallCtx
+  private case class SumCtx(on: String, k:String, v: String, isLoad: Boolean, hint: SumCodegenHint) extends CallCtx
   private case class SumEnd() extends CallCtx
   private case class IsTernary() extends CallCtx
   private type LoadsCtx = Set[Sym]
@@ -113,8 +113,11 @@ object CppCodegen {
           values.map(_._2).zipWithIndex.map(
             { case (exp, i) => s"get<$i>($agg) += ${run(exp)(typesCtx, callsLocal, loadsCtx)};" }
           ).mkString("\n")
-        case _ if cond(hint) { case _: SumMinHint => true } =>
-          s"""const auto min = ${run(e)(typesCtx, callsLocal, loadsCtx)};
+        // TODO handle min inside case FieldNode
+        case FieldNode(Sym(name), f) if cond(hint) { case _: SumMinHint => true } =>
+          val origin = getOrigin(name)
+          val min = s"${origin}_trie0_inner.$f[${origin}_tuple_i]"
+          s"""const auto min = $min;
              |$agg = $agg.empty() ? min : std::min($agg, min);
              |""".stripMargin
         case _ =>
@@ -150,7 +153,10 @@ object CppCodegen {
         typesLocal ++= Map(Sym(agg) -> tpe)
 
         val isLoad = cond(e1) { case e1Sym: Sym => loadsCtx.contains(e1Sym) }
-        val on = condOpt(e1) { case Sym(name) => name }
+        val on = condOpt(e1) {
+          case Sym(name) => name
+          case Get(Sym(name), _) => name
+        }.head
         val callsLocal = List(SumCtx(on, k=k.name, v=v.name, isLoad=isLoad, hint)) ++ callsCtx
 
         val isNestedSum = inferSumNesting(callsLocal) > 0
@@ -429,7 +435,7 @@ object CppCodegen {
 
   @tailrec
   private def getSumOrigin(name: String)(implicit callsCtx: CallsCtx): String =
-    callsCtx.flatMap(condOpt(_) { case SumCtx(Some(origin), k, v, _, _) if name == k || name == v => origin }).headOption match {
+    callsCtx.flatMap(condOpt(_) { case SumCtx(origin, k, v, _, _) if name == k || name == v => origin }).headOption match {
       case Some(origin) => getSumOrigin(origin)
       case None => name
     }
