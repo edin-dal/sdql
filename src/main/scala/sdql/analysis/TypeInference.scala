@@ -244,30 +244,23 @@ object TypeInference {
   }
 
   @tailrec
-  private def isRecordToInt(dt: DictType): Boolean = dt match {
-    case DictType(_, dt: DictType, DictNoHint()) =>
-      isRecordToInt(dt)
-    case DictType(_: RecordType, IntType, DictNoHint()) =>
-      true
-    case DictType(_, _, DictNoHint()) =>
-      false
-    case DictType(_, _, DictVectorHint()) =>
-      raise("Unreachable - hints haven't been applied")
+  def isRecordToInt(dt: DictType): Boolean = dt match {
+    case DictType(_, dt: DictType, _) => isRecordToInt(dt)
+    case DictType(_: RecordType, IntType, _) => true
+    case _: DictType => false
   }
 
   private def vectoriseRecordToInt(dt: DictType): Type = dt match {
-    case DictType(kt, dt: DictType, hint @ DictNoHint()) =>
+    case DictType(kt, dt: DictType, hint) =>
       DictType(kt, vectoriseRecordToInt(dt), hint)
-    case DictType(kt: RecordType, vt @ IntType, DictNoHint()) =>
+    case DictType(kt: RecordType, vt @ IntType, _) =>
       DictType(kt, vt, DictVectorHint())
-    case DictType(kt, vt, DictNoHint()) =>
+    case DictType(kt, vt, _) =>
       raise(
         s"Unreachable - innermost should be ${DictType.getClass.getSimpleName.init} " +
           s"{${RecordType.getClass.getSimpleName.init} -> ${IntType.getClass.getSimpleName.init}} " +
           s"not {${kt.simpleName} -> ${vt.simpleName}}"
       )
-    case DictType(_, _, DictVectorHint()) =>
-      raise("Unreachable - hints haven't been applied")
   }
 
   private def vectoriseAll(dt: DictType): Type = dt match {

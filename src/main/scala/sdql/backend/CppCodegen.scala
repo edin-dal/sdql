@@ -8,6 +8,7 @@ import sdql.ir._
 
 import java.util.UUID
 import scala.PartialFunction.{cond, condOpt}
+import scala.annotation.tailrec
 
 object CppCodegen {
   private type TypesCtx = TypeInference.Ctx
@@ -65,7 +66,7 @@ object CppCodegen {
       val hint = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, _, _, hint) => hint }).head
       val callsLocal = List(SumEnd(), IsTernary()) ++ callsCtx
       return e match {
-        case DictNode(seq) => seq.map(
+        case dict @ DictNode(seq) => seq.map(
             kv => {
               val lhs = run(kv._1)(typesCtx, callsLocal, loadsCtx)
               val rhs = run(kv._2)(typesCtx, callsLocal, loadsCtx)
@@ -74,8 +75,25 @@ object CppCodegen {
                 case _: SumUniqueHint => s"$agg.emplace($lhs, $rhs);"
                 case _: SumVectorHint =>
                   typesCtx(Sym(agg)) match {
-                    case DictType(IntType, DictType(_: RecordType, IntType, DictVectorHint()), DictNoHint()) =>
+                    case dt @ DictType(IntType, DictType(_: RecordType, IntType, DictVectorHint()), DictNoHint()) =>
+                      assert(TypeInference.isRecordToInt(dt))
                       s"$agg[$lhs].emplace_back($sumVariable);"
+                    case dt: DictType if TypeInference.isRecordToInt(dt) =>
+                      val cols = getRecordType(dt) match { case Some(RecordType(attrs)) => attrs.map(_.name) }
+                      val exps = getRecordNode(dict) match { case RecNode(values) => values.map(_._2)}
+                      val expsCpp = exps.map(run(_)(typesCtx, callsLocal, loadsCtx))
+                      val insertions = cols
+                        .zip(expsCpp).map { case (col, cpp) => s"${agg}_inner.$col.push_back($cpp);" }.mkString("\n")
+                      val accessors = getDictKeys(dict).map {
+                          case field @ FieldNode(Sym(name), _) =>
+                            val fieldCpp = run(field)(typesCtx, callsLocal, loadsCtx)
+                            assert(fieldCpp.startsWith(getOrigin(name)))
+                            s"[$fieldCpp]"
+                        }.mkString("")
+                      val link = s"$agg$accessors.push_back(${agg}_cnt++);"
+                      s"""$insertions
+                         |$link
+                         |""".stripMargin
                     case DictType(IntType, DictType(IntType, _, DictVectorHint()), DictVectorHint()) =>
                       e match {
                         case DictNode(Seq((f1: FieldNode, DictNode(Seq((f2: FieldNode, _)))))) =>
@@ -154,6 +172,18 @@ object CppCodegen {
              |
              |""".stripMargin
         } else {
+          val isVecSum = cond(hint) { case SumVectorHint() => true }
+          val initBlock = getRecordType(tpe) match {
+            case Some(RecordType(attrs)) if isVecSum && !isNestedSum =>
+              val aggVectors = attrs.map(attr => s"vector<${cppType(attr.tpe)}> ${attr.name};")
+                .mkString(s"struct ${agg.toUpperCase}_TYPE {", "\n", s"} ${agg}_inner;")
+              s"""$init
+                 |$aggVectors
+                 |auto ${agg}_cnt = 0;
+                 |""".stripMargin
+            case _ =>
+              init
+          }
           val iterable = run(e1)(typesLocal, List(SumEnd()) ++ callsLocal, loadsCtx)
           val head = TypeInference.run(e1)(typesLocal) match {
             case DictType(_, _, DictNoHint()) =>
@@ -162,7 +192,7 @@ object CppCodegen {
               assert(v.name == noName)
               s"${k.name}_i : $iterable"
           }
-          s"""$init
+          s"""$initBlock
              |for (const auto &$head) {
              |$body
              |}
@@ -370,6 +400,39 @@ object CppCodegen {
       )
     }
   }
+
+  @tailrec
+  private def getRecordType(tpe: Type): Option[RecordType] = tpe match {
+    case DictType(_, dt: DictType, _) => getRecordType(dt)
+    case DictType(rt: RecordType, IntType, _) => Some(rt)
+    case _ => None
+  }
+
+  @tailrec
+  private def getRecordNode(dict: DictNode)(implicit typesCtx: TypesCtx): RecNode = dict match {
+    case DictNode(Seq((_, v: DictNode))) => getRecordNode(v)
+    case DictNode(Seq((record: RecNode, Const(1)))) => record
+    case _ => raise(s"unexpected: ${TypeInference.run(dict).prettyPrint}")
+  }
+
+  private def getDictKeys(dict: DictNode)(implicit typesCtx: TypesCtx): Seq[Exp] = dict match {
+    case DictNode(Seq((k, v: DictNode))) => Seq(k) ++ getDictKeys(v)
+    case DictNode(Seq((record: RecNode, Const(1)))) => Seq()
+    case _ => raise(s"unexpected: ${TypeInference.run(dict).prettyPrint}")
+  }
+
+  private def getOrigin(name: String)(implicit callsCtx: CallsCtx) = {
+    val sumOrigin = getSumOrigin(name)
+    assert(sumOrigin.endsWith("_trie0"))
+    sumOrigin.dropRight("_trie0".length)
+  }
+
+  @tailrec
+  private def getSumOrigin(name: String)(implicit callsCtx: CallsCtx): String =
+    callsCtx.flatMap(condOpt(_) { case SumCtx(Some(origin), k, v, _, _) if name == k || name == v => origin }).headOption match {
+      case Some(origin) => getSumOrigin(origin)
+      case None => name
+    }
 
   private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx) = {
     val isVector = cond(TypeInference.run(e1)) { case DictType(_, _, DictVectorHint()) => true }
