@@ -113,11 +113,8 @@ object CppCodegen {
           values.map(_._2).zipWithIndex.map(
             { case (exp, i) => s"get<$i>($agg) += ${run(exp)(typesCtx, callsLocal, loadsCtx)};" }
           ).mkString("\n")
-        // TODO handle min inside case FieldNode
-        case FieldNode(Sym(name), f) if cond(hint) { case _: SumMinHint => true } =>
-          val origin = getOrigin(name)
-          val min = s"${origin}_trie0_inner.$f[${origin}_tuple_i]"
-          s"min_inplace($agg, $min);"
+        case _ if cond(hint) { case _: SumMinHint => true } =>
+          s"min_inplace($agg, ${run(e)(typesCtx, callsLocal, loadsCtx)});"
         case _ =>
           s"$agg += ${run(e)(typesCtx, callsLocal, loadsCtx)};"
       }
@@ -468,6 +465,9 @@ object CppCodegen {
       case Sym(name)
         if name.endsWith("_tuple") && !callsCtx.exists(cond(_) { case SumCtx(_, _, _, _, SumMinHint()) => true }) =>
         s"${name.dropRight("_tuple".length)}.$field[${name}_i]"
+      case Sym(name) if callsCtx.exists(cond(_) { case SumCtx(_, _, _, _, SumMinHint()) => true }) =>
+        val origin = getOrigin(name)
+        s"${origin}_trie0_inner.$field[${origin}_tuple_i]"
       case _ =>
         s" /* $field */ std::get<$idx>(${run(e1)})"
     }
