@@ -109,6 +109,10 @@ object CppCodegen {
               }
             }
           ).mkString("\n")
+        case RecNode(values) if cond(hint) { case _: SumMinHint => true } =>
+          values.map(_._2).zipWithIndex.map(
+            { case (exp, i) => s"min_inplace(get<$i>($agg), ${run(exp)(typesCtx, callsLocal, loadsCtx)});" }
+          ).mkString("\n")
         case RecNode(values) =>
           values.map(_._2).zipWithIndex.map(
             { case (exp, i) => s"get<$i>($agg) += ${run(exp)(typesCtx, callsLocal, loadsCtx)};" }
