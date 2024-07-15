@@ -13,4 +13,5 @@ using namespace std;
 #include "3rdparty/map_helper.h"
 #include "3rdparty/varchar.h"
 
+#include "3rdparty/min_helper.h"
 #include "3rdparty/converters.h"

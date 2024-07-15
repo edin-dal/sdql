@@ -117,9 +117,7 @@ object CppCodegen {
         case FieldNode(Sym(name), f) if cond(hint) { case _: SumMinHint => true } =>
           val origin = getOrigin(name)
           val min = s"${origin}_trie0_inner.$f[${origin}_tuple_i]"
-          s"""const auto min = $min;
-             |$agg = $agg.empty() ? min : std::min($agg, min);
-             |""".stripMargin
+          s"min_inplace($agg, $min);"
         case _ =>
           s"$agg += ${run(e)(typesCtx, callsLocal, loadsCtx)};"
       }
