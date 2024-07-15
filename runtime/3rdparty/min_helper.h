@@ -1,10 +1,9 @@
-void min_inplace(std::string& a, const std::string& b) {
-  a = a.empty() ? b : std::min(a, b);
+inline void min_inplace(long& a, const long& b) {
+  a = (a == 0) ? b : std::min(a, b);
 }
 
-template<typename T>
-void min_inplace(T& a, const T& b) {
-  a = std::min(a, b);
+inline void min_inplace(std::string& a, const std::string& b) {
+  a = a.empty() ? b : std::min(a, b);
 }
 
 namespace internal
