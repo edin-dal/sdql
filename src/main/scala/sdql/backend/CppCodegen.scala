@@ -492,7 +492,7 @@ object CppCodegen {
       case Sym(name)
         if name.endsWith("_tuple") && !callsCtx.exists(cond(_) { case SumCtx(_, _, _, _, SumMinHint()) => true }) =>
         s"${name.dropRight("_tuple".length)}.$field[${name}_i]"
-      case Sym(name) if callsCtx.exists(cond(_) { case SumCtx(_, _, _, _, SumMinHint()) => true }) =>
+      case Sym(name) if !name.startsWith("mn_") && callsCtx.exists(cond(_) { case SumCtx(_, _, _, _, SumMinHint()) => true }) =>
         val origin = getOrigin(name)
         s"${origin}_trie0_inner.$field[${origin}_tuple_i]"
       case _ =>

@@ -7,14 +7,14 @@ let mk_trie0 = sum_vec(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> { mk_tuple ->
 let t_trie0 = sum_vec(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } }
 
 let interm0_trie0 =
-  sum_vec(<x0, mk_trie1> <- mk_trie0)
-	if (t_trie0(x0) != {}) then
-		let t_trie1 = t_trie0(x0)
-		sum_vec(<mk_tuple, _> <- mk_trie1)
-			sum_vec(<t_tuple, _> <- t_trie1)
-				{ mk_tuple.movie_id -> { mk_tuple.keyword_id -> { <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=t_tuple.title> -> 1 } } }
-	else
-		{}
+    sum_vec(<x0, mk_trie1> <- mk_trie0)
+        if (t_trie0(x0) != {}) then
+		    let t_trie1 = t_trie0(x0)
+		    sum_vec(<mk_tuple, _> <- mk_trie1)
+			    sum_vec(<t_tuple, _> <- t_trie1)
+				    { mk_tuple.movie_id -> { mk_tuple.keyword_id -> { <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=t_tuple.title> -> 1 } } }
+	    else
+		    {}
 
 let mi_trie0 = sum_unique(<mi_tuple, _> <- mi) { mi_tuple.movie_id -> 1 }
 let k_trie0 = sum_unique(<k_tuple, _> <- k) { k_tuple.id -> 1 }
@@ -24,9 +24,10 @@ min(<x0, mi_trie1> <- mi_trie0)
 		let interm0_trie1 = interm0_trie0(x0) in
 		min(<x1, interm0_trie2> <- interm0_trie1)
 			if (k_trie0(x1) != {}) then
-                min(<interm0_tuple, _> <- interm0_trie2)
-                    <col2=interm0_tuple.col2>
+				let k_trie1 = k_trie0(x1) in
+				let mn_interm0 = min(<interm0_tuple, _> <- interm0_trie2) <col2=interm0_tuple.col2> in
+				<col2=mn_interm0.col2>
 			else
-			    <>
+				<>
 	else
 		<>
