@@ -511,7 +511,7 @@ object CppCodegen {
     case BoolType => "false"
     case RealType => "0.0"
     case IntType | DateType => "0"
-    case StringType(None) => ""
+    case StringType(None) => "std::string()"
     case StringType(Some(_)) => raise("initialising VarChars shouldn't be needed")
     case DictType(_, _, DictNoHint()) => "{}"
     case DictType(_, _, DictVectorHint()) => vecSize.toString
