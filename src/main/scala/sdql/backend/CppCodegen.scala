@@ -81,9 +81,10 @@ object CppCodegen {
               case _: SumUniqueHint => s"$agg.emplace($lhs, $rhs);"
               case _: SumVectorHint =>
                 typesCtx(Sym(agg)) match {
-                  case dt@DictType(IntType, DictType(_: RecordType, IntType, DictVectorHint()), DictNoHint()) =>
-                    assert(TypeInference.isRecordToInt(dt))
-                    s"$agg[$lhs].emplace_back($sumVariable);"
+                  // TODO get rid of hack for job/gj queries
+                  case dt: DictType if TypeInference.isRecordToInt(dt) && !agg.startsWith("interm") =>
+                    val accessors = cppAccessors(dict)(typesCtx, callsLocal, loadsCtx)
+                    s"$agg$accessors.emplace_back(${sumVariable(callsLocal)});"
                   case dt: DictType if TypeInference.isRecordToInt(dt) =>
                     val cols = getRecordType(dt) match {
                       case Some(RecordType(attrs)) => attrs.map(_.name)
@@ -94,13 +95,7 @@ object CppCodegen {
                     val expsCpp = exps.map(run(_)(typesCtx, callsLocal, loadsCtx))
                     val insertions = cols
                       .zip(expsCpp).map { case (col, cpp) => s"${agg}_inner.$col.push_back($cpp);" }.mkString("\n")
-                    val accessors = getDictKeys(dict).map {
-                      case field@FieldNode(Sym(name), _) =>
-                        val fieldCpp = run(field)(typesCtx, callsLocal, loadsCtx)
-                        //                            TODO
-                        //                            assert(fieldCpp.startsWith(getOrigin(name)))
-                        s"[$fieldCpp]"
-                    }.mkString("")
+                    val accessors = cppAccessors(dict)(typesCtx, callsLocal, loadsCtx)
                     val link = s"$agg$accessors.push_back(${agg}_cnt++);"
                     s"""$insertions
                        |$link
@@ -445,9 +440,9 @@ object CppCodegen {
     case _ => raise(s"unexpected: ${TypeInference.run(dict).prettyPrint}")
   }
 
-  private def getDictKeys(dict: DictNode)(implicit typesCtx: TypesCtx): Seq[Exp] = dict match {
-    case DictNode(Seq((k, v: DictNode))) => Seq(k) ++ getDictKeys(v)
-    case DictNode(Seq((record: RecNode, Const(1)))) => Seq()
+  private def getDictNonRecordKeys(dict: DictNode)(implicit typesCtx: TypesCtx): Seq[Exp] = dict match {
+    case DictNode(Seq((k, v: DictNode))) => Seq(k) ++ getDictNonRecordKeys(v)
+    case DictNode(Seq((k, Const(1)))) if cond(TypeInference.run(k)) { case _: RecordType => true } => Seq()
     case _ => raise(s"unexpected: ${TypeInference.run(dict).prettyPrint}")
   }
 
@@ -468,6 +463,15 @@ object CppCodegen {
       case Some(origin) => getSumOrigin(origin)
       case None => name
     }
+
+  private def cppAccessors(dict: DictNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String =
+    getDictNonRecordKeys(dict).map {
+      case field@FieldNode(Sym(name), _) =>
+        val fieldCpp = run(field)(typesCtx, callsCtx, loadsCtx)
+        // TODO
+        // assert(fieldCpp.startsWith(getOrigin(name)))
+        s"[$fieldCpp]"
+    }.mkString("")
 
   private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx) = {
     val isVector = cond(TypeInference.run(e1)) { case DictType(_, _, DictVectorHint()) => true }
