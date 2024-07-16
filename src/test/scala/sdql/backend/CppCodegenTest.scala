@@ -226,6 +226,9 @@ sum(<x_s, x_s_v> <- S)
   it should "codegen job 1a" in {
     compilesFile("progs/job/gj/1a.sdql")
   }
+  it should "codegen job 2a" in {
+    compilesFile("progs/job/gj/2a.sdql")
+  }
   it should "codegen job 3a" in {
     compilesFile("progs/job/gj/3a.sdql")
   }
