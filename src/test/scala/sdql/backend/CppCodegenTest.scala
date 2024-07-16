@@ -223,6 +223,9 @@ sum(<x_s, x_s_v> <- S)
     compilesFile("progs/tpch/q22.sdql")
   }
 
+  it should "codegen job 1a" in {
+    compilesFile("progs/job/gj/1a.sdql")
+  }
   it should "codegen job 3a" in {
     compilesFile("progs/job/gj/3a.sdql")
   }
