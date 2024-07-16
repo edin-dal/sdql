@@ -204,7 +204,6 @@ object CppCodegen {
             case DictType(_, _, DictNoHint()) =>
               s"[${k.name}, ${v.name}] : $iterable"
             case DictType(_, _, DictVectorHint()) =>
-              assert(v.name == noName)
               s"${k.name}_i : $iterable"
           }
           s"""$initBlock
