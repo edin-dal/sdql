@@ -243,6 +243,13 @@ object CppCodegen {
         }
         s"if ($condBody) {$ifBody\n}$elseBody"
 
+      case Cmp(e1, e2: Sym, "∈") =>
+        val tpe = TypeInference.run(e2)
+        if (!cond(tpe) { case _: DictType => true })
+          raise(s"expression ${e2.simpleName} should be of type " +
+            s"${DictType.getClass.getSimpleName.init} not ${tpe.prettyPrint}"
+          )
+        dictCmpNil(e2, e1)
       case Cmp(Get(e1, e2), DictNode(Nil), "!=")
         if cond(TypeInference.run(e1)) { case DictType(kt, _, _) => TypeInference.run(e2) == kt } =>
         dictCmpNil(e1, e2)
