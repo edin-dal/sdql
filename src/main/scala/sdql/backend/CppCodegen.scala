@@ -116,13 +116,15 @@ object CppCodegen {
           }
         ).mkString("\n")
         case RecNode(values) if cond(hint) { case _: SumMinHint => true } =>
-          values.map(_._2).zipWithIndex.map(
-            { case (exp, i) => s"min_inplace(get<$i>($agg), ${run(exp)(typesCtx, callsLocal, loadsCtx)});" }
-          ).mkString("\n")
+          values.zipWithIndex.map(
+            { case ((field, exp), i) =>
+              s"min_inplace( /* $field */ get<$i>($agg), ${run(exp)(typesCtx, callsLocal, loadsCtx)});"
+            }).mkString("\n")
         case RecNode(values) =>
-          values.map(_._2).zipWithIndex.map(
-            { case (exp, i) => s"get<$i>($agg) += ${run(exp)(typesCtx, callsLocal, loadsCtx)};" }
-          ).mkString("\n")
+          values.zipWithIndex.map(
+            { case ((field, exp), i) =>
+              s"/* $field */ get<$i>($agg) += ${run(exp)(typesCtx, callsLocal, loadsCtx)};"
+            }).mkString("\n")
         case _ if cond(hint) { case _: SumMinHint => true } =>
           s"min_inplace($agg, ${run(e)(typesCtx, callsLocal, loadsCtx)});"
         case _ =>
