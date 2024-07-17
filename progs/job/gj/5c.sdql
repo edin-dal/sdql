@@ -1,0 +1,32 @@
+let mi = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/5c/mi.csv")
+let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("datasets/job/5c/t.csv")
+let mc = load[{<id: int, movie_id: int, company_id: int, company_type_id: int, note: string> -> int}]("datasets/job/5c/mc.csv")
+let it = load[{<id: int, info: string> -> int}]("datasets/job/info_type.csv")
+let ct = load[{<id: int, kind: string> -> int}]("datasets/job/5c/ct.csv")
+
+let mi_trie0 = sum(<mi_tuple, _> <- mi) { mi_tuple.movie_id -> { mi_tuple.info_type_id -> 1 } } in
+let t_trie0 = sum_vec(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
+let mc_trie0 = sum(<mc_tuple, _> <- mc) { mc_tuple.movie_id -> { mc_tuple.company_type_id -> 1 } } in
+let it_trie0 = sum(<it_tuple, _> <- it) { it_tuple.id -> 1 } in
+let ct_trie0 = sum(<ct_tuple, _> <- ct) { ct_tuple.id -> 1 } in
+min(<x0, mi_trie1> <- mi_trie0)
+	if (x0 ∈ t_trie0) then
+		if (x0 ∈ mc_trie0) then
+			let t_trie1 = t_trie0(x0) in
+			let mc_trie1 = mc_trie0(x0) in
+			min(<x1, mi_trie2> <- mi_trie1)
+				if (x1 ∈ it_trie0) then
+					let it_trie1 = it_trie0(x1) in
+					min(<x2, mc_trie2> <- mc_trie1)
+						if (x2 ∈ ct_trie0) then
+							let ct_trie1 = ct_trie0(x2) in
+							let mn_t = min(<t_tuple, _> <- t_trie1) <title=t_tuple.title> in
+							<col2=mn_t.title>
+						else
+							<>
+				else
+					<>
+		else
+			<>
+	else
+		<>
