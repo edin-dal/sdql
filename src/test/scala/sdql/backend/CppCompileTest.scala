@@ -100,7 +100,7 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 
 // uncomment and run these tests on dbgen TPCH datasets with scaling factor 1 in src/test/tpch/data/SF_1/
 // also run this test separately from the SF=0.01 ones above - there's a concurrency bug when patching paths
-// note: DON'T run them all in parallel - unless you have > 64GB of ram
+// note: DON'T run them all in parallel - unless you have ~64GB of ram
 //class CppCompileTestTPCH1 extends AnyFlatSpec with ParallelTestExecution {
 //
 //  it should "compile and run TPCH Q1-2 SF=1" in {
@@ -161,7 +161,7 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //}
 
 // uncomment and run these tests on pre-processed datasets in datasets/job
-// note: DON'T run them all in parallel - unless you have > 64GB of ram
+// note: DON'T run them all in parallel - unless you have >64GB of ram
 //class CppCompileTestJOB extends AnyFlatSpec with ParallelTestExecution {
 //
 //  it should "compile and run JOB 1" in {
@@ -279,12 +279,12 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //    // Helpers.assertOutputs("progs/job/gj/17f.sdql", "src/test/job/gj/results/17f.result")
 //  }
 //
-////  FIXME
-////  it should "compile and run JOB 18" in {
-////    Helpers.assertOutputs("progs/job/gj/18a.sdql", "src/test/job/gj/results/18a.result")
-////    Helpers.assertOutputs("progs/job/gj/18b.sdql", "src/test/job/gj/results/18b.result")
-////    Helpers.assertOutputs("progs/job/gj/18c.sdql", "src/test/job/gj/results/18c.result")
-////  }
+//  it should "compile and run JOB 18" in {
+//    Helpers.assertOutputs("progs/job/gj/18a.sdql", "src/test/job/gj/results/18a.result")
+//    // FIXME
+//    // Helpers.assertOutputs("progs/job/gj/18b.sdql", "src/test/job/gj/results/18b.result")
+//    Helpers.assertOutputs("progs/job/gj/18c.sdql", "src/test/job/gj/results/18c.result")
+//  }
 //
 //  it should "compile and run JOB 19" in {
 //    Helpers.assertOutputs("progs/job/gj/19a.sdql", "src/test/job/gj/results/19a.result")
@@ -300,83 +300,88 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //    Helpers.assertOutputs("progs/job/gj/20c.sdql", "src/test/job/gj/results/20c.result")
 //  }
 //
-////  FIXME
-////  it should "compile and run JOB 21" in {
-////    Helpers.assertOutputs("progs/job/gj/21a.sdql", "src/test/job/gj/results/21a.result")
-////    Helpers.assertOutputs("progs/job/gj/21b.sdql", "src/test/job/gj/results/21b.result")
-////    Helpers.assertOutputs("progs/job/gj/21c.sdql", "src/test/job/gj/results/21c.result")
-////  }
-////
-////  it should "compile and run JOB 22" in {
-////    Helpers.assertOutputs("progs/job/gj/22a.sdql", "src/test/job/gj/results/22a.result")
-////    Helpers.assertOutputs("progs/job/gj/22b.sdql", "src/test/job/gj/results/22b.result")
-////    Helpers.assertOutputs("progs/job/gj/22c.sdql", "src/test/job/gj/results/22c.result")
-////    Helpers.assertOutputs("progs/job/gj/22d.sdql", "src/test/job/gj/results/22d.result")
-////  }
-////
+//  it should "compile and run JOB 21" in {
+//    Helpers.assertOutputs("progs/job/gj/21a.sdql", "src/test/job/gj/results/21a.result")
+//    Helpers.assertOutputs("progs/job/gj/21b.sdql", "src/test/job/gj/results/21b.result")
+//    Helpers.assertOutputs("progs/job/gj/21c.sdql", "src/test/job/gj/results/21c.result")
+//  }
+//
+//  it should "compile and run JOB 22" in {
+//    Helpers.assertOutputs("progs/job/gj/22a.sdql", "src/test/job/gj/results/22a.result")
+//    Helpers.assertOutputs("progs/job/gj/22b.sdql", "src/test/job/gj/results/22b.result")
+//    Helpers.assertOutputs("progs/job/gj/22c.sdql", "src/test/job/gj/results/22c.result")
+//    // FIXME
+//    // Helpers.assertOutputs("progs/job/gj/22d.sdql", "src/test/job/gj/results/22d.result")
+//  }
+//
+//// FIXME
 ////  it should "compile and run JOB 23" in {
 ////    Helpers.assertOutputs("progs/job/gj/23a.sdql", "src/test/job/gj/results/23a.result")
 ////    Helpers.assertOutputs("progs/job/gj/23b.sdql", "src/test/job/gj/results/23b.result")
 ////    Helpers.assertOutputs("progs/job/gj/23c.sdql", "src/test/job/gj/results/23c.result")
 ////  }
-////
-////  it should "compile and run JOB 24" in {
-////    Helpers.assertOutputs("progs/job/gj/24a.sdql", "src/test/job/gj/results/24a.result")
-////    Helpers.assertOutputs("progs/job/gj/24b.sdql", "src/test/job/gj/results/24b.result")
-////  }
-////
-////  it should "compile and run JOB 25" in {
-////    Helpers.assertOutputs("progs/job/gj/25a.sdql", "src/test/job/gj/results/25a.result")
-////    Helpers.assertOutputs("progs/job/gj/25b.sdql", "src/test/job/gj/results/25b.result")
-////    Helpers.assertOutputs("progs/job/gj/25c.sdql", "src/test/job/gj/results/25c.result")
-////  }
-////
-////  it should "compile and run JOB 26" in {
-////    Helpers.assertOutputs("progs/job/gj/26a.sdql", "src/test/job/gj/results/26a.result")
-////    Helpers.assertOutputs("progs/job/gj/26b.sdql", "src/test/job/gj/results/26b.result")
-////    Helpers.assertOutputs("progs/job/gj/26c.sdql", "src/test/job/gj/results/26c.result")
-////  }
-////
+//
+//  it should "compile and run JOB 24" in {
+//    Helpers.assertOutputs("progs/job/gj/24a.sdql", "src/test/job/gj/results/24a.result")
+//    Helpers.assertOutputs("progs/job/gj/24b.sdql", "src/test/job/gj/results/24b.result")
+//  }
+//
+//  it should "compile and run JOB 25" in {
+//    Helpers.assertOutputs("progs/job/gj/25a.sdql", "src/test/job/gj/results/25a.result")
+//    // FIXME
+//    // Helpers.assertOutputs("progs/job/gj/25b.sdql", "src/test/job/gj/results/25b.result")
+//    Helpers.assertOutputs("progs/job/gj/25c.sdql", "src/test/job/gj/results/25c.result")
+//  }
+//
+//  it should "compile and run JOB 26" in {
+//    Helpers.assertOutputs("progs/job/gj/26a.sdql", "src/test/job/gj/results/26a.result")
+//    Helpers.assertOutputs("progs/job/gj/26b.sdql", "src/test/job/gj/results/26b.result")
+//    Helpers.assertOutputs("progs/job/gj/26c.sdql", "src/test/job/gj/results/26c.result")
+//  }
+//
+//// FIXME
 ////  it should "compile and run JOB 27" in {
 ////    Helpers.assertOutputs("progs/job/gj/27a.sdql", "src/test/job/gj/results/27a.result")
 ////    Helpers.assertOutputs("progs/job/gj/27b.sdql", "src/test/job/gj/results/27b.result")
 ////    Helpers.assertOutputs("progs/job/gj/27c.sdql", "src/test/job/gj/results/27c.result")
 ////  }
-////
-////  it should "compile and run JOB 28" in {
-////    Helpers.assertOutputs("progs/job/gj/28a.sdql", "src/test/job/gj/results/28a.result")
-////    Helpers.assertOutputs("progs/job/gj/28b.sdql", "src/test/job/gj/results/28b.result")
-////    Helpers.assertOutputs("progs/job/gj/28c.sdql", "src/test/job/gj/results/28c.result")
-////  }
-////
-////  it should "compile and run JOB 29" in {
-////    Helpers.assertOutputs("progs/job/gj/29a.sdql", "src/test/job/gj/results/29a.result")
-////    Helpers.assertOutputs("progs/job/gj/29b.sdql", "src/test/job/gj/results/29b.result")
-////    Helpers.assertOutputs("progs/job/gj/29c.sdql", "src/test/job/gj/results/29c.result")
-////  }
-////
-////  it should "compile and run JOB 30" in {
-////    Helpers.assertOutputs("progs/job/gj/30a.sdql", "src/test/job/gj/results/30a.result")
-////    Helpers.assertOutputs("progs/job/gj/30b.sdql", "src/test/job/gj/results/30b.result")
-////    Helpers.assertOutputs("progs/job/gj/30c.sdql", "src/test/job/gj/results/30c.result")
-////  }
-////
-////  it should "compile and run JOB 31" in {
-////    Helpers.assertOutputs("progs/job/gj/31a.sdql", "src/test/job/gj/results/31a.result")
-////    Helpers.assertOutputs("progs/job/gj/31b.sdql", "src/test/job/gj/results/31b.result")
-////    Helpers.assertOutputs("progs/job/gj/31c.sdql", "src/test/job/gj/results/31c.result")
-////  }
+//
+//  it should "compile and run JOB 28" in {
+//    Helpers.assertOutputs("progs/job/gj/28a.sdql", "src/test/job/gj/results/28a.result")
+//    Helpers.assertOutputs("progs/job/gj/28b.sdql", "src/test/job/gj/results/28b.result")
+//    Helpers.assertOutputs("progs/job/gj/28c.sdql", "src/test/job/gj/results/28c.result")
+//  }
+//
+//  it should "compile and run JOB 29" in {
+//    Helpers.assertOutputs("progs/job/gj/29a.sdql", "src/test/job/gj/results/29a.result")
+//    Helpers.assertOutputs("progs/job/gj/29b.sdql", "src/test/job/gj/results/29b.result")
+//    // FIXME
+//    // Helpers.assertOutputs("progs/job/gj/29c.sdql", "src/test/job/gj/results/29c.result")
+//  }
+//
+//  it should "compile and run JOB 30" in {
+//    Helpers.assertOutputs("progs/job/gj/30a.sdql", "src/test/job/gj/results/30a.result")
+//    Helpers.assertOutputs("progs/job/gj/30b.sdql", "src/test/job/gj/results/30b.result")
+//    // FIXME
+//    // Helpers.assertOutputs("progs/job/gj/30c.sdql", "src/test/job/gj/results/30c.result")
+//  }
+//
+//  it should "compile and run JOB 31" in {
+//    Helpers.assertOutputs("progs/job/gj/31a.sdql", "src/test/job/gj/results/31a.result")
+//    // FIXME
+//    // Helpers.assertOutputs("progs/job/gj/31b.sdql", "src/test/job/gj/results/31b.result")
+//    // Helpers.assertOutputs("progs/job/gj/31c.sdql", "src/test/job/gj/results/31c.result")
+//  }
 //
 //  it should "compile and run JOB 32" in {
 //    Helpers.assertOutputs("progs/job/gj/32b.sdql", "src/test/job/gj/results/32b.result")
 //  }
 //
-////  FIXME
-////  it should "compile and run JOB 33" in {
-////    Helpers.assertOutputs("progs/job/gj/33a.sdql", "src/test/job/gj/results/33a.result")
-////    Helpers.assertOutputs("progs/job/gj/33b.sdql", "src/test/job/gj/results/33b.result")
-////    Helpers.assertOutputs("progs/job/gj/33c.sdql", "src/test/job/gj/results/33c.result")
-////  }
+//  it should "compile and run JOB 33" in {
+//    Helpers.assertOutputs("progs/job/gj/33a.sdql", "src/test/job/gj/results/33a.result")
+//    Helpers.assertOutputs("progs/job/gj/33b.sdql", "src/test/job/gj/results/33b.result")
+//    Helpers.assertOutputs("progs/job/gj/33c.sdql", "src/test/job/gj/results/33c.result")
+//  }
 //}
 
 object Helpers {

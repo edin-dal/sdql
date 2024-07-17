@@ -316,12 +316,11 @@ sum(<x_s, x_s_v> <- S)
     compilesFile("progs/job/gj/17e.sdql")
     compilesFile("progs/job/gj/17f.sdql")
   }
-//  FIXME
-//  it should "codegen JOB 18" in {
-//    compilesFile("progs/job/gj/18a.sdql")
-//    compilesFile("progs/job/gj/18b.sdql")
-//    compilesFile("progs/job/gj/18c.sdql")
-//  }
+  it should "codegen JOB 18" in {
+    compilesFile("progs/job/gj/18a.sdql")
+    compilesFile("progs/job/gj/18b.sdql")
+    compilesFile("progs/job/gj/18c.sdql")
+  }
   it should "codegen JOB 19" in {
     compilesFile("progs/job/gj/19a.sdql")
     compilesFile("progs/job/gj/19b.sdql")
@@ -333,71 +332,71 @@ sum(<x_s, x_s_v> <- S)
     compilesFile("progs/job/gj/20b.sdql")
     compilesFile("progs/job/gj/20c.sdql")
   }
+  it should "codegen JOB 21" in {
+    compilesFile("progs/job/gj/21a.sdql")
+    compilesFile("progs/job/gj/21b.sdql")
+    compilesFile("progs/job/gj/21c.sdql")
+  }
+  it should "codegen JOB 22" in {
+    compilesFile("progs/job/gj/22a.sdql")
+    compilesFile("progs/job/gj/22b.sdql")
+    compilesFile("progs/job/gj/22c.sdql")
+    compilesFile("progs/job/gj/22d.sdql")
+  }
 //  FIXME
-//  it should "codegen JOB 21" in {
-//    compilesFile("progs/job/gj/21a.sdql")
-//    compilesFile("progs/job/gj/21b.sdql")
-//    compilesFile("progs/job/gj/21c.sdql")
-//  }
-//  it should "codegen JOB 22" in {
-//    compilesFile("progs/job/gj/22a.sdql")
-//    compilesFile("progs/job/gj/22b.sdql")
-//    compilesFile("progs/job/gj/22c.sdql")
-//    compilesFile("progs/job/gj/22d.sdql")
-//  }
 //  it should "codegen JOB 23" in {
 //    compilesFile("progs/job/gj/23a.sdql")
 //    compilesFile("progs/job/gj/23b.sdql")
 //    compilesFile("progs/job/gj/23c.sdql")
 //  }
-//  it should "codegen JOB 24" in {
-//    compilesFile("progs/job/gj/24a.sdql")
-//    compilesFile("progs/job/gj/24b.sdql")
-//  }
-//  it should "codegen JOB 25" in {
-//    compilesFile("progs/job/gj/25a.sdql")
-//    compilesFile("progs/job/gj/25b.sdql")
-//    compilesFile("progs/job/gj/25c.sdql")
-//  }
-//  it should "codegen JOB 26" in {
-//    compilesFile("progs/job/gj/26a.sdql")
-//    compilesFile("progs/job/gj/26b.sdql")
-//    compilesFile("progs/job/gj/26c.sdql")
-//  }
+  it should "codegen JOB 24" in {
+    compilesFile("progs/job/gj/24a.sdql")
+    compilesFile("progs/job/gj/24b.sdql")
+  }
+  it should "codegen JOB 25" in {
+    compilesFile("progs/job/gj/25a.sdql")
+    compilesFile("progs/job/gj/25b.sdql")
+    compilesFile("progs/job/gj/25c.sdql")
+  }
+  it should "codegen JOB 26" in {
+    compilesFile("progs/job/gj/26a.sdql")
+    compilesFile("progs/job/gj/26b.sdql")
+    compilesFile("progs/job/gj/26c.sdql")
+  }
+//  FIXME
 //  it should "codegen JOB 27" in {
 //    compilesFile("progs/job/gj/27a.sdql")
 //    compilesFile("progs/job/gj/27b.sdql")
 //    compilesFile("progs/job/gj/27c.sdql")
 //  }
-//  it should "codegen JOB 28" in {
-//    compilesFile("progs/job/gj/28a.sdql")
-//    compilesFile("progs/job/gj/28b.sdql")
-//    compilesFile("progs/job/gj/28c.sdql")
-//  }
-//  it should "codegen JOB 29" in {
-//    compilesFile("progs/job/gj/29a.sdql")
-//    compilesFile("progs/job/gj/29b.sdql")
-//    compilesFile("progs/job/gj/29c.sdql")
-//  }
-//  it should "codegen JOB 30" in {
-//    compilesFile("progs/job/gj/30a.sdql")
-//    compilesFile("progs/job/gj/30b.sdql")
-//    compilesFile("progs/job/gj/30c.sdql")
-//  }
-//  it should "codegen JOB 31" in {
-//    compilesFile("progs/job/gj/31a.sdql")
-//    compilesFile("progs/job/gj/31b.sdql")
-//    compilesFile("progs/job/gj/31c.sdql")
-//  }
+  it should "codegen JOB 28" in {
+    compilesFile("progs/job/gj/28a.sdql")
+    compilesFile("progs/job/gj/28b.sdql")
+    compilesFile("progs/job/gj/28c.sdql")
+  }
+  it should "codegen JOB 29" in {
+    compilesFile("progs/job/gj/29a.sdql")
+    compilesFile("progs/job/gj/29b.sdql")
+    compilesFile("progs/job/gj/29c.sdql")
+  }
+  it should "codegen JOB 30" in {
+    compilesFile("progs/job/gj/30a.sdql")
+    compilesFile("progs/job/gj/30b.sdql")
+    compilesFile("progs/job/gj/30c.sdql")
+  }
+  it should "codegen JOB 31" in {
+    compilesFile("progs/job/gj/31a.sdql")
+    compilesFile("progs/job/gj/31b.sdql")
+    compilesFile("progs/job/gj/31c.sdql")
+  }
   it should "codegen JOB 32" in {
     compilesFile("progs/job/gj/32b.sdql")
   }
-//  FIXME
-//  it should "codegen JOB 33" in {
-//    compilesFile("progs/job/gj/33a.sdql")
-//    compilesFile("progs/job/gj/33b.sdql")
-//    compilesFile("progs/job/gj/33c.sdql")
-//  }
+  it should "codegen JOB 33" in {
+    compilesFile("progs/job/gj/33a.sdql")
+    compilesFile("progs/job/gj/33b.sdql")
+    compilesFile("progs/job/gj/33c.sdql")
+  }
 
   private def compilesFile(path: String) = compilesExp(SourceCode.fromFile(path).exp)
   private def compilesExp(e: Exp) = assert(fromCpp(CppCodegen(e)) == 0)

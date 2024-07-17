@@ -503,7 +503,15 @@ object CppCodegen {
       // TODO get rid of hack for job/gj queries
       case Sym(name) if name.endsWith("_tuple") && !name.startsWith("interm")  =>
         s"${name.dropRight("_tuple".length)}.$field[${name}_i]"
-      case Sym(name) if !name.startsWith("mn_") && callsCtx.exists(cond(_) { case SumCtx(_, _, _, _, SumMinHint()) => true }) =>
+      case Sym(name)
+        if name.endsWith("_tuple") &&
+          cond(TypeInference.run(Sym(getSumOrigin(name)))) { case dt: DictType => TypeInference.isRecordToInt(dt) } &&
+          !callsCtx.exists(cond(_) { case SumCtx(_, _, _, _, SumMinHint()) => true }) =>
+        val origin = getOrigin(name)
+        s"${origin}_trie0_inner.$field[${origin}_tuple_i]"
+      case Sym(name)
+        if !name.startsWith("mn_") &&
+          callsCtx.exists(cond(_) { case SumCtx(_, _, _, _, SumMinHint()) => true }) =>
         val origin = getOrigin(name)
         s"${origin}_trie0_inner.$field[${origin}_tuple_i]"
       case _ =>
