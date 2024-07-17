@@ -223,7 +223,6 @@ sum(<x_s, x_s_v> <- S)
     compilesFile("progs/tpch/q22.sdql")
   }
 
-// TODO
   it should "codegen JOB 1" in {
     compilesFile("progs/job/gj/1a.sdql")
     compilesFile("progs/job/gj/1b.sdql")
@@ -340,61 +339,51 @@ sum(<x_s, x_s_v> <- S)
 //    compilesFile("progs/job/gj/21b.sdql")
 //    compilesFile("progs/job/gj/21c.sdql")
 //  }
-//  FIXME
 //  it should "codegen JOB 22" in {
 //    compilesFile("progs/job/gj/22a.sdql")
 //    compilesFile("progs/job/gj/22b.sdql")
 //    compilesFile("progs/job/gj/22c.sdql")
 //    compilesFile("progs/job/gj/22d.sdql")
 //  }
-//  FIXME
 //  it should "codegen JOB 23" in {
 //    compilesFile("progs/job/gj/23a.sdql")
 //    compilesFile("progs/job/gj/23b.sdql")
 //    compilesFile("progs/job/gj/23c.sdql")
 //  }
-//  FIXME
 //  it should "codegen JOB 24" in {
 //    compilesFile("progs/job/gj/24a.sdql")
 //    compilesFile("progs/job/gj/24b.sdql")
 //  }
-//  FIXME
 //  it should "codegen JOB 25" in {
 //    compilesFile("progs/job/gj/25a.sdql")
 //    compilesFile("progs/job/gj/25b.sdql")
 //    compilesFile("progs/job/gj/25c.sdql")
 //  }
-//  FIXME
 //  it should "codegen JOB 26" in {
 //    compilesFile("progs/job/gj/26a.sdql")
 //    compilesFile("progs/job/gj/26b.sdql")
 //    compilesFile("progs/job/gj/26c.sdql")
 //  }
-//  FIXME
 //  it should "codegen JOB 27" in {
 //    compilesFile("progs/job/gj/27a.sdql")
 //    compilesFile("progs/job/gj/27b.sdql")
 //    compilesFile("progs/job/gj/27c.sdql")
 //  }
-//  FIXME
 //  it should "codegen JOB 28" in {
 //    compilesFile("progs/job/gj/28a.sdql")
 //    compilesFile("progs/job/gj/28b.sdql")
 //    compilesFile("progs/job/gj/28c.sdql")
 //  }
-//  FIXME
 //  it should "codegen JOB 29" in {
 //    compilesFile("progs/job/gj/29a.sdql")
 //    compilesFile("progs/job/gj/29b.sdql")
 //    compilesFile("progs/job/gj/29c.sdql")
 //  }
-//  FIXME
 //  it should "codegen JOB 30" in {
 //    compilesFile("progs/job/gj/30a.sdql")
 //    compilesFile("progs/job/gj/30b.sdql")
 //    compilesFile("progs/job/gj/30c.sdql")
 //  }
-//  FIXME
 //  it should "codegen JOB 31" in {
 //    compilesFile("progs/job/gj/31a.sdql")
 //    compilesFile("progs/job/gj/31b.sdql")
