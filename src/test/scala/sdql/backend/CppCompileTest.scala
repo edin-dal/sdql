@@ -314,12 +314,12 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //    // Helpers.assertOutputs("progs/job/gj/22d.sdql", "src/test/job/gj/results/22d.result")
 //  }
 //
-//// FIXME
-////  it should "compile and run JOB 23" in {
-////    Helpers.assertOutputs("progs/job/gj/23a.sdql", "src/test/job/gj/results/23a.result")
-////    Helpers.assertOutputs("progs/job/gj/23b.sdql", "src/test/job/gj/results/23b.result")
-////    Helpers.assertOutputs("progs/job/gj/23c.sdql", "src/test/job/gj/results/23c.result")
-////  }
+//  it should "compile and run JOB 23" in {
+//    Helpers.assertOutputs("progs/job/gj/23a.sdql", "src/test/job/gj/results/23a.result")
+//    // FIXME
+//    // Helpers.assertOutputs("progs/job/gj/23b.sdql", "src/test/job/gj/results/23b.result")
+//    Helpers.assertOutputs("progs/job/gj/23c.sdql", "src/test/job/gj/results/23c.result")
+//  }
 //
 //  it should "compile and run JOB 24" in {
 //    Helpers.assertOutputs("progs/job/gj/24a.sdql", "src/test/job/gj/results/24a.result")
@@ -339,12 +339,11 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //    Helpers.assertOutputs("progs/job/gj/26c.sdql", "src/test/job/gj/results/26c.result")
 //  }
 //
-//// FIXME
-////  it should "compile and run JOB 27" in {
-////    Helpers.assertOutputs("progs/job/gj/27a.sdql", "src/test/job/gj/results/27a.result")
-////    Helpers.assertOutputs("progs/job/gj/27b.sdql", "src/test/job/gj/results/27b.result")
-////    Helpers.assertOutputs("progs/job/gj/27c.sdql", "src/test/job/gj/results/27c.result")
-////  }
+//  it should "compile and run JOB 27" in {
+//    Helpers.assertOutputs("progs/job/gj/27a.sdql", "src/test/job/gj/results/27a.result")
+//    Helpers.assertOutputs("progs/job/gj/27b.sdql", "src/test/job/gj/results/27b.result")
+//    Helpers.assertOutputs("progs/job/gj/27c.sdql", "src/test/job/gj/results/27c.result")
+//  }
 //
 //  it should "compile and run JOB 28" in {
 //    Helpers.assertOutputs("progs/job/gj/28a.sdql", "src/test/job/gj/results/28a.result")
