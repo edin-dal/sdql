@@ -13,7 +13,7 @@ let an = load[{<id: int, person_id: int, name: string, imdb_index: string, name_
 let it3 = load[{<id: int, info: string> -> int}]("datasets/job/29c/it3.csv")
 let n = load[{<id: int, name: string, imdb_index: string, imdb_id: string, gender: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/29c/n.csv")
 let ci = load[{<id: int, person_id: int, movie_id: int, person_role_id: int, note: string, nr_order: int, role_id: int> -> int}]("datasets/job/29c/ci.csv")
-let chn = load[{<id: int, name: string, imdb_index: string, imdb_id: int, name_pcode_cf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/29c/chn.csv")
+let chn = load[{<id: int, name: string, imdb_index: string, imdb_id: int, name_pcode_cf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/char_name.csv")
 let rt = load[{<id: int, role: string> -> int}]("datasets/job/29c/rt.csv")
 
 let cc_trie0 = sum_vec(<cc_tuple, _> <- cc) { cc_tuple.subject_id -> { cc_tuple.status_id -> { cc_tuple -> 1 } } } in

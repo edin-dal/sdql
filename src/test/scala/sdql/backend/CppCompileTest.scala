@@ -227,7 +227,7 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //
 //  it should "compile and run JOB 10" in {
 //    Helpers.assertOutputs("progs/job/gj/10a.sdql", "src/test/job/gj/results/10a.result")
-//    // FIXME iostream_category error
+//    // FIXME assertion failed
 //    // Helpers.assertOutputs("progs/job/gj/10c.sdql", "src/test/job/gj/results/10c.result")
 //  }
 //
@@ -258,31 +258,24 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //  it should "compile and run JOB 15" in {
 //    Helpers.assertOutputs("progs/job/gj/15a.sdql", "src/test/job/gj/results/15a.result")
 //    Helpers.assertOutputs("progs/job/gj/15b.sdql", "src/test/job/gj/results/15b.result")
-//    // FIXME iostream_category error
-//    // Helpers.assertOutputs("progs/job/gj/15c.sdql", "src/test/job/gj/results/15c.result")
+//    Helpers.assertOutputs("progs/job/gj/15c.sdql", "src/test/job/gj/results/15c.result")
 //    Helpers.assertOutputs("progs/job/gj/15d.sdql", "src/test/job/gj/results/15d.result")
 //  }
 //
 //  it should "compile and run JOB 16" in {
 //    Helpers.assertOutputs("progs/job/gj/16a.sdql", "src/test/job/gj/results/16a.result")
-//    // FIXME iostream_category error
-//    // Helpers.assertOutputs("progs/job/gj/16b.sdql", "src/test/job/gj/results/16b.result")
+//    Helpers.assertOutputs("progs/job/gj/16b.sdql", "src/test/job/gj/results/16b.result")
 //    Helpers.assertOutputs("progs/job/gj/16c.sdql", "src/test/job/gj/results/16c.result")
 //    Helpers.assertOutputs("progs/job/gj/16d.sdql", "src/test/job/gj/results/16d.result")
 //  }
 //
 //  it should "compile and run JOB 17" in {
 //    Helpers.assertOutputs("progs/job/gj/17a.sdql", "src/test/job/gj/results/17a.result")
-//    // FIXME iostream_category error
-//    // Helpers.assertOutputs("progs/job/gj/17b.sdql", "src/test/job/gj/results/17b.result")
-//    // FIXME iostream_category error
-//    // Helpers.assertOutputs("progs/job/gj/17c.sdql", "src/test/job/gj/results/17c.result")
-//    // FIXME iostream_category error
-//    // Helpers.assertOutputs("progs/job/gj/17d.sdql", "src/test/job/gj/results/17d.result")
-//    // FIXME iostream_category error
-//    // Helpers.assertOutputs("progs/job/gj/17e.sdql", "src/test/job/gj/results/17e.result")
-//    // FIXME iostream_category error
-//    // Helpers.assertOutputs("progs/job/gj/17f.sdql", "src/test/job/gj/results/17f.result")
+//    Helpers.assertOutputs("progs/job/gj/17b.sdql", "src/test/job/gj/results/17b.result")
+//    Helpers.assertOutputs("progs/job/gj/17c.sdql", "src/test/job/gj/results/17c.result")
+//    Helpers.assertOutputs("progs/job/gj/17d.sdql", "src/test/job/gj/results/17d.result")
+//    Helpers.assertOutputs("progs/job/gj/17e.sdql", "src/test/job/gj/results/17e.result")
+//    Helpers.assertOutputs("progs/job/gj/17f.sdql", "src/test/job/gj/results/17f.result")
 //  }
 //
 //  it should "compile and run JOB 18" in {
@@ -295,10 +288,8 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //  it should "compile and run JOB 19" in {
 //    Helpers.assertOutputs("progs/job/gj/19a.sdql", "src/test/job/gj/results/19a.result")
 //    Helpers.assertOutputs("progs/job/gj/19b.sdql", "src/test/job/gj/results/19b.result")
-//    // FIXME iostream_category error
-//    // Helpers.assertOutputs("progs/job/gj/19c.sdql", "src/test/job/gj/results/19c.result")
-//    // FIXME iostream_category error
-//    // Helpers.assertOutputs("progs/job/gj/19d.sdql", "src/test/job/gj/results/19d.result")
+//    Helpers.assertOutputs("progs/job/gj/19c.sdql", "src/test/job/gj/results/19c.result")
+//    Helpers.assertOutputs("progs/job/gj/19d.sdql", "src/test/job/gj/results/19d.result")
 //  }
 //
 //  it should "compile and run JOB 20" in {
@@ -317,8 +308,7 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //    Helpers.assertOutputs("progs/job/gj/22a.sdql", "src/test/job/gj/results/22a.result")
 //    Helpers.assertOutputs("progs/job/gj/22b.sdql", "src/test/job/gj/results/22b.result")
 //    Helpers.assertOutputs("progs/job/gj/22c.sdql", "src/test/job/gj/results/22c.result")
-//    // FIXME iostream_category error
-//    // Helpers.assertOutputs("progs/job/gj/22d.sdql", "src/test/job/gj/results/22d.result")
+//    Helpers.assertOutputs("progs/job/gj/22d.sdql", "src/test/job/gj/results/22d.result")
 //  }
 //
 //  it should "compile and run JOB 23" in {
@@ -361,23 +351,21 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //  it should "compile and run JOB 29" in {
 //    Helpers.assertOutputs("progs/job/gj/29a.sdql", "src/test/job/gj/results/29a.result")
 //    Helpers.assertOutputs("progs/job/gj/29b.sdql", "src/test/job/gj/results/29b.result")
-//    // FIXME iostream_category error
-//    // Helpers.assertOutputs("progs/job/gj/29c.sdql", "src/test/job/gj/results/29c.result")
+//    // FIXME assertion failed
+//    Helpers.assertOutputs("progs/job/gj/29c.sdql", "src/test/job/gj/results/29c.result")
 //  }
 //
 //  it should "compile and run JOB 30" in {
 //    Helpers.assertOutputs("progs/job/gj/30a.sdql", "src/test/job/gj/results/30a.result")
 //    Helpers.assertOutputs("progs/job/gj/30b.sdql", "src/test/job/gj/results/30b.result")
-//    // FIXME iostream_category error
-//    // Helpers.assertOutputs("progs/job/gj/30c.sdql", "src/test/job/gj/results/30c.result")
+//    Helpers.assertOutputs("progs/job/gj/30c.sdql", "src/test/job/gj/results/30c.result")
 //  }
 //
 //  it should "compile and run JOB 31" in {
 //    Helpers.assertOutputs("progs/job/gj/31a.sdql", "src/test/job/gj/results/31a.result")
 //    // FIXME assertion failed
 //    // Helpers.assertOutputs("progs/job/gj/31b.sdql", "src/test/job/gj/results/31b.result")
-//    // FIXME iostream_category error
-//    // Helpers.assertOutputs("progs/job/gj/31c.sdql", "src/test/job/gj/results/31c.result")
+//     Helpers.assertOutputs("progs/job/gj/31c.sdql", "src/test/job/gj/results/31c.result")
 //  }
 //
 //  it should "compile and run JOB 32" in {

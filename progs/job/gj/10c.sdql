@@ -3,7 +3,7 @@ let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, product
 let ct = load[{<id: int, kind: string> -> int}]("datasets/job/company_type.csv")
 let cn = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("datasets/job/10c/cn.csv")
 let ci = load[{<id: int, person_id: int, movie_id: int, person_role_id: int, note: string, nr_order: int, role_id: int> -> int}]("datasets/job/10c/ci.csv")
-let rt = load[{<id: int, role: string> -> int}]("datasets/job/10c/rt.csv")
+let rt = load[{<id: int, role: string> -> int}]("datasets/job/role_type.csv")
 let chn = load[{<id: int, name: string, imdb_index: string, imdb_id: int, name_pcode_cf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/char_name.csv")
 
 let mc_trie0 = sum_vec(<mc_tuple, _> <- mc) { mc_tuple.movie_id -> { mc_tuple.company_type_id -> { mc_tuple.company_id -> { mc_tuple -> 1 } } } } in
