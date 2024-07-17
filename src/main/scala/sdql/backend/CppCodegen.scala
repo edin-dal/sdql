@@ -466,13 +466,7 @@ object CppCodegen {
     }
 
   private def cppAccessors(dict: DictNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String =
-    getDictNonRecordKeys(dict).map {
-      case field@FieldNode(Sym(name), _) =>
-        val fieldCpp = run(field)(typesCtx, callsCtx, loadsCtx)
-        // TODO
-        // assert(fieldCpp.startsWith(getOrigin(name)))
-        s"[$fieldCpp]"
-    }.mkString("")
+    getDictNonRecordKeys(dict).map { case f: FieldNode => s"[${run(f)(typesCtx, callsCtx, loadsCtx)}]" }.mkString("")
 
   private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx) = {
     val isVector = cond(TypeInference.run(e1)) { case DictType(_, _, DictVectorHint()) => true }
