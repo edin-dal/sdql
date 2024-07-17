@@ -388,6 +388,7 @@ sum(<x_s, x_s_v> <- S)
 //    compilesFile("progs/job/gj/29b.sdql")
 //    compilesFile("progs/job/gj/29c.sdql")
 //  }
+//  FIXME
 //  it should "codegen JOB 30" in {
 //    compilesFile("progs/job/gj/30a.sdql")
 //    compilesFile("progs/job/gj/30b.sdql")
