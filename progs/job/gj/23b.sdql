@@ -6,7 +6,7 @@ let mc = load[{<id: int, movie_id: int, company_id: int, company_type_id: int, n
 let ct = load[{<id: int, kind: string> -> int}]("datasets/job/company_type.csv")
 let cn = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("datasets/job/23b/cn.csv")
 let mk = load[{<id: int, movie_id: int, keyword_id: int> -> int}]("datasets/job/movie_keyword.csv")
-let k = load[{<id: int, keyword: string, phonetic_code: string> -> int}]("datasets/job/keyword.csv")
+let k = load[{<id: int, keyword: string, phonetic_code: string> -> int}]("datasets/job/23b/k.csv")
 let mi = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/23b/mi.csv")
 let it1 = load[{<id: int, info: string> -> int}]("datasets/job/23b/it1.csv")
 
