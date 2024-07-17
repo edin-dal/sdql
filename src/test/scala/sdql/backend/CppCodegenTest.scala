@@ -403,6 +403,7 @@ sum(<x_s, x_s_v> <- S)
   it should "codegen JOB 32" in {
     compilesFile("progs/job/gj/32b.sdql")
   }
+//  FIXME
 //  it should "codegen JOB 33" in {
 //    compilesFile("progs/job/gj/33a.sdql")
 //    compilesFile("progs/job/gj/33b.sdql")
