@@ -256,11 +256,11 @@ sum(<x_s, x_s_v> <- S)
     compilesFile("progs/job/gj/6e.sdql")
     compilesFile("progs/job/gj/6f.sdql")
   }
-//  it should "codegen JOB 7" in {
-//    compilesFile("progs/job/gj/7a.sdql")
-//    compilesFile("progs/job/gj/7b.sdql")
-//    compilesFile("progs/job/gj/7c.sdql")
-//  }
+  it should "codegen JOB 7" in {
+    compilesFile("progs/job/gj/7a.sdql")
+    compilesFile("progs/job/gj/7b.sdql")
+    compilesFile("progs/job/gj/7c.sdql")
+  }
 //  it should "codegen JOB 8" in {
 //    compilesFile("progs/job/gj/8a.sdql")
 //    compilesFile("progs/job/gj/8b.sdql")
