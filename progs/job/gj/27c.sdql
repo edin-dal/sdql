@@ -98,7 +98,7 @@ let interm4_trie0 = sum_vec(<x0, mk_trie1> <- mk_trie0)
 		{}
 in
 
-let mi_trie0 = min(<mi_tuple, _> <- mi) { mi_tuple.movie_id -> 1 } in
+let mi_trie0 = sum(<mi_tuple, _> <- mi) { mi_tuple.movie_id -> 1 } in
 min(<x0, mi_trie1> <- mi_trie0)
 	if (x0 ∈ interm4_trie0) then
 		let interm4_trie1 = interm4_trie0(x0) in
