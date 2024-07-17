@@ -329,11 +329,11 @@ sum(<x_s, x_s_v> <- S)
     compilesFile("progs/job/gj/19c.sdql")
     compilesFile("progs/job/gj/19d.sdql")
   }
-//  it should "codegen JOB 20" in {
-//    compilesFile("progs/job/gj/20a.sdql")
-//    compilesFile("progs/job/gj/20b.sdql")
-//    compilesFile("progs/job/gj/20c.sdql")
-//  }
+  it should "codegen JOB 20" in {
+    compilesFile("progs/job/gj/20a.sdql")
+    compilesFile("progs/job/gj/20b.sdql")
+    compilesFile("progs/job/gj/20c.sdql")
+  }
 //  it should "codegen JOB 21" in {
 //    compilesFile("progs/job/gj/21a.sdql")
 //    compilesFile("progs/job/gj/21b.sdql")

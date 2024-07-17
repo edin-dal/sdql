@@ -1,0 +1,76 @@
+let cc = load[{<id: int, movie_id: int, subject_id: int, status_id: int> -> int}]("datasets/job/complete_cast.csv")
+let cct1 = load[{<id: int, kind: string> -> int}]("datasets/job/20b/cct1.csv")
+let cct2 = load[{<id: int, kind: string> -> int}]("datasets/job/20b/cct2.csv")
+let mk = load[{<id: int, movie_id: int, keyword_id: int> -> int}]("datasets/job/movie_keyword.csv")
+let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("datasets/job/20b/t.csv")
+let kt = load[{<id: int, kind: string> -> int}]("datasets/job/20b/kt.csv")
+let k = load[{<id: int, keyword: string, phonetic_code: string> -> int}]("datasets/job/20b/k.csv")
+let ci = load[{<id: int, person_id: int, movie_id: int, person_role_id: int, note: string, nr_order: int, role_id: int> -> int}]("datasets/job/cast_info.csv")
+let n = load[{<id: int, name: string, imdb_index: string, imdb_id: string, gender: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/20b/n.csv")
+let chn = load[{<id: int, name: string, imdb_index: string, imdb_id: int, name_pcode_cf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/20b/chn.csv")
+
+let cc_trie0 = sum_vec(<cc_tuple, _> <- cc) { cc_tuple.subject_id -> { cc_tuple.status_id -> { cc_tuple -> 1 } } } in
+let cct1_trie0 = sum_vec(<cct1_tuple, _> <- cct1) { cct1_tuple.id -> { cct1_tuple -> 1 } } in
+let cct2_trie0 = sum_vec(<cct2_tuple, _> <- cct2) { cct2_tuple.id -> { cct2_tuple -> 1 } } in
+let interm0_trie0 = sum_vec(<x0, cc_trie1> <- cc_trie0)
+	if (x0 ∈ cct1_trie0) then
+		let cct1_trie1 = cct1_trie0(x0) in
+		sum_vec(<x1, cc_trie2> <- cc_trie1)
+			if (x1 ∈ cct2_trie0) then
+				let cct2_trie1 = cct2_trie0(x1) in
+				sum_vec(<cc_tuple, _> <- cc_trie2)
+					{ cc_tuple.movie_id -> { <col0=cc_tuple.subject_id, col1=cc_tuple.status_id, col2=cc_tuple.movie_id> -> 1 } }
+			else
+				{}
+	else
+		{}
+in
+
+let mk_trie0 = sum_vec(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> { mk_tuple.keyword_id -> { mk_tuple -> 1 } } } in
+let t_trie0 = sum_vec(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple.kind_id -> { t_tuple -> 1 } } } in
+let kt_trie0 = sum_vec(<kt_tuple, _> <- kt) { kt_tuple.id -> { kt_tuple -> 1 } } in
+let k_trie0 = sum_vec(<k_tuple, _> <- k) { k_tuple.id -> { k_tuple -> 1 } } in
+let interm1_trie0 = sum_vec(<x0, mk_trie1> <- mk_trie0)
+	if (x0 ∈ t_trie0) then
+		let t_trie1 = t_trie0(x0) in
+		sum_vec(<x1, t_trie2> <- t_trie1)
+			if (x1 ∈ kt_trie0) then
+				let kt_trie1 = kt_trie0(x1) in
+				sum_vec(<x2, mk_trie2> <- mk_trie1)
+					if (x2 ∈ k_trie0) then
+						let k_trie1 = k_trie0(x2) in
+						sum_vec(<mk_tuple, _> <- mk_trie2)
+							sum_vec(<t_tuple, _> <- t_trie2)
+								{ mk_tuple.movie_id -> { <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=t_tuple.kind_id, col3=t_tuple.title> -> 1 } }
+					else
+						{}
+			else
+				{}
+	else
+		{}
+in
+
+let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.person_id -> { ci_tuple.movie_id -> { ci_tuple.person_role_id -> 1 } } } in
+let n_trie0 = sum(<n_tuple, _> <- n) { n_tuple.id -> 1 } in
+let chn_trie0 = sum(<chn_tuple, _> <- chn) { chn_tuple.id -> 1 } in
+min(<x0, ci_trie1> <- ci_trie0)
+	if (x0 ∈ n_trie0) then
+		let n_trie1 = n_trie0(x0) in
+		min(<x1, ci_trie2> <- ci_trie1)
+			if (x1 ∈ interm1_trie0) then
+				let interm1_trie1 = interm1_trie0(x1) in
+				min(<x2, ci_trie3> <- ci_trie2)
+					if (x2 ∈ chn_trie0) then
+						let chn_trie1 = chn_trie0(x2) in
+						if (x1 ∈ interm0_trie0) then
+							let interm0_trie1 = interm0_trie0(x1) in
+							let mn_interm1 = min(<interm1_tuple, _> <- interm1_trie1) <col3=interm1_tuple.col3> in
+							<col5=mn_interm1.col3>
+						else
+							<>
+					else
+						<>
+			else
+				<>
+	else
+		<>
