@@ -288,10 +288,10 @@ sum(<x_s, x_s_v> <- S)
     compilesFile("progs/job/gj/12b.sdql")
     compilesFile("progs/job/gj/12c.sdql")
   }
-//  it should "codegen JOB 13" in {
-//    compilesFile("progs/job/gj/13b.sdql")
-//    compilesFile("progs/job/gj/13c.sdql")
-//  }
+  it should "codegen JOB 13" in {
+    compilesFile("progs/job/gj/13b.sdql")
+    compilesFile("progs/job/gj/13c.sdql")
+  }
 //  it should "codegen JOB 14" in {
 //    compilesFile("progs/job/gj/14a.sdql")
 //    compilesFile("progs/job/gj/14b.sdql")
