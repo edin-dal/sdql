@@ -248,14 +248,14 @@ sum(<x_s, x_s_v> <- S)
   it should "codegen JOB 5" in {
     compilesFile("progs/job/gj/5c.sdql")
   }
-//  it should "codegen JOB 6" in {
-//    compilesFile("progs/job/gj/6a.sdql")
-//    compilesFile("progs/job/gj/6b.sdql")
-//    compilesFile("progs/job/gj/6c.sdql")
-//    compilesFile("progs/job/gj/6d.sdql")
-//    compilesFile("progs/job/gj/6e.sdql")
-//    compilesFile("progs/job/gj/6f.sdql")
-//  }
+  it should "codegen JOB 6" in {
+    compilesFile("progs/job/gj/6a.sdql")
+    compilesFile("progs/job/gj/6b.sdql")
+    compilesFile("progs/job/gj/6c.sdql")
+    compilesFile("progs/job/gj/6d.sdql")
+    compilesFile("progs/job/gj/6e.sdql")
+    compilesFile("progs/job/gj/6f.sdql")
+  }
 //  it should "codegen JOB 7" in {
 //    compilesFile("progs/job/gj/7a.sdql")
 //    compilesFile("progs/job/gj/7b.sdql")
