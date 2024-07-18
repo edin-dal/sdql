@@ -142,7 +142,12 @@ object CppCodegen {
             ""
           case External(Limit.SYMBOL, _) =>
             s"${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls, loadsCtx)}\n"
-
+          // TODO get rid of hack for job/gj queries
+          case Get(sym @ Sym(inner), _)
+            if inner.contains("trie") &&
+              cond(TypeInference.run(sym)) { case dt: DictType => TypeInference.isRecordToInt(dt) } =>
+            // this is a vector so take a reference rather than copy
+            s"const auto &$name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls, loadsCtx)};"
           case c: Const =>
             s"constexpr auto $name = ${const(c)};"
           case _ =>
@@ -178,6 +183,10 @@ object CppCodegen {
           }
           val values = if (v.name == noName) "" else s"constexpr auto ${v.name} = ${e1Name.capitalize}Values();"
           val sumVar = sumVariable(callsLocal)
+          // note: we could create the const auto variable outside the loop
+          //       but then we could have to assign it a randomised name (ugly)
+          //       as the same variable name could be used by other loops
+          //       and there's no simple way to detect if it's been created already
           s"""$init
              |for (int $sumVar = 0; $sumVar < ${e1Name.capitalize}::size(); $sumVar++) {
              |const auto &${k.name} = $e1Name;
