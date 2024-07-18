@@ -77,15 +77,22 @@ object CppCodegen {
             val lhs = run(kv._1)(typesCtx, callsLocal, loadsCtx)
             val rhs = run(kv._2)(typesCtx, callsLocal, loadsCtx)
             hint match {
-              case _: SumNoHint => s"$agg[$lhs] += $rhs;"
+              case _: SumNoHint =>
+                val(fields, inner) = splitNestedFields(dict)
+                val rhs = run(inner)(typesCtx, callsLocal, loadsCtx)
+                val accessors = cppAccessors(fields)(typesCtx, callsLocal, loadsCtx)
+                s"$agg$accessors += $rhs;"
               case _: SumUniqueHint => s"$agg.emplace($lhs, $rhs);"
               case _: SumVectorHint =>
                 typesCtx(Sym(agg)) match {
                   // TODO get rid of hack for job/gj queries
                   case dt: DictType if TypeInference.isRecordToInt(dt) && !agg.startsWith("interm") =>
-                    val accessors = cppAccessors(dict)(typesCtx, callsLocal, loadsCtx)
+                    val(fields, _) = splitNestedFields(dict)
+                    val accessors = cppAccessors(fields)(typesCtx, callsLocal, loadsCtx)
                     s"$agg$accessors.emplace_back(${sumVariable(callsLocal)});"
                   case dt: DictType if TypeInference.isRecordToInt(dt) =>
+                    val(fields, _) = splitNestedFields(dict)
+                    val accessors = cppAccessors(fields)(typesCtx, callsLocal, loadsCtx)
                     val cols = getRecordType(dt) match {
                       case Some(RecordType(attrs)) => attrs.map(_.name)
                     }
@@ -95,7 +102,6 @@ object CppCodegen {
                     val expsCpp = exps.map(run(_)(typesCtx, callsLocal, loadsCtx))
                     val insertions = cols
                       .zip(expsCpp).map { case (col, cpp) => s"${agg}_inner.$col.push_back($cpp);" }.mkString("\n")
-                    val accessors = cppAccessors(dict)(typesCtx, callsLocal, loadsCtx)
                     val link = s"$agg$accessors.push_back(${agg}_cnt++);"
                     s"""$insertions
                        |$link
@@ -450,12 +456,6 @@ object CppCodegen {
     case _ => raise(s"unexpected: ${TypeInference.run(dict).prettyPrint}")
   }
 
-  private def getDictNonRecordKeys(dict: DictNode)(implicit typesCtx: TypesCtx): Seq[Exp] = dict match {
-    case DictNode(Seq((k, v: DictNode))) => Seq(k) ++ getDictNonRecordKeys(v)
-    case DictNode(Seq((k, Const(1)))) if cond(TypeInference.run(k)) { case _: RecordType => true } => Seq()
-    case _ => raise(s"unexpected: ${TypeInference.run(dict).prettyPrint}")
-  }
-
   private val reOrigin = "(?<suffix>.*)_trie(?<n>\\d+)$".r
 
   @tailrec
@@ -474,8 +474,18 @@ object CppCodegen {
       case None => name
     }
 
-  private def cppAccessors(dict: DictNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String =
-    getDictNonRecordKeys(dict).map { case f: FieldNode => s"[${run(f)(typesCtx, callsCtx, loadsCtx)}]" }.mkString("")
+  private def cppAccessors(fields: Iterable[FieldNode])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx) =
+    fields.map(f => s"[${run(f)(typesCtx, callsCtx, loadsCtx)}]").mkString("")
+
+  private def splitNestedFields(dict: DictNode)(implicit typesCtx: TypesCtx): (Seq[FieldNode], Exp) = dict match {
+    case DictNode(Seq((f: FieldNode, v: DictNode))) =>
+      val (vFields, e) = splitNestedFields(v)
+      (Seq(f) ++ vFields, e)
+    case DictNode(Seq((f: FieldNode, e))) =>
+      (Seq(f), e)
+    case e: DictNode =>
+      (Seq(), e)
+  }
 
   private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx) = {
     val isVector = cond(TypeInference.run(e1)) { case DictType(_, _, DictVectorHint()) => true }
