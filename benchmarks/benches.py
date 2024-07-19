@@ -22,10 +22,10 @@ class Aggregation(Enum):
 
 
 def benchmark_sdql(indices: list[int], runs: int, agg: Aggregation) -> list[int]:
-    subprocess.call("./codegen.sh", shell=True)
-    subprocess.call("./compile.sh", shell=True)
+    subprocess.call("./codegen_tpch.sh", shell=True)
+    subprocess.call("./compile_tpch.sh", shell=True)
     print("SDQL running...")
-    output = subprocess.check_output(f"./run.sh {runs}", shell=True, text=True)
+    output = subprocess.check_output(f"./run_tpch.sh {runs}", shell=True, text=True)
     lines = iter(output.splitlines())
 
     individual_runs = []
