@@ -602,6 +602,11 @@ object CppCodegen {
     recordType.attrs.zipWithIndex.map(
         {
           case (Attribute(_, tpe), i) => tpe match {
+            case DateType =>
+              val tpe = StringType()
+              s"dates_to_numerics(" +
+                s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)" +
+                "),"
             case StringType(Some(maxLen)) =>
               val tpe = StringType()
               s"strings_to_varchars<$maxLen>(" +
