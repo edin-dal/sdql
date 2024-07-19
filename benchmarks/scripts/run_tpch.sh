@@ -23,11 +23,13 @@ qs=(
   22
 )
 
-cd ../generated/
+cd ../../generated/
+
 for i in "${qs[@]}"
 do
-  rm -f q$i.cpp
+  echo "q$i"
+  for ((j = 0; j < $1; j++))
+  do
+     ./q$i.out | grep --text Runtime
+  done
 done
-
-cd ..
-sbt "run benchmark progs/tpch $(printf 'q%q.sdql ' "${qs[@]}")"

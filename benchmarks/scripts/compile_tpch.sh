@@ -23,7 +23,7 @@ qs=(
   22
 )
 
-cd ../generated/
+cd ../../generated/
 
 for i in "${qs[@]}"
 do

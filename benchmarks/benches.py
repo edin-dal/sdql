@@ -14,6 +14,7 @@ RE_RUNTIME = re.compile(r"^Runtime \(ms\): ([\d]+)$")
 REPO_ROOT = os.path.normpath(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), "../")
 )
+SCRIPTS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "scripts")
 
 
 class Aggregation(Enum):
@@ -22,10 +23,12 @@ class Aggregation(Enum):
 
 
 def benchmark_sdql(indices: list[int], runs: int, agg: Aggregation) -> list[int]:
-    subprocess.call("./codegen_tpch.sh", shell=True)
-    subprocess.call("./compile_tpch.sh", shell=True)
+    subprocess.call("./codegen_tpch.sh", shell=True, cwd=SCRIPTS_DIR)
+    subprocess.call("./compile_tpch.sh", shell=True, cwd=SCRIPTS_DIR)
     print("SDQL running...")
-    output = subprocess.check_output(f"./run_tpch.sh {runs}", shell=True, text=True)
+    output = subprocess.check_output(
+        f"./run_tpch.sh {runs}", shell=True, text=True, cwd=SCRIPTS_DIR
+    )
     lines = iter(output.splitlines())
 
     individual_runs = []
