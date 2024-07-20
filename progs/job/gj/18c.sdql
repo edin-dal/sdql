@@ -1,6 +1,6 @@
 let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("datasets/job/title.csv")
 let mi_idx = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/movie_info_idx.csv")
-let mi = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/movie_info.csv")
+let mi = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/18c/mi.csv")
 let it2 = load[{<id: int, info: string> -> int}]("datasets/job/18c/it2.csv")
 let it1 = load[{<id: int, info: string> -> int}]("datasets/job/18c/it1.csv")
 let ci = load[{<id: int, person_id: int, movie_id: int, person_role_id: int, note: string, nr_order: int, role_id: int> -> int}]("datasets/job/18c/ci.csv")
