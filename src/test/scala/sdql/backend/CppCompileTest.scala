@@ -224,8 +224,7 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //
 //  it should "compile and run JOB 10" in {
 //    Helpers.assertOutputs("progs/job/gj/10a.sdql", "src/test/job/gj/results/10a.result")
-//    // FIXME
-//    // Helpers.assertOutputs("progs/job/gj/10c.sdql", "src/test/job/gj/results/10c.result")
+//    Helpers.assertOutputs("progs/job/gj/10c.sdql", "src/test/job/gj/results/10c.result")
 //  }
 //
 //  it should "compile and run JOB 11" in {
@@ -345,8 +344,7 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //  it should "compile and run JOB 29" in {
 //    Helpers.assertOutputs("progs/job/gj/29a.sdql", "src/test/job/gj/results/29a.result")
 //    Helpers.assertOutputs("progs/job/gj/29b.sdql", "src/test/job/gj/results/29b.result")
-//    // FIXME
-//    // Helpers.assertOutputs("progs/job/gj/29c.sdql", "src/test/job/gj/results/29c.result")
+//    Helpers.assertOutputs("progs/job/gj/29c.sdql", "src/test/job/gj/results/29c.result")
 //  }
 //
 //  it should "compile and run JOB 30" in {
