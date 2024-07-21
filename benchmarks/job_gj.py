@@ -91,9 +91,9 @@ if __name__ == "__main__":
     ).set_index("Query")
     df["Diff (ms)"] = df[df.columns[1]] - df[df.columns[0]]
     df["Diff (%)"] = (100 * df["Diff (ms)"] / df[df.columns[0]]).round().astype(int)
-    print(df.sort_values(by=df.columns[3], ascending=False))
-    print()
+    pct_diff_summary = pd.DataFrame(df[df.columns[3]].describe().round().astype(int)).T
     print(f"{df.columns[3]} summary")
-    pct_diff_summary = df[df.columns[3]].describe().round().astype(int)
     print(pct_diff_summary)
+    print()
+    print(df.sort_values(by=df.columns[3], ascending=False))
     plot(df)
