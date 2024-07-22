@@ -50,7 +50,7 @@ object CppCodegen {
         |std::cout << "Runtime (ms): " << duration.count() << std::endl;
         |""".stripMargin
     // slightly wasteful to redo type inference - but spares us having to return the type at every recursive run call
-    val tpe = TypeInference(e)
+    val printOrDCE = if (isBenchmark) s"doNotOptimiseAway($resultName);" else cppPrintResult(TypeInference(e))
     s"""$header
        |$csvConsts
        |$csvBody
@@ -58,7 +58,7 @@ object CppCodegen {
        |$benchStart
        |$queryBody
        |$benchStop
-       |${cppPrintResult(tpe)}
+       |$printOrDCE
        |}""".stripMargin
   }
 
