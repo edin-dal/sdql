@@ -18,7 +18,5 @@ let l_t =
         a = if (p_h(l.l_partkey) != {}) then l.l_extendedprice * (1.0 - l.l_discount) else 0.0,
         b = l.l_extendedprice * (1.0 - l.l_discount)
       >
-    else
-      < >
 
 100 * l_t.a / l_t.b

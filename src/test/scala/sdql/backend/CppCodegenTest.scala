@@ -84,6 +84,7 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
   }
 
   it should "codegen records" in {
+    compilesExp(sdql"< >")
     compilesExp(sdql"< a=1, b=1.5 >")
     compilesExp(sdql"concat(< a=1 >, < b=1.5 >)")
     compilesExp(sdql"concat(< a=1, b=1.5 >, < b=1.5 >)")

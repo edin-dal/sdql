@@ -27,8 +27,6 @@ let ps_t =
         _ = ps.ps_supplycost * ps.ps_availqty * 0.0001,
         _ = { ps.ps_partkey -> ps.ps_supplycost * ps.ps_availqty }
       >
-    else
-      < >
 
 sum(<ps_partkey,ps_supplycost> in ps_t(1))
   if(ps_t(0) < ps_supplycost) then

@@ -255,7 +255,7 @@ object CppCodegen {
         val condBody = run(cond)(typesCtx, List(SumEnd()) ++ callsCtx, loadsCtx)
         val ifBody = run(e1)
         val elseBody = e2 match {
-          case DictNode(Nil) | RecNode(Seq()) | Const(0) | Const(0.0) => ""
+          case DictNode(Nil) | Const(0) | Const(0.0) => ""
           case _ => s" else {\n${run(e2)}\n}"
         }
         s"if ($condBody) {$ifBody\n}$elseBody"
@@ -318,8 +318,6 @@ object CppCodegen {
           })
           .mkString(s"${cppType(TypeInference.run(e))}({", ", ", "})")
 
-      case RecNode(Seq()) =>
-        ""
       case RecNode(values) =>
         val localCalls = List(IsTernary()) ++ callsCtx
         val tpe = TypeInference.run(e) match {
@@ -740,6 +738,8 @@ object CppCodegen {
   private def _cppPrintResult(tpe: Type, name: String) = tpe match {
     case _: DictType =>
       // we currently don't pretty print inside nested dicts
+      name
+    case RecordType(Nil) =>
       name
     case RecordType(attrs) => attrs.zipWithIndex.map(
       {

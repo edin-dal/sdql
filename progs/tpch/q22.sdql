@@ -31,8 +31,6 @@ let fused =
     // parsing fails without this trivial conditional - C++ compiler can optimise it away
     if(true) then
       < total = if(cond) then c.c_acctbal else 0.0, count = if(cond) then 1.0 else 0.0 >
-    else
-      < >
 
 let avg = fused.total / fused.count
 

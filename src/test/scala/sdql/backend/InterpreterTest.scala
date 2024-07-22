@@ -62,6 +62,7 @@ class InterpreterTest extends FlatSpec {
   }
 
   it should "work for records" in {
+    interpreter(sdql"< >") should be (RecordValue(Nil))
     interpreter(sdql"< a=1, b=1.5 >") should be (RecordValue(Seq("a" -> 1, "b" -> 1.5)))
     interpreter(sdql"concat(< a=1 >, < b=1.5 >)") should be (RecordValue(Seq("a" -> 1, "b" -> 1.5)))
     interpreter(sdql"concat(< a=1, b=1.5 >, < b=1.5 >)") should be (RecordValue(Seq("a" -> 1, "b" -> 1.5)))
