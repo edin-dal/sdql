@@ -18,10 +18,6 @@ let interm0_trie0 = sum_vec(<x0, t1_trie1> <- t1_trie0)
 					sum_vec(<ml_tuple, _> <- ml_trie2)
 						sum_vec(<t2_tuple, _> <- t2_trie1)
 							{ t1_tuple.id -> { ml_tuple.link_type_id -> { <col0=t1_tuple.id, col1=t1_tuple.title, col2=ml_tuple.linked_movie_id, col3=ml_tuple.link_type_id, col4=t2_tuple.title> -> 1 } } }
-			else
-				{}
-	else
-		{}
 in
 
 let mk_trie0 = sum(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> { mk_tuple.keyword_id -> 1 } } in
@@ -39,9 +35,3 @@ min(<x0, mk_trie1> <- mk_trie0)
 						let mn_interm0 = min(<interm0_tuple, _> <- interm0_trie2) <col1=interm0_tuple.col1, col4=interm0_tuple.col4> in
 						let mn_lt = min(<lt_tuple, _> <- lt_trie1) <link=lt_tuple.link> in
 						<col3=mn_interm0.col1, col5=mn_interm0.col4, col6=mn_lt.link>
-					else
-						<>
-			else
-				<>
-	else
-		<>

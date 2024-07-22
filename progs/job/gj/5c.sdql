@@ -22,11 +22,3 @@ min(<x0, mi_trie1> <- mi_trie0)
 							let ct_trie1 = ct_trie0(x2) in
 							let mn_t = min(<t_tuple, _> <- t_trie1) <title=t_tuple.title> in
 							<col2=mn_t.title>
-						else
-							<>
-				else
-					<>
-		else
-			<>
-	else
-		<>

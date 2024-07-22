@@ -13,8 +13,6 @@ let interm0_trie0 = sum_vec(<x0, mc_trie1> <- mc_trie0)
 		let cn_trie1 = cn_trie0(x0) in
 		sum_vec(<mc_tuple, _> <- mc_trie1)
 			{ mc_tuple.movie_id -> { <col0=mc_tuple.company_id, col1=mc_tuple.movie_id> -> 1 } }
-	else
-		{}
 in
 
 let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.person_id -> { ci_tuple.movie_id -> { ci_tuple.role_id -> 1 } } } in
@@ -38,13 +36,3 @@ min(<x0, ci_trie1> <- ci_trie0)
 								let mn_t = min(<t_tuple, _> <- t_trie1) <title=t_tuple.title> in
 								let mn_an1 = min(<an1_tuple, _> <- an1_trie1) <name=an1_tuple.name> in
 								<col4=mn_t.title, col5=mn_an1.name>
-							else
-								<>
-						else
-							<>
-					else
-						<>
-			else
-				<>
-	else
-		<>

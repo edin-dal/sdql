@@ -26,12 +26,6 @@ let interm0_trie0 = sum_vec(<x0, t_trie1> <- t_trie0)
 						sum_vec(<t_tuple, _> <- t_trie2)
 							sum_vec(<mi_idx_tuple, _> <- mi_idx_trie2)
 								{ t_tuple.id -> { <col0=t_tuple.id, col1=t_tuple.kind_id, col2=t_tuple.title, col3=mi_idx_tuple.info_type_id, col4=mi_idx_tuple.info> -> 1 } }
-					else
-						{}
-			else
-				{}
-	else
-		{}
 in
 
 let mc_trie0 = sum_vec(<mc_tuple, _> <- mc) { mc_tuple.company_id -> { mc_tuple.company_type_id -> { mc_tuple.movie_id -> { mc_tuple -> 1 } } } } in
@@ -50,12 +44,6 @@ let interm1_trie0 = sum_vec(<x0, mc_trie1> <- mc_trie0)
 							sum_vec(<cn_tuple, _> <- cn_trie1)
 								sum_vec(<interm0_tuple, _> <- interm0_trie1)
 									{ mc_tuple.movie_id -> { <col0=mc_tuple.company_id, col1=mc_tuple.company_type_id, col2=mc_tuple.movie_id, col3=cn_tuple.name, col5=interm0_tuple.col2, col7=interm0_tuple.col4> -> 1 } }
-					else
-						{}
-			else
-				{}
-	else
-		{}
 in
 
 let mk_trie0 = sum_vec(<mk_tuple, _> <- mk) { mk_tuple.keyword_id -> { mk_tuple.movie_id -> { mk_tuple -> 1 } } } in
@@ -69,10 +57,6 @@ let interm2_trie0 = sum_vec(<x0, mk_trie1> <- mk_trie0)
 				sum_vec(<mk_tuple, _> <- mk_trie2)
 					sum_vec(<interm1_tuple, _> <- interm1_trie1)
 						{ mk_tuple.movie_id -> { <col0=mk_tuple.keyword_id, col1=mk_tuple.movie_id, col4=interm1_tuple.col3, col6=interm1_tuple.col5, col8=interm1_tuple.col7> -> 1 } }
-			else
-				{}
-	else
-		{}
 in
 
 let mi_trie0 = sum(<mi_tuple, _> <- mi) { mi_tuple.info_type_id -> { mi_tuple.movie_id -> 1 } } in
@@ -85,7 +69,3 @@ min(<x0, mi_trie1> <- mi_trie0)
 				let interm2_trie1 = interm2_trie0(x1) in
 				let mn_interm2 = min(<interm2_tuple, _> <- interm2_trie1) <col4=interm2_tuple.col4, col6=interm2_tuple.col6, col8=interm2_tuple.col8> in
 				<col5=mn_interm2.col4, col7=mn_interm2.col6, col9=mn_interm2.col8>
-			else
-				<>
-	else
-		<>

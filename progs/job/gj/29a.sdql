@@ -27,10 +27,6 @@ let interm0_trie0 = sum_vec(<x0, cc_trie1> <- cc_trie0)
 				let cct2_trie1 = cct2_trie0(x1) in
 				sum_vec(<cc_tuple, _> <- cc_trie2)
 					{ cc_tuple.movie_id -> { <col0=cc_tuple.subject_id, col1=cc_tuple.status_id, col2=cc_tuple.movie_id> -> 1 } }
-			else
-				{}
-	else
-		{}
 in
 
 let t_trie0 = sum_vec(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
@@ -39,8 +35,6 @@ let interm1_trie0 = sum_vec(<x0, t_trie1> <- t_trie0)
 		let interm0_trie1 = interm0_trie0(x0) in
 		sum_vec(<t_tuple, _> <- t_trie1)
 			{ t_tuple.id -> { <col0=t_tuple.id, col1=t_tuple.title> -> 1 } }
-	else
-		{}
 in
 
 let mc_trie0 = sum_vec(<mc_tuple, _> <- mc) { mc_tuple.company_id -> { mc_tuple.movie_id -> { mc_tuple -> 1 } } } in
@@ -54,10 +48,6 @@ let interm2_trie0 = sum_vec(<x0, mc_trie1> <- mc_trie0)
 				sum_vec(<mc_tuple, _> <- mc_trie2)
 					sum_vec(<interm1_tuple, _> <- interm1_trie1)
 						{ mc_tuple.movie_id -> { <col0=mc_tuple.company_id, col1=mc_tuple.movie_id, col2=interm1_tuple.col1> -> 1 } }
-			else
-				{}
-	else
-		{}
 in
 
 let mk_trie0 = sum_vec(<mk_tuple, _> <- mk) { mk_tuple.keyword_id -> { mk_tuple.movie_id -> { mk_tuple -> 1 } } } in
@@ -71,10 +61,6 @@ let interm3_trie0 = sum_vec(<x0, mk_trie1> <- mk_trie0)
 				sum_vec(<mk_tuple, _> <- mk_trie2)
 					sum_vec(<interm2_tuple, _> <- interm2_trie1)
 						{ mk_tuple.movie_id -> { <col0=mk_tuple.keyword_id, col1=mk_tuple.movie_id, col3=interm2_tuple.col2> -> 1 } }
-			else
-				{}
-	else
-		{}
 in
 
 let mi_trie0 = sum_vec(<mi_tuple, _> <- mi) { mi_tuple.info_type_id -> { mi_tuple.movie_id -> { mi_tuple -> 1 } } } in
@@ -88,10 +74,6 @@ let interm4_trie0 = sum_vec(<x0, mi_trie1> <- mi_trie0)
 				sum_vec(<mi_tuple, _> <- mi_trie2)
 					sum_vec(<interm3_tuple, _> <- interm3_trie1)
 						{ mi_tuple.movie_id -> { <col0=mi_tuple.info_type_id, col1=mi_tuple.movie_id, col4=interm3_tuple.col3> -> 1 } }
-			else
-				{}
-	else
-		{}
 in
 
 let pi_trie0 = sum_vec(<pi_tuple, _> <- pi) { pi_tuple.person_id -> { pi_tuple.info_type_id -> { pi_tuple -> 1 } } } in
@@ -105,10 +87,6 @@ let interm5_trie0 = sum_vec(<x0, pi_trie1> <- pi_trie0)
 				let it3_trie1 = it3_trie0(x1) in
 				sum_vec(<pi_tuple, _> <- pi_trie2)
 					{ pi_tuple.person_id -> { <col0=pi_tuple.person_id, col1=pi_tuple.info_type_id> -> 1 } }
-			else
-				{}
-	else
-		{}
 in
 
 let n_trie0 = sum_vec(<n_tuple, _> <- n) { n_tuple.id -> { n_tuple -> 1 } } in
@@ -117,8 +95,6 @@ let interm6_trie0 = sum_vec(<x0, n_trie1> <- n_trie0)
 		let interm5_trie1 = interm5_trie0(x0) in
 		sum_vec(<n_tuple, _> <- n_trie1)
 			{ n_tuple.id -> { <col0=n_tuple.id, col1=n_tuple.name> -> 1 } }
-	else
-		{}
 in
 
 let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.person_role_id -> { ci_tuple.role_id -> { ci_tuple.person_id -> { ci_tuple.movie_id -> 1 } } } } in
@@ -140,11 +116,3 @@ min(<x0, ci_trie1> <- ci_trie0)
 								let mn_interm6 = min(<interm6_tuple, _> <- interm6_trie1) <col1=interm6_tuple.col1> in
 								let mn_interm4 = min(<interm4_tuple, _> <- interm4_trie1) <col4=interm4_tuple.col4> in
 								<col4=mn_chn.name, col5=mn_interm6.col1, col10=mn_interm4.col4>
-							else
-								<>
-					else
-						<>
-			else
-				<>
-	else
-		<>

@@ -23,11 +23,3 @@ min(<x0, mk_trie1> <- mk_trie0)
 							let mn_t = min(<t_tuple, _> <- t_trie1) <title=t_tuple.title> in
 							let mn_mi_idx = min(<mi_idx_tuple, _> <- mi_idx_trie2) <info=mi_idx_tuple.info> in
 							<col2=mn_t.title, col4=mn_mi_idx.info>
-						else
-							<>
-				else
-					<>
-		else
-			<>
-	else
-		<>

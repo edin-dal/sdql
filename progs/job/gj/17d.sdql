@@ -25,14 +25,6 @@ let interm0_trie0 = sum_vec(<x0, mk_trie1> <- mk_trie0)
 							sum_vec(<mk_tuple, _> <- mk_trie2)
 								sum_vec(<mc_tuple, _> <- mc_trie2)
 									{ mk_tuple.movie_id -> { <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=mc_tuple.company_id> -> 1 } }
-						else
-							{}
-				else
-					{}
-		else
-			{}
-	else
-		{}
 in
 
 let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.person_id -> { ci_tuple.movie_id -> 1 } } in
@@ -45,7 +37,3 @@ min(<x0, ci_trie1> <- ci_trie0)
 				let interm0_trie1 = interm0_trie0(x1) in
 				let mn_n = min(<n_tuple, _> <- n_trie1) <name=n_tuple.name> in
 				<col2=mn_n.name>
-			else
-				<>
-	else
-		<>
