@@ -9,21 +9,21 @@ let l_h =
     { l.l_orderkey -> l.l_quantity }
 
 let orderkeys =
-  sum_unique(<l_orderkey,l_quantity> in l_h)
+  sum(<l_orderkey,l_quantity> in l_h)
     if(300 < l_quantity) then
-      { l_orderkey -> 1 }
+      { unique(l_orderkey) -> 1 }
     else
       { }
 
 let custkey_to_name =
-  sum_unique(<c,c_v> in customer)
-    { c.c_custkey -> < _ = c.c_name > }
+  sum(<c,c_v> in customer)
+    { unique(c.c_custkey) -> < _ = c.c_name > }
 
 let o_h =
-  sum_unique(<o,o_v> in orders)
+  sum(<o,o_v> in orders)
     if((orderkeys(o.o_orderkey) != {}) && (custkey_to_name(o.o_custkey) != {})) then
       {
-        o.o_orderkey ->
+        unique(o.o_orderkey) ->
         <
           name = custkey_to_name(o.o_custkey)(0),
           custkey = o.o_custkey,
@@ -42,5 +42,5 @@ let result_h =
     else
       { }
 
-sum_unique(<k,v> <- result_h)
-  { concat(k,v) -> 1 }
+sum(<k,v> <- result_h)
+  { unique(concat(k,v)) -> 1 }

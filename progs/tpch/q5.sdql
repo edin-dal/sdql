@@ -13,40 +13,40 @@ let region = load[{<r_regionkey: int, r_name: varchar(25), r_comment: varchar(15
 let asia = ext(`ConstantString`,"ASIA", 5)
 
 let r_h =
-  sum_unique(<r,r_v> in region)
+  sum(<r,r_v> in region)
     if(r.r_name == asia) then
-      { r.r_regionkey -> < _ = r.r_regionkey > }
+      { unique(r.r_regionkey) -> < _ = r.r_regionkey > }
     else
       { }
 
 let n_h =
-  sum_unique(<n,n_v> in nation)
+  sum(<n,n_v> in nation)
     if(r_h(n.n_regionkey) != {}) then
-      { n.n_nationkey -> n.n_name }
+      { unique(n.n_nationkey) -> n.n_name }
     else
       { }
 
 let c_h =
-  sum_unique(<c,c_v> in customer)
+  sum(<c,c_v> in customer)
     if(n_h(c.c_nationkey) != {}) then
-      { c.c_custkey -> < _ =n_h(c.c_nationkey), _ = c.c_nationkey > }
+      { unique(c.c_custkey) -> < _ =n_h(c.c_nationkey), _ = c.c_nationkey > }
     else
       { }
 
 let o_h =
-  sum_unique(<o,o_v> in orders)
+  sum(<o,o_v> in orders)
     if(
         (o.o_orderdate < date(19950101))
         && (date(19940101) <= o.o_orderdate)
         && (c_h(o.o_custkey) != {})
       ) then
-      { o.o_orderkey -> < _ = c_h(o.o_custkey)(0), _ = c_h(o.o_custkey)(1) > }
+      { unique(o.o_orderkey) -> < _ = c_h(o.o_custkey)(0), _ = c_h(o.o_custkey)(1) > }
     else
       { }
 
 let s_h =
-  sum_unique(<s,s_v> in supplier)
-    { < _ = s.s_suppkey, _ = s.s_nationkey > -> 1 }
+  sum(<s,s_v> in supplier)
+    { unique(< _ = s.s_suppkey, _ = s.s_nationkey >) -> 1 }
 
 let l_h =
   sum(<l, l_v> <- lineitem)
@@ -58,5 +58,5 @@ let l_h =
     else
       { }
 
-sum_unique(<k,v> <- l_h)
-  { < _ = k, _ = v > -> 1 }
+sum(<k,v> <- l_h)
+  { unique(< _ = k, _ = v >) -> 1 }

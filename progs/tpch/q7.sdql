@@ -12,30 +12,30 @@ let france = ext(`ConstantString`,"FRANCE", 7)
 let germany = ext(`ConstantString`,"GERMANY", 8)
 
 let nationkey_to_name =
-  sum_unique(<n,n_v> in nation)
+  sum(<n,n_v> in nation)
     if((n.n_name == france) || (n.n_name == germany)) then
-      { n.n_nationkey -> < _ = n.n_name > }
+      { unique(n.n_nationkey) -> < _ = n.n_name > }
     else
       { }
 
 let custkey_to_name =
-  sum_unique(<c,c_v> in customer)
+  sum(<c,c_v> in customer)
     if(nationkey_to_name(c.c_nationkey) != {}) then
-      { c.c_custkey -> nationkey_to_name(c.c_nationkey)(0) }
+      { unique(c.c_custkey) -> nationkey_to_name(c.c_nationkey)(0) }
     else
       { }
 
 let orderkey_to_name =
-  sum_unique(<o,o_v> in orders)
+  sum(<o,o_v> in orders)
     if(custkey_to_name(o.o_custkey) != {}) then
-      { o.o_orderkey -> custkey_to_name(o.o_custkey) }
+      { unique(o.o_orderkey) -> custkey_to_name(o.o_custkey) }
     else
       { }
 
 let suppkey_to_name =
-  sum_unique(<s,s_v> in supplier)
+  sum(<s,s_v> in supplier)
     if(nationkey_to_name(s.s_nationkey) != {}) then
-      { s.s_suppkey -> nationkey_to_name(s.s_nationkey)(0) }
+      { unique(s.s_suppkey) -> nationkey_to_name(s.s_nationkey)(0) }
     else
       { }
 
@@ -61,5 +61,5 @@ let l_h =
     else
       { }
 
-sum_unique(<k,v> <- l_h)
-  { concat(k,v) -> 1 }
+sum(<k,v> <- l_h)
+  { unique(concat(k,v)) -> 1 }

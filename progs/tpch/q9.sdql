@@ -13,24 +13,24 @@ let nation = load[{<n_nationkey: int, n_name: varchar(25), n_regionkey: int, r_c
 let green = ext(`ConstantString`,"green", 6)
 
 let n_h =
-  sum_unique(<n,n_v> in nation)
-    { n.n_nationkey -> < _ = n.n_name > }
+  sum(<n,n_v> in nation)
+    { unique(n.n_nationkey) -> < _ = n.n_name > }
 
 let s_h =
-  sum_unique(<s,s_v> in supplier)
-    { s.s_suppkey -> n_h(s.s_nationkey)(0) }
+  sum(<s,s_v> in supplier)
+    { unique(s.s_suppkey) -> n_h(s.s_nationkey)(0) }
 
 let p_h =
-  sum_unique(<p,p_v> in part)
+  sum(<p,p_v> in part)
     if(ext(`StrContains`, p.p_name, green)) then
-      { p.p_partkey -> < _ = p.p_partkey > }
+      { unique(p.p_partkey) -> < _ = p.p_partkey > }
     else
       { }
 
 let ps_h =
-  sum_unique(<ps,ps_v> in partsupp)
+  sum(<ps,ps_v> in partsupp)
     if(p_h(ps.ps_partkey) != {}) then
-      { < _ = ps.ps_partkey, _ = ps.ps_suppkey > -> < _ = s_h(ps.ps_suppkey), _ = ps.ps_supplycost > }
+      { unique(< _ = ps.ps_partkey, _ = ps.ps_suppkey >) -> < _ = s_h(ps.ps_suppkey), _ = ps.ps_supplycost > }
     else
       { }
 
@@ -51,5 +51,5 @@ let li_h =
     else
       { }
 
-sum_unique(<k,v> <- li_h)
-  { concat(k,v) -> 1 }
+sum(<k,v> <- li_h)
+  { unique(concat(k,v)) -> 1 }

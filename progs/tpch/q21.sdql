@@ -10,16 +10,16 @@ let saudi = ext(`ConstantString`, "SAUDI ARABIA", 13)
 let f = ext(`ConstantString`, "F", 2)
 
 let nation_indexed =
-  sum_unique(<n,n_v> <- nation)
+  sum(<n,n_v> <- nation)
     if(n.n_name == saudi) then
-      { n.n_nationkey -> < _ = n.n_nationkey > }
+      { unique(n.n_nationkey) -> < _ = n.n_nationkey > }
     else
       { }
 
 let su_probed =
-  sum_unique(<s,s_v> <- supplier)
+  sum(<s,s_v> <- supplier)
     if(nation_indexed(s.s_nationkey) != {}) then
-      { s.s_suppkey -> s.s_name }
+      { unique(s.s_suppkey) -> s.s_name }
     else
       { }
 
@@ -54,5 +54,5 @@ let l1_probed =
     else
       { }
 
-sum_unique(<k,v> <- l1_probed)
-  { concat(k,v) -> 1 }
+sum(<k,v> <- l1_probed)
+  { unique(concat(k,v)) -> 1 }

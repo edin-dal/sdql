@@ -82,13 +82,14 @@ object CppCodegen {
           kv => {
             val lhs = run(kv._1)(typesCtx, callsLocal, loadsCtx)
             val rhs = run(kv._2)(typesCtx, callsLocal, loadsCtx)
-            hint match {
+            if (cond(kv._1) { case _: Unique => true })
+              s"$agg.emplace($lhs, $rhs);"
+            else hint match {
               case _: SumNoHint =>
                 val(fields, inner) = splitNestedFields(dict)
                 val rhs = run(inner)(typesCtx, callsLocal, loadsCtx)
                 val accessors = cppAccessors(fields)(typesCtx, callsLocal, loadsCtx)
                 s"$agg$accessors += $rhs;"
-              case _: SumUniqueHint => s"$agg.emplace($lhs, $rhs);"
               case _: SumVectorHint =>
                 typesCtx(Sym(agg)) match {
                   // TODO get rid of hack for job/gj queries
@@ -412,6 +413,10 @@ object CppCodegen {
       case External(name, _) =>
         raise(s"unhandled function name: $name")
 
+      // handle separately inside sum body
+      case Unique(e) =>
+        run(e)
+
       case Concat(v1@RecNode(fs1), v2@RecNode(fs2)) => run(
         {
           val (fs1m, fs2m) = fs1.toMap -> fs2.toMap
@@ -643,6 +648,8 @@ object CppCodegen {
         case FieldNode(e, _) =>
           iterExps(e)
         case Promote(_, e) =>
+          iterExps(e)
+        case Unique(e) =>
           iterExps(e)
         // 2-ary
         case Add(e1, e2) =>

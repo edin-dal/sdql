@@ -119,10 +119,10 @@ case class LetBinding(x: Sym, e1: Exp, e2: Exp) extends Exp {
 case class Load(path: String, tp: Type) extends Exp
 case class Promote(tp: Type, e: Exp) extends Exp
 case class External(name: String, args: Seq[Exp]) extends Exp
+case class Unique(e: Exp) extends Exp
 
 sealed trait SumCodegenHint;
 case class SumNoHint() extends SumCodegenHint
-case class SumUniqueHint() extends SumCodegenHint
 case class SumVectorHint() extends SumCodegenHint
 case class SumMinHint() extends SumCodegenHint
 

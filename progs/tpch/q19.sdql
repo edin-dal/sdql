@@ -22,7 +22,7 @@ let airreg = ext(`ConstantString`, "AIR REG", 8)
 let deliverinperson = ext(`ConstantString`, "DELIVER IN PERSON", 18)
 
 let p_h =
-  sum_unique(<p,p_v> in part)
+  sum(<p,p_v> in part)
     if(
         (
           (p.p_brand == brand12)
@@ -55,7 +55,7 @@ let p_h =
           && (1 <= p.p_size) && (p.p_size <= 15)
         )
     ) then
-      { p.p_partkey ->
+      { unique(p.p_partkey) ->
         <
           p_brand = p.p_brand,
           p_size = p.p_size,

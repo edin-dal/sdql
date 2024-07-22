@@ -17,42 +17,42 @@ let america = ext(`ConstantString`,"AMERICA", 8)
 let brazil = ext(`ConstantString`,"BRAZIL", 7)
 
 let r_h =
-  sum_unique(<r,r_v> in region)
+  sum(<r,r_v> in region)
     if(r.r_name == america) then
-      { r.r_regionkey -> < _ = r.r_regionkey > }
+      { unique(r.r_regionkey) -> < _ = r.r_regionkey > }
     else
       { }
 
 let n_h =
-  sum_unique(<n,n_v> in nation)
+  sum(<n,n_v> in nation)
     if(r_h(n.n_regionkey) != {}) then
-      { n.n_nationkey -> 1 }
+      { unique(n.n_nationkey) -> 1 }
     else
       { }
 
 let nationkey_to_name =
-  sum_unique(<n,n_v> in nation)
-    { n.n_nationkey -> < _ = n.n_name > }
+  sum(<n,n_v> in nation)
+    { unique(n.n_nationkey) -> < _ = n.n_name > }
 
 let s_h =
-  sum_unique(<s,s_v> in supplier)
-    { s.s_suppkey -> < _ = s.s_nationkey > }
+  sum(<s,s_v> in supplier)
+    { unique(s.s_suppkey) -> < _ = s.s_nationkey > }
 
 let c_h =
   sum_vec(<c,c_v> in customer)
     { c.c_custkey -> c.c_nationkey }
 
 let p_h =
-  sum_unique(<p,p_v> in part)
+  sum(<p,p_v> in part)
       if(p.p_type == steel) then
-        { p.p_partkey -> < _ = p.p_partkey > }
+        { unique(p.p_partkey) -> < _ = p.p_partkey > }
       else
         { }
 
 let o_h =
-  sum_unique(<o,o_v> in orders)
+  sum(<o,o_v> in orders)
       if((date(19950101) <= o.o_orderdate) && (o.o_orderdate <= date(19961231))) then
-        { o.o_orderkey -> < _ = o.o_custkey, _ = o.o_orderdate > }
+        { unique(o.o_orderkey) -> < _ = o.o_custkey, _ = o.o_orderdate > }
       else
         { }
 
@@ -67,5 +67,5 @@ let l_h =
       else
         { }
 
-sum_unique(<k,v> in l_h)
-  { < _ = k, _ = v(0) / v(1) > -> 1 }
+sum(<k,v> in l_h)
+  { unique(< _ = k, _ = v(0) / v(1) >) -> 1 }

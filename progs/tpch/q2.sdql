@@ -12,24 +12,24 @@ let brass = ext(`ConstantString`,"BRASS", 6)
 let europe = ext(`ConstantString`,"EUROPE", 7)
 
 let l_h =
-  sum_unique(<r,r_v> <- region)
+  sum(<r,r_v> <- region)
     if(r.r_name == europe) then
-      { r.r_regionkey -> < _ = r.r_regionkey > }
+      { unique(r.r_regionkey) -> < _ = r.r_regionkey > }
     else
       { }
 
 let n_h =
-  sum_unique(<n,n_v> <- nation)
+  sum(<n,n_v> <- nation)
     if(l_h(n.n_regionkey) != {}) then
-      { n.n_nationkey -> n.n_name }
+      { unique(n.n_nationkey) -> n.n_name }
     else
       { }
 
 let s_h =
-  sum_unique(<s,s_v> <- supplier)
+  sum(<s,s_v> <- supplier)
     if(n_h(s.s_nationkey) != {}) then
       {
-        s.s_suppkey ->
+        unique(s.s_suppkey) ->
         <
           _ = s.s_acctbal,
           _ = s.s_name,
@@ -43,9 +43,9 @@ let s_h =
       { }
 
 let p_h =
-  sum_unique(<p,p_v> <- part)
+  sum(<p,p_v> <- part)
     if((p.p_size == 15) && (ext(`StrEndsWith`, p.p_type, brass))) then
-      { p.p_partkey -> < _ = p.p_mfgr > }
+      { unique(p.p_partkey) -> < _ = p.p_mfgr > }
     else
       { }
 
@@ -57,14 +57,14 @@ let ps_h =
     else
       { }
 
-sum_unique(<ps,ps_v> <- partsupp)
+sum(<ps,ps_v> <- partsupp)
   if(
       (ps_h(ps.ps_partkey) != {})
       && (ps_h(ps.ps_partkey) == ps.ps_supplycost)
       && (s_h(ps.ps_suppkey) != {})
     ) then
     {
-      <
+      unique(<
         _ = s_h(ps.ps_suppkey)(0),
         _ = s_h(ps.ps_suppkey)(1),
         _ = s_h(ps.ps_suppkey)(2),
@@ -73,7 +73,7 @@ sum_unique(<ps,ps_v> <- partsupp)
         _ = s_h(ps.ps_suppkey)(4),
         _ = s_h(ps.ps_suppkey)(3),
         _ = s_h(ps.ps_suppkey)(5)
-      > -> 1
+      >) -> 1
     }
   else
     { }

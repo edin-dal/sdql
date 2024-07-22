@@ -12,46 +12,46 @@ let forest = ext(`ConstantString`, "forest", 7)
 let canada = ext(`ConstantString`, "CANADA", 7)
 
 let p_h =
-  sum_unique(<p,p_v> in part)
+  sum(<p,p_v> in part)
     if(ext(`StrStartsWith`, p.p_name, forest)) then
-      { p.p_partkey -> < _ = p.p_partkey > }
+      { unique(p.p_partkey) -> < _ = p.p_partkey > }
     else
       { }
 
 let n_h =
-  sum_unique(<n,n_v> in nation)
+  sum(<n,n_v> in nation)
     if(n.n_name == canada) then
-      { n.n_nationkey -> < _ = n.n_nationkey > }
+      { unique(n.n_nationkey) -> < _ = n.n_nationkey > }
     else
       { }
 
 let s_h =
-  sum_unique(<s,s_v> in supplier)
+  sum(<s,s_v> in supplier)
     if(n_h(s.s_nationkey) != {}) then
-      { s.s_suppkey -> < _ = s.s_suppkey > }
+      { unique(s.s_suppkey) -> < _ = s.s_suppkey > }
     else
       { }
 
 let l_h =
-  sum_unique(<l,l_v> in lineitem)
+  sum(<l,l_v> in lineitem)
     if(
       (date(19940101) <= l.l_shipdate) && (l.l_shipdate < date(19950101))
       && (p_h(l.l_partkey) != {}) && (s_h(l.l_suppkey) != {})
       ) then
-      { < _ = l.l_partkey, _ = l.l_suppkey > -> 0.5 * l.l_quantity }
+      { unique(< _ = l.l_partkey, _ = l.l_suppkey >) -> 0.5 * l.l_quantity }
     else
       { }
 
 let ps_h =
-  sum_unique(<ps,ps_v> in partsupp)
+  sum(<ps,ps_v> in partsupp)
     let key = <_ = ps.ps_partkey, _ = ps.ps_suppkey >
     if((l_h(key) != {}) && (l_h(key) < ps.ps_availqty)) then
-      { ps.ps_suppkey -> < _ = ps.ps_suppkey > }
+      { unique(ps.ps_suppkey) -> < _ = ps.ps_suppkey > }
     else
       { }
 
-sum_unique(<s,s_v> in supplier)
+sum(<s,s_v> in supplier)
   if(ps_h(s.s_suppkey) != {}) then
-    { < _ = s.s_name, _ = s.s_address > -> 1 }
+    { unique(< _ = s.s_name, _ = s.s_address >) -> 1 }
   else
     { }

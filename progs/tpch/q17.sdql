@@ -6,9 +6,9 @@ let brand = ext(`ConstantString`, "Brand#23", 9)
 let medbox = ext(`ConstantString`, "MED BOX", 8)
 
 let p_h =
-  sum_unique(<p,p_v> <- part)
+  sum(<p,p_v> <- part)
     if((p.p_brand == brand) && (p.p_container == medbox)) then
-      { p.p_partkey -> < _ = p.p_partkey > }
+      { unique(p.p_partkey) -> < _ = p.p_partkey > }
     else
       { }
 

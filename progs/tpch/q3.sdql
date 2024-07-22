@@ -7,19 +7,19 @@ let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenum
 let building = ext(`ConstantString`,"BUILDING", 9)
 
 let c_h =
-  sum_unique(<c,c_v> in customer)
+  sum(<c,c_v> in customer)
     if(c.c_mktsegment == building) then
-      { c.c_custkey -> < _ = c.c_custkey > }
+      { unique(c.c_custkey) -> < _ = c.c_custkey > }
     else
       { }
 
 let o_h =
-  sum_unique(<o,o_v> in orders)
+  sum(<o,o_v> in orders)
     if(
         (o.o_orderdate < date(19950315))
         && (c_h(o.o_custkey) != {})
       ) then
-      { o.o_orderkey -> < _ = o.o_orderdate, _ = o.o_shippriority > }
+      { unique(o.o_orderkey) -> < _ = o.o_orderdate, _ = o.o_shippriority > }
     else
       { }
 
@@ -40,5 +40,5 @@ let li_h =
     else
       { }
 
-sum_unique(<k,v> <- li_h)
-  { concat(k,v) -> 1 }
+sum(<k,v> <- li_h)
+  { unique(concat(k,v)) -> 1 }

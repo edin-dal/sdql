@@ -53,5 +53,5 @@ let res =
     else
       { }
 
-sum_unique(<k,v> <- res)
-  { concat(k,v) -> 1 }
+sum(<k,v> <- res)
+  { unique(concat(k,v)) -> 1 }

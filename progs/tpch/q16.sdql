@@ -11,7 +11,7 @@ let _complaints = ext(`ConstantString`, "Complaints", 11)
 let nchars_customer = 8
 
 let p_h =
-  sum_unique(<p,p_v> <- part)
+  sum(<p,p_v> <- part)
     if(
       (p.p_brand != brand) &&
       (!ext(`StrStartsWith`, p.p_type, medpol)) &&
@@ -26,15 +26,15 @@ let p_h =
         (p.p_size ==  9)
       )
     ) then
-      { p.p_partkey -> < _ = p.p_brand, _ = p.p_type, _ = p.p_size > }
+      { unique(p.p_partkey) -> < _ = p.p_brand, _ = p.p_type, _ = p.p_size > }
     else
       { }
 
 let s_h =
-  sum_unique(<s,s_v> <- supplier)
+  sum(<s,s_v> <- supplier)
     let idx_customer = ext(`FirstIndex`, s.s_comment, _customer)
     if((idx_customer != -1) && (idx_customer + nchars_customer <= ext(`FirstIndex`, s.s_comment, _complaints))) then
-      { s.s_suppkey -> < _ = s.s_suppkey > }
+      { unique(s.s_suppkey) -> < _ = s.s_suppkey > }
     else
       { }
 
@@ -52,5 +52,5 @@ let ps_h =
     else
       { }
 
-sum_unique(<k,v> in ps_h)
-  { concat(k, < _ = ext(`Size`, v) >) -> 1 }
+sum(<k,v> in ps_h)
+  { unique(concat(k, < _ = ext(`Size`, v) >)) -> 1 }

@@ -141,6 +141,9 @@ object TypeInference {
       case Load(_, tp) =>
         tp
 
+      case Unique(e) =>
+        run(e)
+
       case Concat(e1, e2) => (run(e1), run(e2)) match {
         case (v1 @ RecordType(fs1), v2 @ RecordType(fs2)) =>
           val (fs1m, fs2m) = fs1.map(x1 => (x1.name, x1.tpe)).toMap -> fs2.map(x2 => (x2.name, x2.tpe)).toMap
@@ -266,6 +269,6 @@ object TypeInference {
 
   private implicit def convertHint(hint: SumCodegenHint): DictCodegenHint = hint match {
     case SumVectorHint() => DictVectorHint()
-    case SumUniqueHint() | SumMinHint() | SumNoHint() => DictNoHint()
+    case SumMinHint() | SumNoHint() => DictNoHint()
   }
 }

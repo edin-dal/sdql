@@ -5,9 +5,9 @@ let part = load[{<p_partkey: int, p_name: varchar(55), p_mfgr: varchar(25), p_br
 let promo = ext(`ConstantString`, "PROMO", 6)
 
 let p_h =
-  sum_unique(<p,p_v> <- part)
+  sum(<p,p_v> <- part)
     if(ext(`StrStartsWith`, p.p_type, promo)) then
-      { p.p_partkey -> < _ = p.p_partkey > }
+      { unique(p.p_partkey) -> < _ = p.p_partkey > }
     else
       { }
 

@@ -9,13 +9,13 @@ let nation = load[{<n_nationkey: int, n_name: varchar(25), n_regionkey: int, r_c
 let r = ext(`ConstantString`,"R", 2)
 
 let n_h =
-  sum_unique(<n,n_v> in nation)
-    { n.n_nationkey -> < _ = n.n_name > }
+  sum(<n,n_v> in nation)
+    { unique(n.n_nationkey) -> < _ = n.n_name > }
 
 let c_h =
-  sum_unique(<c,c_v> in customer)
+  sum(<c,c_v> in customer)
     {
-      c.c_custkey ->
+      unique(c.c_custkey) ->
       <
         _ = c.c_custkey,
         _ = c.c_name,
@@ -28,14 +28,14 @@ let c_h =
     }
 
 let o_h =
-  sum_unique(<o,o_v> in orders)
+  sum(<o,o_v> in orders)
     if(
          (date(19931001)  <= o.o_orderdate)
          && (o.o_orderdate < date(19940101))
          && (c_h(o.o_custkey) != {})
        ) then
       {
-        o.o_orderkey ->
+        unique(o.o_orderkey) ->
         <
           c_custkey =c_h(o.o_custkey)(0),
           c_name =c_h(o.o_custkey)(1),
@@ -67,9 +67,9 @@ let l_h =
       else
         { }
 
-sum_unique(<k,v> in l_h)
+sum(<k,v> in l_h)
   {
-    <
+    unique(<
       c_custkey = k.c_custkey,
       c_name = k.c_name,
       revenue = v,
@@ -78,6 +78,6 @@ sum_unique(<k,v> in l_h)
       c_phone = k.c_phone,
       c_address = k.c_address,
       c_comment = k.c_comment
-    >
+    >)
     -> 1
   }

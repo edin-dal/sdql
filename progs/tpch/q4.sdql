@@ -3,9 +3,9 @@ let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), 
 let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: varchar(1), l_linestatus: varchar(1), l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: varchar(25), l_shipmode: varchar(10), l_comment: varchar(44)> -> int}]("datasets/tpch/lineitem.tbl")
 
 let li_h =
-  sum_unique(<l,l_v> in lineitem)
+  sum(<l,l_v> in lineitem)
     if((l.l_commitdate < l.l_receiptdate)) then
-      { l.l_orderkey -> 1 }
+      { unique(l.l_orderkey) -> 1 }
     else
       { }
 
@@ -20,5 +20,5 @@ let o_h =
     else
       { }
 
-sum_unique(<k, v> <- o_h)
-  { < _ = k, _ = v > -> 1 }
+sum(<k, v> <- o_h)
+  { unique(< _ = k, _ = v >) -> 1 }
