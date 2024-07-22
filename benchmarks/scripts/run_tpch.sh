@@ -28,8 +28,5 @@ cd ../../generated/
 for i in "${qs[@]}"
 do
   echo "q$i"
-  for ((j = 0; j < $1; j++))
-  do
-     ./q$i.out | grep --text Runtime
-  done
+  ./q$i.out | grep --text ms
 done

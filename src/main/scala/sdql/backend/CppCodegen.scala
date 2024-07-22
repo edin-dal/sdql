@@ -37,20 +37,26 @@ object CppCodegen {
        |const auto SEPARATOR = rapidcsv::SeparatorParams('|');
        |""".stripMargin
 
-  def apply(e: Exp, isBenchmark: Boolean = false): String = {
+  def apply(e: Exp, benchmarkRuns: Int = 0): String = {
     val (csvBody, loadsCtx) = CsvBodyWithLoadsCtx(Seq(e))
     val queryBody = run(e)(Map(), List(), loadsCtx)
-    val benchStart = if (!isBenchmark) "" else
-      s"""auto start = std::chrono::high_resolution_clock::now();
+    val benchStart = if (benchmarkRuns == 0) "" else
+      s"""HighPrecisionTimer timer;
+         |for (int iter = 1; iter <= $benchmarkRuns; iter++) {
+         |timer.Reset();
          |""".stripMargin
-    val benchStop = if (!isBenchmark) "" else
-      """
-        |auto stop = std::chrono::high_resolution_clock::now();
-        |auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-        |std::cout << "Runtime (ms): " << duration.count() << std::endl;
-        |""".stripMargin
+    val benchStop = if (benchmarkRuns == 0) "" else
+      s"""
+        |doNotOptimiseAway($resultName);
+        |timer.StoreElapsedTime(0);
+        |cerr << "*" << " " << flush;
+        |if (iter == $benchmarkRuns) {
+        |cerr << endl;
+        |std::cout << timer.GetMean(0) << " ms" << std::endl;
+        |${cppPrintResult(TypeInference(e))}
+        |}
+        |}""".stripMargin
     // slightly wasteful to redo type inference - but spares us having to return the type at every recursive run call
-    val printOrDCE = if (isBenchmark) s"doNotOptimiseAway($resultName);" else cppPrintResult(TypeInference(e))
     s"""$header
        |$csvConsts
        |$csvBody
@@ -58,7 +64,7 @@ object CppCodegen {
        |$benchStart
        |$queryBody
        |$benchStop
-       |$printOrDCE
+       |${if (benchmarkRuns == 0) cppPrintResult(TypeInference(e)) else ""}
        |}""".stripMargin
   }
 

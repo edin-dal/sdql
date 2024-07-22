@@ -7,6 +7,8 @@ from typing import Any, Final
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from benches import RE_RUNTIME
+
 FILE_DIR: Final[str] = os.path.dirname(os.path.realpath(__file__))
 SCRIPTS_DIR: Final[str] = os.path.join(FILE_DIR, "scripts")
 DTYPES: Final[dict[str, Any]] = {"Query": "string", "Runtime (ms)": int}
@@ -15,46 +17,42 @@ DTYPES: Final[dict[str, Any]] = {"Query": "string", "Runtime (ms)": int}
 def read_job_results() -> pd.DataFrame:
     JOBS_DATA_DIR: Final[str] = os.path.join(FILE_DIR, "job_results")
     JOB_RESULTS: Final[str] = os.path.join(FILE_DIR, f"job_results.csv")
-    from benches import RE_RUNTIME as RE_JOB
 
     if not Path(JOBS_DATA_DIR).is_dir():
-        subprocess.call("./codegen_job.sh", shell=True, cwd=SCRIPTS_DIR)
+        subprocess.call("./codegen_job.sh 5", shell=True, cwd=SCRIPTS_DIR)
         subprocess.call("./compile_job.sh", shell=True, cwd=SCRIPTS_DIR)
-        # note: only runs a single iteration
         subprocess.call("./run_job.sh", shell=True, cwd=SCRIPTS_DIR)
 
     if not Path(JOB_RESULTS).is_file():
-        write_results_frame(JOBS_DATA_DIR, RE_JOB, JOB_RESULTS)
+        write_results_frame(JOBS_DATA_DIR, JOB_RESULTS)
 
     return pd.read_csv(JOB_RESULTS, dtype=DTYPES)
 
 
-# 5 iterations ran locally for https://github.com/edin-dal/sdql/tree/wcoj
+# 5 iterations were ran for https://github.com/edin-dal/sdql/tree/wcoj
 def read_wcoj_results() -> pd.DataFrame:
     WCOJ_DATA_DIR: Final[str] = os.path.join(FILE_DIR, "wcoj_results")
     WCOJ_RESULTS: Final[str] = os.path.join(FILE_DIR, f"wcoj_results.csv")
-    RE_WCOJ: Final[re.Pattern] = re.compile(r"(\d+\.?\d*]?) ms")
 
     if not Path(WCOJ_RESULTS).is_file():
-        write_results_frame(WCOJ_DATA_DIR, RE_WCOJ, WCOJ_RESULTS)
+        write_results_frame(WCOJ_DATA_DIR, WCOJ_RESULTS)
 
     return pd.read_csv(WCOJ_RESULTS, dtype=DTYPES)
 
 
-def write_results_frame(data_dir: str, regex: re.Pattern, output_csv: str) -> None:
+def write_results_frame(data_dir: str, output_csv: str) -> None:
     df = pd.DataFrame(
-        get_query_names_and_times(data_dir, regex),
-        columns=["Query", "Runtime (ms)"],
+        get_query_names_and_times(data_dir), columns=["Query", "Runtime (ms)"]
     )
     df.to_csv(output_csv, index=False)
 
 
-def get_query_names_and_times(
-    data_dir: str, regex: re.Pattern
-) -> list[tuple[str, int]]:
+def get_query_names_and_times(data_dir: str) -> list[tuple[str, int]]:
     files = get_files(data_dir)
     query_names = get_query_names(files)
-    times = [get_ms(Path(os.path.join(data_dir, f)).read_text(), regex) for f in files]
+    times = [
+        get_ms(Path(os.path.join(data_dir, f)).read_text(), RE_RUNTIME) for f in files
+    ]
     return list(zip(query_names, times))
 
 
@@ -92,7 +90,6 @@ if __name__ == "__main__":
     df["Diff (ms)"] = df[df.columns[1]] - df[df.columns[0]]
     df["Diff (%)"] = (100 * df["Diff (ms)"] / df[df.columns[0]]).round().astype(int)
     pct_diff_summary = pd.DataFrame(df[df.columns[3]].describe().round().astype(int)).T
-    print(f"{df.columns[3]} summary")
     print(pct_diff_summary)
     print()
     print(df.sort_values(by=df.columns[3], ascending=False))

@@ -30,4 +30,4 @@ do
 done
 
 cd ..
-sbt "run benchmark progs/tpch $(printf 'q%q.sdql ' "${qs[@]}")"
+sbt "run benchmark $1 progs/tpch $(printf 'q%q.sdql ' "${qs[@]}")"

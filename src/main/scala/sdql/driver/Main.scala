@@ -44,15 +44,16 @@ object Main {
           println()
         }
       case "benchmark" =>
-        if(args.length < 3) {
-          raise("usage: `run benchmark <path> <sdql_files>*`")
+        if(args.length < 4) {
+          raise("usage: `run benchmark n <path> <sdql_files>*`")
         }
-        val dirPath = Path.of(args(1))
-        val fileNames = args.drop(2)
+        val n = args(1).toInt
+        val dirPath = Path.of(args(2))
+        val fileNames = args.drop(3)
         for (fileName <- fileNames) {
           val filePath = dirPath.resolve(fileName)
           val prog = SourceCode.fromFile(filePath.toString).exp
-          val res = CppCodegen(prog, isBenchmark = true)
+          val res = CppCodegen(prog, benchmarkRuns = n)
           CppCompile.writeFormat(filePath.toString, res)
         }
       case arg =>
