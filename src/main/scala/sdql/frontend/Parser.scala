@@ -87,7 +87,12 @@ object Parser {
   def const[_: P]: P[Const] = P(`true` | `false` | unit | number | int | string | denseInt | dateValue)
   def idRest[_: P]: P[Char] = P( CharPred(c => isLetter(c) | isDigit(c) | c == '_').! ).map(_(0))
   def variable[_: P]: P[Sym] = P( space ~ !keywords ~ ((alpha | "_" | "$") ~ idRest.rep).! ~ space ).map(x => Sym(x))
-  def ifThenElse[_: P]: P[IfThenElse] = P( "if" ~/ expr ~/ "then" ~/ expr ~/ "else" ~/ expr).map(x => IfThenElse(x._1, x._2, x._3))
+  def ifThenElse[_: P]: P[IfThenElse] = P(ifThen ~/ maybeElse.?).map {
+    case (cond: Exp, thenp: Exp, Some(elsep: Exp)) => IfThenElse(cond, thenp, elsep)
+    case (cond: Exp, thenp: Exp, None) => IfThenElse(cond, thenp, DictNode(Nil))
+  }
+  def ifThen[_: P]: P[(Exp, Exp)] = P( "if" ~/ expr ~/ "then" ~/ expr)
+  def maybeElse[_: P]: P[Exp] = P("else" ~/ expr)
   def letBinding[_: P]: P[LetBinding] = P( "let" ~/ variable ~/ "=" ~/ expr ~/ "in".? ~/ expr).map(x => LetBinding(x._1, x._2, x._3))
   def sum[_: P]: P[Sum] = P( "sum" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/
     expr).map(x => Sum(x._1, x._2, x._3, x._4))
