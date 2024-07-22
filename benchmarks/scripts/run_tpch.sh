@@ -28,5 +28,5 @@ cd ../../generated/
 for i in "${qs[@]}"
 do
   echo "q$i"
-  ./q$i.out | grep --text ms
+  ./q$i.out | grep --text " ms"
 done
