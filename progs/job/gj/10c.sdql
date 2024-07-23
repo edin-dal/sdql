@@ -6,27 +6,27 @@ let ci = load[{<id: int, person_id: int, movie_id: int, person_role_id: int, not
 let rt = load[{<id: int, role: string> -> int}]("datasets/job/role_type.csv")
 let chn = load[{<id: int, name: string, imdb_index: string, imdb_id: int, name_pcode_cf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/char_name.csv")
 
-let mc_trie0 = sum_vec(<mc_tuple, _> <- mc) { mc_tuple.movie_id -> { mc_tuple.company_type_id -> { mc_tuple.company_id -> { mc_tuple -> 1 } } } } in
-let t_trie0 = sum_vec(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
-let ct_trie0 = sum_vec(<ct_tuple, _> <- ct) { ct_tuple.id -> { ct_tuple -> 1 } } in
-let cn_trie0 = sum_vec(<cn_tuple, _> <- cn) { cn_tuple.id -> { cn_tuple -> 1 } } in
-let interm0_trie0 = sum_vec(<x0, mc_trie1> <- mc_trie0)
+let mc_trie0 = sum(<mc_tuple, _> <- mc) { mc_tuple.movie_id -> { mc_tuple.company_type_id -> { mc_tuple.company_id -> @vecdict { mc_tuple -> 1 } } } } in
+let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> @vecdict { t_tuple -> 1 } } in
+let ct_trie0 = sum(<ct_tuple, _> <- ct) { ct_tuple.id -> @vecdict { ct_tuple -> 1 } } in
+let cn_trie0 = sum(<cn_tuple, _> <- cn) { cn_tuple.id -> @vecdict { cn_tuple -> 1 } } in
+let interm0_trie0 = sum(<x0, mc_trie1> <- mc_trie0)
 	if (x0 ∈ t_trie0) then
 		let t_trie1 = t_trie0(x0) in
-		sum_vec(<x1, mc_trie2> <- mc_trie1)
+		sum(<x1, mc_trie2> <- mc_trie1)
 			if (x1 ∈ ct_trie0) then
 				let ct_trie1 = ct_trie0(x1) in
-				sum_vec(<x2, mc_trie3> <- mc_trie2)
+				sum(<x2, mc_trie3> <- mc_trie2)
 					if (x2 ∈ cn_trie0) then
 						let cn_trie1 = cn_trie0(x2) in
-						sum_vec(<mc_tuple, _> <- mc_trie3)
-							sum_vec(<t_tuple, _> <- t_trie1)
-								{ mc_tuple.movie_id -> { <col0=mc_tuple.movie_id, col1=mc_tuple.company_type_id, col2=mc_tuple.company_id, col3=t_tuple.title> -> 1 } }
+						sum(<mc_tuple, _> <- mc_trie3)
+							sum(<t_tuple, _> <- t_trie1)
+								{ mc_tuple.movie_id -> @vecdict { <col0=mc_tuple.movie_id, col1=mc_tuple.company_type_id, col2=mc_tuple.company_id, col3=t_tuple.title> -> 1 } }
 in
 
 let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.role_id -> { ci_tuple.movie_id -> { ci_tuple.person_role_id -> 1 } } } in
 let rt_trie0 = sum(<rt_tuple, _> <- rt) { rt_tuple.id -> 1 } in
-let chn_trie0 = sum_vec(<chn_tuple, _> <- chn) { chn_tuple.id -> { chn_tuple -> 1 } } in
+let chn_trie0 = sum(<chn_tuple, _> <- chn) { chn_tuple.id -> @vecdict { chn_tuple -> 1 } } in
 sum(<x0, ci_trie1> <- ci_trie0)
 	if (x0 ∈ rt_trie0) then
 		let rt_trie1 = rt_trie0(x0) in

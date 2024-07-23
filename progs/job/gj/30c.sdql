@@ -11,68 +11,68 @@ let it1 = load[{<id: int, info: string> -> int}]("datasets/job/30c/it1.csv")
 let ci = load[{<id: int, person_id: int, movie_id: int, person_role_id: int, note: string, nr_order: int, role_id: int> -> int}]("datasets/job/30c/ci.csv")
 let n = load[{<id: int, name: string, imdb_index: string, imdb_id: string, gender: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/30c/n.csv")
 
-let cc_trie0 = sum_vec(<cc_tuple, _> <- cc) { cc_tuple.subject_id -> { cc_tuple.status_id -> { cc_tuple -> 1 } } } in
-let cct1_trie0 = sum_vec(<cct1_tuple, _> <- cct1) { cct1_tuple.id -> { cct1_tuple -> 1 } } in
-let cct2_trie0 = sum_vec(<cct2_tuple, _> <- cct2) { cct2_tuple.id -> { cct2_tuple -> 1 } } in
-let interm0_trie0 = sum_vec(<x0, cc_trie1> <- cc_trie0)
+let cc_trie0 = sum(<cc_tuple, _> <- cc) { cc_tuple.subject_id -> { cc_tuple.status_id -> @vecdict { cc_tuple -> 1 } } } in
+let cct1_trie0 = sum(<cct1_tuple, _> <- cct1) { cct1_tuple.id -> @vecdict { cct1_tuple -> 1 } } in
+let cct2_trie0 = sum(<cct2_tuple, _> <- cct2) { cct2_tuple.id -> @vecdict { cct2_tuple -> 1 } } in
+let interm0_trie0 = sum(<x0, cc_trie1> <- cc_trie0)
 	if (x0 ∈ cct1_trie0) then
 		let cct1_trie1 = cct1_trie0(x0) in
-		sum_vec(<x1, cc_trie2> <- cc_trie1)
+		sum(<x1, cc_trie2> <- cc_trie1)
 			if (x1 ∈ cct2_trie0) then
 				let cct2_trie1 = cct2_trie0(x1) in
-				sum_vec(<cc_tuple, _> <- cc_trie2)
-					{ cc_tuple.movie_id -> { <col0=cc_tuple.subject_id, col1=cc_tuple.status_id, col2=cc_tuple.movie_id> -> 1 } }
+				sum(<cc_tuple, _> <- cc_trie2)
+					{ cc_tuple.movie_id -> @vecdict { <col0=cc_tuple.subject_id, col1=cc_tuple.status_id, col2=cc_tuple.movie_id> -> 1 } }
 in
 
-let mi_idx_trie0 = sum_vec(<mi_idx_tuple, _> <- mi_idx) { mi_idx_tuple.info_type_id -> { mi_idx_tuple.movie_id -> { mi_idx_tuple -> 1 } } } in
-let it2_trie0 = sum_vec(<it2_tuple, _> <- it2) { it2_tuple.id -> { it2_tuple -> 1 } } in
-let interm1_trie0 = sum_vec(<x0, mi_idx_trie1> <- mi_idx_trie0)
+let mi_idx_trie0 = sum(<mi_idx_tuple, _> <- mi_idx) { mi_idx_tuple.info_type_id -> { mi_idx_tuple.movie_id -> @vecdict { mi_idx_tuple -> 1 } } } in
+let it2_trie0 = sum(<it2_tuple, _> <- it2) { it2_tuple.id -> @vecdict { it2_tuple -> 1 } } in
+let interm1_trie0 = sum(<x0, mi_idx_trie1> <- mi_idx_trie0)
 	if (x0 ∈ it2_trie0) then
 		let it2_trie1 = it2_trie0(x0) in
-		sum_vec(<x1, mi_idx_trie2> <- mi_idx_trie1)
+		sum(<x1, mi_idx_trie2> <- mi_idx_trie1)
 			if (x1 ∈ interm0_trie0) then
 				let interm0_trie1 = interm0_trie0(x1) in
-				sum_vec(<mi_idx_tuple, _> <- mi_idx_trie2)
-					{ mi_idx_tuple.movie_id -> { <col0=mi_idx_tuple.info_type_id, col1=mi_idx_tuple.movie_id, col2=mi_idx_tuple.info> -> 1 } }
+				sum(<mi_idx_tuple, _> <- mi_idx_trie2)
+					{ mi_idx_tuple.movie_id -> @vecdict { <col0=mi_idx_tuple.info_type_id, col1=mi_idx_tuple.movie_id, col2=mi_idx_tuple.info> -> 1 } }
 in
 
-let t_trie0 = sum_vec(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
-let interm2_trie0 = sum_vec(<x0, t_trie1> <- t_trie0)
+let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> @vecdict { t_tuple -> 1 } } in
+let interm2_trie0 = sum(<x0, t_trie1> <- t_trie0)
 	if (x0 ∈ interm1_trie0) then
 		let interm1_trie1 = interm1_trie0(x0) in
-		sum_vec(<t_tuple, _> <- t_trie1)
-			sum_vec(<interm1_tuple, _> <- interm1_trie1)
-				{ t_tuple.id -> { <col0=t_tuple.id, col1=t_tuple.title, col3=interm1_tuple.col2> -> 1 } }
+		sum(<t_tuple, _> <- t_trie1)
+			sum(<interm1_tuple, _> <- interm1_trie1)
+				{ t_tuple.id -> @vecdict { <col0=t_tuple.id, col1=t_tuple.title, col3=interm1_tuple.col2> -> 1 } }
 in
 
-let mk_trie0 = sum_vec(<mk_tuple, _> <- mk) { mk_tuple.keyword_id -> { mk_tuple.movie_id -> { mk_tuple -> 1 } } } in
-let k_trie0 = sum_vec(<k_tuple, _> <- k) { k_tuple.id -> { k_tuple -> 1 } } in
-let interm3_trie0 = sum_vec(<x0, mk_trie1> <- mk_trie0)
+let mk_trie0 = sum(<mk_tuple, _> <- mk) { mk_tuple.keyword_id -> { mk_tuple.movie_id -> @vecdict { mk_tuple -> 1 } } } in
+let k_trie0 = sum(<k_tuple, _> <- k) { k_tuple.id -> @vecdict { k_tuple -> 1 } } in
+let interm3_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 	if (x0 ∈ k_trie0) then
 		let k_trie1 = k_trie0(x0) in
-		sum_vec(<x1, mk_trie2> <- mk_trie1)
+		sum(<x1, mk_trie2> <- mk_trie1)
 			if (x1 ∈ interm2_trie0) then
 				let interm2_trie1 = interm2_trie0(x1) in
-				sum_vec(<mk_tuple, _> <- mk_trie2)
-					sum_vec(<interm2_tuple, _> <- interm2_trie1)
-						{ mk_tuple.movie_id -> { <col0=mk_tuple.keyword_id, col1=mk_tuple.movie_id, col2=interm2_tuple.col1, col4=interm2_tuple.col3> -> 1 } }
+				sum(<mk_tuple, _> <- mk_trie2)
+					sum(<interm2_tuple, _> <- interm2_trie1)
+						{ mk_tuple.movie_id -> @vecdict { <col0=mk_tuple.keyword_id, col1=mk_tuple.movie_id, col2=interm2_tuple.col1, col4=interm2_tuple.col3> -> 1 } }
 in
 
-let mi_trie0 = sum_vec(<mi_tuple, _> <- mi) { mi_tuple.info_type_id -> { mi_tuple.movie_id -> { mi_tuple -> 1 } } } in
-let it1_trie0 = sum_vec(<it1_tuple, _> <- it1) { it1_tuple.id -> { it1_tuple -> 1 } } in
-let interm4_trie0 = sum_vec(<x0, mi_trie1> <- mi_trie0)
+let mi_trie0 = sum(<mi_tuple, _> <- mi) { mi_tuple.info_type_id -> { mi_tuple.movie_id -> @vecdict { mi_tuple -> 1 } } } in
+let it1_trie0 = sum(<it1_tuple, _> <- it1) { it1_tuple.id -> @vecdict { it1_tuple -> 1 } } in
+let interm4_trie0 = sum(<x0, mi_trie1> <- mi_trie0)
 	if (x0 ∈ it1_trie0) then
 		let it1_trie1 = it1_trie0(x0) in
-		sum_vec(<x1, mi_trie2> <- mi_trie1)
+		sum(<x1, mi_trie2> <- mi_trie1)
 			if (x1 ∈ interm3_trie0) then
 				let interm3_trie1 = interm3_trie0(x1) in
-				sum_vec(<mi_tuple, _> <- mi_trie2)
-					sum_vec(<interm3_tuple, _> <- interm3_trie1)
-						{ mi_tuple.movie_id -> { <col0=mi_tuple.info_type_id, col1=mi_tuple.movie_id, col2=mi_tuple.info, col4=interm3_tuple.col2, col6=interm3_tuple.col4> -> 1 } }
+				sum(<mi_tuple, _> <- mi_trie2)
+					sum(<interm3_tuple, _> <- interm3_trie1)
+						{ mi_tuple.movie_id -> @vecdict { <col0=mi_tuple.info_type_id, col1=mi_tuple.movie_id, col2=mi_tuple.info, col4=interm3_tuple.col2, col6=interm3_tuple.col4> -> 1 } }
 in
 
 let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.person_id -> { ci_tuple.movie_id -> 1 } } in
-let n_trie0 = sum_vec(<n_tuple, _> <- n) { n_tuple.id -> { n_tuple -> 1 } } in
+let n_trie0 = sum(<n_tuple, _> <- n) { n_tuple.id -> @vecdict { n_tuple -> 1 } } in
 sum(<x0, ci_trie1> <- ci_trie0)
 	if (x0 ∈ n_trie0) then
 		let n_trie1 = n_trie0(x0) in

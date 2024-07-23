@@ -24,18 +24,18 @@ let su_probed =
       { }
 
 let ord_indexed =
-  sum_vec(<o,o_v> <- orders)
+  sum(<o,o_v> <- orders)
     if(o.o_orderstatus == f) then
       { o.o_orderkey -> 1 }
     else
       { }
 
 let l2_indexed =
-  sum_vec(<l,l_v> <- lineitem)
+  sum(<l,l_v> <- lineitem)
     { l.l_orderkey ->  { l.l_suppkey -> 1 } }
 
 let l3_indexed =
-  sum_vec(<l,l_v> <- lineitem)
+  sum(<l,l_v> <- lineitem)
     if(l.l_commitdate < l.l_receiptdate) then
       { l.l_orderkey ->  { l.l_suppkey -> 1 } }
     else

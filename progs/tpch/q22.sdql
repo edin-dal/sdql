@@ -11,7 +11,7 @@ let _18 = ext(`ConstantString`, "18", 3)
 let _17 = ext(`ConstantString`, "17", 3)
 
 let o_h =
-  sum_vec(<o,o_v> <- orders)
+  sum(<o,o_v> <- orders)
     { o.o_custkey -> 1 }
 
 let fused =

@@ -17,7 +17,7 @@ object Interpreter {
       case Some(v) => v
       case None => raise(s"Variable `$name` not in scope!")
     }
-    case DictNode(vals) => normalize(vals.map(x => run(x._1) -> run(x._2)).toMap)
+    case DictNode(vals, _) => normalize(vals.map(x => run(x._1) -> run(x._2)).toMap)
     case LetBinding(x, e1, e2) =>
       val v1 = run(e1)
       run(e2)(ctx ++ Map(x -> v1))
@@ -107,7 +107,7 @@ object Interpreter {
         case _ =>
           raise(s"`concat($v1,$v2)` needs records, but given `${v1.getClass}`, `${v2.getClass}`")
       }
-    case Sum(k, v, e1, e2, _) =>
+    case Sum(k, v, e1, e2) =>
       val v1 = run(e1)
       v1 match {
         case ZeroValue =>

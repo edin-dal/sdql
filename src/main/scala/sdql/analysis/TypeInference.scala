@@ -4,9 +4,6 @@ import munit.Assertions.munitPrint
 import sdql.ir.ExternalFunctions._
 import sdql.ir._
 
-import scala.annotation.tailrec
-import scala.language.implicitConversions
-
 object TypeInference {
   type Type = ir.Type
   type Var = Sym
@@ -16,16 +13,16 @@ object TypeInference {
 
   def run(e: Exp)(implicit ctx: Ctx): Type = {
     e match {
-      case Sum(k, v, e1, e2, hint) =>
-        sum_infer_type_and_ctx(k, v, e1, e2, hint)._1
+      case Sum(k, v, e1, e2) =>
+        sum_infer_type_and_ctx(k, v, e1, e2)._1
 
       case IfThenElse(a, Const(false), Const(true)) =>
         run(a)
-      case IfThenElse(_, DictNode(Nil), DictNode(Nil)) =>
+      case IfThenElse(_, DictNode(Nil, _), DictNode(Nil, _)) =>
         raise("both branches empty")
-      case IfThenElse(_, DictNode(Nil), e2) =>
+      case IfThenElse(_, DictNode(Nil, _), e2) =>
         run(e2)
-      case IfThenElse(_, e1, DictNode(Nil)) =>
+      case IfThenElse(_, e1, DictNode(Nil, _)) =>
         run(e1)
       case _: IfThenElse | _: Add | _: Mult =>
         branching(e)
@@ -39,10 +36,10 @@ object TypeInference {
           case None => raise(s"unknown name: $name")
         }
 
-      case DictNode(Nil) =>
+      case DictNode(Nil, _) =>
         raise("Type inference needs backtracking to infer empty type { }")
-      case DictNode(seq) =>
-        DictType(seq.map(_._1).map(run).reduce(promote), seq.map(_._2).map(run).reduce(promote))
+      case DictNode(seq, hint) =>
+        DictType(seq.map(_._1).map(run).reduce(promote), seq.map(_._2).map(run).reduce(promote), hint)
 
       case RecNode(values) =>
         RecordType(values.map(v => Attribute(name=v._1, tpe=run(v._2))))
@@ -218,7 +215,7 @@ object TypeInference {
     }
   }
 
-  def sum_infer_type_and_ctx(k: Sym, v: Sym, e1: Exp, e2: Exp, hint: SumCodegenHint)(implicit ctx: Ctx): (Type, Ctx) = {
+  def sum_infer_type_and_ctx(k: Sym, v: Sym, e1: Exp, e2: Exp)(implicit ctx: Ctx): (Type, Ctx) = {
     // from e1 infer types of k, v
     val (kType, vType) = run(e1) match {
       case DictType(k_type, v_type, _) => (k_type, v_type)
@@ -228,50 +225,7 @@ object TypeInference {
     }
     // from types of k, v infer type of e2
     val localCtx = ctx ++ Map(k -> kType, v -> vType)
-    val tpe = applyHint(run(e2)(localCtx), hint)
+    val tpe = run(e2)(localCtx)
     (tpe, localCtx)
-  }
-
-  private def applyHint(tpe: Type, hint: DictCodegenHint): Type = hint match {
-    case _: DictNoHint => tpe
-    case _: DictVectorHint => tpe match {
-      case dt: DictType if isRecordToInt(dt) => vectoriseRecordToInt(dt)
-      case dt: DictType => vectoriseAll(dt)
-      case _ => tpe
-    }
-  }
-
-  @tailrec
-  def isRecordToInt(dt: DictType): Boolean = dt match {
-    case DictType(_, dt: DictType, _) => isRecordToInt(dt)
-    case DictType(_: RecordType, IntType, _) => true
-    case _: DictType => false
-  }
-
-  private def vectoriseRecordToInt(dt: DictType): Type = dt match {
-    case DictType(kt, dt: DictType, hint) =>
-      DictType(kt, vectoriseRecordToInt(dt), hint)
-    case DictType(kt: RecordType, vt @ IntType, _) =>
-      DictType(kt, vt, DictVectorHint())
-    case DictType(kt, vt, _) =>
-      raise(
-        s"Unreachable - innermost should be ${DictType.getClass.getSimpleName.init} " +
-          s"{${RecordType.getClass.getSimpleName.init} -> ${IntType.getClass.getSimpleName.init}} " +
-          s"not {${kt.simpleName} -> ${vt.simpleName}}"
-      )
-  }
-
-  private def vectoriseAll(dt: DictType): Type = dt match {
-    case DictType(kt, dt: DictType, DictNoHint()) =>
-      DictType(kt, vectoriseAll(dt), DictVectorHint())
-    case DictType(kt, vt, DictNoHint()) =>
-      DictType(kt, vt, DictVectorHint())
-    case DictType(_, _, DictVectorHint()) =>
-      raise("Unreachable - hints haven't been applied")
-  }
-
-  private implicit def convertHint(hint: SumCodegenHint): DictCodegenHint = hint match {
-    case SumVectorHint() => DictVectorHint()
-    case SumNoHint() => DictNoHint()
   }
 }

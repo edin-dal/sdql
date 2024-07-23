@@ -62,7 +62,10 @@ case class RecNode(values: Seq[(Field, Exp)]) extends Exp
  * A dictionary that maps expressions to other expressions
  * @param map a dictionary from expression to other expressions
  */
-case class DictNode(map: Seq[(Exp, Exp)]) extends Exp
+case class DictNode(map: Seq[(Exp, Exp)], hint: DictCodegenHint = DictNoHint()) extends Exp
+sealed trait DictCodegenHint;
+case class DictNoHint() extends DictCodegenHint
+case class DictVectorHint() extends DictCodegenHint
 
 /**
  * Integer numbers between 0 and n
@@ -106,7 +109,7 @@ case class Cmp(e1: Exp, e2: Exp, cmp: String) extends Exp
  */
 case class IfThenElse(cond: Exp, thenp: Exp, elsep: Exp) extends Exp
 case class FieldNode(e: Exp, f: Field) extends Exp
-case class Sum(key: Sym, value: Sym, e1: Exp, body: Exp, hint: SumCodegenHint = SumNoHint()) extends Exp
+case class Sum(key: Sym, value: Sym, e1: Exp, body: Exp) extends Exp
 case class Get(e1: Exp, e2: Exp) extends Exp
 case class Concat(e1: Exp, e2: Exp) extends Exp
 case class LetBinding(x: Sym, e1: Exp, e2: Exp) extends Exp {
@@ -120,10 +123,6 @@ case class Load(path: String, tp: Type) extends Exp
 case class Promote(tp: Type, e: Exp) extends Exp
 case class External(name: String, args: Seq[Exp]) extends Exp
 case class Unique(e: Exp) extends Exp
-
-sealed trait SumCodegenHint;
-case class SumNoHint() extends SumCodegenHint
-case class SumVectorHint() extends SumCodegenHint
 
 /**
  * This object models the multiplication of a sequence of expressions. It can
@@ -303,7 +302,7 @@ object Not {
 object SingleDict {
   def apply(k: Exp, v: Exp): Exp = DictNode(Seq((k, v)))
   def unapply(exp: Exp): Option[(Exp, Exp)] = exp match {
-    case DictNode(Seq((k, v))) => Some((k, v))
+    case DictNode(Seq((k, v)), _) => Some((k, v))
     case _ => None
   }
 }

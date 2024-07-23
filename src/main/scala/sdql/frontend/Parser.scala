@@ -2,12 +2,14 @@ package sdql
 package frontend
 
 import ir._
-import fastparse._, NoWhitespace._, CharPredicates._
+import fastparse._
+import NoWhitespace._
+import CharPredicates._
 
 
 object Parser {
   def keywords[_: P] = P (
-    StringIn("if", "then", "else", "let", "sum_vec", "sum",
+    StringIn("if", "then", "else", "let", "sum",
       "false", "true", "in", "join", "load", "ext", "iter", "int", "double",
       "string", "varchar", "date", "range", "unit", "bool", "concat", "promote",
       "mnpr", "mxpr", "mnsm", "mxsm",
@@ -96,16 +98,22 @@ object Parser {
   def letBinding[_: P]: P[LetBinding] = P( "let" ~/ variable ~/ "=" ~/ expr ~/ "in".? ~/ expr).map(x => LetBinding(x._1, x._2, x._3))
   def sum[_: P]: P[Sum] = P( "sum" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/
     expr).map(x => Sum(x._1, x._2, x._3, x._4))
-  def sumVector[_: P]: P[Sum] = P( "sum_vec" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/
-    expr).map(x => Sum(x._1, x._2, x._3, x._4, SumVectorHint()))
   // def set[_: P]: P[DictNode] = P( "{" ~/ (expr ~ !("->")).rep(sep=","./) ~ space ~/ "}" ).map(x => SetNode(x))
   def range[_: P]: P[RangeNode] = P( ("range(" ~ int ~ space ~ ")") ).map(x => RangeNode(x.v.asInstanceOf[Int]))
   def ext[_: P]: P[External] = P( "ext(" ~/ fieldConst ~/ "," ~/ expr.rep(1, sep=","./) ~ space ~/ ")" ).map(x =>
     External(x._1.v.asInstanceOf[Symbol].name, x._2))
   def keyValue[_: P] = P( expr ~/ "->" ~/ expr )
   // def keyNoValue[_: P] = P( expr ~ !("->") ).map(x => (x, Const(true)))
-  def dict[_: P]: P[DictNode] =
+  def dict[_: P]: P[DictNode] = P( hinted.? ~ dictNoHint ).map {
+    case (Some(hint), DictNode(map, _)) => DictNode(map, hint)
+    case (None, dict) => dict
+  }
+  def dictNoHint[_: P]: P[DictNode] =
     P( "{" ~/ keyValue.rep(sep=","./) ~ space ~/ "}").map(x => DictNode(x))
+  def hinted[_: P] = P("@" ~/ hint ~/ space)
+  def hint[_: P] = phmap | vecdict
+  def phmap[_: P] = P( "phmap" ).map(_ => DictNoHint())
+  def vecdict[_: P] = P( "vecdict" ).map(_ => DictVectorHint())
   def load[_: P]: P[Load] =
     P( "load" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ string ~/ ")").map(x => Load(x._2.v.asInstanceOf[String], x._1))
   def promote[_: P]: P[Promote] =
@@ -124,7 +132,7 @@ object Parser {
 
   def factor[_: P]: P[Exp] = P(space ~ (const | neg | not | dictOrSet |
     rec | ifThenElse | range | load | concat | promote | unique |
-    letBinding | sumVector | sum | variable |
+    letBinding | sum | variable |
     ext | parens) ~ space)
 
   def neg[_: P]: P[Neg] = P( "-" ~ !(">") ~ factor ).map(Neg)

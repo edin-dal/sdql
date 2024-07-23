@@ -8,14 +8,14 @@ let it = load[{<id: int, info: string> -> int}]("datasets/job/13c/it.csv")
 let ct = load[{<id: int, kind: string> -> int}]("datasets/job/13c/ct.csv")
 let cn = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("datasets/job/13c/cn.csv")
 
-let t_trie0 = sum_vec(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
-let miidx_trie0 = sum_vec(<miidx_tuple, _> <- miidx) { miidx_tuple.movie_id -> { miidx_tuple -> 1 } } in
-let interm0_trie0 = sum_vec(<x0, t_trie1> <- t_trie0)
+let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> @vecdict { t_tuple -> 1 } } in
+let miidx_trie0 = sum(<miidx_tuple, _> <- miidx) { miidx_tuple.movie_id -> @vecdict { miidx_tuple -> 1 } } in
+let interm0_trie0 = sum(<x0, t_trie1> <- t_trie0)
 	if (x0 ∈ miidx_trie0) then
 		let miidx_trie1 = miidx_trie0(x0) in
-		sum_vec(<t_tuple, _> <- t_trie1)
-			sum_vec(<miidx_tuple, _> <- miidx_trie1)
-				{ t_tuple.id -> { t_tuple.kind_id -> { miidx_tuple.info_type_id -> { <col0=t_tuple.id, col1=t_tuple.title, col2=t_tuple.kind_id, col3=miidx_tuple.info, col4=miidx_tuple.info_type_id> -> 1 } } } }
+		sum(<t_tuple, _> <- t_trie1)
+			sum(<miidx_tuple, _> <- miidx_trie1)
+				{ t_tuple.id -> { t_tuple.kind_id -> { miidx_tuple.info_type_id -> @vecdict { <col0=t_tuple.id, col1=t_tuple.title, col2=t_tuple.kind_id, col3=miidx_tuple.info, col4=miidx_tuple.info_type_id> -> 1 } } } }
 in
 
 let mi_trie0 = sum(<mi_tuple, _> <- mi) { mi_tuple.movie_id -> { mi_tuple.info_type_id -> 1 } } in
@@ -24,7 +24,7 @@ let kt_trie0 = sum(<kt_tuple, _> <- kt) { kt_tuple.id -> 1 } in
 let it2_trie0 = sum(<it2_tuple, _> <- it2) { it2_tuple.id -> 1 } in
 let it_trie0 = sum(<it_tuple, _> <- it) { it_tuple.id -> 1 } in
 let ct_trie0 = sum(<ct_tuple, _> <- ct) { ct_tuple.id -> 1 } in
-let cn_trie0 = sum_vec(<cn_tuple, _> <- cn) { cn_tuple.id -> { cn_tuple -> 1 } } in
+let cn_trie0 = sum(<cn_tuple, _> <- cn) { cn_tuple.id -> @vecdict { cn_tuple -> 1 } } in
 sum(<x0, mi_trie1> <- mi_trie0)
 	if (x0 ∈ interm0_trie0) then
 		if (x0 ∈ mc_trie0) then

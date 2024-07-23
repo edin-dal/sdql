@@ -39,7 +39,7 @@ let s_h =
     { unique(s.s_suppkey) -> < _ = s.s_nationkey > }
 
 let c_h =
-  sum_vec(<c,c_v> in customer)
+  sum(<c,c_v> in customer)
     { c.c_custkey -> c.c_nationkey }
 
 let p_h =

@@ -3,14 +3,14 @@ let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, product
 let mi = load[{<id: int, movie_id: int, info_type_id: int, info: string, note: string> -> int}]("datasets/job/3c/mi.csv")
 let k = load[{<id: int, keyword: string, phonetic_code: string> -> int}]("datasets/job/3c/k.csv")
 
-let mk_trie0 = sum_vec(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> { mk_tuple -> 1 } } in
-let t_trie0 = sum_vec(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
-let interm0_trie0 = sum_vec(<x0, mk_trie1> <- mk_trie0)
+let mk_trie0 = sum(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> @vecdict { mk_tuple -> 1 } } in
+let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> @vecdict { t_tuple -> 1 } } in
+let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 	if (x0 ∈ t_trie0) then
 		let t_trie1 = t_trie0(x0) in
-		sum_vec(<mk_tuple, _> <- mk_trie1)
-			sum_vec(<t_tuple, _> <- t_trie1)
-				{ mk_tuple.movie_id -> { mk_tuple.keyword_id -> { <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=t_tuple.title> -> 1 } } }
+		sum(<mk_tuple, _> <- mk_trie1)
+			sum(<t_tuple, _> <- t_trie1)
+				{ mk_tuple.movie_id -> { mk_tuple.keyword_id -> @vecdict { <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=t_tuple.title> -> 1 } } }
 in
 
 let mi_trie0 = sum(<mi_tuple, _> <- mi) { mi_tuple.movie_id -> 1 } in

@@ -5,8 +5,8 @@ let k = load[{<id: int, keyword: string, phonetic_code: string> -> int}]("datase
 let it = load[{<id: int, info: string> -> int}]("datasets/job/4a/it.csv")
 
 let mk_trie0 = sum(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> { mk_tuple.keyword_id -> 1 } } in
-let t_trie0 = sum_vec(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
-let mi_idx_trie0 = sum_vec(<mi_idx_tuple, _> <- mi_idx) { mi_idx_tuple.movie_id -> { mi_idx_tuple.info_type_id -> { mi_idx_tuple -> 1 } } } in
+let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> @vecdict { t_tuple -> 1 } } in
+let mi_idx_trie0 = sum(<mi_idx_tuple, _> <- mi_idx) { mi_idx_tuple.movie_id -> { mi_idx_tuple.info_type_id -> @vecdict { mi_idx_tuple -> 1 } } } in
 let k_trie0 = sum(<k_tuple, _> <- k) { k_tuple.id -> 1 } in
 let it_trie0 = sum(<it_tuple, _> <- it) { it_tuple.id -> 1 } in
 sum(<x0, mk_trie1> <- mk_trie0)

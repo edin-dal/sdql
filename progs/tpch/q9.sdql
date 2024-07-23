@@ -35,7 +35,7 @@ let ps_h =
       { }
 
 let o_h =
-  sum_vec(<o,o_v> in orders)
+  sum(<o,o_v> in orders)
     { o.o_orderkey -> o.o_orderdate }
 
 let li_h =

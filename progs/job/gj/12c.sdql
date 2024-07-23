@@ -7,14 +7,14 @@ let it1 = load[{<id: int, info: string> -> int}]("datasets/job/12c/it1.csv")
 let ct = load[{<id: int, kind: string> -> int}]("datasets/job/12c/ct.csv")
 let cn = load[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("datasets/job/12c/cn.csv")
 
-let t_trie0 = sum_vec(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
-let mi_idx_trie0 = sum_vec(<mi_idx_tuple, _> <- mi_idx) { mi_idx_tuple.movie_id -> { mi_idx_tuple -> 1 } } in
-let interm0_trie0 = sum_vec(<x0, t_trie1> <- t_trie0)
+let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> @vecdict { t_tuple -> 1 } } in
+let mi_idx_trie0 = sum(<mi_idx_tuple, _> <- mi_idx) { mi_idx_tuple.movie_id -> @vecdict { mi_idx_tuple -> 1 } } in
+let interm0_trie0 = sum(<x0, t_trie1> <- t_trie0)
 	if (x0 ∈ mi_idx_trie0) then
 		let mi_idx_trie1 = mi_idx_trie0(x0) in
-		sum_vec(<t_tuple, _> <- t_trie1)
-			sum_vec(<mi_idx_tuple, _> <- mi_idx_trie1)
-				{ t_tuple.id -> { mi_idx_tuple.info_type_id -> { <col0=t_tuple.id, col1=t_tuple.title, col2=mi_idx_tuple.info_type_id, col3=mi_idx_tuple.info> -> 1 } } }
+		sum(<t_tuple, _> <- t_trie1)
+			sum(<mi_idx_tuple, _> <- mi_idx_trie1)
+				{ t_tuple.id -> { mi_idx_tuple.info_type_id -> @vecdict { <col0=t_tuple.id, col1=t_tuple.title, col2=mi_idx_tuple.info_type_id, col3=mi_idx_tuple.info> -> 1 } } }
 in
 
 let mi_trie0 = sum(<mi_tuple, _> <- mi) { mi_tuple.movie_id -> { mi_tuple.info_type_id -> 1 } } in
@@ -22,7 +22,7 @@ let mc_trie0 = sum(<mc_tuple, _> <- mc) { mc_tuple.movie_id -> { mc_tuple.compan
 let it2_trie0 = sum(<it2_tuple, _> <- it2) { it2_tuple.id -> 1 } in
 let it1_trie0 = sum(<it1_tuple, _> <- it1) { it1_tuple.id -> 1 } in
 let ct_trie0 = sum(<ct_tuple, _> <- ct) { ct_tuple.id -> 1 } in
-let cn_trie0 = sum_vec(<cn_tuple, _> <- cn) { cn_tuple.id -> { cn_tuple -> 1 } } in
+let cn_trie0 = sum(<cn_tuple, _> <- cn) { cn_tuple.id -> @vecdict { cn_tuple -> 1 } } in
 sum(<x0, mi_trie1> <- mi_trie0)
 	if (x0 ∈ interm0_trie0) then
 		if (x0 ∈ mc_trie0) then

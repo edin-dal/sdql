@@ -5,23 +5,23 @@ let mk = load[{<id: int, movie_id: int, keyword_id: int> -> int}]("datasets/job/
 let lt = load[{<id: int, link: string> -> int}]("datasets/job/link_type.csv")
 let k = load[{<id: int, keyword: string, phonetic_code: string> -> int}]("datasets/job/32b/k.csv")
 
-let t1_trie0 = sum_vec(<t1_tuple, _> <- t1) { t1_tuple.id -> { t1_tuple -> 1 } } in
-let ml_trie0 = sum_vec(<ml_tuple, _> <- ml) { ml_tuple.movie_id -> { ml_tuple.linked_movie_id -> { ml_tuple -> 1 } } } in
-let t2_trie0 = sum_vec(<t2_tuple, _> <- t2) { t2_tuple.id -> { t2_tuple -> 1 } } in
-let interm0_trie0 = sum_vec(<x0, t1_trie1> <- t1_trie0)
+let t1_trie0 = sum(<t1_tuple, _> <- t1) { t1_tuple.id -> @vecdict { t1_tuple -> 1 } } in
+let ml_trie0 = sum(<ml_tuple, _> <- ml) { ml_tuple.movie_id -> { ml_tuple.linked_movie_id -> @vecdict { ml_tuple -> 1 } } } in
+let t2_trie0 = sum(<t2_tuple, _> <- t2) { t2_tuple.id -> @vecdict { t2_tuple -> 1 } } in
+let interm0_trie0 = sum(<x0, t1_trie1> <- t1_trie0)
 	if (x0 ∈ ml_trie0) then
 		let ml_trie1 = ml_trie0(x0) in
-		sum_vec(<x1, ml_trie2> <- ml_trie1)
+		sum(<x1, ml_trie2> <- ml_trie1)
 			if (x1 ∈ t2_trie0) then
 				let t2_trie1 = t2_trie0(x1) in
-				sum_vec(<t1_tuple, _> <- t1_trie1)
-					sum_vec(<ml_tuple, _> <- ml_trie2)
-						sum_vec(<t2_tuple, _> <- t2_trie1)
-							{ t1_tuple.id -> { ml_tuple.link_type_id -> { <col0=t1_tuple.id, col1=t1_tuple.title, col2=ml_tuple.linked_movie_id, col3=ml_tuple.link_type_id, col4=t2_tuple.title> -> 1 } } }
+				sum(<t1_tuple, _> <- t1_trie1)
+					sum(<ml_tuple, _> <- ml_trie2)
+						sum(<t2_tuple, _> <- t2_trie1)
+							{ t1_tuple.id -> { ml_tuple.link_type_id -> @vecdict { <col0=t1_tuple.id, col1=t1_tuple.title, col2=ml_tuple.linked_movie_id, col3=ml_tuple.link_type_id, col4=t2_tuple.title> -> 1 } } }
 in
 
 let mk_trie0 = sum(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> { mk_tuple.keyword_id -> 1 } } in
-let lt_trie0 = sum_vec(<lt_tuple, _> <- lt) { lt_tuple.id -> { lt_tuple -> 1 } } in
+let lt_trie0 = sum(<lt_tuple, _> <- lt) { lt_tuple.id -> @vecdict { lt_tuple -> 1 } } in
 let k_trie0 = sum(<k_tuple, _> <- k) { k_tuple.id -> 1 } in
 sum(<x0, mk_trie1> <- mk_trie0)
 	if (x0 ∈ interm0_trie0) then

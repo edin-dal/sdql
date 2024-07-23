@@ -7,21 +7,21 @@ let t = load[{<id: int, title: string, imdb_index: string, kind_id: int, product
 let chn = load[{<id: int, name: string, imdb_index: string, imdb_id: int, name_pcode_cf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/char_name.csv")
 let an = load[{<id: int, person_id: int, name: string, imdb_index: string, name_pcode_cf: string, name_pcode_nf: string, surname_pcode: string, md5sum: string> -> int}]("datasets/job/aka_name.csv")
 
-let mc_trie0 = sum_vec(<mc_tuple, _> <- mc) { mc_tuple.company_id -> { mc_tuple -> 1 } } in
-let cn_trie0 = sum_vec(<cn_tuple, _> <- cn) { cn_tuple.id -> { cn_tuple -> 1 } } in
-let interm0_trie0 = sum_vec(<x0, mc_trie1> <- mc_trie0)
+let mc_trie0 = sum(<mc_tuple, _> <- mc) { mc_tuple.company_id -> @vecdict { mc_tuple -> 1 } } in
+let cn_trie0 = sum(<cn_tuple, _> <- cn) { cn_tuple.id -> @vecdict { cn_tuple -> 1 } } in
+let interm0_trie0 = sum(<x0, mc_trie1> <- mc_trie0)
 	if (x0 ∈ cn_trie0) then
 		let cn_trie1 = cn_trie0(x0) in
-		sum_vec(<mc_tuple, _> <- mc_trie1)
-			{ mc_tuple.movie_id -> { <col0=mc_tuple.company_id, col1=mc_tuple.movie_id> -> 1 } }
+		sum(<mc_tuple, _> <- mc_trie1)
+			{ mc_tuple.movie_id -> @vecdict { <col0=mc_tuple.company_id, col1=mc_tuple.movie_id> -> 1 } }
 in
 
 let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.person_id -> { ci_tuple.movie_id -> { ci_tuple.role_id -> { ci_tuple.person_role_id -> 1 } } } } in
 let n_trie0 = sum(<n_tuple, _> <- n) { n_tuple.id -> 1 } in
 let rt_trie0 = sum(<rt_tuple, _> <- rt) { rt_tuple.id -> 1 } in
-let t_trie0 = sum_vec(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
-let chn_trie0 = sum_vec(<chn_tuple, _> <- chn) { chn_tuple.id -> { chn_tuple -> 1 } } in
-let an_trie0 = sum_vec(<an_tuple, _> <- an) { an_tuple.person_id -> { an_tuple -> 1 } } in
+let t_trie0 = sum(<t_tuple, _> <- t) { t_tuple.id -> @vecdict { t_tuple -> 1 } } in
+let chn_trie0 = sum(<chn_tuple, _> <- chn) { chn_tuple.id -> @vecdict { chn_tuple -> 1 } } in
+let an_trie0 = sum(<an_tuple, _> <- an) { an_tuple.person_id -> @vecdict { an_tuple -> 1 } } in
 sum(<x0, ci_trie1> <- ci_trie0)
 	if (x0 ∈ n_trie0) then
 		let n_trie1 = n_trie0(x0) in

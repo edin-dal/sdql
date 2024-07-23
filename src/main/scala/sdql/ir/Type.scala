@@ -48,10 +48,6 @@ case class RecordType(attrs: Seq[Attribute]) extends Type {
   }
 }
 
-sealed trait DictCodegenHint;
-case class DictNoHint() extends DictCodegenHint
-case class DictVectorHint() extends DictCodegenHint
-
 object TupleType {
   def index(idx: Int): String = s"__$idx"
   // FIXME
