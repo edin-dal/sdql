@@ -17,12 +17,10 @@ object CppCodegen {
   private sealed trait CallCtx
 
   private case class LetCtx(name: String) extends CallCtx
-
   private case class SumCtx(on: String, k: String, v: String, isLoad: Boolean, hint: SumCodegenHint) extends CallCtx
-
   private case class SumEnd() extends CallCtx
-
   private case class IsTernary() extends CallCtx
+  private case class Promoted(isMax: Boolean, isProd: Boolean) extends CallCtx
 
   private type LoadsCtx = Set[Sym]
 
@@ -76,8 +74,16 @@ object CppCodegen {
     if (checkIsSumBody(e)) {
       val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
       val hint = callsCtx.flatMap(x => condOpt(x) { case SumCtx(_, _, _, _, hint) => hint }).head
-      val callsLocal = List(SumEnd(), IsTernary()) ++ callsCtx
-      return e match {
+      val isMin = e match {
+        case Promote(TropicalSemiRingType(isMax, false, RealType), _) => !isMax
+        case _ => false
+      }
+      val (promoCtx, promo: Exp) = e match {
+        case Promote(TropicalSemiRingType(isMax, isProd, _), inner) => (List(Promoted(isMax, isProd)), inner)
+        case _ => (List(), e)
+      }
+      val callsLocal = List(SumEnd(), IsTernary()) ++ promoCtx ++ callsCtx
+      return promo match {
         case dict@DictNode(seq) => seq.map(
           kv => {
             val lhs = run(kv._1)(typesCtx, callsLocal, loadsCtx)
@@ -114,7 +120,7 @@ object CppCodegen {
                        |$link
                        |""".stripMargin
                   case DictType(IntType, DictType(IntType, _, DictVectorHint()), DictVectorHint()) =>
-                    e match {
+                    promo match {
                       case DictNode(Seq((f1: FieldNode, DictNode(Seq((f2: FieldNode, _)))))) =>
                         val lhs = run(f1)(typesCtx, callsLocal, loadsCtx)
                         val rhs = run(f2)(typesCtx, callsLocal, loadsCtx)
@@ -128,7 +134,7 @@ object CppCodegen {
             }
           }
         ).mkString("\n")
-        case RecNode(values) if cond(hint) { case _: SumMinHint => true } =>
+        case RecNode(values) if isMin =>
           values.zipWithIndex.map(
             { case ((field, exp), i) =>
               s"min_inplace( /* $field */ get<$i>($agg), ${run(exp)(typesCtx, callsLocal, loadsCtx)});"
@@ -138,10 +144,10 @@ object CppCodegen {
             { case ((field, exp), i) =>
               s"/* $field */ get<$i>($agg) += ${run(exp)(typesCtx, callsLocal, loadsCtx)};"
             }).mkString("\n")
-        case _ if cond(hint) { case _: SumMinHint => true } =>
-          s"min_inplace($agg, ${run(e)(typesCtx, callsLocal, loadsCtx)});"
+        case _ if isMin =>
+          s"min_inplace($agg, ${run(promo)(typesCtx, callsLocal, loadsCtx)});"
         case _ =>
-          s"$agg += ${run(e)(typesCtx, callsLocal, loadsCtx)};"
+          s"$agg += ${run(promo)(typesCtx, callsLocal, loadsCtx)};"
       }
     }
 
@@ -526,14 +532,11 @@ object CppCodegen {
       case Sym(name) if name.endsWith("_tuple") && !name.startsWith("interm")  =>
         s"${name.dropRight("_tuple".length)}.$field[${name}_i]"
       case Sym(name)
-        if name.endsWith("_tuple") &&
-          cond(TypeInference.run(Sym(getSumOrigin(name)))) { case dt: DictType => TypeInference.isRecordToInt(dt) } &&
-          !callsCtx.exists(cond(_) { case SumCtx(_, _, _, _, SumMinHint()) => true }) =>
+        if name.endsWith("_tuple") && !checkIsMin &&
+          cond(TypeInference.run(Sym(getSumOrigin(name)))) { case dt: DictType => TypeInference.isRecordToInt(dt) } =>
         val origin = getOrigin(name)
         s"${origin}_trie0_inner.$field[${origin}_tuple_i]"
-      case Sym(name)
-        if !name.startsWith("mn_") &&
-          callsCtx.exists(cond(_) { case SumCtx(_, _, _, _, SumMinHint()) => true }) =>
+      case Sym(name) if !name.startsWith("mn_") && checkIsMin =>
         val origin = getOrigin(name)
         s"${origin}_trie0_inner.$field[${origin}_tuple_i]"
       case _ =>
@@ -701,6 +704,9 @@ object CppCodegen {
       }
     }
   }
+
+  private def checkIsMin(implicit callsCtx: CallsCtx) =
+    callsCtx.exists(cond(_) { case Promoted(isMax, _)  => !isMax })
 
   private def checkIsTernary(implicit callsCtx: CallsCtx) =
     callsCtx.exists(cond(_) { case _: IsTernary  => true })

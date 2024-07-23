@@ -124,7 +124,6 @@ case class Unique(e: Exp) extends Exp
 sealed trait SumCodegenHint;
 case class SumNoHint() extends SumCodegenHint
 case class SumVectorHint() extends SumCodegenHint
-case class SumMinHint() extends SumCodegenHint
 
 /**
  * This object models the multiplication of a sequence of expressions. It can

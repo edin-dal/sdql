@@ -9,16 +9,16 @@ let t_trie0 = sum_vec(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
 let mc_trie0 = sum(<mc_tuple, _> <- mc) { mc_tuple.movie_id -> { mc_tuple.company_type_id -> 1 } } in
 let it_trie0 = sum(<it_tuple, _> <- it) { it_tuple.id -> 1 } in
 let ct_trie0 = sum(<ct_tuple, _> <- ct) { ct_tuple.id -> 1 } in
-min(<x0, mi_trie1> <- mi_trie0)
+sum(<x0, mi_trie1> <- mi_trie0)
 	if (x0 ∈ t_trie0) then
 		if (x0 ∈ mc_trie0) then
 			let t_trie1 = t_trie0(x0) in
 			let mc_trie1 = mc_trie0(x0) in
-			min(<x1, mi_trie2> <- mi_trie1)
+			sum(<x1, mi_trie2> <- mi_trie1)
 				if (x1 ∈ it_trie0) then
 					let it_trie1 = it_trie0(x1) in
-					min(<x2, mc_trie2> <- mc_trie1)
+					sum(<x2, mc_trie2> <- mc_trie1)
 						if (x2 ∈ ct_trie0) then
 							let ct_trie1 = ct_trie0(x2) in
-							let mn_t = min(<t_tuple, _> <- t_trie1) <title=t_tuple.title> in
-							<col2=mn_t.title>
+							let mn_t = sum(<t_tuple, _> <- t_trie1) promote[min_sum](<title=t_tuple.title>) in
+							promote[min_sum](<col2=mn_t.title>)

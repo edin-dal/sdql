@@ -23,15 +23,15 @@ in
 let mk_trie0 = sum(<mk_tuple, _> <- mk) { mk_tuple.movie_id -> { mk_tuple.keyword_id -> 1 } } in
 let lt_trie0 = sum_vec(<lt_tuple, _> <- lt) { lt_tuple.id -> { lt_tuple -> 1 } } in
 let k_trie0 = sum(<k_tuple, _> <- k) { k_tuple.id -> 1 } in
-min(<x0, mk_trie1> <- mk_trie0)
+sum(<x0, mk_trie1> <- mk_trie0)
 	if (x0 ∈ interm0_trie0) then
 		let interm0_trie1 = interm0_trie0(x0) in
-		min(<x1, interm0_trie2> <- interm0_trie1)
+		sum(<x1, interm0_trie2> <- interm0_trie1)
 			if (x1 ∈ lt_trie0) then
 				let lt_trie1 = lt_trie0(x1) in
-				min(<x2, mk_trie2> <- mk_trie1)
+				sum(<x2, mk_trie2> <- mk_trie1)
 					if (x2 ∈ k_trie0) then
 						let k_trie1 = k_trie0(x2) in
-						let mn_interm0 = min(<interm0_tuple, _> <- interm0_trie2) <col1=interm0_tuple.col1, col4=interm0_tuple.col4> in
-						let mn_lt = min(<lt_tuple, _> <- lt_trie1) <link=lt_tuple.link> in
-						<col3=mn_interm0.col1, col5=mn_interm0.col4, col6=mn_lt.link>
+						let mn_interm0 = sum(<interm0_tuple, _> <- interm0_trie2) promote[min_sum](<col1=interm0_tuple.col1, col4=interm0_tuple.col4>) in
+						let mn_lt = sum(<lt_tuple, _> <- lt_trie1) promote[min_sum](<link=lt_tuple.link>) in
+						promote[min_sum](<col3=mn_interm0.col1, col5=mn_interm0.col4, col6=mn_lt.link>)

@@ -33,24 +33,24 @@ let lt_trie0 = sum_vec(<lt_tuple, _> <- lt) { lt_tuple.id -> { lt_tuple -> 1 } }
 let k_trie0 = sum(<k_tuple, _> <- k) { k_tuple.id -> 1 } in
 let ct_trie0 = sum(<ct_tuple, _> <- ct) { ct_tuple.id -> 1 } in
 let cn_trie0 = sum_vec(<cn_tuple, _> <- cn) { cn_tuple.id -> { cn_tuple -> 1 } } in
-min(<x0, mi_trie1> <- mi_trie0)
+sum(<x0, mi_trie1> <- mi_trie0)
 	if (x0 ∈ interm1_trie0) then
 		if (x0 ∈ mc_trie0) then
 			let interm1_trie1 = interm1_trie0(x0) in
 			let mc_trie1 = mc_trie0(x0) in
-			min(<x1, interm1_trie2> <- interm1_trie1)
+			sum(<x1, interm1_trie2> <- interm1_trie1)
 				if (x1 ∈ lt_trie0) then
 					let lt_trie1 = lt_trie0(x1) in
-					min(<x2, interm1_trie3> <- interm1_trie2)
+					sum(<x2, interm1_trie3> <- interm1_trie2)
 						if (x2 ∈ k_trie0) then
 							let k_trie1 = k_trie0(x2) in
-							min(<x3, mc_trie2> <- mc_trie1)
+							sum(<x3, mc_trie2> <- mc_trie1)
 								if (x3 ∈ ct_trie0) then
 									let ct_trie1 = ct_trie0(x3) in
-									min(<x4, mc_trie3> <- mc_trie2)
+									sum(<x4, mc_trie3> <- mc_trie2)
 										if (x4 ∈ cn_trie0) then
 											let cn_trie1 = cn_trie0(x4) in
-											let mn_interm1 = min(<interm1_tuple, _> <- interm1_trie3) <col2=interm1_tuple.col2> in
-											let mn_lt = min(<lt_tuple, _> <- lt_trie1) <link=lt_tuple.link> in
-											let mn_cn = min(<cn_tuple, _> <- cn_trie1) <name=cn_tuple.name> in
-											<col3=mn_interm1.col2, col6=mn_lt.link, col7=mn_cn.name>
+											let mn_interm1 = sum(<interm1_tuple, _> <- interm1_trie3) promote[min_sum](<col2=interm1_tuple.col2>) in
+											let mn_lt = sum(<lt_tuple, _> <- lt_trie1) promote[min_sum](<link=lt_tuple.link>) in
+											let mn_cn = sum(<cn_tuple, _> <- cn_trie1) promote[min_sum](<name=cn_tuple.name>) in
+											promote[min_sum](<col3=mn_interm1.col2, col6=mn_lt.link, col7=mn_cn.name>)

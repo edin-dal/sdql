@@ -37,14 +37,14 @@ in
 
 let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.movie_id -> { ci_tuple.person_id -> 1 } } in
 let an_trie0 = sum(<an_tuple, _> <- an) { an_tuple.person_id -> 1 } in
-min(<x0, ci_trie1> <- ci_trie0)
+sum(<x0, ci_trie1> <- ci_trie0)
 	if (x0 ∈ interm1_trie0) then
 		let interm1_trie1 = interm1_trie0(x0) in
-		min(<x1, ci_trie2> <- ci_trie1)
+		sum(<x1, ci_trie2> <- ci_trie1)
 			if (x1 ∈ interm0_trie0) then
 				if (x1 ∈ an_trie0) then
 					let interm0_trie1 = interm0_trie0(x1) in
 					let an_trie1 = an_trie0(x1) in
-					let mn_interm1 = min(<interm1_tuple, _> <- interm1_trie1) <col1=interm1_tuple.col1> in
-					let mn_interm0 = min(<interm0_tuple, _> <- interm0_trie1) <col1=interm0_tuple.col1> in
-					<col2=mn_interm1.col1, col4=mn_interm0.col1>
+					let mn_interm1 = sum(<interm1_tuple, _> <- interm1_trie1) promote[min_sum](<col1=interm1_tuple.col1>) in
+					let mn_interm0 = sum(<interm0_tuple, _> <- interm0_trie1) promote[min_sum](<col1=interm0_tuple.col1>) in
+					promote[min_sum](<col2=mn_interm1.col1, col4=mn_interm0.col1>)

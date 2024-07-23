@@ -61,11 +61,11 @@ in
 
 let mi_trie0 = sum(<mi_tuple, _> <- mi) { mi_tuple.info_type_id -> { mi_tuple.movie_id -> 1 } } in
 let it1_trie0 = sum(<it1_tuple, _> <- it1) { it1_tuple.id -> 1 } in
-min(<x0, mi_trie1> <- mi_trie0)
+sum(<x0, mi_trie1> <- mi_trie0)
 	if (x0 ∈ it1_trie0) then
 		let it1_trie1 = it1_trie0(x0) in
-		min(<x1, mi_trie2> <- mi_trie1)
+		sum(<x1, mi_trie2> <- mi_trie1)
 			if (x1 ∈ interm2_trie0) then
 				let interm2_trie1 = interm2_trie0(x1) in
-				let mn_interm2 = min(<interm2_tuple, _> <- interm2_trie1) <col4=interm2_tuple.col4, col6=interm2_tuple.col6, col8=interm2_tuple.col8> in
-				<col5=mn_interm2.col4, col7=mn_interm2.col6, col9=mn_interm2.col8>
+				let mn_interm2 = sum(<interm2_tuple, _> <- interm2_trie1) promote[min_sum](<col4=interm2_tuple.col4, col6=interm2_tuple.col6, col8=interm2_tuple.col8>) in
+				promote[min_sum](<col5=mn_interm2.col4, col7=mn_interm2.col6, col9=mn_interm2.col8>)

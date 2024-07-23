@@ -49,7 +49,7 @@ let p_h =
     else
       { }
 
-// Note: SDQL doesn't yet implement min, so we select sum(ps_supplycost) instead of select min(ps_supplycost)
+// Note: SDQL doesn't yet implement sum, so we select sum(ps_supplycost) instead of select sum(ps_supplycost)
 let ps_h =
   sum(<ps,ps_v> <- partsupp)
     if ((p_h(ps.ps_partkey) != {}) && (s_h(ps.ps_suppkey) != {})) then

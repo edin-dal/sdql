@@ -73,12 +73,12 @@ in
 
 let ci_trie0 = sum(<ci_tuple, _> <- ci) { ci_tuple.person_id -> { ci_tuple.movie_id -> 1 } } in
 let n_trie0 = sum_vec(<n_tuple, _> <- n) { n_tuple.id -> { n_tuple -> 1 } } in
-min(<x0, ci_trie1> <- ci_trie0)
+sum(<x0, ci_trie1> <- ci_trie0)
 	if (x0 ∈ n_trie0) then
 		let n_trie1 = n_trie0(x0) in
-		min(<x1, ci_trie2> <- ci_trie1)
+		sum(<x1, ci_trie2> <- ci_trie1)
 			if (x1 ∈ interm4_trie0) then
 				let interm4_trie1 = interm4_trie0(x1) in
-				let mn_n = min(<n_tuple, _> <- n_trie1) <name=n_tuple.name> in
-				let mn_interm4 = min(<interm4_tuple, _> <- interm4_trie1) <col2=interm4_tuple.col2, col4=interm4_tuple.col4, col6=interm4_tuple.col6> in
-				<col2=mn_n.name, col4=mn_interm4.col2, col6=mn_interm4.col4, col8=mn_interm4.col6>
+				let mn_n = sum(<n_tuple, _> <- n_trie1) promote[min_sum](<name=n_tuple.name>) in
+				let mn_interm4 = sum(<interm4_tuple, _> <- interm4_trie1) promote[min_sum](<col2=interm4_tuple.col2, col4=interm4_tuple.col4, col6=interm4_tuple.col6>) in
+				promote[min_sum](<col2=mn_n.name, col4=mn_interm4.col2, col6=mn_interm4.col4, col8=mn_interm4.col6>)

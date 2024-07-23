@@ -90,12 +90,12 @@ in
 
 let mc2_trie0 = sum(<mc2_tuple, _> <- mc2) { mc2_tuple.company_id -> { mc2_tuple.movie_id -> 1 } } in
 let cn2_trie0 = sum_vec(<cn2_tuple, _> <- cn2) { cn2_tuple.id -> { cn2_tuple -> 1 } } in
-min(<x0, mc2_trie1> <- mc2_trie0)
+sum(<x0, mc2_trie1> <- mc2_trie0)
 	if (x0 ∈ cn2_trie0) then
 		let cn2_trie1 = cn2_trie0(x0) in
-		min(<x1, mc2_trie2> <- mc2_trie1)
+		sum(<x1, mc2_trie2> <- mc2_trie1)
 			if (x1 ∈ interm5_trie0) then
 				let interm5_trie1 = interm5_trie0(x1) in
-				let mn_cn2 = min(<cn2_tuple, _> <- cn2_trie1) <name=cn2_tuple.name> in
-				let mn_interm5 = min(<interm5_tuple, _> <- interm5_trie1) <col2=interm5_tuple.col2, col5=interm5_tuple.col5, col7=interm5_tuple.col7, col9=interm5_tuple.col9, col11=interm5_tuple.col11> in
-				<col2=mn_cn2.name, col5=mn_interm5.col2, col7=mn_interm5.col5, col9=mn_interm5.col7, col11=mn_interm5.col9, col13=mn_interm5.col11>
+				let mn_cn2 = sum(<cn2_tuple, _> <- cn2_trie1) promote[min_sum](<name=cn2_tuple.name>) in
+				let mn_interm5 = sum(<interm5_tuple, _> <- interm5_trie1) promote[min_sum](<col2=interm5_tuple.col2, col5=interm5_tuple.col5, col7=interm5_tuple.col7, col9=interm5_tuple.col9, col11=interm5_tuple.col11>) in
+				promote[min_sum](<col2=mn_cn2.name, col5=mn_interm5.col2, col7=mn_interm5.col5, col9=mn_interm5.col7, col11=mn_interm5.col9, col13=mn_interm5.col11>)

@@ -22,24 +22,24 @@ let rt_trie0 = sum(<rt_tuple, _> <- rt) { rt_tuple.id -> 1 } in
 let t_trie0 = sum_vec(<t_tuple, _> <- t) { t_tuple.id -> { t_tuple -> 1 } } in
 let chn_trie0 = sum_vec(<chn_tuple, _> <- chn) { chn_tuple.id -> { chn_tuple -> 1 } } in
 let an_trie0 = sum_vec(<an_tuple, _> <- an) { an_tuple.person_id -> { an_tuple -> 1 } } in
-min(<x0, ci_trie1> <- ci_trie0)
+sum(<x0, ci_trie1> <- ci_trie0)
 	if (x0 ∈ n_trie0) then
 		let n_trie1 = n_trie0(x0) in
-		min(<x1, ci_trie2> <- ci_trie1)
+		sum(<x1, ci_trie2> <- ci_trie1)
 			if (x1 ∈ interm0_trie0) then
 				let interm0_trie1 = interm0_trie0(x1) in
-				min(<x2, ci_trie3> <- ci_trie2)
+				sum(<x2, ci_trie3> <- ci_trie2)
 					if (x2 ∈ rt_trie0) then
 						let rt_trie1 = rt_trie0(x2) in
 						if (x1 ∈ t_trie0) then
 							let t_trie1 = t_trie0(x1) in
-							min(<x4, ci_trie4> <- ci_trie3)
+							sum(<x4, ci_trie4> <- ci_trie3)
 								if (x4 ∈ chn_trie0) then
 									let chn_trie1 = chn_trie0(x4) in
 									if (x0 ∈ an_trie0) then
 										let an_trie1 = an_trie0(x0) in
-										let mn_n = min(<n_tuple, _> <- n_trie1) <name=n_tuple.name> in
-										let mn_t = min(<t_tuple, _> <- t_trie1) <title=t_tuple.title> in
-										let mn_chn = min(<chn_tuple, _> <- chn_trie1) <name=chn_tuple.name> in
-										let mn_an = min(<an_tuple, _> <- an_trie1) <name=an_tuple.name> in
-										<col4=mn_n.name, col6=mn_t.title, col7=mn_chn.name, col8=mn_an.name>
+										let mn_n = sum(<n_tuple, _> <- n_trie1) promote[min_sum](<name=n_tuple.name>) in
+										let mn_t = sum(<t_tuple, _> <- t_trie1) promote[min_sum](<title=t_tuple.title>) in
+										let mn_chn = sum(<chn_tuple, _> <- chn_trie1) promote[min_sum](<name=chn_tuple.name>) in
+										let mn_an = sum(<an_tuple, _> <- an_trie1) promote[min_sum](<name=an_tuple.name>) in
+										promote[min_sum](<col4=mn_n.name, col6=mn_t.title, col7=mn_chn.name, col8=mn_an.name>)

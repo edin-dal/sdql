@@ -79,8 +79,8 @@ let interm4_trie0 = sum_vec(<x0, mk_trie1> <- mk_trie0)
 in
 
 let mi_trie0 = sum(<mi_tuple, _> <- mi) { mi_tuple.movie_id -> 1 } in
-min(<x0, mi_trie1> <- mi_trie0)
+sum(<x0, mi_trie1> <- mi_trie0)
 	if (x0 ∈ interm4_trie0) then
 		let interm4_trie1 = interm4_trie0(x0) in
-		let mn_interm4 = min(<interm4_tuple, _> <- interm4_trie1) <col4=interm4_tuple.col4, col5=interm4_tuple.col5, col9=interm4_tuple.col9> in
-		<col4=mn_interm4.col4, col5=mn_interm4.col5, col9=mn_interm4.col9>
+		let mn_interm4 = sum(<interm4_tuple, _> <- interm4_trie1) promote[min_sum](<col4=interm4_tuple.col4, col5=interm4_tuple.col5, col9=interm4_tuple.col9>) in
+		promote[min_sum](<col4=mn_interm4.col4, col5=mn_interm4.col5, col9=mn_interm4.col9>)
