@@ -27,10 +27,8 @@ let fused =
                    ext(`StrStartsWith`, c.c_phone, _18) ||
                    ext(`StrStartsWith`, c.c_phone, _17)
                  )
-               )
-    // parsing fails without this trivial conditional - C++ compiler can optimise it away
-    if(true) then
-      < total = if(cond) then c.c_acctbal else 0.0, count = if(cond) then 1.0 else 0.0 >
+               ) in
+    < total = if(cond) then c.c_acctbal else 0.0, count = if(cond) then 1.0 else 0.0 >
 
 let avg = fused.total / fused.count
 
