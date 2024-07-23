@@ -78,9 +78,12 @@ object CppCodegen {
         case Promote(TropicalSemiRingType(isMax, false, RealType), _) => !isMax
         case _ => false
       }
-      val (promoCtx, promo: Exp) = e match {
-        case Promote(TropicalSemiRingType(isMax, isProd, _), inner) => (List(Promoted(isMax, isProd)), inner)
-        case _ => (List(), e)
+      val promo = e
+      val promoCtx = e match {
+        case Promote(TropicalSemiRingType(isMax, isProd, _), _) => List(Promoted(isMax, isProd))
+        case IfThenElse(_, Promote(TropicalSemiRingType(isMax, isProd, _), _), _) => List(Promoted(isMax, isProd))
+        case IfThenElse(_, _, Promote(TropicalSemiRingType(isMax, isProd, _), _)) => List(Promoted(isMax, isProd))
+        case _ => List()
       }
       val callsLocal = List(SumEnd(), IsTernary()) ++ promoCtx ++ callsCtx
       return promo match {
@@ -421,8 +424,8 @@ object CppCodegen {
         raise(s"unhandled function name: $name")
 
       // handle separately inside sum body
-      case Unique(e) =>
-        run(e)
+      case Unique(e) => run(e)
+      case Promote(_, e) => run(e)
 
       case Concat(v1@RecNode(fs1), v2@RecNode(fs2)) => run(
         {
