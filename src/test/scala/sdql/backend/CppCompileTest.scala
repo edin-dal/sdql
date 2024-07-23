@@ -161,11 +161,12 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //}
 
 // uncomment and run these tests on pre-processed datasets in datasets/job
-// they are split into batches with the slower tests run separately
+// manually load balanced - batched together to have roughly same times
 // note: DON'T run them all in parallel - unless you have ~64GB of ram
 //class CppCompileTestJOB extends AnyFlatSpec with ParallelTestExecution {
 //
-//  it should "compile and run JOB 1-5" in {
+//  it should "compile and run JOB 1-5 & 8-15" in {
+//    // 1-5
 //    Helpers.assertOutputs("progs/job/gj/1a.sdql", "src/test/job/gj/results/1a.result")
 //    Helpers.assertOutputs("progs/job/gj/1b.sdql", "src/test/job/gj/results/1b.result")
 //    Helpers.assertOutputs("progs/job/gj/1c.sdql", "src/test/job/gj/results/1c.result")
@@ -184,31 +185,13 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //    Helpers.assertOutputs("progs/job/gj/4c.sdql", "src/test/job/gj/results/4c.result")
 //
 //    Helpers.assertOutputs("progs/job/gj/5c.sdql", "src/test/job/gj/results/5c.result")
-//  }
 //
-//  it should "compile and run JOB 6" in {
-//    Helpers.assertOutputs("progs/job/gj/6a.sdql", "src/test/job/gj/results/6a.result")
-//    Helpers.assertOutputs("progs/job/gj/6b.sdql", "src/test/job/gj/results/6b.result")
-//    Helpers.assertOutputs("progs/job/gj/6c.sdql", "src/test/job/gj/results/6c.result")
-//    Helpers.assertOutputs("progs/job/gj/6d.sdql", "src/test/job/gj/results/6d.result")
-//    Helpers.assertOutputs("progs/job/gj/6e.sdql", "src/test/job/gj/results/6e.result")
-//    Helpers.assertOutputs("progs/job/gj/6f.sdql", "src/test/job/gj/results/6f.result")
-//  }
-//
-//  it should "compile and run JOB 7" in {
-//    Helpers.assertOutputs("progs/job/gj/7a.sdql", "src/test/job/gj/results/7a.result")
-//    Helpers.assertOutputs("progs/job/gj/7b.sdql", "src/test/job/gj/results/7b.result")
-//    Helpers.assertOutputs("progs/job/gj/7c.sdql", "src/test/job/gj/results/7c.result")
-//  }
-//
-//  it should "compile and run JOB 8" in {
+//    // 8-15
 //    Helpers.assertOutputs("progs/job/gj/8a.sdql", "src/test/job/gj/results/8a.result")
 //    Helpers.assertOutputs("progs/job/gj/8b.sdql", "src/test/job/gj/results/8b.result")
 //    Helpers.assertOutputs("progs/job/gj/8c.sdql", "src/test/job/gj/results/8c.result")
 //    Helpers.assertOutputs("progs/job/gj/8d.sdql", "src/test/job/gj/results/8d.result")
-//  }
 //
-//  it should "compile and run JOB 9-15" in {
 //    Helpers.assertOutputs("progs/job/gj/9a.sdql", "src/test/job/gj/results/9a.result")
 //    Helpers.assertOutputs("progs/job/gj/9b.sdql", "src/test/job/gj/results/9b.result")
 //    Helpers.assertOutputs("progs/job/gj/9c.sdql", "src/test/job/gj/results/9c.result")
@@ -239,14 +222,25 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //    Helpers.assertOutputs("progs/job/gj/15d.sdql", "src/test/job/gj/results/15d.result")
 //  }
 //
-//  it should "compile and run JOB 16" in {
+//  it should "compile and run JOB 6-7" in {
+//    Helpers.assertOutputs("progs/job/gj/6a.sdql", "src/test/job/gj/results/6a.result")
+//    Helpers.assertOutputs("progs/job/gj/6b.sdql", "src/test/job/gj/results/6b.result")
+//    Helpers.assertOutputs("progs/job/gj/6c.sdql", "src/test/job/gj/results/6c.result")
+//    Helpers.assertOutputs("progs/job/gj/6d.sdql", "src/test/job/gj/results/6d.result")
+//    Helpers.assertOutputs("progs/job/gj/6e.sdql", "src/test/job/gj/results/6e.result")
+//    Helpers.assertOutputs("progs/job/gj/6f.sdql", "src/test/job/gj/results/6f.result")
+//
+//    Helpers.assertOutputs("progs/job/gj/7a.sdql", "src/test/job/gj/results/7a.result")
+//    Helpers.assertOutputs("progs/job/gj/7b.sdql", "src/test/job/gj/results/7b.result")
+//    Helpers.assertOutputs("progs/job/gj/7c.sdql", "src/test/job/gj/results/7c.result")
+//  }
+//
+//  it should "compile and run JOB 16-17" in {
 //    Helpers.assertOutputs("progs/job/gj/16a.sdql", "src/test/job/gj/results/16a.result")
 //    Helpers.assertOutputs("progs/job/gj/16b.sdql", "src/test/job/gj/results/16b.result")
 //    Helpers.assertOutputs("progs/job/gj/16c.sdql", "src/test/job/gj/results/16c.result")
 //    Helpers.assertOutputs("progs/job/gj/16d.sdql", "src/test/job/gj/results/16d.result")
-//  }
 //
-//  it should "compile and run JOB 17" in {
 //    Helpers.assertOutputs("progs/job/gj/17a.sdql", "src/test/job/gj/results/17a.result")
 //    Helpers.assertOutputs("progs/job/gj/17b.sdql", "src/test/job/gj/results/17b.result")
 //    Helpers.assertOutputs("progs/job/gj/17c.sdql", "src/test/job/gj/results/17c.result")
@@ -255,7 +249,8 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //    Helpers.assertOutputs("progs/job/gj/17f.sdql", "src/test/job/gj/results/17f.result")
 //  }
 //
-//  it should "compile and run JOB 18-19" in {
+//  it should "compile and run JOB 18-20 & 26" in {
+//    // 18-20
 //    Helpers.assertOutputs("progs/job/gj/18a.sdql", "src/test/job/gj/results/18a.result")
 //    Helpers.assertOutputs("progs/job/gj/18b.sdql", "src/test/job/gj/results/18b.result")
 //    Helpers.assertOutputs("progs/job/gj/18c.sdql", "src/test/job/gj/results/18c.result")
@@ -264,15 +259,19 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //    Helpers.assertOutputs("progs/job/gj/19b.sdql", "src/test/job/gj/results/19b.result")
 //    Helpers.assertOutputs("progs/job/gj/19c.sdql", "src/test/job/gj/results/19c.result")
 //    Helpers.assertOutputs("progs/job/gj/19d.sdql", "src/test/job/gj/results/19d.result")
-//  }
 //
-//  it should "compile and run JOB 20" in {
 //    Helpers.assertOutputs("progs/job/gj/20a.sdql", "src/test/job/gj/results/20a.result")
 //    Helpers.assertOutputs("progs/job/gj/20b.sdql", "src/test/job/gj/results/20b.result")
 //    Helpers.assertOutputs("progs/job/gj/20c.sdql", "src/test/job/gj/results/20c.result")
+//
+//    // 26
+//    Helpers.assertOutputs("progs/job/gj/26a.sdql", "src/test/job/gj/results/26a.result")
+//    Helpers.assertOutputs("progs/job/gj/26b.sdql", "src/test/job/gj/results/26b.result")
+//    Helpers.assertOutputs("progs/job/gj/26c.sdql", "src/test/job/gj/results/26c.result")
 //  }
 //
-//  it should "compile and run JOB 21-25" in {
+//  it should "compile and run JOB 21-25 & 27-33" in {
+//    // 21-25
 //    Helpers.assertOutputs("progs/job/gj/21a.sdql", "src/test/job/gj/results/21a.result")
 //    Helpers.assertOutputs("progs/job/gj/21b.sdql", "src/test/job/gj/results/21b.result")
 //    Helpers.assertOutputs("progs/job/gj/21c.sdql", "src/test/job/gj/results/21c.result")
@@ -292,15 +291,8 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //    Helpers.assertOutputs("progs/job/gj/25a.sdql", "src/test/job/gj/results/25a.result")
 //    Helpers.assertOutputs("progs/job/gj/25b.sdql", "src/test/job/gj/results/25b.result")
 //    Helpers.assertOutputs("progs/job/gj/25c.sdql", "src/test/job/gj/results/25c.result")
-//  }
 //
-//  it should "compile and run JOB 26" in {
-//    Helpers.assertOutputs("progs/job/gj/26a.sdql", "src/test/job/gj/results/26a.result")
-//    Helpers.assertOutputs("progs/job/gj/26b.sdql", "src/test/job/gj/results/26b.result")
-//    Helpers.assertOutputs("progs/job/gj/26c.sdql", "src/test/job/gj/results/26c.result")
-//  }
-//
-//  it should "compile and run JOB 27-33" in {
+//    // 27-33
 //    Helpers.assertOutputs("progs/job/gj/27a.sdql", "src/test/job/gj/results/27a.result")
 //    Helpers.assertOutputs("progs/job/gj/27b.sdql", "src/test/job/gj/results/27b.result")
 //    Helpers.assertOutputs("progs/job/gj/27c.sdql", "src/test/job/gj/results/27c.result")
