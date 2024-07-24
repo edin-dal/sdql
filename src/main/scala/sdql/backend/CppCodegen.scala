@@ -135,16 +135,6 @@ object CppCodegen {
             }
           }
         ).mkString("\n")
-        case RecNode(values) if isMin =>
-          values.zipWithIndex.map(
-            { case ((field, exp), i) =>
-              s"min_inplace( /* $field */ get<$i>($agg), ${run(exp)(typesCtx, callsLocal, loadsCtx)});"
-            }).mkString("\n")
-        case RecNode(values) =>
-          values.zipWithIndex.map(
-            { case ((field, exp), i) =>
-              s"/* $field */ get<$i>($agg) += ${run(exp)(typesCtx, callsLocal, loadsCtx)};"
-            }).mkString("\n")
         case _ if isMin =>
           s"min_inplace($agg, ${run(promo)(typesCtx, callsLocal, loadsCtx)});"
         case _ =>
