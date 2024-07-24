@@ -129,8 +129,6 @@ object CppCodegen {
                         val rhs = run(f2)(typesCtx, callsLocal, loadsCtx)
                         s"$agg[$lhs].emplace_back($rhs);"
                     }
-                  case DictType(IntType, _, DictVectorHint()) =>
-                    s"$agg[$lhs] = $rhs;"
                   case tpe =>
                     raise(s"Unexpected ${tpe.prettyPrint}")
                 }
