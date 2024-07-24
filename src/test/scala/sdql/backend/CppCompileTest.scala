@@ -167,157 +167,157 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //
 //  it should "compile and run JOB 1-5 & 8-15" in {
 //    // 1-5
-//    Helpers.assertOutputs("progs/job/gj/1a.sdql", "src/test/job/gj/results/1a.result")
-//    Helpers.assertOutputs("progs/job/gj/1b.sdql", "src/test/job/gj/results/1b.result")
-//    Helpers.assertOutputs("progs/job/gj/1c.sdql", "src/test/job/gj/results/1c.result")
-//    Helpers.assertOutputs("progs/job/gj/1d.sdql", "src/test/job/gj/results/1d.result")
+//    Helpers.assertOutputs("progs/job/gj/1a.sdql", "src/test/job/results/1a.result")
+//    Helpers.assertOutputs("progs/job/gj/1b.sdql", "src/test/job/results/1b.result")
+//    Helpers.assertOutputs("progs/job/gj/1c.sdql", "src/test/job/results/1c.result")
+//    Helpers.assertOutputs("progs/job/gj/1d.sdql", "src/test/job/results/1d.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/2a.sdql", "src/test/job/gj/results/2a.result")
-//    Helpers.assertOutputs("progs/job/gj/2b.sdql", "src/test/job/gj/results/2b.result")
-//    Helpers.assertOutputs("progs/job/gj/2d.sdql", "src/test/job/gj/results/2d.result")
+//    Helpers.assertOutputs("progs/job/gj/2a.sdql", "src/test/job/results/2a.result")
+//    Helpers.assertOutputs("progs/job/gj/2b.sdql", "src/test/job/results/2b.result")
+//    Helpers.assertOutputs("progs/job/gj/2d.sdql", "src/test/job/results/2d.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/3a.sdql", "src/test/job/gj/results/3a.result")
-//    Helpers.assertOutputs("progs/job/gj/3b.sdql", "src/test/job/gj/results/3b.result")
-//    Helpers.assertOutputs("progs/job/gj/3c.sdql", "src/test/job/gj/results/3c.result")
+//    Helpers.assertOutputs("progs/job/gj/3a.sdql", "src/test/job/results/3a.result")
+//    Helpers.assertOutputs("progs/job/gj/3b.sdql", "src/test/job/results/3b.result")
+//    Helpers.assertOutputs("progs/job/gj/3c.sdql", "src/test/job/results/3c.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/4a.sdql", "src/test/job/gj/results/4a.result")
-//    Helpers.assertOutputs("progs/job/gj/4b.sdql", "src/test/job/gj/results/4b.result")
-//    Helpers.assertOutputs("progs/job/gj/4c.sdql", "src/test/job/gj/results/4c.result")
+//    Helpers.assertOutputs("progs/job/gj/4a.sdql", "src/test/job/results/4a.result")
+//    Helpers.assertOutputs("progs/job/gj/4b.sdql", "src/test/job/results/4b.result")
+//    Helpers.assertOutputs("progs/job/gj/4c.sdql", "src/test/job/results/4c.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/5c.sdql", "src/test/job/gj/results/5c.result")
+//    Helpers.assertOutputs("progs/job/gj/5c.sdql", "src/test/job/results/5c.result")
 //
 //    // 8-15
-//    Helpers.assertOutputs("progs/job/gj/8a.sdql", "src/test/job/gj/results/8a.result")
-//    Helpers.assertOutputs("progs/job/gj/8b.sdql", "src/test/job/gj/results/8b.result")
-//    Helpers.assertOutputs("progs/job/gj/8c.sdql", "src/test/job/gj/results/8c.result")
-//    Helpers.assertOutputs("progs/job/gj/8d.sdql", "src/test/job/gj/results/8d.result")
+//    Helpers.assertOutputs("progs/job/gj/8a.sdql", "src/test/job/results/8a.result")
+//    Helpers.assertOutputs("progs/job/gj/8b.sdql", "src/test/job/results/8b.result")
+//    Helpers.assertOutputs("progs/job/gj/8c.sdql", "src/test/job/results/8c.result")
+//    Helpers.assertOutputs("progs/job/gj/8d.sdql", "src/test/job/results/8d.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/9a.sdql", "src/test/job/gj/results/9a.result")
-//    Helpers.assertOutputs("progs/job/gj/9b.sdql", "src/test/job/gj/results/9b.result")
-//    Helpers.assertOutputs("progs/job/gj/9c.sdql", "src/test/job/gj/results/9c.result")
-//    Helpers.assertOutputs("progs/job/gj/9d.sdql", "src/test/job/gj/results/9d.result")
+//    Helpers.assertOutputs("progs/job/gj/9a.sdql", "src/test/job/results/9a.result")
+//    Helpers.assertOutputs("progs/job/gj/9b.sdql", "src/test/job/results/9b.result")
+//    Helpers.assertOutputs("progs/job/gj/9c.sdql", "src/test/job/results/9c.result")
+//    Helpers.assertOutputs("progs/job/gj/9d.sdql", "src/test/job/results/9d.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/10a.sdql", "src/test/job/gj/results/10a.result")
-//    Helpers.assertOutputs("progs/job/gj/10c.sdql", "src/test/job/gj/results/10c.result")
+//    Helpers.assertOutputs("progs/job/gj/10a.sdql", "src/test/job/results/10a.result")
+//    Helpers.assertOutputs("progs/job/gj/10c.sdql", "src/test/job/results/10c.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/11a.sdql", "src/test/job/gj/results/11a.result")
-//    Helpers.assertOutputs("progs/job/gj/11b.sdql", "src/test/job/gj/results/11b.result")
-//    Helpers.assertOutputs("progs/job/gj/11c.sdql", "src/test/job/gj/results/11c.result")
-//    Helpers.assertOutputs("progs/job/gj/11d.sdql", "src/test/job/gj/results/11d.result")
+//    Helpers.assertOutputs("progs/job/gj/11a.sdql", "src/test/job/results/11a.result")
+//    Helpers.assertOutputs("progs/job/gj/11b.sdql", "src/test/job/results/11b.result")
+//    Helpers.assertOutputs("progs/job/gj/11c.sdql", "src/test/job/results/11c.result")
+//    Helpers.assertOutputs("progs/job/gj/11d.sdql", "src/test/job/results/11d.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/12a.sdql", "src/test/job/gj/results/12a.result")
-//    Helpers.assertOutputs("progs/job/gj/12b.sdql", "src/test/job/gj/results/12b.result")
-//    Helpers.assertOutputs("progs/job/gj/12c.sdql", "src/test/job/gj/results/12c.result")
+//    Helpers.assertOutputs("progs/job/gj/12a.sdql", "src/test/job/results/12a.result")
+//    Helpers.assertOutputs("progs/job/gj/12b.sdql", "src/test/job/results/12b.result")
+//    Helpers.assertOutputs("progs/job/gj/12c.sdql", "src/test/job/results/12c.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/13b.sdql", "src/test/job/gj/results/13b.result")
-//    Helpers.assertOutputs("progs/job/gj/13c.sdql", "src/test/job/gj/results/13c.result")
+//    Helpers.assertOutputs("progs/job/gj/13b.sdql", "src/test/job/results/13b.result")
+//    Helpers.assertOutputs("progs/job/gj/13c.sdql", "src/test/job/results/13c.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/14a.sdql", "src/test/job/gj/results/14a.result")
-//    Helpers.assertOutputs("progs/job/gj/14b.sdql", "src/test/job/gj/results/14b.result")
-//    Helpers.assertOutputs("progs/job/gj/14c.sdql", "src/test/job/gj/results/14c.result")
+//    Helpers.assertOutputs("progs/job/gj/14a.sdql", "src/test/job/results/14a.result")
+//    Helpers.assertOutputs("progs/job/gj/14b.sdql", "src/test/job/results/14b.result")
+//    Helpers.assertOutputs("progs/job/gj/14c.sdql", "src/test/job/results/14c.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/15a.sdql", "src/test/job/gj/results/15a.result")
-//    Helpers.assertOutputs("progs/job/gj/15b.sdql", "src/test/job/gj/results/15b.result")
-//    Helpers.assertOutputs("progs/job/gj/15c.sdql", "src/test/job/gj/results/15c.result")
-//    Helpers.assertOutputs("progs/job/gj/15d.sdql", "src/test/job/gj/results/15d.result")
+//    Helpers.assertOutputs("progs/job/gj/15a.sdql", "src/test/job/results/15a.result")
+//    Helpers.assertOutputs("progs/job/gj/15b.sdql", "src/test/job/results/15b.result")
+//    Helpers.assertOutputs("progs/job/gj/15c.sdql", "src/test/job/results/15c.result")
+//    Helpers.assertOutputs("progs/job/gj/15d.sdql", "src/test/job/results/15d.result")
 //  }
 //
 //  it should "compile and run JOB 6-7" in {
-//    Helpers.assertOutputs("progs/job/gj/6a.sdql", "src/test/job/gj/results/6a.result")
-//    Helpers.assertOutputs("progs/job/gj/6b.sdql", "src/test/job/gj/results/6b.result")
-//    Helpers.assertOutputs("progs/job/gj/6c.sdql", "src/test/job/gj/results/6c.result")
-//    Helpers.assertOutputs("progs/job/gj/6d.sdql", "src/test/job/gj/results/6d.result")
-//    Helpers.assertOutputs("progs/job/gj/6e.sdql", "src/test/job/gj/results/6e.result")
-//    Helpers.assertOutputs("progs/job/gj/6f.sdql", "src/test/job/gj/results/6f.result")
+//    Helpers.assertOutputs("progs/job/gj/6a.sdql", "src/test/job/results/6a.result")
+//    Helpers.assertOutputs("progs/job/gj/6b.sdql", "src/test/job/results/6b.result")
+//    Helpers.assertOutputs("progs/job/gj/6c.sdql", "src/test/job/results/6c.result")
+//    Helpers.assertOutputs("progs/job/gj/6d.sdql", "src/test/job/results/6d.result")
+//    Helpers.assertOutputs("progs/job/gj/6e.sdql", "src/test/job/results/6e.result")
+//    Helpers.assertOutputs("progs/job/gj/6f.sdql", "src/test/job/results/6f.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/7a.sdql", "src/test/job/gj/results/7a.result")
-//    Helpers.assertOutputs("progs/job/gj/7b.sdql", "src/test/job/gj/results/7b.result")
-//    Helpers.assertOutputs("progs/job/gj/7c.sdql", "src/test/job/gj/results/7c.result")
+//    Helpers.assertOutputs("progs/job/gj/7a.sdql", "src/test/job/results/7a.result")
+//    Helpers.assertOutputs("progs/job/gj/7b.sdql", "src/test/job/results/7b.result")
+//    Helpers.assertOutputs("progs/job/gj/7c.sdql", "src/test/job/results/7c.result")
 //  }
 //
 //  it should "compile and run JOB 16-17" in {
-//    Helpers.assertOutputs("progs/job/gj/16a.sdql", "src/test/job/gj/results/16a.result")
-//    Helpers.assertOutputs("progs/job/gj/16b.sdql", "src/test/job/gj/results/16b.result")
-//    Helpers.assertOutputs("progs/job/gj/16c.sdql", "src/test/job/gj/results/16c.result")
-//    Helpers.assertOutputs("progs/job/gj/16d.sdql", "src/test/job/gj/results/16d.result")
+//    Helpers.assertOutputs("progs/job/gj/16a.sdql", "src/test/job/results/16a.result")
+//    Helpers.assertOutputs("progs/job/gj/16b.sdql", "src/test/job/results/16b.result")
+//    Helpers.assertOutputs("progs/job/gj/16c.sdql", "src/test/job/results/16c.result")
+//    Helpers.assertOutputs("progs/job/gj/16d.sdql", "src/test/job/results/16d.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/17a.sdql", "src/test/job/gj/results/17a.result")
-//    Helpers.assertOutputs("progs/job/gj/17b.sdql", "src/test/job/gj/results/17b.result")
-//    Helpers.assertOutputs("progs/job/gj/17c.sdql", "src/test/job/gj/results/17c.result")
-//    Helpers.assertOutputs("progs/job/gj/17d.sdql", "src/test/job/gj/results/17d.result")
-//    Helpers.assertOutputs("progs/job/gj/17e.sdql", "src/test/job/gj/results/17e.result")
-//    Helpers.assertOutputs("progs/job/gj/17f.sdql", "src/test/job/gj/results/17f.result")
+//    Helpers.assertOutputs("progs/job/gj/17a.sdql", "src/test/job/results/17a.result")
+//    Helpers.assertOutputs("progs/job/gj/17b.sdql", "src/test/job/results/17b.result")
+//    Helpers.assertOutputs("progs/job/gj/17c.sdql", "src/test/job/results/17c.result")
+//    Helpers.assertOutputs("progs/job/gj/17d.sdql", "src/test/job/results/17d.result")
+//    Helpers.assertOutputs("progs/job/gj/17e.sdql", "src/test/job/results/17e.result")
+//    Helpers.assertOutputs("progs/job/gj/17f.sdql", "src/test/job/results/17f.result")
 //  }
 //
 //  it should "compile and run JOB 18-20 & 26" in {
 //    // 18-20
-//    Helpers.assertOutputs("progs/job/gj/18a.sdql", "src/test/job/gj/results/18a.result")
-//    Helpers.assertOutputs("progs/job/gj/18b.sdql", "src/test/job/gj/results/18b.result")
-//    Helpers.assertOutputs("progs/job/gj/18c.sdql", "src/test/job/gj/results/18c.result")
+//    Helpers.assertOutputs("progs/job/gj/18a.sdql", "src/test/job/results/18a.result")
+//    Helpers.assertOutputs("progs/job/gj/18b.sdql", "src/test/job/results/18b.result")
+//    Helpers.assertOutputs("progs/job/gj/18c.sdql", "src/test/job/results/18c.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/19a.sdql", "src/test/job/gj/results/19a.result")
-//    Helpers.assertOutputs("progs/job/gj/19b.sdql", "src/test/job/gj/results/19b.result")
-//    Helpers.assertOutputs("progs/job/gj/19c.sdql", "src/test/job/gj/results/19c.result")
-//    Helpers.assertOutputs("progs/job/gj/19d.sdql", "src/test/job/gj/results/19d.result")
+//    Helpers.assertOutputs("progs/job/gj/19a.sdql", "src/test/job/results/19a.result")
+//    Helpers.assertOutputs("progs/job/gj/19b.sdql", "src/test/job/results/19b.result")
+//    Helpers.assertOutputs("progs/job/gj/19c.sdql", "src/test/job/results/19c.result")
+//    Helpers.assertOutputs("progs/job/gj/19d.sdql", "src/test/job/results/19d.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/20a.sdql", "src/test/job/gj/results/20a.result")
-//    Helpers.assertOutputs("progs/job/gj/20b.sdql", "src/test/job/gj/results/20b.result")
-//    Helpers.assertOutputs("progs/job/gj/20c.sdql", "src/test/job/gj/results/20c.result")
+//    Helpers.assertOutputs("progs/job/gj/20a.sdql", "src/test/job/results/20a.result")
+//    Helpers.assertOutputs("progs/job/gj/20b.sdql", "src/test/job/results/20b.result")
+//    Helpers.assertOutputs("progs/job/gj/20c.sdql", "src/test/job/results/20c.result")
 //
 //    // 26
-//    Helpers.assertOutputs("progs/job/gj/26a.sdql", "src/test/job/gj/results/26a.result")
-//    Helpers.assertOutputs("progs/job/gj/26b.sdql", "src/test/job/gj/results/26b.result")
-//    Helpers.assertOutputs("progs/job/gj/26c.sdql", "src/test/job/gj/results/26c.result")
+//    Helpers.assertOutputs("progs/job/gj/26a.sdql", "src/test/job/results/26a.result")
+//    Helpers.assertOutputs("progs/job/gj/26b.sdql", "src/test/job/results/26b.result")
+//    Helpers.assertOutputs("progs/job/gj/26c.sdql", "src/test/job/results/26c.result")
 //  }
 //
 //  it should "compile and run JOB 21-25 & 27-33" in {
 //    // 21-25
-//    Helpers.assertOutputs("progs/job/gj/21a.sdql", "src/test/job/gj/results/21a.result")
-//    Helpers.assertOutputs("progs/job/gj/21b.sdql", "src/test/job/gj/results/21b.result")
-//    Helpers.assertOutputs("progs/job/gj/21c.sdql", "src/test/job/gj/results/21c.result")
+//    Helpers.assertOutputs("progs/job/gj/21a.sdql", "src/test/job/results/21a.result")
+//    Helpers.assertOutputs("progs/job/gj/21b.sdql", "src/test/job/results/21b.result")
+//    Helpers.assertOutputs("progs/job/gj/21c.sdql", "src/test/job/results/21c.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/22a.sdql", "src/test/job/gj/results/22a.result")
-//    Helpers.assertOutputs("progs/job/gj/22b.sdql", "src/test/job/gj/results/22b.result")
-//    Helpers.assertOutputs("progs/job/gj/22c.sdql", "src/test/job/gj/results/22c.result")
-//    Helpers.assertOutputs("progs/job/gj/22d.sdql", "src/test/job/gj/results/22d.result")
+//    Helpers.assertOutputs("progs/job/gj/22a.sdql", "src/test/job/results/22a.result")
+//    Helpers.assertOutputs("progs/job/gj/22b.sdql", "src/test/job/results/22b.result")
+//    Helpers.assertOutputs("progs/job/gj/22c.sdql", "src/test/job/results/22c.result")
+//    Helpers.assertOutputs("progs/job/gj/22d.sdql", "src/test/job/results/22d.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/23a.sdql", "src/test/job/gj/results/23a.result")
-//    Helpers.assertOutputs("progs/job/gj/23b.sdql", "src/test/job/gj/results/23b.result")
-//    Helpers.assertOutputs("progs/job/gj/23c.sdql", "src/test/job/gj/results/23c.result")
+//    Helpers.assertOutputs("progs/job/gj/23a.sdql", "src/test/job/results/23a.result")
+//    Helpers.assertOutputs("progs/job/gj/23b.sdql", "src/test/job/results/23b.result")
+//    Helpers.assertOutputs("progs/job/gj/23c.sdql", "src/test/job/results/23c.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/24a.sdql", "src/test/job/gj/results/24a.result")
-//    Helpers.assertOutputs("progs/job/gj/24b.sdql", "src/test/job/gj/results/24b.result")
+//    Helpers.assertOutputs("progs/job/gj/24a.sdql", "src/test/job/results/24a.result")
+//    Helpers.assertOutputs("progs/job/gj/24b.sdql", "src/test/job/results/24b.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/25a.sdql", "src/test/job/gj/results/25a.result")
-//    Helpers.assertOutputs("progs/job/gj/25b.sdql", "src/test/job/gj/results/25b.result")
-//    Helpers.assertOutputs("progs/job/gj/25c.sdql", "src/test/job/gj/results/25c.result")
+//    Helpers.assertOutputs("progs/job/gj/25a.sdql", "src/test/job/results/25a.result")
+//    Helpers.assertOutputs("progs/job/gj/25b.sdql", "src/test/job/results/25b.result")
+//    Helpers.assertOutputs("progs/job/gj/25c.sdql", "src/test/job/results/25c.result")
 //
 //    // 27-33
-//    Helpers.assertOutputs("progs/job/gj/27a.sdql", "src/test/job/gj/results/27a.result")
-//    Helpers.assertOutputs("progs/job/gj/27b.sdql", "src/test/job/gj/results/27b.result")
-//    Helpers.assertOutputs("progs/job/gj/27c.sdql", "src/test/job/gj/results/27c.result")
+//    Helpers.assertOutputs("progs/job/gj/27a.sdql", "src/test/job/results/27a.result")
+//    Helpers.assertOutputs("progs/job/gj/27b.sdql", "src/test/job/results/27b.result")
+//    Helpers.assertOutputs("progs/job/gj/27c.sdql", "src/test/job/results/27c.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/28a.sdql", "src/test/job/gj/results/28a.result")
-//    Helpers.assertOutputs("progs/job/gj/28b.sdql", "src/test/job/gj/results/28b.result")
-//    Helpers.assertOutputs("progs/job/gj/28c.sdql", "src/test/job/gj/results/28c.result")
+//    Helpers.assertOutputs("progs/job/gj/28a.sdql", "src/test/job/results/28a.result")
+//    Helpers.assertOutputs("progs/job/gj/28b.sdql", "src/test/job/results/28b.result")
+//    Helpers.assertOutputs("progs/job/gj/28c.sdql", "src/test/job/results/28c.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/29a.sdql", "src/test/job/gj/results/29a.result")
-//    Helpers.assertOutputs("progs/job/gj/29b.sdql", "src/test/job/gj/results/29b.result")
-//    Helpers.assertOutputs("progs/job/gj/29c.sdql", "src/test/job/gj/results/29c.result")
+//    Helpers.assertOutputs("progs/job/gj/29a.sdql", "src/test/job/results/29a.result")
+//    Helpers.assertOutputs("progs/job/gj/29b.sdql", "src/test/job/results/29b.result")
+//    Helpers.assertOutputs("progs/job/gj/29c.sdql", "src/test/job/results/29c.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/30a.sdql", "src/test/job/gj/results/30a.result")
-//    Helpers.assertOutputs("progs/job/gj/30b.sdql", "src/test/job/gj/results/30b.result")
-//    Helpers.assertOutputs("progs/job/gj/30c.sdql", "src/test/job/gj/results/30c.result")
+//    Helpers.assertOutputs("progs/job/gj/30a.sdql", "src/test/job/results/30a.result")
+//    Helpers.assertOutputs("progs/job/gj/30b.sdql", "src/test/job/results/30b.result")
+//    Helpers.assertOutputs("progs/job/gj/30c.sdql", "src/test/job/results/30c.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/31a.sdql", "src/test/job/gj/results/31a.result")
-//    Helpers.assertOutputs("progs/job/gj/31b.sdql", "src/test/job/gj/results/31b.result")
-//    Helpers.assertOutputs("progs/job/gj/31c.sdql", "src/test/job/gj/results/31c.result")
+//    Helpers.assertOutputs("progs/job/gj/31a.sdql", "src/test/job/results/31a.result")
+//    Helpers.assertOutputs("progs/job/gj/31b.sdql", "src/test/job/results/31b.result")
+//    Helpers.assertOutputs("progs/job/gj/31c.sdql", "src/test/job/results/31c.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/32b.sdql", "src/test/job/gj/results/32b.result")
+//    Helpers.assertOutputs("progs/job/gj/32b.sdql", "src/test/job/results/32b.result")
 //
-//    Helpers.assertOutputs("progs/job/gj/33a.sdql", "src/test/job/gj/results/33a.result")
-//    Helpers.assertOutputs("progs/job/gj/33b.sdql", "src/test/job/gj/results/33b.result")
-//    Helpers.assertOutputs("progs/job/gj/33c.sdql", "src/test/job/gj/results/33c.result")
+//    Helpers.assertOutputs("progs/job/gj/33a.sdql", "src/test/job/results/33a.result")
+//    Helpers.assertOutputs("progs/job/gj/33b.sdql", "src/test/job/results/33b.result")
+//    Helpers.assertOutputs("progs/job/gj/33c.sdql", "src/test/job/results/33c.result")
 //  }
 //}
 
