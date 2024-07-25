@@ -65,35 +65,35 @@ object CppCodegen {
 
   @tailrec
   def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
-    if (checkNoLetBindings(e)) { return runLetBinding(LetBinding(Sym(resultName), e, DictNode(Nil))) }
-    if (checkIsSumBody(e)) { return runSumBody(e) }
+    if (checkNoLetBindings(e)) { return run(LetBinding(Sym(resultName), e, DictNode(Nil))) }
+    if (checkIsSumBody(e)) { return sumBody(e) }
 
     e match {
-      case e: LetBinding => runLetBinding(e)
-      case e: Sum => runSum(e)
-      case e: IfThenElse => runIfThenElse(e)
-      case e: Cmp => runCmp(e)
-      case e: FieldNode => runFieldNode(e)
-      case e: Add => runAdd(e)
-      case e: Mult => runMult(e)
-      case e: Neg => runNeg(e)
-      case e: Const => runConst(e)
-      case e: Sym => runSym(e)
-      case e: DictNode => runDictNode(e)
-      case e: RecNode => runRecNode(e)
-      case e: Get => runGet(e)
-      case e: External => runExternal(e)
-      case e: Concat => runConcat(e)
+      case e: LetBinding => run(e)
+      case e: Sum => run(e)
+      case e: IfThenElse => run(e)
+      case e: Cmp => run(e)
+      case e: FieldNode => run(e)
+      case e: Add => run(e)
+      case e: Mult => run(e)
+      case e: Neg => run(e)
+      case e: Const => run(e)
+      case e: Sym => run(e)
+      case e: DictNode => run(e)
+      case e: RecNode => run(e)
+      case e: Get => run(e)
+      case e: External => run(e)
+      case e: Concat => run(e)
 
-      // handled separately in sum body
-      case Unique(e) => run(e)
-      case Promote(_, e) => run(e)
+      // ignore - handled separately in sum body
+      case Unique(e: Exp) => run(e)
+      case Promote(_, e: Exp) => run(e)
 
       case _ => raise(f"Unhandled ${e.simpleName} in\n${munitPrint(e)}")
     }
   }
 
-  private def runSumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = {
+  private def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = {
     val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
     val hint = sumHint(TypeInference.run(e))
     val isMin = e match {
@@ -164,7 +164,7 @@ object CppCodegen {
     }
   }
 
-  private def runLetBinding(e: LetBinding)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+  private def run(e: LetBinding)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case LetBinding(x@Sym(name), e1, e2) =>
       val isTernary = !cond(e1) { case _: Sum => true }
       val localCalls = if (isTernary) List(IsTernary()) ++ callsCtx else callsCtx
@@ -181,7 +181,7 @@ object CppCodegen {
           // this is a vector so take a reference rather than copy
           s"const auto &$name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)};"
         case c: Const =>
-          s"constexpr auto $name = ${runConst(c)};"
+          s"constexpr auto $name = ${run(c)};"
         case _ =>
           s"auto $name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)};"
       }
@@ -192,7 +192,7 @@ object CppCodegen {
       e1Cpp + e2Cpp
   }
 
-  private def runSum(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+  private def run(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Sum(k, v, e1, e2) =>
       val hint = sumHint(TypeInference.run(e1))
       val isLoad = cond(hint) { case DictLoadHint() => true }
@@ -259,7 +259,7 @@ object CppCodegen {
       }
   }
 
-  private def runIfThenElse(e: IfThenElse)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+  private def run(e: IfThenElse)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     // not
     case IfThenElse(a, Const(false), Const(true)) => s"!(${run(a)})"
     // and
@@ -284,7 +284,7 @@ object CppCodegen {
       s"if ($condBody) {$ifBody\n}$elseBody"
   }
 
-  private def runCmp(e: Cmp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+  private def run(e: Cmp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Cmp(e1, e2: Sym, "∈") =>
       val tpe = TypeInference.run(e2)
       if (!cond(tpe) { case _: DictType => true })
@@ -302,7 +302,7 @@ object CppCodegen {
       s"${run(e1)} $cmp ${run(e2)}"
   }
 
-  private def runFieldNode(e: FieldNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+  private def run(e: FieldNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case FieldNode(e1, field) =>
       val tpe = (TypeInference.run(e1): @unchecked) match { case rt: RecordType => rt }
       val idx = (tpe.indexOf(field): @unchecked) match { case Some(idx) => idx }
@@ -326,12 +326,12 @@ object CppCodegen {
       }
   }
 
-  private def runAdd(e: Add)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+  private def run(e: Add)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Add(e1, Neg(e2)) => s"(${run(e1)} - ${run(e2)})"
     case Add(e1, e2) => s"(${run(e1)} + ${run(e2)})"
   }
 
-  private def runMult(e: Mult)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+  private def run(e: Mult)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Mult(e1, External(Inv.SYMBOL, args)) =>
       val divisor = args match { case Seq(divisorExp: Exp) => run(divisorExp) }
       s"(${run(e1)} / $divisor)"
@@ -339,9 +339,9 @@ object CppCodegen {
       s"(${run(e1)} * ${run(e2)})"
   }
 
-  private def runNeg(e: Neg)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = s"-${run(e)}"
+  private def run(e: Neg)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = s"-${run(e)}"
 
-  private def runSym(e: Sym)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+  private def run(e: Sym)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Sym(name) =>
       callsCtx.flatMap(x => condOpt(x) { case ctx: SumCtx => ctx }).headOption match {
         case Some(SumCtx(_, k, v, true)) if name == k || name == v => s"$name[$sumVariable]"
@@ -349,7 +349,7 @@ object CppCodegen {
       }
   }
 
-  private def runDictNode(e: DictNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+  private def run(e: DictNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case DictNode(Nil, _) =>
       ""
     case DictNode(seq, _) =>
@@ -362,14 +362,14 @@ object CppCodegen {
         .mkString(s"${cppType(TypeInference.run(e))}({", ", ", "})")
   }
 
-  private def runRecNode(e: RecNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+  private def run(e: RecNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case RecNode(values) =>
       val localCalls = List(IsTernary()) ++ callsCtx
       val tpe = TypeInference.run(e)
       values.map(e => run(e._2)(typesCtx, localCalls)).mkString(s"${cppType(tpe)}(", ", ", ")")
   }
 
-  private def runGet(e: Get)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+  private def run(e: Get)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Get(e1, e2) =>
       (TypeInference.run(e1): @unchecked) match {
         case _: RecordType => s"std::get<${run(e2)}>(${run(e1)})"
@@ -377,7 +377,7 @@ object CppCodegen {
       }
   }
 
-  private def runExternal(e: External)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+  private def run(e: External)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case External(ConstantString.SYMBOL, Seq(Const(str: String), Const(maxLen: Int))) =>
       assert(maxLen == str.length + 1)
       s"""ConstantString("$str", $maxLen)"""
@@ -450,7 +450,7 @@ object CppCodegen {
       raise(s"unhandled function name: $name")
   }
 
-  private def runConcat(e: Concat)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+  private def run(e: Concat)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Concat(v1@RecNode(fs1), v2@RecNode(fs2)) => run(
       {
         val (fs1m, fs2m) = fs1.toMap -> fs2.toMap
@@ -550,7 +550,7 @@ object CppCodegen {
       s"${run(e1)}.contains(${run(e2)})"
   }
 
-  private def runConst(e: Const) = e match {
+  private def run(e: Const) = e match {
     case Const(DateValue(v)) =>
       val yyyymmdd = reDate.findAllIn(v.toString).matchData.next()
       s"${yyyymmdd.group(1)}${yyyymmdd.group(2)}${yyyymmdd.group(3)}"
