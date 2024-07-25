@@ -198,7 +198,7 @@ object CppCodegen {
       val isLoad = cond(hint) { case DictLoadHint() => true }
 
       val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
-      var (tpe, typesLocal) = TypeInference.sum_infer_type_and_ctx(k, v, e1, e2)
+      var (tpe, typesLocal) = TypeInference.sunInferTypeAndCtx(k, v, e1, e2)
       typesLocal ++= Map(Sym(agg) -> tpe)
 
       val on = condOpt(e1) {
@@ -214,9 +214,7 @@ object CppCodegen {
       val body = run(e2)(typesLocal, callsLocal)
 
       if (isLoad) {
-        val e1Name = (e1: @unchecked) match {
-          case Sym(e1Name) => e1Name
-        }
+        val e1Name = (e1: @unchecked) match { case Sym(e1Name) => e1Name }
         val values = if (v.name == noName) "" else s"constexpr auto ${v.name} = ${e1Name.capitalize}Values();"
         val sumVar = sumVariable(callsLocal)
         // note: we could create the const auto variable outside the loop
