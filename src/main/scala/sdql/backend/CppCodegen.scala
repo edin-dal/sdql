@@ -24,7 +24,7 @@ object CppCodegen {
 
   private type LoadsCtx = Set[Sym]
 
-  private val vecSize = 6000001;
+  private val vecSize = 6000001
   private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
   private val resultName = "result"
   private val noName = "_"
