@@ -15,14 +15,11 @@ object CppCodegen {
   private type CallsCtx = List[CallCtx]
 
   private sealed trait CallCtx
-
   private case class LetCtx(name: String) extends CallCtx
   private case class SumCtx(on: String, k: String, v: String, isLoad: Boolean) extends CallCtx
   private case class SumEnd() extends CallCtx
   private case class IsTernary() extends CallCtx
   private case class Promoted(isMax: Boolean, isProd: Boolean) extends CallCtx
-
-  private type LoadsCtx = Set[Sym]
 
   private val vecSize = 6000001
   private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
@@ -36,8 +33,8 @@ object CppCodegen {
        |""".stripMargin
 
   def apply(e: Exp, benchmarkRuns: Int = 0): String = {
-    val (csvBody, loadsCtx) = CsvBodyWithLoadsCtx(Seq(e))
-    val queryBody = run(e)(Map(), List(), loadsCtx)
+    val csvBody = cppCsvs(Seq(e))
+    val queryBody = run(e)(Map(), List())
     val benchStart = if (benchmarkRuns == 0) "" else
       s"""HighPrecisionTimer timer;
          |for (int iter = 1; iter <= $benchmarkRuns; iter++) {
@@ -66,7 +63,7 @@ object CppCodegen {
        |}""".stripMargin
   }
 
-  def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx): String = {
+  def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
     if (checkNoLetBindings(e)) {
       return run(LetBinding(Sym(resultName), e, DictNode(Nil)))
     }
@@ -89,33 +86,33 @@ object CppCodegen {
       return promo match {
         case dict@DictNode(seq, _) => seq.map(
           kv => {
-            val lhs = run(kv._1)(typesCtx, callsLocal, loadsCtx)
-            val rhs = run(kv._2)(typesCtx, callsLocal, loadsCtx)
+            val lhs = run(kv._1)(typesCtx, callsLocal)
+            val rhs = run(kv._2)(typesCtx, callsLocal)
             if (cond(kv._1) { case _: Unique => true })
               s"$agg.emplace($lhs, $rhs);"
             else hint match {
               case _: DictNoHint =>
                 val(fields, inner) = splitNestedFields(dict)
-                val rhs = run(inner)(typesCtx, callsLocal, loadsCtx)
-                val accessors = cppAccessors(fields)(typesCtx, callsLocal, loadsCtx)
+                val rhs = run(inner)(typesCtx, callsLocal)
+                val accessors = cppAccessors(fields)(typesCtx, callsLocal)
                 s"$agg$accessors += $rhs;"
               case _: DictVectorHint =>
                 typesCtx(Sym(agg)) match {
                   // TODO get rid of hack for job/gj queries
                   case dt: DictType if isRecordToInt(dt) && !agg.startsWith("interm") =>
                     val(fields, _) = splitNestedFields(dict)
-                    val accessors = cppAccessors(fields)(typesCtx, callsLocal, loadsCtx)
+                    val accessors = cppAccessors(fields)(typesCtx, callsLocal)
                     s"$agg$accessors.emplace_back(${sumVariable(callsLocal)});"
                   case dt: DictType if isRecordToInt(dt) =>
                     val(fields, _) = splitNestedFields(dict)
-                    val accessors = cppAccessors(fields)(typesCtx, callsLocal, loadsCtx)
+                    val accessors = cppAccessors(fields)(typesCtx, callsLocal)
                     val cols = getRecordType(dt) match {
                       case Some(RecordType(attrs)) => attrs.map(_.name)
                     }
                     val exps = getRecordNode(dict) match {
                       case RecNode(values) => values.map(_._2)
                     }
-                    val expsCpp = exps.map(run(_)(typesCtx, callsLocal, loadsCtx))
+                    val expsCpp = exps.map(run(_)(typesCtx, callsLocal))
                     val insertions = cols
                       .zip(expsCpp).map { case (col, cpp) => s"${agg}_inner.$col.push_back($cpp);" }.mkString("\n")
                     val link = s"$agg$accessors.push_back(${agg}_cnt++);"
@@ -125,8 +122,8 @@ object CppCodegen {
                   case DictType(IntType, DictType(IntType, _, DictVectorHint()), DictVectorHint()) =>
                     promo match {
                       case DictNode(Seq((f1: FieldNode, DictNode(Seq((f2: FieldNode, _)), _))), _) =>
-                        val lhs = run(f1)(typesCtx, callsLocal, loadsCtx)
-                        val rhs = run(f2)(typesCtx, callsLocal, loadsCtx)
+                        val lhs = run(f1)(typesCtx, callsLocal)
+                        val rhs = run(f2)(typesCtx, callsLocal)
                         s"$agg[$lhs].emplace_back($rhs);"
                     }
                   case tpe =>
@@ -136,9 +133,9 @@ object CppCodegen {
           }
         ).mkString("\n")
         case _ if isMin =>
-          s"min_inplace($agg, ${run(promo)(typesCtx, callsLocal, loadsCtx)});"
+          s"min_inplace($agg, ${run(promo)(typesCtx, callsLocal)});"
         case _ =>
-          s"$agg += ${run(promo)(typesCtx, callsLocal, loadsCtx)};"
+          s"$agg += ${run(promo)(typesCtx, callsLocal)};"
       }
     }
 
@@ -151,30 +148,32 @@ object CppCodegen {
             // codegen for loads was handled in a separate tree traversal
             ""
           case External(Limit.SYMBOL, _) =>
-            s"${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls, loadsCtx)}\n"
+            s"${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)}\n"
           // TODO get rid of hack for job/gj queries
           case Get(sym @ Sym(inner), _)
             if inner.contains("trie") &&
               cond(TypeInference.run(sym)) { case dt: DictType => isRecordToInt(dt) } =>
             // this is a vector so take a reference rather than copy
-            s"const auto &$name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls, loadsCtx)};"
+            s"const auto &$name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)};"
           case c: Const =>
             s"constexpr auto $name = ${const(c)};"
           case _ =>
-            s"auto $name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls, loadsCtx)};"
+            s"auto $name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)};"
         }
         val e2Cpp = e2 match {
           case DictNode(Nil, _) => ""
-          case _ => run(e2)(typesCtx ++ Map(x -> TypeInference.run(e1)), callsCtx, loadsCtx)
+          case _ => run(e2)(typesCtx ++ Map(x -> TypeInference.run(e1)), callsCtx)
         }
         e1Cpp + e2Cpp
 
       case Sum(k, v, e1, e2) =>
+        val hint = sumHint(TypeInference.run(e1))
+        val isLoad = cond(hint) { case DictLoadHint() => true }
+
         val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
         var (tpe, typesLocal) = TypeInference.sum_infer_type_and_ctx(k, v, e1, e2)
         typesLocal ++= Map(Sym(agg) -> tpe)
 
-        val isLoad = cond(e1) { case e1Sym: Sym => loadsCtx.contains(e1Sym) }
         val on = condOpt(e1) {
           case Sym(name) => name
           case Get(Sym(name), _) => name
@@ -185,7 +184,7 @@ object CppCodegen {
         val isLetSum = cond(callsCtx.head) { case _: LetCtx => true }
         val init = if (isNestedSum && !isLetSum) "" else s"${cppType(tpe)} (${cppInit(tpe)});"
 
-        val body = run(e2)(typesLocal, callsLocal, loadsCtx)
+        val body = run(e2)(typesLocal, callsLocal)
 
         if (isLoad) {
           val e1Name = (e1: @unchecked) match {
@@ -206,7 +205,6 @@ object CppCodegen {
              |
              |""".stripMargin
         } else {
-          val hint = sumHint(tpe)
           val isVecSum = cond(hint) { case DictVectorHint() => true }
           val initBlock = getRecordType(tpe) match {
             case Some(RecordType(attrs)) if isVecSum && !isNestedSum =>
@@ -219,7 +217,7 @@ object CppCodegen {
             case _ =>
               init
           }
-          val iterable = run(e1)(typesLocal, List(SumEnd()) ++ callsLocal, loadsCtx)
+          val iterable = run(e1)(typesLocal, List(SumEnd()) ++ callsLocal)
           val head = TypeInference.run(e1)(typesLocal) match {
             case DictType(_, _, DictNoHint()) =>
               s"[${k.name}, ${v.name}] : $iterable"
@@ -245,13 +243,13 @@ object CppCodegen {
 
       case IfThenElse(cond, e1, e2) if checkIsTernary =>
         val callsLocal = List(SumEnd()) ++ callsCtx
-        val condBody = run(cond)(typesCtx, callsLocal, loadsCtx)
-        val ifBody = run(e1)(typesCtx, callsLocal, loadsCtx)
-        val elseBody = run(e2)(typesCtx, callsLocal, loadsCtx)
+        val condBody = run(cond)(typesCtx, callsLocal)
+        val ifBody = run(e1)(typesCtx, callsLocal)
+        val elseBody = run(e2)(typesCtx, callsLocal)
         s"($condBody) ? $ifBody : $elseBody"
 
       case IfThenElse(cond, e1, e2) =>
-        val condBody = run(cond)(typesCtx, List(SumEnd()) ++ callsCtx, loadsCtx)
+        val condBody = run(cond)(typesCtx, List(SumEnd()) ++ callsCtx)
         val ifBody = run(e1)
         val elseBody = e2 match {
           case DictNode(Nil, _) | Const(0) | Const(0.0) => ""
@@ -311,8 +309,8 @@ object CppCodegen {
       case DictNode(seq, _) =>
         val localCalls = List(IsTernary()) ++ callsCtx
         seq.map({ case (e1, e2) =>
-            val e1Cpp = run(e1)(typesCtx, localCalls, loadsCtx)
-            val e2Cpp = run(e2)(typesCtx, localCalls, loadsCtx)
+            val e1Cpp = run(e1)(typesCtx, localCalls)
+            val e2Cpp = run(e2)(typesCtx, localCalls)
             s"{$e1Cpp, $e2Cpp}"
           })
           .mkString(s"${cppType(TypeInference.run(e))}({", ", ", "})")
@@ -326,7 +324,7 @@ object CppCodegen {
               s"${RecordType.getClass.getSimpleName.init} not ${tpe.simpleName}"
           )
         }
-        values.map(e => run(e._2)(typesCtx, localCalls, loadsCtx)).mkString(s"${cppType(tpe)}(", ", ", ")")
+        values.map(e => run(e._2)(typesCtx, localCalls)).mkString(s"${cppType(tpe)}(", ", ", ")")
 
       case Get(e1, e2) => TypeInference.run(e1) match {
         case _: RecordType =>
@@ -379,18 +377,19 @@ object CppCodegen {
       case External(name@Inv.SYMBOL, _) =>
         raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
       case External(MaxValue.SYMBOL, Seq(arg)) =>
-        (arg: @unchecked) match {
-          case sym: Sym => assert(!loadsCtx.contains(sym))
-        }
-        val name = run(arg)
+        assert(cond(TypeInference.run(arg)) { case DictType(_, _, hint) => hint != DictLoadHint() })
+        val name = (arg: @unchecked) match { case Sym(name) => name }
         s"""std::max_element($name.begin(), $name.end(), [](const auto &p1, const auto &p2) {
            |return p1.second < p2.second;
            |})->second;
            |""".stripMargin
       case External(Size.SYMBOL, Seq(arg)) =>
-        condOpt(arg) { case sym@Sym(name) if loadsCtx.contains(sym) => name } match {
-          case Some(name) => s"${name.capitalize}::size()"
-          case None => s"${run(arg)}.size()"
+        TypeInference.run(arg) match {
+          case DictType(_, _, DictLoadHint()) if cond(arg) { case _: Sym => true } =>
+            val name = (arg: @unchecked) match { case Sym(name) => name }
+            s"${name.capitalize}::size()"
+          case _: DictType => s"${run(arg)}.size()"
+          case t => raise(s"unexpected: ${t.prettyPrint}")
         }
       case External(Limit.SYMBOL, Seq(sym@Sym(arg), Const(n: Int), Const(isDescending: Boolean))) =>
         val limit = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
@@ -499,8 +498,8 @@ object CppCodegen {
       case None => name
     }
 
-  private def cppAccessors(fields: Iterable[FieldNode])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx) =
-    fields.map(f => s"[${run(f)(typesCtx, callsCtx, loadsCtx)}]").mkString("")
+  private def cppAccessors(fields: Iterable[FieldNode])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
+    fields.map(f => s"[${run(f)(typesCtx, callsCtx)}]").mkString("")
 
   private def splitNestedFields(dict: DictNode)(implicit typesCtx: TypesCtx): (Seq[FieldNode], Exp) = dict match {
     case DictNode(Seq((f: FieldNode, v: DictNode)), _) =>
@@ -512,7 +511,7 @@ object CppCodegen {
       (Seq(), e)
   }
 
-  private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx) = {
+  private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = {
     val isVector = cond(TypeInference.run(e1)) { case DictType(_, _, DictVectorHint()) => true }
     if (isVector)
       s"${run(e1)}[${run(e2)}] != 0"
@@ -531,7 +530,7 @@ object CppCodegen {
   }
 
   private def cppField(fieldNode: FieldNode, recordType: RecordType)(
-    implicit typesCtx: TypesCtx, callsCtx: CallsCtx, loadsCtx: LoadsCtx) = {
+    implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = {
     val (e1, field) = fieldNode match { case FieldNode(e1, field) => (e1, field) }
     val idx = (recordType.indexOf(field): @unchecked) match { case Some(idx) => idx }
     e1 match {
@@ -578,7 +577,7 @@ object CppCodegen {
     case tpe => raise(s"unimplemented type: $tpe")
   }
 
-  private def CsvBodyWithLoadsCtx(exps: Seq[Exp]): (String, LoadsCtx) = {
+  private def cppCsvs(exps: Seq[Exp]): String = {
     val pathNameAttrs = exps.flatMap( e =>
       iterExps(e)
         .flatMap(
@@ -598,10 +597,7 @@ object CppCodegen {
     val valueClasses =
       pathNameAttrs.map({ case (_, name, _) => makeValuesClass(name) } ).mkString("\n")
 
-    (
-      List(csvConsts, structDefs, structInits, valueClasses).mkString("\n"),
-      pathNameAttrs.map(_._2).map(Sym.apply),
-    )
+    List(csvConsts, structDefs, structInits, valueClasses).mkString("\n")
   }
 
   private def makeCsvConst(name: String, path: String): String =

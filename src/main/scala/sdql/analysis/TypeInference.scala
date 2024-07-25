@@ -135,8 +135,8 @@ object TypeInference {
         val t1 = TypeInference.run(e1)
         TypeInference.run(e2)(ctx ++ Map(x -> t1))
 
-      case Load(_, tp) =>
-        tp
+      case Load(_, DictType(kt, vt, DictNoHint())) => DictType(kt, vt, DictLoadHint())
+      case Load(_, tp) => raise(s"unexpected: ${tp.prettyPrint}")
 
       case Unique(e) =>
         run(e)

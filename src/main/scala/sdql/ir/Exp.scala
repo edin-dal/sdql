@@ -66,6 +66,7 @@ case class DictNode(map: Seq[(Exp, Exp)], hint: DictCodegenHint = DictNoHint()) 
 sealed trait DictCodegenHint;
 case class DictNoHint() extends DictCodegenHint
 case class DictVectorHint() extends DictCodegenHint
+case class DictLoadHint() extends DictCodegenHint
 
 /**
  * Integer numbers between 0 and n
