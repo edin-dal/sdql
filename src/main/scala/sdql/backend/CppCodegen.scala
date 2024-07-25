@@ -51,7 +51,6 @@ object CppCodegen {
         |${cppPrintResult(TypeInference(e))}
         |}
         |}""".stripMargin
-    // slightly wasteful to redo type inference - but spares us having to return the type at every recursive run call
     s"""$header
        |$csvConsts
        |$csvBody
