@@ -117,7 +117,7 @@ object CppCodegen {
             s"$agg.emplace($lhs, $rhs);"
           else hint match {
             case _: DictNoHint =>
-              val(fields, inner) = splitNestedFields(dict)
+              val(fields, inner) = splitNested(dict)
               val rhs = run(inner)(typesCtx, callsLocal)
               val accessors = cppAccessors(fields)(typesCtx, callsLocal)
               s"$agg$accessors += $rhs;"
@@ -126,11 +126,11 @@ object CppCodegen {
                 // TODO get rid of hack for job/gj queries
                 case dt: DictType if isRecordToInt(dt) && !agg.startsWith("interm") =>
                   val(fields, _) = splitNestedFields(dict)
-                  val accessors = cppAccessors(fields)(typesCtx, callsLocal)
+                  val accessors = cppFieldAccessors(fields)(typesCtx, callsLocal)
                   s"$agg$accessors.emplace_back(${sumVariable(callsLocal)});"
                 case dt: DictType if isRecordToInt(dt) =>
                   val(fields, _) = splitNestedFields(dict)
-                  val accessors = cppAccessors(fields)(typesCtx, callsLocal)
+                  val accessors = cppFieldAccessors(fields)(typesCtx, callsLocal)
                   val cols = getRecordType(dt) match {
                     case Some(RecordType(attrs)) => attrs.map(_.name)
                   }
@@ -544,9 +544,22 @@ object CppCodegen {
       case None => name
     }
 
-  private def cppAccessors(fields: Iterable[FieldNode])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
-    fields.map(f => s"[${run(f)(typesCtx, callsCtx)}]").mkString("")
+  private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
+    exps.map(f => s"[${run(f)(typesCtx, callsCtx)}]").mkString("")
 
+  private def splitNested(dict: DictNode)(implicit typesCtx: TypesCtx): (Seq[Exp], Exp) = dict match {
+    case DictNode(Seq((k, v: DictNode)), _) =>
+      val (vExps, e) = splitNested(v)
+      (Seq(k) ++ vExps, e)
+    case DictNode(Seq((k, e)), _) =>
+      (Seq(k), e)
+    case e: DictNode =>
+      (Seq(), e)
+  }
+
+  // TODO get rid of hack for job/gj queries
+  private def cppFieldAccessors(fields: Iterable[FieldNode])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
+    fields.map(f => s"[${run(f)(typesCtx, callsCtx)}]").mkString("")
   private def splitNestedFields(dict: DictNode)(implicit typesCtx: TypesCtx): (Seq[FieldNode], Exp) = dict match {
     case DictNode(Seq((f: FieldNode, v: DictNode)), _) =>
       val (vFields, e) = splitNestedFields(v)
