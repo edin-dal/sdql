@@ -10,7 +10,7 @@ import CharPredicates._
 object Parser {
   def keywords[_: P] = P (
     StringIn("if", "then", "else", "let", "sum",
-      "false", "true", "in", "join", "load", "ext", "iter", "int", "double",
+      "false", "true", "in", "join", "load_cstore", "load", "ext", "iter", "int", "double",
       "string", "varchar", "date", "range", "unit", "bool", "concat", "promote",
       "mnpr", "mxpr", "mnsm", "mxsm",
       "min_prod", "max_prod", "min_sum", "max_sum",
@@ -114,6 +114,9 @@ object Parser {
   def hint[_: P] = phmap | vecdict
   def phmap[_: P] = P( "phmap" ).map(_ => DictNoHint())
   def vecdict[_: P] = P( "vecdict" ).map(_ => DictVectorHint())
+  def load_cstore[_: P]: P[Load] = P( "load_cstore" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ string ~/ ")").map(x =>
+    Load(x._2.v.asInstanceOf[String], x._1).toColumn
+  )
   def load[_: P]: P[Load] =
     P( "load" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ string ~/ ")").map(x => Load(x._2.v.asInstanceOf[String], x._1))
   def promote[_: P]: P[Promote] =
@@ -131,7 +134,7 @@ object Parser {
     P( "<" ~/ fieldValue.rep(sep=","./) ~ space ~/ ">").map(x => RecNode(x))
 
   def factor[_: P]: P[Exp] = P(space ~ (const | neg | not | dictOrSet |
-    rec | ifThenElse | range | load | concat | promote | unique |
+    rec | ifThenElse | range | load_cstore | load | concat | promote | unique |
     letBinding | sum | variable |
     ext | parens) ~ space)
 

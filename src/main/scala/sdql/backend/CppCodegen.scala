@@ -168,9 +168,9 @@ object CppCodegen {
       val isTernary = !cond(e1) { case _: Sum => true }
       val localCalls = if (isTernary) List(IsTernary()) ++ callsCtx else callsCtx
       val e1Cpp = e1 match {
-        case Load(_, DictType(RecordType(_), IntType, _)) =>
-          // codegen for loads was handled in a separate tree traversal
-          ""
+        // codegen for loads was handled in a separate tree traversal
+        case Load(_, DictType(RecordType(_), IntType, _)) => ""
+        case Load(_, rt: RecordType) if TypeInference.isColumnStore(rt) => ""
         case External(Limit.SYMBOL, _) =>
           s"${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)}\n"
         // TODO get rid of hack for job/gj queries
@@ -318,6 +318,10 @@ object CppCodegen {
         case Sym(name) if !name.startsWith("mn_") && checkIsMin =>
           val origin = getOrigin(name)
           s"${origin}_trie0_inner.$field[${origin}_tuple_i]"
+        case Sym(name) if field == "size" && TypeInference.isColumnStore(tpe) =>
+          s"${name.capitalize}::size()"
+        case Sym(name) if TypeInference.isColumnStore(tpe) =>
+          s"$name.$field"
         case _ =>
           s" /* $field */ std::get<$idx>(${run(e1)})"
       }
@@ -588,6 +592,11 @@ object CppCodegen {
         .flatMap(
           e => condOpt(e) {
             case LetBinding(Sym(name), Load(path, DictType(recordType: RecordType, IntType, _)), _) =>
+              (path, name, recordType)
+            case LetBinding(Sym(name), load @ Load(path, tp: RecordType), _) if TypeInference.isColumnStore(tp) =>
+              val recordType = load.toRow match {
+                case Load(_,  DictType(recordType: RecordType, IntType, _)) => recordType
+              }
               (path, name, recordType)
           }
         )

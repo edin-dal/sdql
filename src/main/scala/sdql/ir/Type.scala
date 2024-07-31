@@ -46,6 +46,7 @@ case class RecordType(attrs: Seq[Attribute]) extends Type {
     assert(names.diff(names.distinct).isEmpty)
     names.zipWithIndex.find(_._1 == name).map(_._2)
   }
+  def apply(name: Field): Option[Type] = attrs.find(_.name == name).map(_.tpe)
 }
 
 object TupleType {

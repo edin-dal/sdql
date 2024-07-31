@@ -5,6 +5,7 @@ import munit.Assertions.munitPrint
 import sdql.ir.ExternalFunctions._
 import sdql.ir._
 
+import scala.PartialFunction.cond
 import scala.annotation.tailrec
 
 object TypeInference {
@@ -181,7 +182,19 @@ object TypeInference {
 
   def run(e: Load): Type = e match {
     case Load(_, DictType(kt, vt, DictNoHint())) => DictType(kt, vt, DictLoadHint())
+    case Load(_, rt: RecordType) if isColumnStore(rt) => rt
     case Load(_, tp) => raise(s"unexpected: ${tp.prettyPrint}")
+  }
+
+  def isColumnStore(rt: RecordType): Boolean = {
+    rt("size") match {
+      case Some(IntType) =>
+      case _ => return false
+    }
+    rt match {
+      case RecordType(attrs) =>
+        attrs.filter(_.name != "size").map(_.tpe).forall(cond(_) { case DictType(IntType, _, _) => true })
+    }
   }
 
   def run(e: LetBinding)(implicit ctx: Ctx): Type = e match {
