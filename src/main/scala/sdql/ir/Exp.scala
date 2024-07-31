@@ -60,7 +60,9 @@ case class Const(v: Any) extends Exp
  * A record (tuple), with field labels
  * @param values a sequence of expression values with a field label
  */
-case class RecNode(values: Seq[(Field, Exp)]) extends Exp
+case class RecNode(values: Seq[(Field, Exp)]) extends Exp {
+  def apply(name: Field): Option[Exp] = values.find(_._1 == name).map(_._2)
+}
 
 /**
  * A dictionary that maps expressions to other expressions
