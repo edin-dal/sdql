@@ -422,10 +422,10 @@ object CppCodegen {
     case External(StrIndexOf.SYMBOL, Seq(field: FieldNode, elem, from)) =>
       assert(cond(TypeInference.run(field)) { case StringType(None) => true })
       s"${run(field)}.find(${run(elem)}, ${run(from)})"
-    case External(FirstIndex.SYMBOL, Seq(field: FieldNode, arg)) =>
-      s"${run(field)}.firstIndex(${run(arg)})"
-    case External(LastIndex.SYMBOL, Seq(field: FieldNode, arg)) =>
-      s"${run(field)}.lastIndex(${run(arg)})"
+    case External(FirstIndex.SYMBOL, Seq(on, patt)) =>
+      s"${run(on)}.firstIndex(${run(patt)})"
+    case External(LastIndex.SYMBOL, Seq(on, patt)) =>
+      s"${run(on)}.lastIndex(${run(patt)})"
     case External(name@Inv.SYMBOL, _) =>
       raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
     case External(MaxValue.SYMBOL, Seq(arg)) =>
@@ -458,7 +458,7 @@ object CppCodegen {
          |    []($recTpeCpp const &l, $recTpeCpp const &r) { return std::get<1>(l) $cmp std::get<1>(r); });
          |auto $limit = ${cppType(dictTpe)}($tmp.begin(), $tmp.end());
          |""".stripMargin
-    case External(name, _) =>
+    case External(name, args) =>
       raise(s"unhandled function name: $name")
   }
 

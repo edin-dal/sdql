@@ -1,6 +1,6 @@
-let customer = load[{<c_custkey: int, c_name: varchar(25), c_address: varchar(40), c_nationkey: int, c_phone: varchar(15), c_acctbal: double, c_mktsegment: varchar(10), c_comment: varchar(117)> -> int}]("datasets/tpch/customer.tbl")
+let customer = load_cstore[{<c_custkey: int, c_name: varchar(25), c_address: varchar(40), c_nationkey: int, c_phone: varchar(15), c_acctbal: double, c_mktsegment: varchar(10), c_comment: varchar(117)> -> int}]("datasets/tpch/customer.tbl")
 
-let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
+let orders = load_cstore[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
 
 let _13 = ext(`ConstantString`, "13", 3)
 let _31 = ext(`ConstantString`, "31", 3)
@@ -11,11 +11,32 @@ let _18 = ext(`ConstantString`, "18", 3)
 let _17 = ext(`ConstantString`, "17", 3)
 
 let o_h =
-  sum(<o,o_v> <- orders)
+  sum(<i,_> <- range(orders.size))
+    let o = <
+      o_orderkey=orders.o_orderkey(i),
+      o_custkey=orders.o_custkey(i),
+      o_orderstatus=orders.o_orderstatus(i),
+      o_totalprice=orders.o_totalprice(i),
+      o_orderdate=orders.o_orderdate(i),
+      o_orderpriority=orders.o_orderpriority(i),
+      o_clerk=orders.o_clerk(i),
+      o_shippriority=orders.o_shippriority(i),
+      o_comment=orders.o_comment(i)
+    >
     { o.o_custkey -> 1 }
 
 let fused =
-  sum(<c,c_v> <- customer)
+  sum(<i,_> <- range(customer.size))
+    let c = <
+      c_custkey=customer.c_custkey(i),
+      c_name=customer.c_name(i),
+      c_address=customer.c_address(i),
+      c_nationkey=customer.c_nationkey(i),
+      c_phone=customer.c_phone(i),
+      c_acctbal=customer.c_acctbal(i),
+      c_mktsegment=customer.c_mktsegment(i),
+      c_comment=customer.c_comment(i)
+    >
     let cond = (
                  (0.0 < c.c_acctbal) &&
                  (
@@ -33,7 +54,17 @@ let fused =
 let avg = fused.total / fused.count
 
 let res =
-  sum(<c,c_v> <- customer)
+  sum(<i,_> <- range(customer.size))
+    let c = <
+      c_custkey=customer.c_custkey(i),
+      c_name=customer.c_name(i),
+      c_address=customer.c_address(i),
+      c_nationkey=customer.c_nationkey(i),
+      c_phone=customer.c_phone(i),
+      c_acctbal=customer.c_acctbal(i),
+      c_mktsegment=customer.c_mktsegment(i),
+      c_comment=customer.c_comment(i)
+    >
     if(
       (avg < c.c_acctbal) &&
       (!o_h(c.c_custkey)) &&

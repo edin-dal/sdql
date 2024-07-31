@@ -1,20 +1,41 @@
-let customer = load[{<c_custkey: int, c_name: varchar(25), c_address: varchar(40), c_nationkey: int, c_phone: varchar(15), c_acctbal: double, c_mktsegment: varchar(10), c_comment: varchar(117)> -> int}]("datasets/tpch/customer.tbl")
+let customer = load_cstore[{<c_custkey: int, c_name: varchar(25), c_address: varchar(40), c_nationkey: int, c_phone: varchar(15), c_acctbal: double, c_mktsegment: varchar(10), c_comment: varchar(117)> -> int}]("datasets/tpch/customer.tbl")
 
-let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
+let orders = load_cstore[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
 
-let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: varchar(1), l_linestatus: varchar(1), l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: varchar(25), l_shipmode: varchar(10), l_comment: varchar(44)> -> int}]("datasets/tpch/lineitem.tbl")
+let lineitem = load_cstore[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: varchar(1), l_linestatus: varchar(1), l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: varchar(25), l_shipmode: varchar(10), l_comment: varchar(44)> -> int}]("datasets/tpch/lineitem.tbl")
 
 let building = ext(`ConstantString`,"BUILDING", 9)
 
 let c_h =
-  sum(<c,c_v> in customer)
+  sum(<i,_> <- range(customer.size))
+    let c = <
+      c_custkey=customer.c_custkey(i),
+      c_name=customer.c_name(i),
+      c_address=customer.c_address(i),
+      c_nationkey=customer.c_nationkey(i),
+      c_phone=customer.c_phone(i),
+      c_acctbal=customer.c_acctbal(i),
+      c_mktsegment=customer.c_mktsegment(i),
+      c_comment=customer.c_comment(i)
+    >
     if(c.c_mktsegment == building) then
       { unique(c.c_custkey) -> < _ = c.c_custkey > }
     else
       { }
 
 let o_h =
-  sum(<o,o_v> in orders)
+  sum(<i,_> <- range(orders.size))
+    let o = <
+      o_orderkey=orders.o_orderkey(i),
+      o_custkey=orders.o_custkey(i),
+      o_orderstatus=orders.o_orderstatus(i),
+      o_totalprice=orders.o_totalprice(i),
+      o_orderdate=orders.o_orderdate(i),
+      o_orderpriority=orders.o_orderpriority(i),
+      o_clerk=orders.o_clerk(i),
+      o_shippriority=orders.o_shippriority(i),
+      o_comment=orders.o_comment(i)
+    >
     if(
         (o.o_orderdate < date(19950315))
         && (c_h(o.o_custkey) != {})
@@ -23,22 +44,40 @@ let o_h =
     else
       { }
 
-let li_h =
-  sum(<li,li_v> in lineitem)
+let l_h =
+  sum(<i,_> <- range(lineitem.size))
+    let l = <
+      l_orderkey=lineitem.l_orderkey(i),
+      l_partkey=lineitem.l_partkey(i),
+      l_suppkey=lineitem.l_suppkey(i),
+      l_linenumber=lineitem.l_linenumber(i),
+      l_quantity=lineitem.l_quantity(i),
+      l_extendedprice=lineitem.l_extendedprice(i),
+      l_discount=lineitem.l_discount(i),
+      l_tax=lineitem.l_tax(i),
+      l_returnflag=lineitem.l_returnflag(i),
+      l_linestatus=lineitem.l_linestatus(i),
+      l_shipdate=lineitem.l_shipdate(i),
+      l_commitdate=lineitem.l_commitdate(i),
+      l_receiptdate=lineitem.l_receiptdate(i),
+      l_shipinstruct=lineitem.l_shipinstruct(i),
+      l_shipmode=lineitem.l_shipmode(i),
+      l_comment=lineitem.l_comment(i)
+    >
     if(
-        (date(19950315) < li.l_shipdate)
-        && (o_h(li.l_orderkey) != {})
+        (date(19950315) < l.l_shipdate)
+        && (o_h(l.l_orderkey) != {})
       ) then
       {
         <
-          l_orderkey = li.l_orderkey,
-          o_orderdate = o_h(li.l_orderkey)(0),
-          o_shippriority = o_h(li.l_orderkey)(1)
+          l_orderkey = l.l_orderkey,
+          o_orderdate = o_h(l.l_orderkey)(0),
+          o_shippriority = o_h(l.l_orderkey)(1)
         > ->
-         < revenue = li.l_extendedprice * (1 - li.l_discount) >
+         < revenue = l.l_extendedprice * (1 - l.l_discount) >
       }
     else
       { }
 
-sum(<k,v> <- li_h)
+sum(<k,v> <- l_h)
   { unique(concat(k,v)) -> 1 }

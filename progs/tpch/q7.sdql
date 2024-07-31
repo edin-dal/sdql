@@ -1,46 +1,100 @@
-let supplier = load[{<s_suppkey: int, s_name: varchar(25), s_address: varchar(40), s_nationkey: int, s_phone: varchar(15), s_acctbal: double, s_comment: varchar(101)> -> int}]("datasets/tpch/supplier.tbl")
+let supplier = load_cstore[{<s_suppkey: int, s_name: varchar(25), s_address: varchar(40), s_nationkey: int, s_phone: varchar(15), s_acctbal: double, s_comment: varchar(101)> -> int}]("datasets/tpch/supplier.tbl")
 
-let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: varchar(1), l_linestatus: varchar(1), l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: varchar(25), l_shipmode: varchar(10), l_comment: varchar(44)> -> int}]("datasets/tpch/lineitem.tbl")
+let lineitem = load_cstore[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: varchar(1), l_linestatus: varchar(1), l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: varchar(25), l_shipmode: varchar(10), l_comment: varchar(44)> -> int}]("datasets/tpch/lineitem.tbl")
 
-let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
+let orders = load_cstore[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
 
-let customer = load[{<c_custkey: int, c_name: varchar(25), c_address: varchar(40), c_nationkey: int, c_phone: varchar(15), c_acctbal: double, c_mktsegment: varchar(10), c_comment: varchar(117)> -> int}]("datasets/tpch/customer.tbl")
+let customer = load_cstore[{<c_custkey: int, c_name: varchar(25), c_address: varchar(40), c_nationkey: int, c_phone: varchar(15), c_acctbal: double, c_mktsegment: varchar(10), c_comment: varchar(117)> -> int}]("datasets/tpch/customer.tbl")
 
-let nation = load[{<n_nationkey: int, n_name: varchar(25), n_regionkey: int, r_comment: varchar(152)> -> int}]("datasets/tpch/nation.tbl")
+let nation = load_cstore[{<n_nationkey: int, n_name: varchar(25), n_regionkey: int, n_comment: varchar(152)> -> int}]("datasets/tpch/nation.tbl")
 
 let france = ext(`ConstantString`,"FRANCE", 7)
 let germany = ext(`ConstantString`,"GERMANY", 8)
 
 let nationkey_to_name =
-  sum(<n,n_v> in nation)
+  sum(<i,_> <- range(nation.size))
+    let n = <
+      n_nationkey=nation.n_nationkey(i),
+      n_name=nation.n_name(i),
+      n_regionkey=nation.n_regionkey(i),
+      n_comment=nation.n_comment(i)
+    >
     if((n.n_name == france) || (n.n_name == germany)) then
       { unique(n.n_nationkey) -> < _ = n.n_name > }
     else
       { }
 
 let custkey_to_name =
-  sum(<c,c_v> in customer)
+  sum(<i,_> <- range(customer.size))
+    let c = <
+      c_custkey=customer.c_custkey(i),
+      c_name=customer.c_name(i),
+      c_address=customer.c_address(i),
+      c_nationkey=customer.c_nationkey(i),
+      c_phone=customer.c_phone(i),
+      c_acctbal=customer.c_acctbal(i),
+      c_mktsegment=customer.c_mktsegment(i),
+      c_comment=customer.c_comment(i)
+    >
     if(nationkey_to_name(c.c_nationkey) != {}) then
       { unique(c.c_custkey) -> nationkey_to_name(c.c_nationkey)(0) }
     else
       { }
 
 let orderkey_to_name =
-  sum(<o,o_v> in orders)
+  sum(<i,_> <- range(orders.size))
+    let o = <
+      o_orderkey=orders.o_orderkey(i),
+      o_custkey=orders.o_custkey(i),
+      o_orderstatus=orders.o_orderstatus(i),
+      o_totalprice=orders.o_totalprice(i),
+      o_orderdate=orders.o_orderdate(i),
+      o_orderpriority=orders.o_orderpriority(i),
+      o_clerk=orders.o_clerk(i),
+      o_shippriority=orders.o_shippriority(i),
+      o_comment=orders.o_comment(i)
+    >
     if(custkey_to_name(o.o_custkey) != {}) then
       { unique(o.o_orderkey) -> custkey_to_name(o.o_custkey) }
     else
       { }
 
 let suppkey_to_name =
-  sum(<s,s_v> in supplier)
+  sum(<i,_> <- range(supplier.size))
+    let s = <
+      s_suppkey=supplier.s_suppkey(i),
+      s_name=supplier.s_name(i),
+      s_address=supplier.s_address(i),
+      s_nationkey=supplier.s_nationkey(i),
+      s_phone=supplier.s_phone(i),
+      s_acctbal=supplier.s_acctbal(i),
+      s_comment=supplier.s_comment(i)
+    >
     if(nationkey_to_name(s.s_nationkey) != {}) then
       { unique(s.s_suppkey) -> nationkey_to_name(s.s_nationkey)(0) }
     else
       { }
 
 let l_h =
-  sum(<l,l_v> in lineitem)
+  sum(<i,_> <- range(lineitem.size))
+    let l = <
+      l_orderkey=lineitem.l_orderkey(i),
+      l_partkey=lineitem.l_partkey(i),
+      l_suppkey=lineitem.l_suppkey(i),
+      l_linenumber=lineitem.l_linenumber(i),
+      l_quantity=lineitem.l_quantity(i),
+      l_extendedprice=lineitem.l_extendedprice(i),
+      l_discount=lineitem.l_discount(i),
+      l_tax=lineitem.l_tax(i),
+      l_returnflag=lineitem.l_returnflag(i),
+      l_linestatus=lineitem.l_linestatus(i),
+      l_shipdate=lineitem.l_shipdate(i),
+      l_commitdate=lineitem.l_commitdate(i),
+      l_receiptdate=lineitem.l_receiptdate(i),
+      l_shipinstruct=lineitem.l_shipinstruct(i),
+      l_shipmode=lineitem.l_shipmode(i),
+      l_comment=lineitem.l_comment(i)
+    >
     if(
         (date(19950101) <= l.l_shipdate) && (l.l_shipdate <= date(19961231)) &&
         (orderkey_to_name(l.l_orderkey) != {}) && (suppkey_to_name(l.l_suppkey) != {}) &&

@@ -1,27 +1,49 @@
-let supplier = load[{<s_suppkey: int, s_name: varchar(25), s_address: varchar(40), s_nationkey: int, s_phone: varchar(15), s_acctbal: double, s_comment: varchar(101)> -> int}]("datasets/tpch/supplier.tbl")
+let supplier = load_cstore[{<s_suppkey: int, s_name: varchar(25), s_address: varchar(40), s_nationkey: int, s_phone: varchar(15), s_acctbal: double, s_comment: varchar(101)> -> int}]("datasets/tpch/supplier.tbl")
 
-let partsupp = load[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_supplycost: double, ps_comment: varchar(199)> -> int}]("datasets/tpch/partsupp.tbl")
+let partsupp = load_cstore[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_supplycost: double, ps_comment: varchar(199)> -> int}]("datasets/tpch/partsupp.tbl")
 
-let nation = load[{<n_nationkey: int, n_name: varchar(25), n_regionkey: int, r_comment: varchar(152)> -> int}]("datasets/tpch/nation.tbl")
+let nation = load_cstore[{<n_nationkey: int, n_name: varchar(25), n_regionkey: int, n_comment: varchar(152)> -> int}]("datasets/tpch/nation.tbl")
 
 let germany = ext(`ConstantString`,"GERMANY", 8)
 
 let n_h =
-  sum(<n,n_v> in nation)
+  sum(<i,_> <- range(nation.size))
+    let n = <
+      n_nationkey=nation.n_nationkey(i),
+      n_name=nation.n_name(i),
+      n_regionkey=nation.n_regionkey(i),
+      n_comment=nation.n_comment(i)
+    >
     if(n.n_name == germany) then
       { unique(n.n_nationkey) -> < _ = n.n_nationkey > }
     else
       { }
 
 let s_h =
-  sum(<s,s_v> in supplier)
+  sum(<i,_> <- range(supplier.size))
+    let s = <
+      s_suppkey=supplier.s_suppkey(i),
+      s_name=supplier.s_name(i),
+      s_address=supplier.s_address(i),
+      s_nationkey=supplier.s_nationkey(i),
+      s_phone=supplier.s_phone(i),
+      s_acctbal=supplier.s_acctbal(i),
+      s_comment=supplier.s_comment(i)
+    >
     if(n_h(s.s_nationkey) != {}) then
       { unique(s.s_suppkey) -> 1 }
     else
       { }
 
 let ps_t =
-  sum(<ps,ps_v> in partsupp)
+  sum(<i,_> <- range(partsupp.size))
+    let ps = <
+      ps_partkey=partsupp.ps_partkey(i),
+      ps_suppkey=partsupp.ps_suppkey(i),
+      ps_availqty=partsupp.ps_availqty(i),
+      ps_supplycost=partsupp.ps_supplycost(i),
+      ps_comment=partsupp.ps_comment(i)
+    >
     if(s_h(ps.ps_suppkey) != {}) then
       <
         _ = ps.ps_supplycost * ps.ps_availqty * 0.0001,

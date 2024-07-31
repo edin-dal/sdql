@@ -1,19 +1,37 @@
-let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: varchar(1), l_linestatus: varchar(1), l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: varchar(25), l_shipmode: varchar(10), l_comment: varchar(44)> -> int}]("datasets/tpch/lineitem.tbl")
+let lineitem = load_cstore[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: varchar(1), l_linestatus: varchar(1), l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: varchar(25), l_shipmode: varchar(10), l_comment: varchar(44)> -> int}]("datasets/tpch/lineitem.tbl")
 
-let li_h =
-  sum(<li, li_v> <- lineitem)
-    if(li.l_shipdate <= date(19980902)) then
-      { < returnflag = li.l_returnflag, linestatus = li.l_linestatus > ->
+let l_h =
+  sum(<i,_> <- range(lineitem.size))
+    let l = <
+      l_orderkey=lineitem.l_orderkey(i),
+      l_partkey=lineitem.l_partkey(i),
+      l_suppkey=lineitem.l_suppkey(i),
+      l_linenumber=lineitem.l_linenumber(i),
+      l_quantity=lineitem.l_quantity(i),
+      l_extendedprice=lineitem.l_extendedprice(i),
+      l_discount=lineitem.l_discount(i),
+      l_tax=lineitem.l_tax(i),
+      l_returnflag=lineitem.l_returnflag(i),
+      l_linestatus=lineitem.l_linestatus(i),
+      l_shipdate=lineitem.l_shipdate(i),
+      l_commitdate=lineitem.l_commitdate(i),
+      l_receiptdate=lineitem.l_receiptdate(i),
+      l_shipinstruct=lineitem.l_shipinstruct(i),
+      l_shipmode=lineitem.l_shipmode(i),
+      l_comment=lineitem.l_comment(i)
+    >
+    if(l.l_shipdate <= date(19980902)) then
+      { < returnflag = l.l_returnflag, linestatus = l.l_linestatus > ->
          <
-           l_quantity_sum = li.l_quantity,
-           l_extendedprice_sum = li.l_extendedprice,
-           agg1 = li_v * li.l_extendedprice * (1 - li.l_discount),
-           agg2 = li_v * li.l_extendedprice * (1 - li.l_discount) * (1 + li.l_tax),
+           l_quantity_sum = l.l_quantity,
+           l_extendedprice_sum = l.l_extendedprice,
+           agg1 = l.l_extendedprice * (1 - l.l_discount),
+           agg2 = l.l_extendedprice * (1 - l.l_discount) * (1 + l.l_tax),
            mult = 1
          >
       }
     else
       { }
 
-sum(<k,v> <- li_h)
+sum(<k,v> <- l_h)
   { concat(k,v) -> 1 }

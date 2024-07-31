@@ -1,13 +1,24 @@
-let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
+let orders = load_cstore[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
 
-let customer = load[{<c_custkey: int, c_name: varchar(25), c_address: varchar(40), c_nationkey: int, c_phone: varchar(15), c_acctbal: double, c_mktsegment: varchar(10), c_comment: varchar(117)> -> int}]("datasets/tpch/customer.tbl")
+let customer = load_cstore[{<c_custkey: int, c_name: varchar(25), c_address: varchar(40), c_nationkey: int, c_phone: varchar(15), c_acctbal: double, c_mktsegment: varchar(10), c_comment: varchar(117)> -> int}]("datasets/tpch/customer.tbl")
 
 let special = ext(`ConstantString`, "special", 8)
 let requests = ext(`ConstantString`, "requests", 9)
 let nchars_special = 7
 
 let o_h =
-  sum(<o,o_v> in orders)
+  sum(<i,_> <- range(orders.size))
+    let o = <
+      o_orderkey=orders.o_orderkey(i),
+      o_custkey=orders.o_custkey(i),
+      o_orderstatus=orders.o_orderstatus(i),
+      o_totalprice=orders.o_totalprice(i),
+      o_orderdate=orders.o_orderdate(i),
+      o_orderpriority=orders.o_orderpriority(i),
+      o_clerk=orders.o_clerk(i),
+      o_shippriority=orders.o_shippriority(i),
+      o_comment=orders.o_comment(i)
+    >
     let idx_special = ext(`FirstIndex`, o.o_comment, special)
     if((idx_special == -1) || (ext(`LastIndex`, o.o_comment, requests) < (idx_special + nchars_special))) then
         { o.o_custkey -> 1 }
@@ -15,7 +26,17 @@ let o_h =
         { }
 
 let c_h =
-  sum(<c,c_v> in customer)
+  sum(<i,_> <- range(customer.size))
+    let c = <
+      c_custkey=customer.c_custkey(i),
+      c_name=customer.c_name(i),
+      c_address=customer.c_address(i),
+      c_nationkey=customer.c_nationkey(i),
+      c_phone=customer.c_phone(i),
+      c_acctbal=customer.c_acctbal(i),
+      c_mktsegment=customer.c_mktsegment(i),
+      c_comment=customer.c_comment(i)
+    >
     { < custkey = if(o_h(c.c_custkey) != {}) then o_h(c.c_custkey) else 0 > -> < count = 1 > }
 
 sum(<k,v> in c_h)

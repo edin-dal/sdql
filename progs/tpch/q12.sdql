@@ -1,6 +1,6 @@
-let orders = load[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
+let orders = load_cstore[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
 
-let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: varchar(1), l_linestatus: varchar(1), l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: varchar(25), l_shipmode: varchar(10), l_comment: varchar(44)> -> int}]("datasets/tpch/lineitem.tbl")
+let lineitem = load_cstore[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: varchar(1), l_linestatus: varchar(1), l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: varchar(25), l_shipmode: varchar(10), l_comment: varchar(44)> -> int}]("datasets/tpch/lineitem.tbl")
 
 let mail = ext(`ConstantString`, "MAIL", 5)
 let ship = ext(`ConstantString`, "SHIP", 5)
@@ -8,7 +8,25 @@ let urgent = ext(`ConstantString`, "1-URGENT", 9)
 let high = ext(`ConstantString`, "2-HIGH", 7)
 
 let l_h =
-  sum(<l,l_v> in lineitem)
+  sum(<i,_> <- range(lineitem.size))
+    let l = <
+      l_orderkey=lineitem.l_orderkey(i),
+      l_partkey=lineitem.l_partkey(i),
+      l_suppkey=lineitem.l_suppkey(i),
+      l_linenumber=lineitem.l_linenumber(i),
+      l_quantity=lineitem.l_quantity(i),
+      l_extendedprice=lineitem.l_extendedprice(i),
+      l_discount=lineitem.l_discount(i),
+      l_tax=lineitem.l_tax(i),
+      l_returnflag=lineitem.l_returnflag(i),
+      l_linestatus=lineitem.l_linestatus(i),
+      l_shipdate=lineitem.l_shipdate(i),
+      l_commitdate=lineitem.l_commitdate(i),
+      l_receiptdate=lineitem.l_receiptdate(i),
+      l_shipinstruct=lineitem.l_shipinstruct(i),
+      l_shipmode=lineitem.l_shipmode(i),
+      l_comment=lineitem.l_comment(i)
+    >
     if(
       ((l.l_shipmode == mail) || (l.l_shipmode == ship))
       && (date(19940101) <= l.l_receiptdate)
@@ -21,7 +39,18 @@ let l_h =
       { }
 
 let o_h =
-  sum(<o,o_v> in orders)
+  sum(<i,_> <- range(orders.size))
+    let o = <
+      o_orderkey=orders.o_orderkey(i),
+      o_custkey=orders.o_custkey(i),
+      o_orderstatus=orders.o_orderstatus(i),
+      o_totalprice=orders.o_totalprice(i),
+      o_orderdate=orders.o_orderdate(i),
+      o_orderpriority=orders.o_orderpriority(i),
+      o_clerk=orders.o_clerk(i),
+      o_shippriority=orders.o_shippriority(i),
+      o_comment=orders.o_comment(i)
+    >
     if(l_h(o.o_orderkey) != {}) then
       sum(<l_shipmode,c> in l_h(o.o_orderkey))
         {

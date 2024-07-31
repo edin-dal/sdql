@@ -1,8 +1,8 @@
-let partsupp = load[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_supplycost: double, ps_comment: varchar(199)> -> int}]("datasets/tpch/partsupp.tbl")
+let partsupp = load_cstore[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_supplycost: double, ps_comment: varchar(199)> -> int}]("datasets/tpch/partsupp.tbl")
 
-let part = load[{<p_partkey: int, p_name: varchar(55), p_mfgr: varchar(25), p_brand: varchar(10), p_type: varchar(25), p_size: int, p_container: varchar(10), p_retailprice: double, p_comment: varchar(23)> -> int}]("datasets/tpch/part.tbl")
+let part = load_cstore[{<p_partkey: int, p_name: varchar(55), p_mfgr: varchar(25), p_brand: varchar(10), p_type: varchar(25), p_size: int, p_container: varchar(10), p_retailprice: double, p_comment: varchar(23)> -> int}]("datasets/tpch/part.tbl")
 
-let supplier = load[{<s_suppkey: int, s_name: varchar(25), s_address: varchar(40), s_nationkey: int, s_phone: varchar(15), s_acctbal: double, s_comment: varchar(101)> -> int}]("datasets/tpch/supplier.tbl")
+let supplier = load_cstore[{<s_suppkey: int, s_name: varchar(25), s_address: varchar(40), s_nationkey: int, s_phone: varchar(15), s_acctbal: double, s_comment: varchar(101)> -> int}]("datasets/tpch/supplier.tbl")
 
 let brand = ext(`ConstantString`, "Brand#45", 9)
 let medpol = ext(`ConstantString`, "MEDIUM POLISHED", 16)
@@ -11,7 +11,18 @@ let _complaints = ext(`ConstantString`, "Complaints", 11)
 let nchars_customer = 8
 
 let p_h =
-  sum(<p,p_v> <- part)
+  sum(<i,_> <- range(part.size))
+    let p = <
+      p_partkey=part.p_partkey(i),
+      p_name=part.p_name(i),
+      p_mfgr=part.p_mfgr(i),
+      p_brand=part.p_brand(i),
+      p_type=part.p_type(i),
+      p_size=part.p_size(i),
+      p_container=part.p_container(i),
+      p_retailprice=part.p_retailprice(i),
+      p_comment=part.p_comment(i)
+    >
     if(
       (p.p_brand != brand) &&
       (!ext(`StrStartsWith`, p.p_type, medpol)) &&
@@ -31,7 +42,16 @@ let p_h =
       { }
 
 let s_h =
-  sum(<s,s_v> <- supplier)
+  sum(<i,_> <- range(supplier.size))
+    let s = <
+      s_suppkey=supplier.s_suppkey(i),
+      s_name=supplier.s_name(i),
+      s_address=supplier.s_address(i),
+      s_nationkey=supplier.s_nationkey(i),
+      s_phone=supplier.s_phone(i),
+      s_acctbal=supplier.s_acctbal(i),
+      s_comment=supplier.s_comment(i)
+    >
     let idx_customer = ext(`FirstIndex`, s.s_comment, _customer)
     if((idx_customer != -1) && (idx_customer + nchars_customer <= ext(`FirstIndex`, s.s_comment, _complaints))) then
       { unique(s.s_suppkey) -> < _ = s.s_suppkey > }
@@ -39,7 +59,14 @@ let s_h =
       { }
 
 let ps_h =
-  sum(<ps,ps_v> <- partsupp)
+  sum(<i,_> <- range(partsupp.size))
+    let ps = <
+      ps_partkey=partsupp.ps_partkey(i),
+      ps_suppkey=partsupp.ps_suppkey(i),
+      ps_availqty=partsupp.ps_availqty(i),
+      ps_supplycost=partsupp.ps_supplycost(i),
+      ps_comment=partsupp.ps_comment(i)
+    >
     if ((p_h(ps.ps_partkey) != {}) && (!(s_h(ps.ps_suppkey) != {}))) then
     {
       <
