@@ -32,8 +32,9 @@ object CppCodegen {
        |""".stripMargin
 
   def apply(e: Exp, benchmarkRuns: Int = 0): String = {
-    val csvBody = cppCsvs(Seq(e))
-    val queryBody = run(e)(Map(), List())
+    val rewrite = Rewriter(e)
+    val csvBody = cppCsvs(Seq(rewrite))
+    val queryBody = run(rewrite)(Map(), List())
     val benchStart = if (benchmarkRuns == 0) "" else
       s"""HighPrecisionTimer timer;
          |for (int iter = 1; iter <= $benchmarkRuns; iter++) {
@@ -47,7 +48,7 @@ object CppCodegen {
         |if (iter == $benchmarkRuns) {
         |cerr << endl;
         |std::cout << timer.GetMean(0) << " ms" << std::endl;
-        |${cppPrintResult(TypeInference(e))}
+        |${cppPrintResult(TypeInference(rewrite))}
         |}
         |}""".stripMargin
     s"""$header
@@ -57,7 +58,7 @@ object CppCodegen {
        |$benchStart
        |$queryBody
        |$benchStop
-       |${if (benchmarkRuns == 0) cppPrintResult(TypeInference(e)) else ""}
+       |${if (benchmarkRuns == 0) cppPrintResult(TypeInference(rewrite)) else ""}
        |}""".stripMargin
   }
 
