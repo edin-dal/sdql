@@ -1,7 +1,6 @@
 package sdql
 package backend
 
-import munit.Assertions.munitPrint
 import sdql.analysis.TypeInference
 import sdql.ir.ExternalFunctions._
 import sdql.ir._
@@ -89,7 +88,7 @@ object CppCodegen {
       case Promote(_, e: Exp) => run(e)
       case RangeNode(e: Exp) => run(e)
 
-      case _ => raise(f"Unhandled ${e.simpleName} in\n${munitPrint(e)}")
+      case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
     }
   }
 
@@ -714,10 +713,7 @@ object CppCodegen {
         case External(_, args) =>
           args.flatMap(iterExps).toList
         // unhandled
-        case _ => raise(
-          f"""Unhandled ${e.simpleName} in
-             |${munitPrint(e)}""".stripMargin
-        )
+        case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
       }
     )
 

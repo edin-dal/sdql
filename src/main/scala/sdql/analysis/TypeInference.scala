@@ -1,7 +1,6 @@
 package sdql
 package analysis
 
-import munit.Assertions.munitPrint
 import sdql.ir.ExternalFunctions._
 import sdql.ir._
 
@@ -37,10 +36,7 @@ object TypeInference {
     case Unique(e: Exp) => run(e)
     case Promote(_, e: Exp) => run(e)
 
-    case _ => raise(
-      f"""Unhandled ${e.getClass.toString} in
-         |${munitPrint(e)}""".stripMargin
-    )
+    case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
 
   def run(e: IfThenElse)(implicit ctx: Ctx): Type = e match {

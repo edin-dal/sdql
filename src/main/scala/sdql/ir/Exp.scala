@@ -1,6 +1,8 @@
 package sdql
 package ir
 
+import munit.Assertions.munitPrint
+
 import scala.annotation.tailrec
 
 /**
@@ -9,6 +11,8 @@ import scala.annotation.tailrec
  * given program.
  */
 sealed trait Exp {
+  def prettyPrint: String = munitPrint(this)
+
   def simpleName: String = {
     val name = this.getClass.getSimpleName
     if (name.endsWith("$")) name.dropRight(1) else name
