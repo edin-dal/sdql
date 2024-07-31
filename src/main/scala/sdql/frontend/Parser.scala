@@ -99,7 +99,7 @@ object Parser {
   def sum[_: P]: P[Sum] = P( "sum" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/
     expr).map(x => Sum(x._1, x._2, x._3, x._4))
   // def set[_: P]: P[DictNode] = P( "{" ~/ (expr ~ !("->")).rep(sep=","./) ~ space ~/ "}" ).map(x => SetNode(x))
-  def range[_: P]: P[RangeNode] = P( ("range(" ~ int ~ space ~ ")") ).map(x => RangeNode(x.v.asInstanceOf[Int]))
+  def range[_: P]: P[RangeNode] = P( ("range(" ~ expr ~ space ~ ")") ).map(RangeNode)
   def ext[_: P]: P[External] = P( "ext(" ~/ fieldConst ~/ "," ~/ expr.rep(1, sep=","./) ~ space ~/ ")" ).map(x =>
     External(x._1.v.asInstanceOf[Symbol].name, x._2))
   def keyValue[_: P] = P( expr ~/ "->" ~/ expr )

@@ -70,9 +70,9 @@ case class DictLoadHint() extends DictCodegenHint
 
 /**
  * Integer numbers between 0 and n
- * @param n the upper limit of the range
+ * @param e an expression evaluating to n
  */
-case class RangeNode(n: Int) extends Exp
+case class RangeNode(e: Exp) extends Exp
 
 /**
  * Addition of two expressions

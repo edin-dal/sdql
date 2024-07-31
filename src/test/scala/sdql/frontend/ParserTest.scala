@@ -98,7 +98,9 @@ class ParserTest extends FlatSpec {
     sdql"x(y)(z)" should be (Get(Get(Sym("x"), Sym("y")), Sym("z")))
     sdql"x(   y)" should be (Get(Sym("x"), Sym("y")))
     sdql"x(y)  " should be (Get(Sym("x"), Sym("y")))
-    sdql"range(3)" should be (RangeNode(3))
+    sdql"range(3)" should be (RangeNode(Const(3)))
+    sdql"range(x)" should be (RangeNode(Sym("x")))
+    sdql"range(x.z)" should be (RangeNode(FieldNode(Sym("x"), "z") ))
   }
 
   it should "work for dict hints" in {

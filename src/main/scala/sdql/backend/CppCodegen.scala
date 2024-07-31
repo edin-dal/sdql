@@ -84,9 +84,10 @@ object CppCodegen {
       case e: External => run(e)
       case e: Concat => run(e)
 
-      // ignore - handled separately in sum body
+      // ignore - handled separately in sum
       case Unique(e: Exp) => run(e)
       case Promote(_, e: Exp) => run(e)
+      case RangeNode(e: Exp) => run(e)
 
       case _ => raise(f"Unhandled ${e.simpleName} in\n${munitPrint(e)}")
     }
@@ -94,7 +95,7 @@ object CppCodegen {
 
   private def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = {
     val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
-    val hint = sumHint(TypeInference.run(e))
+    val hint = sumHint(e)
     val isMin = e match {
       case Promote(TropicalSemiRingType(isMax, false, RealType), _) => !isMax
       case _ => false
@@ -193,17 +194,18 @@ object CppCodegen {
 
   private def run(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Sum(k, v, e1, e2) =>
-      val hint = sumHint(TypeInference.run(e1))
+      val hint = sumHint(e1)
       val isLoad = cond(hint) { case DictLoadHint() => true }
 
       val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
-      var (tpe, typesLocal) = TypeInference.sunInferTypeAndCtx(k, v, e1, e2)
+      var (tpe, typesLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
       typesLocal ++= Map(Sym(agg) -> tpe)
 
-      val on = condOpt(e1) {
+      val on = e1 match {
         case Sym(name) => name
         case Get(Sym(name), _) => name
-      }.head
+        case _ => ""
+      }
       val callsLocal = List(SumCtx(on, k = k.name, v = v.name, isLoad = isLoad)) ++ callsCtx
 
       val isNestedSum = inferSumNesting(callsLocal) > 0
@@ -224,6 +226,15 @@ object CppCodegen {
            |for (int $sumVar = 0; $sumVar < ${e1Name.capitalize}::size(); $sumVar++) {
            |const auto &${k.name} = $e1Name;
            |$values
+           |$body
+           |}
+           |
+           |""".stripMargin
+      } else if(cond(e1) { case _: RangeNode => true }) {
+        val n = run(e1)
+        assert(v.name == noName)
+        s"""$init
+           |for (int ${k.name} = 0; ${k.name} < $n; ${k.name}++) {
            |$body
            |}
            |
@@ -480,9 +491,12 @@ object CppCodegen {
       )
   }
 
-  private def sumHint(tpe: Type): DictCodegenHint = tpe match {
-    case dt: DictType => getInnerDict(dt) match { case DictType(_, _, hint) => hint }
-    case _ => DictNoHint()
+  private def sumHint(e: Exp)(implicit typesCtx: TypesCtx): DictCodegenHint = e match {
+    case _: RangeNode => DictNoHint()
+    case _ => TypeInference.run(e) match {
+      case dt: DictType => getInnerDict(dt) match { case DictType(_, _, hint) => hint }
+      case _ => DictNoHint()
+    }
   }
 
   @tailrec

@@ -51,7 +51,7 @@ object TypeInference {
     case _: IfThenElse => branching(e)
   }
 
-  def run(e: Sum)(implicit ctx: Ctx): Type = e match { case Sum(k, v, e1, e2) => sunInferTypeAndCtx(k, v, e1, e2)._1 }
+  def run(e: Sum)(implicit ctx: Ctx): Type = e match { case Sum(k, v, e1, e2) => sumInferTypeAndCtx(k, v, e1, e2)._1 }
 
   def run(e: Add)(implicit ctx: Ctx): Type = branching(e)
 
@@ -261,16 +261,18 @@ object TypeInference {
     }
   }
 
-  def sunInferTypeAndCtx(k: Sym, v: Sym, e1: Exp, e2: Exp)(implicit ctx: Ctx): (Type, Ctx) = {
-    // from e1 infer types of k, v
-    val (kType, vType) = run(e1) match {
-      case DictType(k_type, v_type, _) => (k_type, v_type)
-      case tpe => raise(
-        s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
-      )
-    }
+  def sumInferTypeAndCtx(k: Sym, v: Sym, e1: Exp, e2: Exp)(implicit ctx: Ctx): (Type, Ctx) = {
+    val localCtx = ctx ++ (e1 match {
+      case _: RangeNode => Map(k -> IntType)
+      // from e1 infer types of k, v
+      case _ => run(e1) match {
+        case DictType(kType, vType, _) => Map(k -> kType, v -> vType)
+        case tpe => raise(
+          s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
+        )
+      }
+    })
     // from types of k, v infer type of e2
-    val localCtx = ctx ++ Map(k -> kType, v -> vType)
     val tpe = run(e2)(localCtx)
     (tpe, localCtx)
   }
