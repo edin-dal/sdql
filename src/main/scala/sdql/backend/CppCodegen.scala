@@ -627,7 +627,7 @@ object CppCodegen {
               (path, name, recordType)
           }
         )
-    ).toSet
+    ).distinct.sortBy(_._2)
 
     val csvConsts =
       pathNameAttrs.map({ case (path, name, _) => makeCsvConst(name, path) } ).mkString("", "\n", "\n")
