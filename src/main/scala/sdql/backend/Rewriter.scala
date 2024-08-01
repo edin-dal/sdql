@@ -32,6 +32,8 @@ private object RemoveIntermediateTuple extends TermRewriter {
     case FieldNode(e1: Sym, field) if replaceCtx.contains(e1) =>
       (replaceCtx(e1)(field): @unchecked) match { case Some(exp) => exp }
 
+    case e1: Sym if replaceCtx.contains(e1) => replaceCtx(e1)
+
     case _ => runInner(e)
   }
 
