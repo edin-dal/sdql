@@ -6,7 +6,7 @@ import org.scalatest.matchers.should._
 import sdql.frontend._
 
 class RewriterTest extends AnyFlatSpec with Matchers {
-  it should "rewrite simple case" in {
+  it should "remove intermediate tuple - simple case" in {
     val e = sdql"""
                let i = 0
                let x = <inner = <_ = 0>>
@@ -21,7 +21,7 @@ class RewriterTest extends AnyFlatSpec with Matchers {
     Rewriter(e) should be (rewrite)
   }
 
-  it should "rewrite complex case" in {
+  it should "remove intermediate tuple - complex case" in {
     val e = sdql"""
                let lineitem = load_cstore[{<l_extendedprice: double> -> int}]("foo/bar.tbl")
                sum(<i,_> <- range(lineitem.size))
