@@ -5,6 +5,9 @@ import sdql.ir._
 
 import scala.PartialFunction.cond
 
+/**
+ * Term rewriter that removes intermediate tuples after sums – see test cases for examples
+ */
 object Rewriter {
   private type ReplaceCtx = Map[Sym, RecNode]
 
