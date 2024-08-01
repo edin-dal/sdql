@@ -125,8 +125,8 @@ object CppCodegen {
               typesCtx(Sym(agg)) match {
                 // TODO get rid of hack for job/gj queries
                 case dt: DictType if isRecordToInt(dt) && !agg.startsWith("interm") =>
-                  val(fields, _) = splitNestedFields(dict)
-                  val accessors = cppFieldAccessors(fields)(typesCtx, callsLocal)
+                  val(fields, _) = splitNested(dict)
+                  val accessors = cppAccessors(fields)(typesCtx, callsLocal)
                   s"$agg$accessors.emplace_back(${sumVariable(callsLocal)});"
                 case dt: DictType if isRecordToInt(dt) =>
                   val(fields, _) = splitNestedFields(dict)
@@ -548,6 +548,8 @@ object CppCodegen {
     exps.map(f => s"[${run(f)(typesCtx, callsCtx)}]").mkString("")
 
   private def splitNested(dict: DictNode)(implicit typesCtx: TypesCtx): (Seq[Exp], Exp) = dict match {
+    case DictNode(Seq((k, e @ DictNode(_, DictVectorHint()))), _) =>
+      (Seq(k), e)
     case DictNode(Seq((k, v: DictNode)), _) =>
       val (vExps, e) = splitNested(v)
       (Seq(k) ++ vExps, e)
