@@ -1,11 +1,11 @@
 package sdql
 package frontend
 
-import ir._
-import org.scalatest._
-import Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should._
+import sdql.ir._
 
-class ParserTest extends FlatSpec {
+class ParserTest extends AnyFlatSpec with Matchers {
 
   "Parser" should "work for constant terms" in {
     sdql"true" should be (Const(true))
@@ -182,5 +182,146 @@ class ParserTest extends FlatSpec {
     SourceCode.fromFile("progs/tpch/q20.sdql")
     SourceCode.fromFile("progs/tpch/q21.sdql")
     SourceCode.fromFile("progs/tpch/q22.sdql")
+  }
+
+  it should "parse GJ" in {
+    SourceCode.fromFile("progs/job/gj/1a.sdql")
+    SourceCode.fromFile("progs/job/gj/1b.sdql")
+    SourceCode.fromFile("progs/job/gj/1c.sdql")
+    SourceCode.fromFile("progs/job/gj/1d.sdql")
+
+    SourceCode.fromFile("progs/job/gj/2a.sdql")
+    SourceCode.fromFile("progs/job/gj/2b.sdql")
+    SourceCode.fromFile("progs/job/gj/2d.sdql")
+
+    SourceCode.fromFile("progs/job/gj/3a.sdql")
+    SourceCode.fromFile("progs/job/gj/3b.sdql")
+    SourceCode.fromFile("progs/job/gj/3c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/4a.sdql")
+    SourceCode.fromFile("progs/job/gj/4b.sdql")
+    SourceCode.fromFile("progs/job/gj/4c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/5c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/6a.sdql")
+    SourceCode.fromFile("progs/job/gj/6b.sdql")
+    SourceCode.fromFile("progs/job/gj/6c.sdql")
+    SourceCode.fromFile("progs/job/gj/6d.sdql")
+    SourceCode.fromFile("progs/job/gj/6e.sdql")
+    SourceCode.fromFile("progs/job/gj/6f.sdql")
+
+    SourceCode.fromFile("progs/job/gj/7a.sdql")
+    SourceCode.fromFile("progs/job/gj/7b.sdql")
+    SourceCode.fromFile("progs/job/gj/7c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/8a.sdql")
+    SourceCode.fromFile("progs/job/gj/8b.sdql")
+    SourceCode.fromFile("progs/job/gj/8c.sdql")
+    SourceCode.fromFile("progs/job/gj/8d.sdql")
+
+    SourceCode.fromFile("progs/job/gj/9a.sdql")
+    SourceCode.fromFile("progs/job/gj/9b.sdql")
+    SourceCode.fromFile("progs/job/gj/9c.sdql")
+    SourceCode.fromFile("progs/job/gj/9d.sdql")
+
+    SourceCode.fromFile("progs/job/gj/10a.sdql")
+    SourceCode.fromFile("progs/job/gj/10c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/11a.sdql")
+    SourceCode.fromFile("progs/job/gj/11b.sdql")
+    SourceCode.fromFile("progs/job/gj/11c.sdql")
+    SourceCode.fromFile("progs/job/gj/11d.sdql")
+
+    SourceCode.fromFile("progs/job/gj/12a.sdql")
+    SourceCode.fromFile("progs/job/gj/12b.sdql")
+    SourceCode.fromFile("progs/job/gj/12c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/13b.sdql")
+    SourceCode.fromFile("progs/job/gj/13c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/14a.sdql")
+    SourceCode.fromFile("progs/job/gj/14b.sdql")
+    SourceCode.fromFile("progs/job/gj/14c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/15a.sdql")
+    SourceCode.fromFile("progs/job/gj/15b.sdql")
+    SourceCode.fromFile("progs/job/gj/15c.sdql")
+    SourceCode.fromFile("progs/job/gj/15d.sdql")
+
+    SourceCode.fromFile("progs/job/gj/16a.sdql")
+    SourceCode.fromFile("progs/job/gj/16b.sdql")
+    SourceCode.fromFile("progs/job/gj/16c.sdql")
+    SourceCode.fromFile("progs/job/gj/16d.sdql")
+
+    SourceCode.fromFile("progs/job/gj/17a.sdql")
+    SourceCode.fromFile("progs/job/gj/17b.sdql")
+    SourceCode.fromFile("progs/job/gj/17c.sdql")
+    SourceCode.fromFile("progs/job/gj/17d.sdql")
+    SourceCode.fromFile("progs/job/gj/17e.sdql")
+    SourceCode.fromFile("progs/job/gj/17f.sdql")
+
+    SourceCode.fromFile("progs/job/gj/18a.sdql")
+    SourceCode.fromFile("progs/job/gj/18b.sdql")
+    SourceCode.fromFile("progs/job/gj/18c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/19a.sdql")
+    SourceCode.fromFile("progs/job/gj/19b.sdql")
+    SourceCode.fromFile("progs/job/gj/19c.sdql")
+    SourceCode.fromFile("progs/job/gj/19d.sdql")
+
+    SourceCode.fromFile("progs/job/gj/20a.sdql")
+    SourceCode.fromFile("progs/job/gj/20b.sdql")
+    SourceCode.fromFile("progs/job/gj/20c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/21a.sdql")
+    SourceCode.fromFile("progs/job/gj/21b.sdql")
+    SourceCode.fromFile("progs/job/gj/21c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/22a.sdql")
+    SourceCode.fromFile("progs/job/gj/22b.sdql")
+    SourceCode.fromFile("progs/job/gj/22c.sdql")
+    SourceCode.fromFile("progs/job/gj/22d.sdql")
+
+    SourceCode.fromFile("progs/job/gj/23a.sdql")
+    SourceCode.fromFile("progs/job/gj/23b.sdql")
+    SourceCode.fromFile("progs/job/gj/23c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/24a.sdql")
+    SourceCode.fromFile("progs/job/gj/24b.sdql")
+
+    SourceCode.fromFile("progs/job/gj/25a.sdql")
+    SourceCode.fromFile("progs/job/gj/25b.sdql")
+    SourceCode.fromFile("progs/job/gj/25c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/26a.sdql")
+    SourceCode.fromFile("progs/job/gj/26b.sdql")
+    SourceCode.fromFile("progs/job/gj/26c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/27a.sdql")
+    SourceCode.fromFile("progs/job/gj/27b.sdql")
+    SourceCode.fromFile("progs/job/gj/27c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/28a.sdql")
+    SourceCode.fromFile("progs/job/gj/28b.sdql")
+    SourceCode.fromFile("progs/job/gj/28c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/29a.sdql")
+    SourceCode.fromFile("progs/job/gj/29b.sdql")
+    SourceCode.fromFile("progs/job/gj/29c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/30a.sdql")
+    SourceCode.fromFile("progs/job/gj/30b.sdql")
+    SourceCode.fromFile("progs/job/gj/30c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/31a.sdql")
+    SourceCode.fromFile("progs/job/gj/31b.sdql")
+    SourceCode.fromFile("progs/job/gj/31c.sdql")
+
+    SourceCode.fromFile("progs/job/gj/32b.sdql")
+
+    SourceCode.fromFile("progs/job/gj/33a.sdql")
+    SourceCode.fromFile("progs/job/gj/33b.sdql")
+    SourceCode.fromFile("progs/job/gj/33c.sdql")
   }
 }
