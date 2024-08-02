@@ -124,11 +124,11 @@ object CppCodegen {
             case _: DictVectorHint =>
               typesCtx(Sym(agg)) match {
                 // TODO get rid of hack for job/gj queries
-                case dt: DictType if isRecordToInt(dt) && !agg.startsWith("interm") =>
+                case dt: DictType if isNestedRecordToInt(dt) && !agg.startsWith("interm") =>
                   val(fields, _) = splitNested(dict)
                   val accessors = cppAccessors(fields)(typesCtx, callsLocal)
                   s"$agg$accessors.emplace_back(${sumVariable(callsLocal)});"
-                case dt: DictType if isRecordToInt(dt) =>
+                case dt: DictType if isNestedRecordToInt(dt) =>
                   val(fields, _) = splitNestedFields(dict)
                   val accessors = cppFieldAccessors(fields)(typesCtx, callsLocal)
                   val cols = getRecordType(dt) match {
@@ -172,18 +172,12 @@ object CppCodegen {
         // codegen for loads was handled in a separate tree traversal
         case Load(_, DictType(RecordType(_), IntType, _)) => ""
         case Load(_, rt: RecordType) if TypeInference.isColumnStore(rt) => ""
-        case External(Limit.SYMBOL, _) =>
-          s"${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)}\n"
-        // TODO get rid of hack for job/gj queries
-        case Get(sym @ Sym(inner), _)
-          if inner.contains("trie") &&
-            cond(TypeInference.run(sym)) { case dt: DictType => isRecordToInt(dt) } =>
-          // this is a vector so take a reference rather than copy
+        case External(Limit.SYMBOL, _) => s"${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)}\n"
+        // this is a vector so take a reference rather than copy
+        case Get(sym: Sym, _) if cond(TypeInference.run(sym)) { case dt: DictType => isRecordToInt(dt) } =>
           s"const auto &$name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)};"
-        case c: Const =>
-          s"constexpr auto $name = ${run(c)};"
-        case _ =>
-          s"auto $name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)};"
+        case c: Const => s"constexpr auto $name = ${run(c)};"
+        case _ => s"auto $name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)};"
       }
       val e2Cpp = e2 match {
         case DictNode(Nil, _) => ""
@@ -323,7 +317,7 @@ object CppCodegen {
           s"${name.dropRight("_tuple".length)}.$field[${name}_i]"
         case Sym(name)
           if name.endsWith("_tuple") && !checkIsMin &&
-            cond(TypeInference.run(Sym(getSumOrigin(name)))) { case dt: DictType => isRecordToInt(dt) } =>
+            cond(TypeInference.run(Sym(getSumOrigin(name)))) { case dt: DictType => isNestedRecordToInt(dt) } =>
           val origin = getOrigin(name)
           s"${origin}_trie0_inner.$field[${origin}_tuple_i]"
         case Sym(name) if !name.startsWith("mn_") && checkIsMin =>
@@ -520,10 +514,14 @@ object CppCodegen {
   }
 
   @tailrec
+  private def isNestedRecordToInt(dt: DictType): Boolean = dt match {
+    case DictType(_, dt: DictType, _) => isNestedRecordToInt(dt)
+    case _ => isRecordToInt(dt)
+  }
+
   private def isRecordToInt(dt: DictType): Boolean = dt match {
-    case DictType(_, dt: DictType, _) => isRecordToInt(dt)
-    case DictType(_: RecordType, IntType, _) => true
-    case _: DictType => false
+    case DictType(_: RecordType, IntType, DictVectorHint()) => true
+    case _ => false
   }
 
   private val reOrigin = "(?<suffix>.*)_trie(?<n>\\d+)$".r
