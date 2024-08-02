@@ -9,16 +9,16 @@ import java.util.UUID
 import scala.PartialFunction.{cond, condOpt}
 import scala.annotation.tailrec
 
+private sealed trait CallCtx
+private case class LetCtx(name: String) extends CallCtx
+private case class SumCtx(on: String, k: String, v: String, isLoad: Boolean) extends CallCtx
+private case class SumEnd() extends CallCtx
+private case class IsTernary() extends CallCtx
+private case class Promoted(isMax: Boolean, isProd: Boolean) extends CallCtx
+
 object CppCodegen {
   private type TypesCtx = TypeInference.Ctx
   private type CallsCtx = List[CallCtx]
-
-  private sealed trait CallCtx
-  private case class LetCtx(name: String) extends CallCtx
-  private case class SumCtx(on: String, k: String, v: String, isLoad: Boolean) extends CallCtx
-  private case class SumEnd() extends CallCtx
-  private case class IsTernary() extends CallCtx
-  private case class Promoted(isMax: Boolean, isProd: Boolean) extends CallCtx
 
   private val vecSize = 6000001
   private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
@@ -42,15 +42,15 @@ object CppCodegen {
          |""".stripMargin
     val benchStop = if (benchmarkRuns == 0) "" else
       s"""
-        |doNotOptimiseAway($resultName);
-        |timer.StoreElapsedTime(0);
-        |cerr << "*" << " " << flush;
-        |if (iter == $benchmarkRuns) {
-        |cerr << endl;
-        |std::cout << timer.GetMean(0) << " ms" << std::endl;
-        |${cppPrintResult(TypeInference(rewrite))}
-        |}
-        |}""".stripMargin
+         |doNotOptimiseAway($resultName);
+         |timer.StoreElapsedTime(0);
+         |cerr << "*" << " " << flush;
+         |if (iter == $benchmarkRuns) {
+         |cerr << endl;
+         |std::cout << timer.GetMean(0) << " ms" << std::endl;
+         |${cppPrintResult(TypeInference(rewrite))}
+         |}
+         |}""".stripMargin
     s"""$header
        |$csvConsts
        |$csvBody
@@ -117,20 +117,16 @@ object CppCodegen {
             s"$agg.emplace($lhs, $rhs);"
           else hint match {
             case _: DictNoHint =>
-              val(fields, inner) = splitNested(dict)
+              val (fields, inner) = splitNested(dict)
               val rhs = run(inner)(typesCtx, callsLocal)
               val accessors = cppAccessors(fields)(typesCtx, callsLocal)
               s"$agg$accessors += $rhs;"
             case _: DictVectorHint =>
               typesCtx(Sym(agg)) match {
                 // TODO get rid of hack for job/gj queries
-                case dt: DictType if isNestedRecordToInt(dt) && !agg.startsWith("interm") =>
-                  val(fields, _) = splitNested(dict)
+                case dt: DictType if isNestedRecordToInt(dt) && agg.startsWith("interm") =>
+                  val (fields, _) = splitNested(dict)
                   val accessors = cppAccessors(fields)(typesCtx, callsLocal)
-                  s"$agg$accessors.emplace_back(${sumVariable(callsLocal)});"
-                case dt: DictType if isNestedRecordToInt(dt) =>
-                  val(fields, _) = splitNestedFields(dict)
-                  val accessors = cppFieldAccessors(fields)(typesCtx, callsLocal)
                   val cols = getRecordType(dt) match {
                     case Some(RecordType(attrs)) => attrs.map(_.name)
                   }
@@ -144,6 +140,10 @@ object CppCodegen {
                   s"""$insertions
                      |$link
                      |""".stripMargin
+                case dt: DictType if isNestedRecordToInt(dt) && !agg.startsWith("interm") =>
+                  val (fields, _) = splitNested(dict)
+                  val accessors = cppAccessors(fields)(typesCtx, callsLocal)
+                  s"$agg$accessors.emplace_back(${sumVariable(callsLocal)});"
                 case DictType(IntType, DictType(IntType, _, DictVectorHint()), DictVectorHint()) =>
                   promo match {
                     case DictNode(Seq((f1: FieldNode, DictNode(Seq((f2: FieldNode, _)), _))), _) =>
@@ -224,7 +224,7 @@ object CppCodegen {
            |}
            |
            |""".stripMargin
-      } else if(cond(e1) { case _: RangeNode => true }) {
+      } else if (cond(e1) { case _: RangeNode => true }) {
         val n = run(e1)
         assert(v.name == noName)
         s"""$init
@@ -287,22 +287,21 @@ object CppCodegen {
   }
 
   private def run(e: Cmp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
-    case Cmp(e1, e2: Sym, "∈") =>
-      val tpe = TypeInference.run(e2)
-      if (!cond(tpe) { case _: DictType => true })
-        raise(s"expression ${e2.simpleName} should be of type " +
-          s"${DictType.getClass.getSimpleName.init} not ${tpe.prettyPrint}"
-        )
-      dictCmpNil(e2, e1)
-    case Cmp(Get(e1, e2), DictNode(Nil, _), "!=")
-      if cond(TypeInference.run(e1)) { case DictType(kt, _, _) => TypeInference.run(e2) == kt } =>
-      dictCmpNil(e1, e2)
-    case Cmp(DictNode(Nil, _), Get(e1, e2), "!=")
-      if cond(TypeInference.run(e1)) { case DictType(kt, _, _) => TypeInference.run(e2) == kt } =>
-      dictCmpNil(e1, e2)
-    case Cmp(e1, e2, cmp) =>
-      s"${run(e1)} $cmp ${run(e2)}"
+    case Cmp(e1, e2: Sym, "∈") => TypeInference.run(e2) match {
+      case _: DictType => dictCmpNil(e2, e1)
+      case tpe => raise(s"expression ${e2.simpleName} should be of type " +
+        s"${DictType.getClass.getSimpleName.init} not ${tpe.prettyPrint}"
+      )
+    }
+    case Cmp(e @ Get(e1, e2), DictNode(Nil, _), "!=") if getArgsMatch(e) => dictCmpNil(e1, e2)
+    case Cmp(DictNode(Nil, _), e @ Get(e1, e2), "!=") if getArgsMatch(e) => dictCmpNil(e1, e2)
+    case Cmp(e1, e2, cmp) => s"${run(e1)} $cmp ${run(e2)}"
   }
+  private def getArgsMatch(e: Get)(implicit typesCtx: TypesCtx) = e match {
+    case Get(e1, e2) => cond(TypeInference.run(e1)) { case DictType(kt, _, _) => TypeInference.run(e2) == kt }
+  }
+  private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
+    if (isRecordToInt(TypeInference.run(e1))) s"${run(e1)}[${run(e2)}] != 0" else s"${run(e1)}.contains(${run(e2)})"
 
   private def run(e: FieldNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case FieldNode(e1, field) =>
@@ -470,12 +469,9 @@ object CppCodegen {
           raise(s"`concat($v1, $v2)` with different values for the same field name")
       }
     )
-    case Concat(e1: Sym, e2: Sym) =>
-      s"std::tuple_cat(${run(e1)}, ${run(e2)})"
-    case Concat(e1: Sym, e2: RecNode) =>
-      s"std::tuple_cat(${run(e1)}, ${run(e2)})"
-    case Concat(e1: RecNode, e2: Sym) =>
-      s"std::tuple_cat(${run(e1)}, ${run(e2)})"
+    case Concat(e1: Sym, e2: Sym) => s"std::tuple_cat(${run(e1)}, ${run(e2)})"
+    case Concat(e1: Sym, e2: RecNode) => s"std::tuple_cat(${run(e1)}, ${run(e2)})"
+    case Concat(e1: RecNode, e2: Sym) => s"std::tuple_cat(${run(e1)}, ${run(e2)})"
     case Concat(e1, e2) =>
       val _ = TypeInference.run(e)
       raise(
@@ -492,7 +488,6 @@ object CppCodegen {
       case _ => DictNoHint()
     }
   }
-
   @tailrec
   private def getInnerDict(dt: DictType): DictType = dt match {
     case DictType(_, dt: DictType, _) => getInnerDict(dt)
@@ -506,41 +501,10 @@ object CppCodegen {
     case _ => None
   }
 
-  @tailrec
-  private def getRecordNode(dict: DictNode)(implicit typesCtx: TypesCtx): RecNode = dict match {
-    case DictNode(Seq((_, v: DictNode)), _) => getRecordNode(v)
-    case DictNode(Seq((record: RecNode, Const(1))), _) => record
-    case _ => raise(s"unexpected: ${TypeInference.run(dict).prettyPrint}")
-  }
-
-  @tailrec
-  private def isNestedRecordToInt(dt: DictType): Boolean = dt match {
-    case DictType(_, dt: DictType, _) => isNestedRecordToInt(dt)
-    case _ => isRecordToInt(dt)
-  }
-
-  private def isRecordToInt(dt: DictType): Boolean = dt match {
+  private def isRecordToInt(tp: Type): Boolean = tp match {
     case DictType(_: RecordType, IntType, DictVectorHint()) => true
     case _ => false
   }
-
-  private val reOrigin = "(?<suffix>.*)_trie(?<n>\\d+)$".r
-
-  @tailrec
-  private def getOrigin(name: String)(implicit callsCtx: CallsCtx): String = {
-    val sumOrigin = getSumOrigin(name)
-    val origin = reOrigin.findAllIn(sumOrigin).matchData.next()
-    val n = origin.group("n").toInt
-    val suffix: String = origin.group("suffix")
-    if (n == 0) suffix else getOrigin(s"${suffix}_trie${n - 1}")
-  }
-
-  @tailrec
-  private def getSumOrigin(name: String)(implicit callsCtx: CallsCtx): String =
-    callsCtx.flatMap(condOpt(_) { case SumCtx(origin, k, v, _) if name == k || name == v => origin }).headOption match {
-      case Some(origin) => getSumOrigin(origin)
-      case None => name
-    }
 
   private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
     exps.map(f => s"[${run(f)(typesCtx, callsCtx)}]").mkString("")
@@ -558,25 +522,32 @@ object CppCodegen {
   }
 
   // TODO get rid of hack for job/gj queries
-  private def cppFieldAccessors(fields: Iterable[FieldNode])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
-    fields.map(f => s"[${run(f)(typesCtx, callsCtx)}]").mkString("")
-  private def splitNestedFields(dict: DictNode)(implicit typesCtx: TypesCtx): (Seq[FieldNode], Exp) = dict match {
-    case DictNode(Seq((f: FieldNode, v: DictNode)), _) =>
-      val (vFields, e) = splitNestedFields(v)
-      (Seq(f) ++ vFields, e)
-    case DictNode(Seq((f: FieldNode, e)), _) =>
-      (Seq(f), e)
-    case e: DictNode =>
-      (Seq(), e)
+  @tailrec
+  private def getRecordNode(dict: DictNode)(implicit typesCtx: TypesCtx): RecNode = dict match {
+    case DictNode(Seq((_, v: DictNode)), _) => getRecordNode(v)
+    case DictNode(Seq((record: RecNode, Const(1))), _) => record
+    case _ => raise(s"unexpected: ${TypeInference.run(dict).prettyPrint}")
   }
-
-  private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = {
-    val isVector = cond(TypeInference.run(e1)) { case DictType(_, _, DictVectorHint()) => true }
-    if (isVector)
-      s"${run(e1)}[${run(e2)}] != 0"
-    else
-      s"${run(e1)}.contains(${run(e2)})"
+  @tailrec
+  private def isNestedRecordToInt(tp: Type): Boolean = tp match {
+    case DictType(_, dt: DictType, _) => isNestedRecordToInt(dt)
+    case _ => isRecordToInt(tp)
   }
+  @tailrec
+  private def getOrigin(name: String)(implicit callsCtx: CallsCtx): String = {
+    val sumOrigin = getSumOrigin(name)
+    val origin = reOrigin.findAllIn(sumOrigin).matchData.next()
+    val n = origin.group("n").toInt
+    val suffix: String = origin.group("suffix")
+    if (n == 0) suffix else getOrigin(s"${suffix}_trie${n - 1}")
+  }
+  @tailrec
+  private def getSumOrigin(name: String)(implicit callsCtx: CallsCtx): String =
+    callsCtx.flatMap(condOpt(_) { case SumCtx(origin, k, v, _) if name == k || name == v => origin }).headOption match {
+      case Some(origin) => getSumOrigin(origin)
+      case None => name
+    }
+  private val reOrigin = "(?<suffix>.*)_trie(?<n>\\d+)$".r
 
   private def run(e: Const) = e match {
     case Const(DateValue(v)) =>
