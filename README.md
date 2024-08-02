@@ -59,10 +59,10 @@ run interpret <path> <sdql_files>*
 For example, to run TPCH Q6, first make sure that the folder `datasets/tpch` contains TPCH tables (with a small scale factor). Then, run the following command:
 ```sh
 sbt
-run interpret progs/tpch q6.sdql
+run interpret progs/tpch-interpreter q6.sdql
 ```
 
-Or as a one-liner: `sbt "run interpret progs/tpch q6.sdql"`
+Or as a one-liner: `sbt "run interpret progs/tpch-interpreter q6.sdql"`
 
 # Running the Compiler
 

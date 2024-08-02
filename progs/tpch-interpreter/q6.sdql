@@ -1,0 +1,8 @@
+let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
+sum(<li, li_v> <- lineitem)
+  if((0.05 <= li.l_discount) && (li.l_discount <= 0.07) &&
+      (li.l_quantity < 24) && (date(19940101) <= li.l_shipdate) &&
+      (li.l_shipdate < date(19950101))) then
+    li_v * li.l_extendedprice * li.l_discount
+  else
+    0

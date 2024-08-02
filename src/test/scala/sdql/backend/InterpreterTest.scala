@@ -1,12 +1,12 @@
 package sdql
 package backend
 
-import ir._
-import frontend._
-import org.scalatest._
-import Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should._
+import sdql.frontend._
+import sdql.ir._
 
-class InterpreterTest extends FlatSpec {
+class InterpreterTest extends AnyFlatSpec with Matchers {
 
   def interpreter(e: Exp) = Interpreter(e)
 
@@ -235,5 +235,14 @@ sum(<x_s, x_s_v> <- S)
 1129|8796093026744""")
     interpreter(sdql"""let R = load[{<startId:int,endId:int>->int}]($file)
       sum(<x, v> <- R) if(x.startId == 933) then 10 else 1""") should be (55)
+  }
+
+  it should "interpret queries" in {
+    // doesn't check results - just that interpreter doesn't crash on these queries
+    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q1.sdql").exp)
+    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q6.sdql").exp)
+    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13.sdql").exp)
+    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13_promote.sdql").exp)
+    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13_promote_unfused.sdql").exp)
   }
 }
