@@ -93,7 +93,7 @@ object CppCodegen {
     }
   }
 
-  private def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = {
+  private def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
     val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
     val hint = sumHint(e)
     val isMin = e match {
@@ -108,6 +108,30 @@ object CppCodegen {
       case _ => List()
     }
     val callsLocal = List(SumEnd(), IsTernary()) ++ promoCtx ++ callsCtx
+
+    // TODO get rid of hack for job/gj queries
+    if (cond(hint) { case DictVectorHint() => true } && cond(promo) { case _: DictNode => true }) {
+      val dict = (promo: @unchecked) match { case dt: DictNode => dt }
+      val tpe = typesCtx(Sym(agg))
+      if (cond(tpe) { case dt: DictType => isNestedRecordToInt(dt) && agg.startsWith("interm") }) {
+        val (fields, _) = splitNested(dict)
+        val accessors = cppAccessors(fields)(typesCtx, callsLocal)
+        val cols = getRecordType(tpe) match {
+          case Some(RecordType(attrs)) => attrs.map(_.name)
+        }
+        val exps = getRecordNode(dict) match {
+          case RecNode(values) => values.map(_._2)
+        }
+        val expsCpp = exps.map(run(_)(typesCtx, callsLocal))
+        val insertions = cols
+          .zip(expsCpp).map { case (col, cpp) => s"${agg}_inner.$col.push_back($cpp);" }.mkString("\n")
+        val link = s"$agg$accessors.push_back(${agg}_cnt++);"
+        return s"""$insertions
+             |$link
+             |""".stripMargin
+      }
+    }
+
     promo match {
       case dict@DictNode(seq, _) => seq.map(
         kv => {
@@ -123,24 +147,7 @@ object CppCodegen {
               s"$agg$accessors += $rhs;"
             case _: DictVectorHint =>
               typesCtx(Sym(agg)) match {
-                // TODO get rid of hack for job/gj queries
-                case dt: DictType if isNestedRecordToInt(dt) && agg.startsWith("interm") =>
-                  val (fields, _) = splitNested(dict)
-                  val accessors = cppAccessors(fields)(typesCtx, callsLocal)
-                  val cols = getRecordType(dt) match {
-                    case Some(RecordType(attrs)) => attrs.map(_.name)
-                  }
-                  val exps = getRecordNode(dict) match {
-                    case RecNode(values) => values.map(_._2)
-                  }
-                  val expsCpp = exps.map(run(_)(typesCtx, callsLocal))
-                  val insertions = cols
-                    .zip(expsCpp).map { case (col, cpp) => s"${agg}_inner.$col.push_back($cpp);" }.mkString("\n")
-                  val link = s"$agg$accessors.push_back(${agg}_cnt++);"
-                  s"""$insertions
-                     |$link
-                     |""".stripMargin
-                case dt: DictType if isNestedRecordToInt(dt) && !agg.startsWith("interm") =>
+                case dt: DictType if isNestedRecordToInt(dt) =>
                   val (fields, _) = splitNested(dict)
                   val accessors = cppAccessors(fields)(typesCtx, callsLocal)
                   s"$agg$accessors.emplace_back(${sumVariable(callsLocal)});"
