@@ -329,8 +329,6 @@ object CppCodegen {
         case Sym(name) if !name.startsWith("mn_") && checkIsMin =>
           val origin = getOrigin(name)
           s"${origin}_trie0_inner.$field[${origin}_tuple_i]"
-        case Sym(name) if field == "size" && TypeInference.isColumnStore(tpe) =>
-          s"${name.capitalize}::size()"
         case Sym(name) if TypeInference.isColumnStore(tpe) =>
           s"$name.$field"
         case _ =>
@@ -624,7 +622,7 @@ object CppCodegen {
 
   private def makeStructDef(name: String, recordType: RecordType): String = {
     val cppFields = recordType.attrs.map(attr => s"std::vector<${cppType(attr.tpe)}> ${attr.name};").mkString("\n")
-    val cppSize = s"static unsigned long size() { return ${name.toUpperCase}_CSV.GetRowCount(); }"
+    val cppSize = s"long size;"
     val cppTuple = recordType.attrs.map(_.name).map(name => s"$name[i]").mkString("{", ", ", "}")
     val cppBrackets = s"${cppType(recordType)} operator[](const int i) const { return $cppTuple; }"
     s"""struct ${name.capitalize} {
@@ -636,7 +634,7 @@ object CppCodegen {
   }
 
   private def makeStructInit(name: String, recordType: RecordType): String =
-    recordType.attrs.zipWithIndex.map(
+    (recordType.attrs.zipWithIndex.map(
         {
           case (Attribute(_, tpe), i) => tpe match {
             case DateType =>
@@ -653,7 +651,7 @@ object CppCodegen {
               s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i),"
           }
         }
-      )
+      ) ++ Seq(s"static_cast<${cppType(IntType)}>(${name.toUpperCase}_CSV.GetRowCount())"))
       .mkString(s"const ${name.capitalize} ${name.toLowerCase} {\n", "\n", "\n};\n")
 
   private def makeValuesClass(name: String): String =
