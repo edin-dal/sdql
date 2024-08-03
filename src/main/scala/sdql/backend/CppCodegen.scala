@@ -177,13 +177,13 @@ object CppCodegen {
       val localCalls = if (isTernary) List(IsTernary()) ++ callsCtx else callsCtx
       val e1Cpp = e1 match {
         // codegen for loads was handled in a separate tree traversal
-        case Load(_, rt: RecordType) if TypeInference.isColumnStore(rt) => ""
+        case _: Load => ""
         case External(Limit.SYMBOL, _) => s"${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)}\n"
-        // this is a vector so take a reference rather than copy
-        case Get(sym: Sym, _) if cond(TypeInference.run(sym)) { case dt: DictType => isRecordToInt(dt) } =>
-          s"const auto &$name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)};"
         case c: Const => s"constexpr auto $name = ${run(c)};"
-        case _ => s"auto $name = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)};"
+        case _ =>
+          // if it's a vector take a reference rather than copy
+          val cppName = if (isRecordToInt(TypeInference.run(e1))) s"&$name" else name
+          s"auto $cppName = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)};"
       }
       val e2Cpp = e2 match {
         case DictNode(Nil, _) => ""
