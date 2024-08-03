@@ -216,7 +216,9 @@ object CppCodegen {
       val body = run(e2)(typesLocal, callsLocal)
 
       if (isLoad) {
-        val e1Name = (e1: @unchecked) match { case Sym(e1Name) => e1Name }
+        val e1Name = (e1: @unchecked) match {
+          case Sym(e1Name) => e1Name
+        }
         val values = if (v.name == noName) "" else s"constexpr auto ${v.name} = ${e1Name.capitalize}Values();"
         val sumVar = sumVariable(callsLocal)
         // note: we could create the const auto variable outside the loop
@@ -300,13 +302,15 @@ object CppCodegen {
         s"${DictType.getClass.getSimpleName.init} not ${tpe.prettyPrint}"
       )
     }
-    case Cmp(e @ Get(e1, e2), DictNode(Nil, _), "!=") if getArgsMatch(e) => dictCmpNil(e1, e2)
-    case Cmp(DictNode(Nil, _), e @ Get(e1, e2), "!=") if getArgsMatch(e) => dictCmpNil(e1, e2)
+    case Cmp(e@Get(e1, e2), DictNode(Nil, _), "!=") if getArgsMatch(e) => dictCmpNil(e1, e2)
+    case Cmp(DictNode(Nil, _), e@Get(e1, e2), "!=") if getArgsMatch(e) => dictCmpNil(e1, e2)
     case Cmp(e1, e2, cmp) => s"${run(e1)} $cmp ${run(e2)}"
   }
+
   private def getArgsMatch(e: Get)(implicit typesCtx: TypesCtx) = e match {
     case Get(e1, e2) => cond(TypeInference.run(e1)) { case DictType(kt, _, _) => TypeInference.run(e2) == kt }
   }
+
   private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
     if (isRecordToInt(TypeInference.run(e1))) s"${run(e1)}[${run(e2)}] != 0" else s"${run(e1)}.contains(${run(e2)})"
 
@@ -314,26 +318,28 @@ object CppCodegen {
     case FieldNode(e1, field) =>
       val tpe = (TypeInference.run(e1): @unchecked) match { case rt: RecordType => rt }
       val idx = (tpe.indexOf(field): @unchecked) match { case Some(idx) => idx }
+
+      // TODO get rid of hack for job/gj queries
       e1 match {
-        case Sym(name)
-          if callsCtx.exists(x => cond(x) { case SumCtx(_, k, v, true) => name == k || name == v}) =>
-          s"$name.$field[${sumVariable(name)}]"
-        // TODO get rid of hack for job/gj queries
-        case Sym(name) if name.endsWith("_tuple") && !name.startsWith("interm")  =>
-          s"${name.dropRight("_tuple".length)}.$field[${name}_i]"
-        case Sym(name)
-          if name.endsWith("_tuple") && !checkIsMin &&
-            cond(TypeInference.run(Sym(getSumOrigin(name)))) { case dt: DictType => isNestedRecordToInt(dt) } =>
-          val origin = getOrigin(name)
-          s"${origin}_trie0_inner.$field[${origin}_tuple_i]"
-        case Sym(name) if !name.startsWith("mn_") && checkIsMin =>
-          val origin = getOrigin(name)
-          s"${origin}_trie0_inner.$field[${origin}_tuple_i]"
-        case Sym(name) if TypeInference.isColumnStore(tpe) =>
-          s"$name.$field"
+        case Sym(name) =>
+          if (name.endsWith("_tuple") && !name.startsWith("interm")) {
+            val origin = name.dropRight("_tuple".length)
+            return s" /* $field */ std::get<$idx>($origin)[${name}_i]"
+          }
+          if (
+            name.endsWith("_tuple") && !checkIsMin &&
+              cond(TypeInference.run(Sym(getSumOrigin(name)))) { case dt: DictType => isNestedRecordToInt(dt) }) {
+            val origin = getOrigin(name)
+            return s"${origin}_trie0_inner.$field[${origin}_tuple_i]"
+          }
+          if (!name.startsWith("mn_") && checkIsMin) {
+            val origin = getOrigin(name)
+            return s"${origin}_trie0_inner.$field[${origin}_tuple_i]"
+          }
         case _ =>
-          s" /* $field */ std::get<$idx>(${run(e1)})"
       }
+
+      s" /* $field */ std::get<$idx>(${run(e1)})"
   }
 
   private def run(e: Add)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
@@ -428,7 +434,9 @@ object CppCodegen {
       raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
     case External(MaxValue.SYMBOL, Seq(arg)) =>
       assert(cond(TypeInference.run(arg)) { case DictType(_, _, hint) => hint != DictLoadHint() })
-      val name = (arg: @unchecked) match { case Sym(name) => name }
+      val name = (arg: @unchecked) match {
+        case Sym(name) => name
+      }
       s"""std::max_element($name.begin(), $name.end(), [](const auto &p1, const auto &p2) {
          |return p1.second < p2.second;
          |})->second;
@@ -436,7 +444,9 @@ object CppCodegen {
     case External(Size.SYMBOL, Seq(arg)) =>
       TypeInference.run(arg) match {
         case DictType(_, _, DictLoadHint()) if cond(arg) { case _: Sym => true } =>
-          val name = (arg: @unchecked) match { case Sym(name) => name }
+          val name = (arg: @unchecked) match {
+            case Sym(name) => name
+          }
           s"${name.capitalize}::size()"
         case _: DictType => s"${run(arg)}.size()"
         case t => raise(s"unexpected: ${t.prettyPrint}")
@@ -489,10 +499,13 @@ object CppCodegen {
   private def sumHint(e: Exp)(implicit typesCtx: TypesCtx): DictCodegenHint = e match {
     case _: RangeNode => DictNoHint()
     case _ => TypeInference.run(e) match {
-      case dt: DictType => getInnerDict(dt) match { case DictType(_, _, hint) => hint }
+      case dt: DictType => getInnerDict(dt) match {
+        case DictType(_, _, hint) => hint
+      }
       case _ => DictNoHint()
     }
   }
+
   @tailrec
   private def getInnerDict(dt: DictType): DictType = dt match {
     case DictType(_, dt: DictType, _) => getInnerDict(dt)
@@ -584,68 +597,54 @@ object CppCodegen {
     case StringType(Some(maxLen)) => s"VarChar<$maxLen>"
     case DictType(kt, vt, DictNoHint()) => s"phmap::flat_hash_map<${cppType(kt)}, ${cppType(vt)}>"
     case DictType(_: RecordType, vt, DictVectorHint()) => s"vector<${cppType(vt)}>"
+    case DictType(IntType, vt, DictVectorHint()) => s"vector<${cppType(vt)}>"
     case _: DictType => raise(s"unexpected type: ${tpe.prettyPrint}")
     case RecordType(attrs) => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
     case tpe => raise(s"unimplemented type: $tpe")
   }
 
   private def cppCsvs(exps: Seq[Exp]) = {
-    val pathNameAttrs = exps.flatMap( e =>
+    val pathNameType = exps.flatMap( e =>
       iterExps(e)
         .flatMap(
           e => condOpt(e) {
             case LetBinding(Sym(name), load @ Load(path, tp: RecordType), _) if TypeInference.isColumnStore(tp) =>
-              val dictType = load.toRow match { case Load(_,  dictType: DictType) => dictType }
-              (path, name, dictType)
+              val recordType = load match { case Load(_,  recordType: RecordType) => recordType }
+              (path, name, recordType)
           }
         )
     ).distinct.sortBy(_._2)
 
-    val csvConsts =
-      pathNameAttrs.map({ case (path, name, _) => makeCsvConst(name, path) } ).mkString("", "\n", "\n")
-    val structDefs =
-      pathNameAttrs.map({ case (_, name, dictType) => makeStructDef(name, dictType) } ).mkString("\n")
-    val structInits =
-      pathNameAttrs.map({ case (_, name, dictType) => makeStructInit(name, dictType) } ).mkString("\n")
+    val csvConsts = pathNameType.map({ case (path, name, _) => makeCsvConst(name, path) } ).mkString("", "\n", "\n")
+    val tuples = pathNameType.map({ case (_, name, recordType) =>
+      val init = makeTupleInit(name, recordType)
+      s"const auto ${name.toLowerCase} = ${cppType(recordType)}($init);\n"
+    }).mkString("\n")
 
-    List(csvConsts, structDefs, structInits).mkString("\n")
+    List(csvConsts, tuples).mkString("\n")
   }
 
   private def makeCsvConst(name: String, path: String) =
     s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR);"""
 
-  private def makeStructDef(name: String, dictType: DictType) = {
-    val recordType = dictType match { case DictType(recordType: RecordType, IntType, _) => recordType }
-    val cppFields = recordType.attrs.map(attr => s"std::vector<${cppType(attr.tpe)}> ${attr.name};").mkString("\n")
-    val cppSize = s"long size;"
-    s"""struct ${name.capitalize} {
-       |$cppFields
-       |$cppSize
-       |};
-       |""".stripMargin
-  }
-
-  private def makeStructInit(name: String, dictType: DictType) = {
-    val recordType = dictType match { case DictType(recordType: RecordType, IntType, _) => recordType }
+  private def makeTupleInit(name: String, recordType: RecordType) = {
     (recordType.attrs.zipWithIndex.map(
         {
-          case (Attribute(_, tpe), i) => tpe match {
-            case DateType =>
+          case (Attribute(attr_name, tpe), i) => s"/* $attr_name */" ++ (tpe match {
+            case tpe @ IntType if attr_name == "size" =>
+              s"static_cast<${cppType(tpe)}>(${name.toUpperCase}_CSV.GetRowCount())"
+            case DictType(IntType, DateType, DictVectorHint()) =>
               val tpe = StringType()
-              s"dates_to_numerics(" +
-                s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)" +
-                "),"
-            case StringType(Some(maxLen)) =>
+              s"dates_to_numerics(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)" +  "),"
+            case DictType(IntType, StringType(Some(maxLen)), DictVectorHint()) =>
               val tpe = StringType()
-              s"strings_to_varchars<$maxLen>(" +
-                s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)" +
-                "),"
-            case _ =>
+              s"strings_to_varchars<$maxLen>(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)" + "),"
+            case DictType(IntType, tpe, DictVectorHint()) =>
               s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i),"
-          }
+          })
         }
-      ) ++ Seq(s"static_cast<${cppType(IntType)}>(${name.toUpperCase}_CSV.GetRowCount())"))
-      .mkString(s"const ${name.capitalize} ${name.toLowerCase} {\n", "\n", "\n};\n")
+      ) ++ Seq())
+      .mkString("\n")
   }
 
   private def iterExps(e: Exp): Iterator[Exp] =
