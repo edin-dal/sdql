@@ -125,7 +125,7 @@ object CppCodegen {
         val expsCpp = exps.map(run(_)(typesCtx, callsLocal))
         val insertions = cols
           .zip(expsCpp).map { case (col, cpp) => s"${agg}_inner.$col.push_back($cpp);" }.mkString("\n")
-        val link = s"$agg$accessors.push_back(${agg}_cnt++);"
+        val link = s"$agg$accessors[${agg}_cnt++] += 1;"
         return s"""$insertions
              |$link
              |""".stripMargin
@@ -150,7 +150,7 @@ object CppCodegen {
                 case dt: DictType if isNestedRecordToInt(dt) =>
                   val (fields, _) = splitNested(dict)
                   val accessors = cppAccessors(fields)(typesCtx, callsLocal)
-                  s"$agg$accessors.emplace_back(${sumVariable(callsLocal)});"
+                  s"$agg$accessors[${sumVariable(callsLocal)}] += 1;"
                 case DictType(IntType, DictType(IntType, _, DictVectorHint()), DictVectorHint()) =>
                   promo match {
                     case DictNode(Seq((f1: FieldNode, DictNode(Seq((f2: FieldNode, _)), _))), _) =>
@@ -226,7 +226,7 @@ object CppCodegen {
         val isVecSum = cond(hint) { case DictVectorHint() => true }
         val initBlock = getRecordType(tpe) match {
           case Some(RecordType(attrs)) if isVecSum && !isNestedSum =>
-            val aggVectors = attrs.map(attr => s"vector<${cppType(attr.tpe)}> ${attr.name};")
+            val aggVectors = attrs.map(attr => s"std::vector<${cppType(attr.tpe)}> ${attr.name};")
               .mkString(s"struct ${agg.toUpperCase}_TYPE {", "\n", s"} ${agg}_inner;")
             s"""$init
                |$aggVectors
@@ -243,7 +243,7 @@ object CppCodegen {
             s"${k.name}_i : $iterable"
         }
         s"""$initBlock
-           |for (const auto &$head) {
+           |for (auto &$head) {
            |$body
            |}
            |""".stripMargin
@@ -536,8 +536,8 @@ object CppCodegen {
     case StringType(None) => "std::string"
     case StringType(Some(maxLen)) => s"VarChar<$maxLen>"
     case DictType(kt, vt, DictNoHint()) => s"phmap::flat_hash_map<${cppType(kt)}, ${cppType(vt)}>"
-    case DictType(_: RecordType, vt, DictVectorHint()) => s"std::vector<${cppType(vt)}>"
-    case DictType(IntType, vt, DictVectorHint()) => s"std::vector<${cppType(vt)}>"
+    case DictType(_: RecordType, vt, DictVectorHint()) => s"vecdict<${cppType(vt)}>"
+    case DictType(IntType, vt, DictVectorHint()) => s"vecdict<${cppType(vt)}>"
     case _: DictType => raise(s"unexpected type: ${tpe.prettyPrint}")
     case RecordType(attrs) => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
     case tpe => raise(s"unimplemented type: $tpe")
@@ -558,7 +558,8 @@ object CppCodegen {
     val csvConsts = pathNameType.map({ case (path, name, _) => makeCsvConst(name, path) } ).mkString("", "\n", "\n")
     val tuples = pathNameType.map({ case (_, name, recordType) =>
       val init = makeTupleInit(name, recordType)
-      s"const auto ${name.toLowerCase} = ${cppType(recordType)}($init);\n"
+      val tupleType = "std::tuple" // FIXME cppType(recordType)
+      s"auto ${name.toLowerCase} = $tupleType($init);\n"
     }).mkString("\n")
 
     List(csvConsts, tuples).mkString("\n")
@@ -571,16 +572,16 @@ object CppCodegen {
     (recordType.attrs.zipWithIndex.map(
         {
           case (Attribute(attr_name, tpe), i) => s"/* $attr_name */" ++ (tpe match {
-            case tpe @ IntType if attr_name == "size" =>
-              s"static_cast<${cppType(tpe)}>(${name.toUpperCase}_CSV.GetRowCount())"
+            case innerType @ IntType if attr_name == "size" =>
+              s"static_cast<${cppType(innerType)}>(${name.toUpperCase}_CSV.GetRowCount())"
             case DictType(IntType, DateType, DictVectorHint()) =>
               val tpe = StringType()
               s"dates_to_numerics(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)" +  "),"
             case DictType(IntType, StringType(Some(maxLen)), DictVectorHint()) =>
-              val tpe = StringType()
-              s"strings_to_varchars<$maxLen>(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)" + "),"
-            case DictType(IntType, tpe, DictVectorHint()) =>
-              s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i),"
+              val innerType = StringType()
+              s"strings_to_varchars<$maxLen>(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(innerType)}>($i)" + "),"
+            case DictType(IntType, innerType, DictVectorHint()) =>
+              s"${name.toUpperCase}_CSV.GetColumn<${cppType(innerType)}>($i),"
           })
         }
       ) ++ Seq())
