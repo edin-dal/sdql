@@ -589,7 +589,7 @@ object CppCodegen {
     case tpe => raise(s"unimplemented type: $tpe")
   }
 
-  private def cppCsvs(exps: Seq[Exp]): String = {
+  private def cppCsvs(exps: Seq[Exp]) = {
     val pathNameAttrs = exps.flatMap( e =>
       iterExps(e)
         .flatMap(
@@ -611,29 +611,24 @@ object CppCodegen {
       pathNameAttrs.map({ case (_, name, recordType) => makeStructDef(name, recordType) } ).mkString("\n")
     val structInits =
       pathNameAttrs.map({ case (_, name, recordType) => makeStructInit(name, recordType) } ).mkString("\n")
-    val valueClasses =
-      pathNameAttrs.map({ case (_, name, _) => makeValuesClass(name) } ).mkString("\n")
 
-    List(csvConsts, structDefs, structInits, valueClasses).mkString("\n")
+    List(csvConsts, structDefs, structInits).mkString("\n")
   }
 
-  private def makeCsvConst(name: String, path: String): String =
+  private def makeCsvConst(name: String, path: String) =
     s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR);"""
 
-  private def makeStructDef(name: String, recordType: RecordType): String = {
+  private def makeStructDef(name: String, recordType: RecordType) = {
     val cppFields = recordType.attrs.map(attr => s"std::vector<${cppType(attr.tpe)}> ${attr.name};").mkString("\n")
     val cppSize = s"long size;"
-    val cppTuple = recordType.attrs.map(_.name).map(name => s"$name[i]").mkString("{", ", ", "}")
-    val cppBrackets = s"${cppType(recordType)} operator[](const int i) const { return $cppTuple; }"
     s"""struct ${name.capitalize} {
        |$cppFields
        |$cppSize
-       |$cppBrackets
        |};
        |""".stripMargin
   }
 
-  private def makeStructInit(name: String, recordType: RecordType): String =
+  private def makeStructInit(name: String, recordType: RecordType) =
     (recordType.attrs.zipWithIndex.map(
         {
           case (Attribute(_, tpe), i) => tpe match {
@@ -653,14 +648,6 @@ object CppCodegen {
         }
       ) ++ Seq(s"static_cast<${cppType(IntType)}>(${name.toUpperCase}_CSV.GetRowCount())"))
       .mkString(s"const ${name.capitalize} ${name.toLowerCase} {\n", "\n", "\n};\n")
-
-  private def makeValuesClass(name: String): String =
-    s"""
-       |class ${name.capitalize}Values{
-       |public:
-       |int operator[](const int i) const { return 0 <= i < ${name.toUpperCase}_CSV.GetRowCount(); }
-       |};
-       |""".stripMargin
 
   private def iterExps(e: Exp): Iterator[Exp] =
     Iterator(e) ++ (
