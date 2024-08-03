@@ -18,6 +18,7 @@ public:
     };
 
     vecdict() : vec_(std::vector<T>()) {}
+    explicit vecdict(long n) : vec_(std::vector<T>(n)) {}
     explicit vecdict(std::vector<T> vec) : vec_(std::move(vec)) {}
 
     [[nodiscard]] size_t size() const { return vec_.size(); }
