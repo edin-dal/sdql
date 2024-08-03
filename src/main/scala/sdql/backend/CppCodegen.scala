@@ -495,16 +495,12 @@ object CppCodegen {
   private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
     exps.map(f => s"[${run(f)(typesCtx, callsCtx)}]").mkString("")
 
-  private def splitNested(dict: DictNode)(implicit typesCtx: TypesCtx): (Seq[Exp], Exp) = dict match {
-    case DictNode(Seq((k, e @ DictNode(_, DictVectorHint()))), _) =>
-      (Seq(k), e)
-    case DictNode(Seq((k, v: DictNode)), _) =>
-      val (vExps, e) = splitNested(v)
-      (Seq(k) ++ vExps, e)
-    case DictNode(Seq((k, e)), _) =>
-      (Seq(k), e)
-    case e: DictNode =>
-      (Seq(), e)
+  private def splitNested(e: Exp): (Seq[Exp], Exp) = e match {
+    case DictNode(Seq((k, v @ DictNode(_, DictNoHint()))), _) =>
+      val (lhs, rhs) = splitNested(v)
+      (Seq(k) ++ lhs, rhs)
+    case DictNode(Seq((k, rhs)), _) => (Seq(k), rhs)
+    case _ => (Seq(), e)
   }
 
   private def run(e: Const) = e match {
