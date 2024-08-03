@@ -37,7 +37,7 @@ object CppCodegen {
     val queryBody = run(rewrite)(Map(), List())
     val benchStart = if (benchmarkRuns == 0) "" else
       s"""HighPrecisionTimer timer;
-         |for (int iter = 1; iter <= $benchmarkRuns; iter++) {
+         |for (${cppType(IntType)} iter = 1; iter <= $benchmarkRuns; iter++) {
          |timer.Reset();
          |""".stripMargin
     val benchStop = if (benchmarkRuns == 0) "" else
@@ -217,7 +217,7 @@ object CppCodegen {
         val n = run(e1)
         assert(v.name == noName)
         s"""$init
-           |for (int ${k.name} = 0; ${k.name} < $n; ${k.name}++) {
+           |for (${cppType(IntType)} ${k.name} = 0; ${k.name} < $n; ${k.name}++) {
            |$body
            |}
            |
