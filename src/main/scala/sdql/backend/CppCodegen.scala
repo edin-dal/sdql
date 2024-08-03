@@ -536,8 +536,8 @@ object CppCodegen {
     case StringType(None) => "std::string"
     case StringType(Some(maxLen)) => s"VarChar<$maxLen>"
     case DictType(kt, vt, DictNoHint()) => s"phmap::flat_hash_map<${cppType(kt)}, ${cppType(vt)}>"
-    case DictType(_: RecordType, vt, DictVectorHint()) => s"vector<${cppType(vt)}>"
-    case DictType(IntType, vt, DictVectorHint()) => s"vector<${cppType(vt)}>"
+    case DictType(_: RecordType, vt, DictVectorHint()) => s"std::vector<${cppType(vt)}>"
+    case DictType(IntType, vt, DictVectorHint()) => s"std::vector<${cppType(vt)}>"
     case _: DictType => raise(s"unexpected type: ${tpe.prettyPrint}")
     case RecordType(attrs) => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
     case tpe => raise(s"unimplemented type: $tpe")
