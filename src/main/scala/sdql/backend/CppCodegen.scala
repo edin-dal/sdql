@@ -11,7 +11,7 @@ import scala.annotation.tailrec
 
 private sealed trait CallCtx
 private case class LetCtx(name: String) extends CallCtx
-private case class SumCtx(on: String, k: String, v: String, isLoad: Boolean) extends CallCtx
+private case class SumCtx(on: String, k: String, v: String) extends CallCtx
 private case class SumEnd() extends CallCtx
 private case class IsTernary() extends CallCtx
 private case class Promoted(isMax: Boolean, isProd: Boolean) extends CallCtx
@@ -177,7 +177,6 @@ object CppCodegen {
       val localCalls = if (isTernary) List(IsTernary()) ++ callsCtx else callsCtx
       val e1Cpp = e1 match {
         // codegen for loads was handled in a separate tree traversal
-        case Load(_, DictType(RecordType(_), IntType, _)) => ""
         case Load(_, rt: RecordType) if TypeInference.isColumnStore(rt) => ""
         case External(Limit.SYMBOL, _) => s"${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)}\n"
         // this is a vector so take a reference rather than copy
@@ -196,7 +195,6 @@ object CppCodegen {
   private def run(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Sum(k, v, e1, e2) =>
       val hint = sumHint(e1)
-      val isLoad = cond(hint) { case DictLoadHint() => true }
 
       val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
       var (tpe, typesLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
@@ -207,7 +205,7 @@ object CppCodegen {
         case Get(Sym(name), _) => name
         case _ => ""
       }
-      val callsLocal = List(SumCtx(on, k = k.name, v = v.name, isLoad = isLoad)) ++ callsCtx
+      val callsLocal = List(SumCtx(on, k = k.name, v = v.name)) ++ callsCtx
 
       val isNestedSum = inferSumNesting(callsLocal) > 0
       val isLetSum = cond(callsCtx.head) { case _: LetCtx => true }
@@ -215,25 +213,7 @@ object CppCodegen {
 
       val body = run(e2)(typesLocal, callsLocal)
 
-      if (isLoad) {
-        val e1Name = (e1: @unchecked) match {
-          case Sym(e1Name) => e1Name
-        }
-        val values = if (v.name == noName) "" else s"constexpr auto ${v.name} = ${e1Name.capitalize}Values();"
-        val sumVar = sumVariable(callsLocal)
-        // note: we could create the const auto variable outside the loop
-        //       but then we could have to assign it a randomised name (ugly)
-        //       as the same variable name could be used by other loops
-        //       and there's no simple way to detect if it's been created already
-        s"""$init
-           |for (int $sumVar = 0; $sumVar < ${e1Name.capitalize}::size(); $sumVar++) {
-           |const auto &${k.name} = $e1Name;
-           |$values
-           |$body
-           |}
-           |
-           |""".stripMargin
-      } else if (cond(e1) { case _: RangeNode => true }) {
+      if (cond(e1) { case _: RangeNode => true }) {
         val n = run(e1)
         assert(v.name == noName)
         s"""$init
@@ -357,13 +337,7 @@ object CppCodegen {
 
   private def run(e: Neg)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = s"-${run(e)}"
 
-  private def run(e: Sym)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
-    case Sym(name) =>
-      callsCtx.flatMap(x => condOpt(x) { case ctx: SumCtx => ctx }).headOption match {
-        case Some(SumCtx(_, k, v, true)) if name == k || name == v => s"$name[$sumVariable]"
-        case _ => name
-      }
-  }
+  private def run(e: Sym)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match { case Sym(name) => name }
 
   private def run(e: DictNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case DictNode(Nil, _) =>
@@ -433,7 +407,6 @@ object CppCodegen {
     case External(name@Inv.SYMBOL, _) =>
       raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
     case External(MaxValue.SYMBOL, Seq(arg)) =>
-      assert(cond(TypeInference.run(arg)) { case DictType(_, _, hint) => hint != DictLoadHint() })
       val name = (arg: @unchecked) match {
         case Sym(name) => name
       }
@@ -443,11 +416,6 @@ object CppCodegen {
          |""".stripMargin
     case External(Size.SYMBOL, Seq(arg)) =>
       TypeInference.run(arg) match {
-        case DictType(_, _, DictLoadHint()) if cond(arg) { case _: Sym => true } =>
-          val name = (arg: @unchecked) match {
-            case Sym(name) => name
-          }
-          s"${name.capitalize}::size()"
         case _: DictType => s"${run(arg)}.size()"
         case t => raise(s"unexpected: ${t.prettyPrint}")
       }
@@ -538,34 +506,6 @@ object CppCodegen {
     case e: DictNode =>
       (Seq(), e)
   }
-
-  // TODO get rid of hack for job/gj queries
-  @tailrec
-  private def getRecordNode(dict: DictNode)(implicit typesCtx: TypesCtx): RecNode = dict match {
-    case DictNode(Seq((_, v: DictNode)), _) => getRecordNode(v)
-    case DictNode(Seq((record: RecNode, Const(1))), _) => record
-    case _ => raise(s"unexpected: ${TypeInference.run(dict).prettyPrint}")
-  }
-  @tailrec
-  private def isNestedRecordToInt(tp: Type): Boolean = tp match {
-    case DictType(_, dt: DictType, _) => isNestedRecordToInt(dt)
-    case _ => isRecordToInt(tp)
-  }
-  @tailrec
-  private def getOrigin(name: String)(implicit callsCtx: CallsCtx): String = {
-    val sumOrigin = getSumOrigin(name)
-    val origin = reOrigin.findAllIn(sumOrigin).matchData.next()
-    val n = origin.group("n").toInt
-    val suffix: String = origin.group("suffix")
-    if (n == 0) suffix else getOrigin(s"${suffix}_trie${n - 1}")
-  }
-  @tailrec
-  private def getSumOrigin(name: String)(implicit callsCtx: CallsCtx): String =
-    callsCtx.flatMap(condOpt(_) { case SumCtx(origin, k, v, _) if name == k || name == v => origin }).headOption match {
-      case Some(origin) => getSumOrigin(origin)
-      case None => name
-    }
-  private val reOrigin = "(?<suffix>.*)_trie(?<n>\\d+)$".r
 
   private def run(e: Const) = e match {
     case Const(DateValue(v)) =>
@@ -721,13 +661,6 @@ object CppCodegen {
   private def inferSumNesting(implicit callsCtx: CallsCtx) =
     (callsCtx.takeWhile(!cond(_) { case _: SumEnd => true }).count(cond(_) { case _: SumCtx => true }) - 1).max(0)
 
-  private def sumVariable(name: String)(implicit callsCtx: CallsCtx) = {
-    val lvlMax = (callsCtx.count(cond(_) { case _: SumCtx => true }) - 1).max(0)
-    val lvl =
-      callsCtx.takeWhile(!cond(_) { case SumCtx(_, k, _, _) => k == name }).count(cond(_) { case _: SumCtx => true })
-    ('i'.toInt + (lvlMax - lvl)).toChar
-  }
-
   private def cppPrintResult(tpe: Type) = tpe match {
     case DictType(kt, vt, DictNoHint()) =>
       s"""for (const auto &[key, val] : $resultName) {
@@ -777,4 +710,32 @@ object CppCodegen {
   private val stdCout = s"std::cout << std::setprecision (std::numeric_limits<double>::digits10)"
 
   private def uuid = UUID.randomUUID.toString.replace("-", "_")
+
+  // TODO get rid of hack for job/gj queries
+  @tailrec
+  private def getRecordNode(dict: DictNode)(implicit typesCtx: TypesCtx): RecNode = dict match {
+    case DictNode(Seq((_, v: DictNode)), _) => getRecordNode(v)
+    case DictNode(Seq((record: RecNode, Const(1))), _) => record
+    case _ => raise(s"unexpected: ${TypeInference.run(dict).prettyPrint}")
+  }
+  @tailrec
+  private def isNestedRecordToInt(tp: Type): Boolean = tp match {
+    case DictType(_, dt: DictType, _) => isNestedRecordToInt(dt)
+    case _ => isRecordToInt(tp)
+  }
+  @tailrec
+  private def getOrigin(name: String)(implicit callsCtx: CallsCtx): String = {
+    val sumOrigin = getSumOrigin(name)
+    val origin = reOrigin.findAllIn(sumOrigin).matchData.next()
+    val n = origin.group("n").toInt
+    val suffix: String = origin.group("suffix")
+    if (n == 0) suffix else getOrigin(s"${suffix}_trie${n - 1}")
+  }
+  @tailrec
+  private def getSumOrigin(name: String)(implicit callsCtx: CallsCtx): String =
+    callsCtx.flatMap(condOpt(_) { case SumCtx(origin, k, v) if name == k || name == v => origin }).headOption match {
+      case Some(origin) => getSumOrigin(origin)
+      case None => name
+    }
+  private val reOrigin = "(?<suffix>.*)_trie(?<n>\\d+)$".r
 }

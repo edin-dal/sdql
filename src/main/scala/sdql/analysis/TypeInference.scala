@@ -177,7 +177,6 @@ object TypeInference {
   }
 
   def run(e: Load): Type = e match {
-    case Load(_, DictType(kt, vt, DictNoHint())) => DictType(kt, vt, DictLoadHint())
     case Load(_, rt: RecordType) if isColumnStore(rt) => rt
     case Load(_, tp) => raise(s"unexpected: ${tp.prettyPrint}")
   }
