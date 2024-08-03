@@ -111,9 +111,10 @@ object Parser {
   def dictNoHint[_: P]: P[DictNode] =
     P( "{" ~/ keyValue.rep(sep=","./) ~ space ~/ "}").map(x => DictNode(x))
   def hinted[_: P] = P("@" ~/ hint ~/ space)
-  def hint[_: P] = phmap | vecdict
-  def phmap[_: P] = P( "phmap" ).map(_ => DictNoHint())
-  def vecdict[_: P] = P( "vecdict" ).map(_ => DictVectorHint())
+  def hint[_: P] = phmap | vecdict | vector
+  def phmap[_: P] = P( "phmap" ).map(_ => NoHint())
+  def vecdict[_: P] = P( "vecdict" ).map(_ => VecDict())
+  def vector[_: P] = P( "vector" ).map(_ => Vector())
   def load_cstore[_: P]: P[Load] = P( "load_cstore" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ string ~/ ")").map(x =>
     Load(x._2.v.asInstanceOf[String], x._1).toColumn
   )

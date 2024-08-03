@@ -76,7 +76,7 @@ let c_h =
       c_mktsegment=customer.c_mktsegment(i),
       c_comment=customer.c_comment(i)
     >
-    { c.c_custkey -> c.c_nationkey }
+    @vector { c.c_custkey -> c.c_nationkey }
 
 let p_h =
   sum(<i,_> <- range(part.size))

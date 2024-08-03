@@ -52,7 +52,7 @@ let ord_indexed =
       o_comment=orders.o_comment(i)
     >
     if(o.o_orderstatus == f) then
-      { o.o_orderkey -> 1 }
+      @vector { o.o_orderkey -> 1 }
     else
       { }
 
@@ -76,7 +76,7 @@ let l2_indexed =
       l_shipmode=lineitem.l_shipmode(i),
       l_comment=lineitem.l_comment(i)
     >
-    { l.l_orderkey ->  { l.l_suppkey -> 1 } }
+    @vector { l.l_orderkey ->  @vector { l.l_suppkey -> 1 } }
 
 let l3_indexed =
   sum(<i,_> <- range(lineitem.size))
@@ -99,7 +99,7 @@ let l3_indexed =
       l_comment=lineitem.l_comment(i)
     >
     if(l.l_commitdate < l.l_receiptdate) then
-      { l.l_orderkey ->  { l.l_suppkey -> 1 } }
+      @vector { l.l_orderkey ->  @vector { l.l_suppkey -> 1 } }
     else
       { }
 

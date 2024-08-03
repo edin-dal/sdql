@@ -80,7 +80,7 @@ let o_h =
       o_shippriority=orders.o_shippriority(i),
       o_comment=orders.o_comment(i)
     >
-    { o.o_orderkey -> o.o_orderdate }
+    @vector { o.o_orderkey -> o.o_orderdate }
 
 let l_h =
   sum(<i,_> <- range(lineitem.size))

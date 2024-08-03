@@ -110,7 +110,7 @@ object CppCodegen {
     val callsLocal = List(SumEnd(), IsTernary()) ++ promoCtx ++ callsCtx
 
     // TODO get rid of hack for job/gj queries
-    if (cond(hint) { case DictVectorHint() => true } && cond(promo) { case _: DictNode => true }) {
+    if (cond(hint) { case VecDict() => true } && cond(promo) { case _: DictNode => true }) {
       val dict = (promo: @unchecked) match { case dt: DictNode => dt }
       val tpe = typesCtx(Sym(agg))
       if (cond(tpe) { case dt: DictType => isNestedRecordToInt(dt) && agg.startsWith("interm") }) {
@@ -140,24 +140,30 @@ object CppCodegen {
           if (cond(kv._1) { case _: Unique => true })
             s"$agg.emplace($lhs, $rhs);"
           else hint match {
-            case _: DictNoHint =>
+            case _: NoHint =>
               val (fields, inner) = splitNested(dict)
               val rhs = run(inner)(typesCtx, callsLocal)
               val accessors = cppAccessors(fields)(typesCtx, callsLocal)
               s"$agg$accessors += $rhs;"
-            case _: DictVectorHint =>
+            case _: VecDict =>
               typesCtx(Sym(agg)) match {
                 case dt: DictType if isNestedRecordToInt(dt) =>
                   val (fields, _) = splitNested(dict)
                   val accessors = cppAccessors(fields)(typesCtx, callsLocal)
                   s"$agg$accessors[${sumVariable(callsLocal)}] += 1;"
-                case DictType(IntType, DictType(IntType, _, DictVectorHint()), DictVectorHint()) =>
-                  promo match {
-                    case DictNode(Seq((f1: FieldNode, DictNode(Seq((f2: FieldNode, _)), _))), _) =>
-                      val lhs = run(f1)(typesCtx, callsLocal)
-                      val rhs = run(f2)(typesCtx, callsLocal)
-                      s"$agg[$lhs].emplace_back($rhs);"
-                  }
+                case tpe =>
+                  raise(s"Unexpected ${tpe.prettyPrint}")
+              }
+            case Vector() =>
+              typesCtx(Sym(agg)) match {
+                case DictType(IntType, vt, Vector()) if vt.isScalar =>
+                  s"$agg[$lhs] = $rhs;"
+                case DictType(IntType, DictType(IntType, _, Vector()), Vector()) =>
+                  val (fields, inner) = splitNested(dict)
+                  val lhs = cppAccessors(fields)(typesCtx, callsLocal)
+                  val k = (inner: @unchecked) match { case DictNode(Seq((k, Const(1))), Vector()) => k }
+                  val rhs = run(k)(typesCtx, callsLocal)
+                  s"$agg$lhs.emplace_back($rhs);"
                 case tpe =>
                   raise(s"Unexpected ${tpe.prettyPrint}")
               }
@@ -223,7 +229,7 @@ object CppCodegen {
            |
            |""".stripMargin
       } else {
-        val isVecSum = cond(hint) { case DictVectorHint() => true }
+        val isVecSum = cond(hint) { case VecDict() => true }
         val initBlock = getRecordType(tpe) match {
           case Some(RecordType(attrs)) if isVecSum && !isNestedSum =>
             val aggVectors = attrs.map(attr => s"std::vector<${cppType(attr.tpe)}> ${attr.name};")
@@ -237,9 +243,9 @@ object CppCodegen {
         }
         val iterable = run(e1)(typesLocal, List(SumEnd()) ++ callsLocal)
         val head = TypeInference.run(e1)(typesLocal) match {
-          case DictType(_, _, DictNoHint()) =>
+          case DictType(_, _, NoHint()) =>
             s"[${k.name}, ${v.name}] : $iterable"
-          case DictType(_, _, DictVectorHint()) =>
+          case DictType(_, _, VecDict()) =>
             s"${k.name}_i : $iterable"
         }
         s"""$initBlock
@@ -292,7 +298,10 @@ object CppCodegen {
   }
 
   private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
-    if (isRecordToInt(TypeInference.run(e1))) s"${run(e1)}[${run(e2)}] != 0" else s"${run(e1)}.contains(${run(e2)})"
+    TypeInference.run(e1) match {
+      case DictType(IntType, _, Vector()) => s"${run(e1)}[${run(e2)}] != 0"
+      case _ => s"${run(e1)}.contains(${run(e2)})"
+    }
 
   private def run(e: FieldNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case FieldNode(e1, field) =>
@@ -464,13 +473,13 @@ object CppCodegen {
       )
   }
 
-  private def sumHint(e: Exp)(implicit typesCtx: TypesCtx): DictCodegenHint = e match {
-    case _: RangeNode => DictNoHint()
+  private def sumHint(e: Exp)(implicit typesCtx: TypesCtx): CodegenHint = e match {
+    case _: RangeNode => NoHint()
     case _ => TypeInference.run(e) match {
       case dt: DictType => getInnerDict(dt) match {
         case DictType(_, _, hint) => hint
       }
-      case _ => DictNoHint()
+      case _ => NoHint()
     }
   }
 
@@ -487,8 +496,14 @@ object CppCodegen {
     case _ => None
   }
 
+  @tailrec
+  private def isNestedRecordToInt(tp: Type): Boolean = tp match {
+    case DictType(_, dt: DictType, _) => isNestedRecordToInt(dt)
+    case _ => isRecordToInt(tp)
+  }
+
   private def isRecordToInt(tp: Type): Boolean = tp match {
-    case DictType(_: RecordType, IntType, DictVectorHint()) => true
+    case DictType(_: RecordType, IntType, VecDict()) => true
     case _ => false
   }
 
@@ -496,7 +511,7 @@ object CppCodegen {
     exps.map(f => s"[${run(f)(typesCtx, callsCtx)}]").mkString("")
 
   private def splitNested(e: Exp): (Seq[Exp], Exp) = e match {
-    case DictNode(Seq((k, v @ DictNode(_, DictNoHint()))), _) =>
+    case DictNode(Seq((k, v @ DictNode(_, NoHint()))), _) =>
       val (lhs, rhs) = splitNested(v)
       (Seq(k) ++ lhs, rhs)
     case DictNode(Seq((k, rhs)), _) => (Seq(k), rhs)
@@ -519,8 +534,8 @@ object CppCodegen {
     case IntType | DateType => "0"
     case StringType(None) => "\"\""
     case StringType(Some(_)) => raise("initialising VarChars shouldn't be needed")
-    case DictType(_, _, DictNoHint()) => "{}"
-    case DictType(_, _, DictVectorHint()) => vecSize.toString
+    case DictType(_, _, NoHint()) => "{}"
+    case DictType(_, _, Vector()) => vecSize.toString
     case RecordType(attrs) => attrs.map(_.tpe).map(cppInit).mkString(", ")
     case tpe => raise(s"unimplemented type: $tpe")
   }
@@ -531,9 +546,9 @@ object CppCodegen {
     case IntType | DateType => "long"
     case StringType(None) => "std::string"
     case StringType(Some(maxLen)) => s"VarChar<$maxLen>"
-    case DictType(kt, vt, DictNoHint()) => s"phmap::flat_hash_map<${cppType(kt)}, ${cppType(vt)}>"
-    case DictType(_: RecordType, vt, DictVectorHint()) => s"vecdict<${cppType(vt)}>"
-    case DictType(IntType, vt, DictVectorHint()) => s"vecdict<${cppType(vt)}>"
+    case DictType(kt, vt, NoHint()) => s"phmap::flat_hash_map<${cppType(kt)}, ${cppType(vt)}>"
+    case DictType(_: RecordType, vt, VecDict()) => s"vecdict<${cppType(vt)}>"
+    case DictType(IntType, vt, Vector()) => s"std::vector<${cppType(vt)}>"
     case _: DictType => raise(s"unexpected type: ${tpe.prettyPrint}")
     case RecordType(attrs) => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
     case tpe => raise(s"unimplemented type: $tpe")
@@ -570,13 +585,13 @@ object CppCodegen {
           case (Attribute(attr_name, tpe), i) => s"/* $attr_name */" ++ (tpe match {
             case innerType @ IntType if attr_name == "size" =>
               s"static_cast<${cppType(innerType)}>(${name.toUpperCase}_CSV.GetRowCount())"
-            case DictType(IntType, DateType, DictVectorHint()) =>
+            case DictType(IntType, DateType, VecDict()) =>
               val tpe = StringType()
               s"dates_to_numerics(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)" +  "),"
-            case DictType(IntType, StringType(Some(maxLen)), DictVectorHint()) =>
+            case DictType(IntType, StringType(Some(maxLen)), VecDict()) =>
               val innerType = StringType()
               s"strings_to_varchars<$maxLen>(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(innerType)}>($i)" + "),"
-            case DictType(IntType, innerType, DictVectorHint()) =>
+            case DictType(IntType, innerType, VecDict()) =>
               s"${name.toUpperCase}_CSV.GetColumn<${cppType(innerType)}>($i),"
           })
         }
@@ -659,11 +674,11 @@ object CppCodegen {
     (callsCtx.takeWhile(!cond(_) { case _: SumEnd => true }).count(cond(_) { case _: SumCtx => true }) - 1).max(0)
 
   private def cppPrintResult(tpe: Type) = tpe match {
-    case DictType(kt, vt, DictNoHint()) =>
+    case DictType(kt, vt, NoHint()) =>
       s"""for (const auto &[key, val] : $resultName) {
          |$stdCout << ${_cppPrintResult(kt, "key")} << ":" << ${_cppPrintResult(vt, "val")} << std::endl;
          |}""".stripMargin
-    case DictType(kt, vt, DictVectorHint()) =>
+    case DictType(kt, vt, VecDict()) =>
       assert(kt == IntType, s"${kt.simpleName} != ${IntType.simpleName}")
       val cond = vt match {
         case _: DictType =>
@@ -714,11 +729,6 @@ object CppCodegen {
     case DictNode(Seq((_, v: DictNode)), _) => getRecordNode(v)
     case DictNode(Seq((record: RecNode, Const(1))), _) => record
     case _ => raise(s"unexpected: ${TypeInference.run(dict).prettyPrint}")
-  }
-  @tailrec
-  private def isNestedRecordToInt(tp: Type): Boolean = tp match {
-    case DictType(_, dt: DictType, _) => isNestedRecordToInt(dt)
-    case _ => isRecordToInt(tp)
   }
   @tailrec
   private def getOrigin(name: String)(implicit callsCtx: CallsCtx): String = {

@@ -68,10 +68,11 @@ case class RecNode(values: Seq[(Field, Exp)]) extends Exp {
  * A dictionary that maps expressions to other expressions
  * @param map a dictionary from expression to other expressions
  */
-case class DictNode(map: Seq[(Exp, Exp)], hint: DictCodegenHint = DictNoHint()) extends Exp
-sealed trait DictCodegenHint;
-case class DictNoHint() extends DictCodegenHint
-case class DictVectorHint() extends DictCodegenHint
+case class DictNode(map: Seq[(Exp, Exp)], hint: CodegenHint = NoHint()) extends Exp
+sealed trait CodegenHint;
+case class NoHint() extends CodegenHint
+case class VecDict() extends CodegenHint
+case class Vector() extends CodegenHint
 
 /**
  * Integer numbers between 0 and n
@@ -133,14 +134,14 @@ case class Load(path: String, tp: Type) extends Exp {
   def toRow: Load = Load(this.path, toRowType(this.tp))
 
   private def toColumnType(tp: Type) = tp match {
-    case DictType(RecordType(attrs), IntType, DictNoHint()) => RecordType(
+    case DictType(RecordType(attrs), IntType, NoHint()) => RecordType(
       attrs.map(attr => Attribute(attr.name, scalarToColumnType(attr.tpe))) ++ Seq(Attribute(sizeName, IntType))
     )
     case _ => raise(s"unexpected ${tp.prettyPrint}")
   }
 
   private def scalarToColumnType(tp: Type) = tp match {
-    case _ if tp.isScalar => DictType(IntType, tp, DictVectorHint())
+    case _ if tp.isScalar => DictType(IntType, tp, VecDict())
     case _ => raise(s"unexpected ${tp.prettyPrint}")
   }
 
@@ -149,13 +150,13 @@ case class Load(path: String, tp: Type) extends Exp {
       DictType(
         RecordType(attrs.filter(_.name != sizeName).map(attr => Attribute(attr.name, columnToScalarType(attr.tpe)))),
         IntType,
-        DictNoHint(),
+        NoHint(),
       )
     case _ => raise(s"unexpected ${tp.prettyPrint}")
   }
 
   private def columnToScalarType(tp: Type) = tp match {
-    case DictType(IntType, tp, DictVectorHint()) if tp.isScalar => tp
+    case DictType(IntType, tp, VecDict()) if tp.isScalar => tp
     case _ => raise(s"unexpected ${tp.prettyPrint}")
   }
 }

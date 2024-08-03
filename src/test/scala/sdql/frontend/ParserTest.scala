@@ -90,7 +90,7 @@ class ParserTest extends AnyFlatSpec with Matchers {
     sdql"{}" should be (SetNode(Seq()))
     // sdql"{x}" should be (SetNode(Seq(Sym("x"))))
     // sdql"{  x   , y   }" should be (SetNode(Seq(Sym("x"), Sym("y"))))
-    sdql"{0  ->  1}" should be (DictNode(Seq(Const(0) -> Const(1)), DictNoHint()))
+    sdql"{0  ->  1}" should be (DictNode(Seq(Const(0) -> Const(1)), NoHint()))
     sdql"{x  ->  y}" should be (DictNode(Seq(Sym("x") -> Sym("y"))))
     sdql"{x.z  ->  y}" should be (DictNode(Seq(FieldNode(Sym("x"), "z") -> Sym("y"))))
     sdql"{x  ->  y, z -> 1 }" should be (DictNode(Seq(Sym("x") -> Sym("y"), Sym("z") -> Const(1.0))))
@@ -104,10 +104,10 @@ class ParserTest extends AnyFlatSpec with Matchers {
   }
 
   it should "work for dict hints" in {
-    sdql"@phmap {0 -> 1}" should be (DictNode(Seq(Const(0) -> Const(1)), DictNoHint()))
-    sdql"@vecdict {0 -> 1}" should be (DictNode(Seq(Const(0) -> Const(1)), DictVectorHint()))
-    sdql"@phmap {x -> y}" should be (DictNode(Seq(Sym("x") -> Sym("y")), DictNoHint()))
-    sdql"@vecdict {x -> y}" should be (DictNode(Seq(Sym("x") -> Sym("y")), DictVectorHint()))
+    sdql"@phmap {0 -> 1}" should be (DictNode(Seq(Const(0) -> Const(1)), NoHint()))
+    sdql"@vecdict {0 -> 1}" should be (DictNode(Seq(Const(0) -> Const(1)), VecDict()))
+    sdql"@phmap {x -> y}" should be (DictNode(Seq(Sym("x") -> Sym("y")), NoHint()))
+    sdql"@vecdict {x -> y}" should be (DictNode(Seq(Sym("x") -> Sym("y")), VecDict()))
   }
 
   it should "work for record" in {
