@@ -594,13 +594,9 @@ object CppCodegen {
       iterExps(e)
         .flatMap(
           e => condOpt(e) {
-            case LetBinding(Sym(name), Load(path, DictType(recordType: RecordType, IntType, _)), _) =>
-              (path, name, recordType)
             case LetBinding(Sym(name), load @ Load(path, tp: RecordType), _) if TypeInference.isColumnStore(tp) =>
-              val recordType = load.toRow match {
-                case Load(_,  DictType(recordType: RecordType, IntType, _)) => recordType
-              }
-              (path, name, recordType)
+              val dictType = load.toRow match { case Load(_,  dictType: DictType) => dictType }
+              (path, name, dictType)
           }
         )
     ).distinct.sortBy(_._2)
@@ -608,9 +604,9 @@ object CppCodegen {
     val csvConsts =
       pathNameAttrs.map({ case (path, name, _) => makeCsvConst(name, path) } ).mkString("", "\n", "\n")
     val structDefs =
-      pathNameAttrs.map({ case (_, name, recordType) => makeStructDef(name, recordType) } ).mkString("\n")
+      pathNameAttrs.map({ case (_, name, dictType) => makeStructDef(name, dictType) } ).mkString("\n")
     val structInits =
-      pathNameAttrs.map({ case (_, name, recordType) => makeStructInit(name, recordType) } ).mkString("\n")
+      pathNameAttrs.map({ case (_, name, dictType) => makeStructInit(name, dictType) } ).mkString("\n")
 
     List(csvConsts, structDefs, structInits).mkString("\n")
   }
@@ -618,7 +614,8 @@ object CppCodegen {
   private def makeCsvConst(name: String, path: String) =
     s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR);"""
 
-  private def makeStructDef(name: String, recordType: RecordType) = {
+  private def makeStructDef(name: String, dictType: DictType) = {
+    val recordType = dictType match { case DictType(recordType: RecordType, IntType, _) => recordType }
     val cppFields = recordType.attrs.map(attr => s"std::vector<${cppType(attr.tpe)}> ${attr.name};").mkString("\n")
     val cppSize = s"long size;"
     s"""struct ${name.capitalize} {
@@ -628,7 +625,8 @@ object CppCodegen {
        |""".stripMargin
   }
 
-  private def makeStructInit(name: String, recordType: RecordType) =
+  private def makeStructInit(name: String, dictType: DictType) = {
+    val recordType = dictType match { case DictType(recordType: RecordType, IntType, _) => recordType }
     (recordType.attrs.zipWithIndex.map(
         {
           case (Attribute(_, tpe), i) => tpe match {
@@ -648,6 +646,7 @@ object CppCodegen {
         }
       ) ++ Seq(s"static_cast<${cppType(IntType)}>(${name.toUpperCase}_CSV.GetRowCount())"))
       .mkString(s"const ${name.capitalize} ${name.toLowerCase} {\n", "\n", "\n};\n")
+  }
 
   private def iterExps(e: Exp): Iterator[Exp] =
     Iterator(e) ++ (
