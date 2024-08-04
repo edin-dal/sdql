@@ -15,6 +15,12 @@ private case class SumCtx(on: String, k: String, v: String) extends CallCtx
 private case class SumEnd() extends CallCtx
 private case class IsTernary() extends CallCtx
 
+private sealed trait Aggregation
+private case object SumAgg extends Aggregation
+private case object ProdAgg extends Aggregation
+private case object MinAgg extends Aggregation
+private case object MaxAgg extends Aggregation
+
 object CppCodegen {
   private type TypesCtx = TypeInference.Ctx
   private type CallsCtx = List[CallCtx]
@@ -95,9 +101,11 @@ object CppCodegen {
   private def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
     val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
     val hint = sumHint(e)
-    val isMin = e match {
-      case Promote(TropicalSemiRingType(isMax, false, RealType), _) => !isMax
-      case _ => false
+    val aggregation = e match {
+      case Promote(TropicalSemiRingType(false, false, _), _) => MinAgg
+      case Promote(TropicalSemiRingType(true, false, _), _) => MaxAgg
+      case Promote(TropicalSemiRingType(_, true, _), _) => ProdAgg
+      case _ => SumAgg
     }
     val callsLocal = List(SumEnd(), IsTernary()) ++ callsCtx
 
@@ -169,10 +177,11 @@ object CppCodegen {
           }
         }
       ).mkString("\n")
-      case _ if isMin =>
-        s"min_inplace($agg, ${run(e)(typesCtx, callsLocal)});"
-      case _ =>
-        s"$agg += ${run(e)(typesCtx, callsLocal)};"
+      case _ => aggregation match {
+        case SumAgg => s"$agg += ${run(e)(typesCtx, callsLocal)};"
+        case MinAgg => s"min_inplace($agg, ${run(e)(typesCtx, callsLocal)});"
+        case _ => raise(s"$aggregation not supported")
+      }
     }
   }
 
