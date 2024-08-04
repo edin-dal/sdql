@@ -14,7 +14,6 @@ private case class LetCtx(name: String) extends CallCtx
 private case class SumCtx(on: String, k: String, v: String) extends CallCtx
 private case class SumEnd() extends CallCtx
 private case class IsTernary() extends CallCtx
-private case class Promoted(isMax: Boolean, isProd: Boolean) extends CallCtx
 
 object CppCodegen {
   private type TypesCtx = TypeInference.Ctx
@@ -100,29 +99,29 @@ object CppCodegen {
       case Promote(TropicalSemiRingType(isMax, false, RealType), _) => !isMax
       case _ => false
     }
-    val promo = e
+    val callsLocal = List(SumEnd(), IsTernary()) ++ callsCtx
+
+    // TODO get rid of hack for job/gj queries
     val promoCtx = e match {
       case Promote(TropicalSemiRingType(isMax, isProd, _), _) => List(Promoted(isMax, isProd))
       case IfThenElse(_, Promote(TropicalSemiRingType(isMax, isProd, _), _), _) => List(Promoted(isMax, isProd))
       case IfThenElse(_, _, Promote(TropicalSemiRingType(isMax, isProd, _), _)) => List(Promoted(isMax, isProd))
       case _ => List()
     }
-    val callsLocal = List(SumEnd(), IsTernary()) ++ promoCtx ++ callsCtx
-
-    // TODO get rid of hack for job/gj queries
-    if (cond(hint) { case VecDict() => true } && cond(promo) { case _: DictNode => true }) {
-      val dict = (promo: @unchecked) match { case dt: DictNode => dt }
+    val callsLocalPromo = promoCtx ++ callsLocal
+    if (cond(hint) { case VecDict() => true } && cond(e) { case _: DictNode => true }) {
+      val dict = (e: @unchecked) match { case dt: DictNode => dt }
       val tpe = typesCtx(Sym(agg))
       if (cond(tpe) { case dt: DictType => isNestedRecordToInt(dt) && agg.startsWith("interm") }) {
         val (fields, _) = splitNested(dict)
-        val accessors = cppAccessors(fields)(typesCtx, callsLocal)
+        val accessors = cppAccessors(fields)(typesCtx, callsLocalPromo)
         val cols = getRecordType(tpe) match {
           case Some(RecordType(attrs)) => attrs.map(_.name)
         }
         val exps = getRecordNode(dict) match {
           case RecNode(values) => values.map(_._2)
         }
-        val expsCpp = exps.map(run(_)(typesCtx, callsLocal))
+        val expsCpp = exps.map(run(_)(typesCtx, callsLocalPromo))
         val insertions = cols
           .zip(expsCpp).map { case (col, cpp) => s"${agg}_inner.$col.push_back($cpp);" }.mkString("\n")
         val link = s"$agg$accessors[${agg}_cnt++] += 1;"
@@ -132,7 +131,7 @@ object CppCodegen {
       }
     }
 
-    promo match {
+    e match {
       case dict@DictNode(seq, _) => seq.map(
         kv => {
           val lhs = run(kv._1)(typesCtx, callsLocal)
@@ -171,9 +170,9 @@ object CppCodegen {
         }
       ).mkString("\n")
       case _ if isMin =>
-        s"min_inplace($agg, ${run(promo)(typesCtx, callsLocal)});"
+        s"min_inplace($agg, ${run(e)(typesCtx, callsLocal)});"
       case _ =>
-        s"$agg += ${run(promo)(typesCtx, callsLocal)};"
+        s"$agg += ${run(e)(typesCtx, callsLocal)};"
     }
   }
 
@@ -662,9 +661,6 @@ object CppCodegen {
     }
   }
 
-  private def checkIsMin(implicit callsCtx: CallsCtx) =
-    callsCtx.exists(cond(_) { case Promoted(isMax, _)  => !isMax })
-
   private def checkIsTernary(implicit callsCtx: CallsCtx) =
     callsCtx.exists(cond(_) { case _: IsTernary  => true })
 
@@ -745,4 +741,6 @@ object CppCodegen {
       case None => name
     }
   private val reOrigin = "(?<suffix>.*)_trie(?<n>\\d+)$".r
+  private case class Promoted(isMax: Boolean, isProd: Boolean) extends CallCtx
+  private def checkIsMin(implicit callsCtx: CallsCtx) = callsCtx.exists(cond(_) { case Promoted(isMax, _)  => !isMax })
 }
