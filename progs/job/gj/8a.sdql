@@ -34,7 +34,7 @@ let interm0_trie0 = sum(<x0, mc_trie1> <- mc_trie0)
 	if (x0 ∈ cn_trie0) then
 		let cn_trie1 = cn_trie0(x0) in
 		sum(<mc_tuple, _> <- mc_trie1)
-			{ mc_tuple.movie_id -> @vecdict { <col0=mc_tuple.company_id, col1=mc_tuple.movie_id> -> 1 } }
+			{ mc_tuple.movie_id -> @vecs { <col0=mc_tuple.company_id, col1=mc_tuple.movie_id> -> 1 } }
 in
 
 let ci_trie0 =

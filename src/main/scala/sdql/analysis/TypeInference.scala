@@ -47,16 +47,20 @@ object TypeInference {
     case _: IfThenElse => branching(e)
   }
 
-  def run(e: Sum)(implicit ctx: Ctx): Type = e match { case Sum(k, v, e1, e2) => sumInferTypeAndCtx(k, v, e1, e2)._1 }
+  def run(e: Sum)(implicit ctx: Ctx): Type = e match {
+    case Sum(k, v, e1, e2) => sumInferTypeAndCtx(k, v, e1, e2)._1
+  }
 
   def run(e: Add)(implicit ctx: Ctx): Type = branching(e)
 
   def run(e: Mult)(implicit ctx: Ctx): Type = branching(e)
 
-  def run(e: Neg)(implicit ctx: Ctx): Type = e match { case Neg(e) => run(e) }
+  def run(e: Neg)(implicit ctx: Ctx): Type = e match {
+    case Neg(e) => run(e)
+  }
 
   def run(e: Sym)(implicit ctx: Ctx): Type = e match {
-    case sym @ Sym(name) =>
+    case sym@Sym(name) =>
       ctx.get(sym) match {
         case Some(tpe) => tpe
         case None => raise(s"unknown name: $name")
@@ -67,7 +71,8 @@ object TypeInference {
     case DictNode(Nil, _) =>
       raise("Type inference needs backtracking to infer empty type { }")
     case DictNode(seq, hint) =>
-      DictType(seq.map(_._1).map(run).reduce(promote), seq.map(_._2).map(run).reduce(promote), hint)
+      val tpe = DictType(seq.map(_._1).map(run).reduce(promote), seq.map(_._2).map(run).reduce(promote), hint)
+      tpe
   }
 
   def run(e: RecNode)(implicit ctx: Ctx): Type = e match {

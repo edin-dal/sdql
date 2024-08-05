@@ -73,6 +73,7 @@ sealed trait CodegenHint;
 case class NoHint() extends CodegenHint
 case class VecDict() extends CodegenHint
 case class Vector() extends CodegenHint
+case class Vecs() extends CodegenHint
 
 /**
  * Integer numbers between 0 and n

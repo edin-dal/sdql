@@ -84,7 +84,7 @@ let interm0_trie0 = sum(<x0, mi_trie1> <- mi_trie0)
 							sum(<mi_tuple, _> <- mi_trie2)
 								sum(<t_tuple, _> <- t_trie1)
 									sum(<mc_tuple, _> <- mc_trie2)
-										{ mi_tuple.movie_id -> @vecdict { <col0=mi_tuple.movie_id, col1=mi_tuple.info_type_id, col2=t_tuple.title, col3=mc_tuple.company_id> -> 1 } }
+										{ mi_tuple.movie_id -> @vecs { <col0=mi_tuple.movie_id, col1=mi_tuple.info_type_id, col2=t_tuple.title, col3=mc_tuple.company_id> -> 1 } }
 in
 
 let n_trie0 =
@@ -120,7 +120,7 @@ let interm1_trie0 = sum(<x0, n_trie1> <- n_trie0)
 	if (x0 ∈ an_trie0) then
 		let an_trie1 = an_trie0(x0) in
 		sum(<n_tuple, _> <- n_trie1)
-			{ n_tuple.id -> @vecdict { <col0=n_tuple.id, col1=n_tuple.name> -> 1 } }
+			{ n_tuple.id -> @vecs { <col0=n_tuple.id, col1=n_tuple.name> -> 1 } }
 in
 
 let ci_trie0 =

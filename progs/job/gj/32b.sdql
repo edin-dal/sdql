@@ -60,7 +60,7 @@ let interm0_trie0 = sum(<x0, t1_trie1> <- t1_trie0)
 				sum(<t1_tuple, _> <- t1_trie1)
 					sum(<ml_tuple, _> <- ml_trie2)
 						sum(<t2_tuple, _> <- t2_trie1)
-							{ t1_tuple.id -> { ml_tuple.link_type_id -> @vecdict { <col0=t1_tuple.id, col1=t1_tuple.title, col2=ml_tuple.linked_movie_id, col3=ml_tuple.link_type_id, col4=t2_tuple.title> -> 1 } } }
+							{ t1_tuple.id -> { ml_tuple.link_type_id -> @vecs { <col0=t1_tuple.id, col1=t1_tuple.title, col2=ml_tuple.linked_movie_id, col3=ml_tuple.link_type_id, col4=t2_tuple.title> -> 1 } } }
 in
 
 let mk_trie0 =

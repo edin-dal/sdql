@@ -40,7 +40,7 @@ let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 		let t_trie1 = t_trie0(x0) in
 		sum(<mk_tuple, _> <- mk_trie1)
 			sum(<t_tuple, _> <- t_trie1)
-				{ mk_tuple.movie_id -> { mk_tuple.keyword_id -> @vecdict { <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=t_tuple.title> -> 1 } } }
+				{ mk_tuple.movie_id -> { mk_tuple.keyword_id -> @vecs { <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=t_tuple.title> -> 1 } } }
 in
 
 let mi_trie0 =

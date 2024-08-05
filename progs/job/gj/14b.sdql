@@ -53,7 +53,7 @@ let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 			sum(<mk_tuple, _> <- mk_trie1)
 				sum(<t_tuple, _> <- t_trie1)
 					sum(<mi_idx_tuple, _> <- mi_idx_trie1)
-						{ mk_tuple.movie_id -> { t_tuple.kind_id -> { mk_tuple.keyword_id -> { mi_idx_tuple.info_type_id -> @vecdict { <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=t_tuple.title, col3=t_tuple.kind_id, col4=mi_idx_tuple.info_type_id, col5=mi_idx_tuple.info> -> 1 } } } } }
+						{ mk_tuple.movie_id -> { t_tuple.kind_id -> { mk_tuple.keyword_id -> { mi_idx_tuple.info_type_id -> @vecs { <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=t_tuple.title, col3=t_tuple.kind_id, col4=mi_idx_tuple.info_type_id, col5=mi_idx_tuple.info> -> 1 } } } } }
 in
 
 let mi_trie0 =

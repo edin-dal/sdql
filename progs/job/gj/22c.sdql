@@ -66,7 +66,7 @@ let interm0_trie0 = sum(<x0, t_trie1> <- t_trie0)
 						let it2_trie1 = it2_trie0(x2) in
 						sum(<t_tuple, _> <- t_trie2)
 							sum(<mi_idx_tuple, _> <- mi_idx_trie2)
-								{ t_tuple.id -> @vecdict { <col0=t_tuple.id, col1=t_tuple.kind_id, col2=t_tuple.title, col3=mi_idx_tuple.info_type_id, col4=mi_idx_tuple.info> -> 1 } }
+								{ t_tuple.id -> @vecs { <col0=t_tuple.id, col1=t_tuple.kind_id, col2=t_tuple.title, col3=mi_idx_tuple.info_type_id, col4=mi_idx_tuple.info> -> 1 } }
 in
 
 let mc_trie0 =
@@ -113,7 +113,7 @@ let interm1_trie0 = sum(<x0, mc_trie1> <- mc_trie0)
 						sum(<mc_tuple, _> <- mc_trie3)
 							sum(<cn_tuple, _> <- cn_trie1)
 								sum(<interm0_tuple, _> <- interm0_trie1)
-									{ mc_tuple.movie_id -> @vecdict { <col0=mc_tuple.company_id, col1=mc_tuple.company_type_id, col2=mc_tuple.movie_id, col3=cn_tuple.name, col5=interm0_tuple.col2, col7=interm0_tuple.col4> -> 1 } }
+									{ mc_tuple.movie_id -> @vecs { <col0=mc_tuple.company_id, col1=mc_tuple.company_type_id, col2=mc_tuple.movie_id, col3=cn_tuple.name, col5=interm0_tuple.col2, col7=interm0_tuple.col4> -> 1 } }
 in
 
 let mk_trie0 =
@@ -142,7 +142,7 @@ let interm2_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 				let interm1_trie1 = interm1_trie0(x1) in
 				sum(<mk_tuple, _> <- mk_trie2)
 					sum(<interm1_tuple, _> <- interm1_trie1)
-						{ mk_tuple.movie_id -> @vecdict { <col0=mk_tuple.keyword_id, col1=mk_tuple.movie_id, col4=interm1_tuple.col3, col6=interm1_tuple.col5, col8=interm1_tuple.col7> -> 1 } }
+						{ mk_tuple.movie_id -> @vecs { <col0=mk_tuple.keyword_id, col1=mk_tuple.movie_id, col4=interm1_tuple.col3, col6=interm1_tuple.col5, col8=interm1_tuple.col7> -> 1 } }
 in
 
 let mi_trie0 =

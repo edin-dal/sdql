@@ -14,6 +14,7 @@ using namespace std;
 #include "3rdparty/varchar.h"
 #include "3rdparty/high_precision_timer.h"
 
+#include "3rdparty/vecs.h"
 #include "3rdparty/vecdict.h"
 
 #include "3rdparty/min_helper.h"
