@@ -1,8 +1,8 @@
-let mk = load_cstore[{<id: int, movie_id: int, keyword_id: int> -> int}]("datasets/job/movie_keyword.csv")
-let t = load_cstore[{<id: int, title: string, imdb_index: string, kind_id: int, production_year: int, imdb_id: string, phonetic_code: string, episode_of_id: int, season_nr: int, episode_nr: int, series_years: string, md5sum: string> -> int}]("datasets/job/title.csv")
-let mc = load_cstore[{<id: int, movie_id: int, company_id: int, company_type_id: int, note: string> -> int}]("datasets/job/movie_companies.csv")
-let k = load_cstore[{<id: int, keyword: string, phonetic_code: string> -> int}]("datasets/job/2b/k.csv")
-let cn = load_cstore[{<id: int, name: string, country_code: string, imdb_id: string, name_pcode_nf: string, name_pcode_sf: string, md5sum: string> -> int}]("datasets/job/2b/cn.csv")
+let mk = load[<id: @vector {int -> int}, movie_id: @vector {int -> int}, keyword_id: @vector {int -> int}, size: int>]("datasets/job/movie_keyword.csv")
+let t = load[<id: @vector {int -> int}, title: @vector {int -> string}, imdb_index: @vector {int -> string}, kind_id: @vector {int -> int}, production_year: @vector {int -> int}, imdb_id: @vector {int -> string}, phonetic_code: @vector {int -> string}, episode_of_id: @vector {int -> int}, season_nr: @vector {int -> int}, episode_nr: @vector {int -> int}, series_years: @vector {int -> string}, md5sum: @vector {int -> string}, size: int>]("datasets/job/title.csv")
+let mc = load[<id: @vector {int -> int}, movie_id: @vector {int -> int}, company_id: @vector {int -> int}, company_type_id: @vector {int -> int}, note: @vector {int -> string}, size: int>]("datasets/job/movie_companies.csv")
+let k = load[<id: @vector {int -> int}, keyword: @vector {int -> string}, phonetic_code: @vector {int -> string}, size: int>]("datasets/job/2b/k.csv")
+let cn = load[<id: @vector {int -> int}, name: @vector {int -> string}, country_code: @vector {int -> string}, imdb_id: @vector {int -> string}, name_pcode_nf: @vector {int -> string}, name_pcode_sf: @vector {int -> string}, md5sum: @vector {int -> string}, size: int>]("datasets/job/2b/cn.csv")
 
 let mk_trie0 =
 	sum(<i,_> <- range(mk.size))

@@ -1,6 +1,6 @@
-let customer = load_cstore[{<c_custkey: int, c_name: varchar(25), c_address: varchar(40), c_nationkey: int, c_phone: varchar(15), c_acctbal: double, c_mktsegment: varchar(10), c_comment: varchar(117)> -> int}]("datasets/tpch/customer.tbl")
+let customer = load[<c_custkey: @vector {int -> int}, c_name: @vector {int -> varchar(25)}, c_address: @vector {int -> varchar(40)}, c_nationkey: @vector {int -> int}, c_phone: @vector {int -> varchar(15)}, c_acctbal: @vector {int -> double}, c_mktsegment: @vector {int -> varchar(10)}, c_comment: @vector {int -> varchar(117)}, size: int>]("datasets/tpch/customer.tbl")
 
-let orders = load_cstore[{<o_orderkey: int, o_custkey: int, o_orderstatus: varchar(1), o_totalprice: double, o_orderdate: date, o_orderpriority: varchar(15), o_clerk: varchar(15), o_shippriority: int, o_comment: varchar(79)> -> int}]("datasets/tpch/orders.tbl")
+let orders = load[<o_orderkey: @vector {int -> int}, o_custkey: @vector {int -> int}, o_orderstatus: @vector {int -> varchar(1)}, o_totalprice: @vector {int -> double}, o_orderdate: @vector {int -> date}, o_orderpriority: @vector {int -> varchar(15)}, o_clerk: @vector {int -> varchar(15)}, o_shippriority: @vector {int -> int}, o_comment: @vector {int -> varchar(79)}, size: int>]("datasets/tpch/orders.tbl")
 
 let _13 = ext(`ConstantString`, "13", 3)
 let _31 = ext(`ConstantString`, "31", 3)

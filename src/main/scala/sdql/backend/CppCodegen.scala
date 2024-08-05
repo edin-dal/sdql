@@ -588,23 +588,21 @@ object CppCodegen {
     s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR);"""
 
   private def makeTupleInit(name: String, recordType: RecordType) = {
-    (recordType.attrs.zipWithIndex.map(
-        {
-          case (Attribute(attr_name, tpe), i) => s"/* $attr_name */" ++ (tpe match {
-            case innerType @ IntType if attr_name == "size" =>
-              s"static_cast<${cppType(innerType)}>(${name.toUpperCase}_CSV.GetRowCount())"
-            case DictType(IntType, DateType, VecDict()) =>
-              val tpe = StringType()
-              s"dates_to_numerics(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)" +  "),"
-            case DictType(IntType, StringType(Some(maxLen)), VecDict()) =>
-              val innerType = StringType()
-              s"strings_to_varchars<$maxLen>(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(innerType)}>($i)" + "),"
-            case DictType(IntType, innerType, VecDict()) =>
-              s"${name.toUpperCase}_CSV.GetColumn<${cppType(innerType)}>($i),"
-          })
-        }
-      ) ++ Seq())
-      .mkString("\n")
+    assert(recordType.attrs.last.name == "size")
+    val attrs = recordType.attrs.dropRight(1).map(
+      attr => (attr.tpe: @unchecked) match { case DictType(IntType, vt, Vector()) => Attribute(attr.name, vt) })
+
+    (attrs.zipWithIndex.map({
+      case (Attribute(attr_name, tpe), i) => s"/* $attr_name */" ++ (tpe match {
+        case DateType =>
+          s"dates_to_numerics(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(StringType())}>($i)" +  ")"
+        case StringType(Some(maxLen)) =>
+          s"strings_to_varchars<$maxLen>(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(StringType())}>($i)" + ")"
+        case _ =>
+          s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)"
+      })
+    }) ++ Seq(s"/* size */static_cast<${cppType(IntType)}>(${name.toUpperCase}_CSV.GetRowCount())"))
+      .mkString(",\n")
   }
 
   private def iterExps(e: Exp): Iterator[Exp] =

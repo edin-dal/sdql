@@ -1,8 +1,8 @@
-let supplier = load_cstore[{<s_suppkey: int, s_name: varchar(25), s_address: varchar(40), s_nationkey: int, s_phone: varchar(15), s_acctbal: double, s_comment: varchar(101)> -> int}]("datasets/tpch/supplier.tbl")
+let supplier = load[<s_suppkey: @vector {int -> int}, s_name: @vector {int -> varchar(25)}, s_address: @vector {int -> varchar(40)}, s_nationkey: @vector {int -> int}, s_phone: @vector {int -> varchar(15)}, s_acctbal: @vector {int -> double}, s_comment: @vector {int -> varchar(101)}, size: int>]("datasets/tpch/supplier.tbl")
 
-let partsupp = load_cstore[{<ps_partkey: int, ps_suppkey: int, ps_availqty: double, ps_supplycost: double, ps_comment: varchar(199)> -> int}]("datasets/tpch/partsupp.tbl")
+let partsupp = load[<ps_partkey: @vector {int -> int}, ps_suppkey: @vector {int -> int}, ps_availqty: @vector {int -> double}, ps_supplycost: @vector {int -> double}, ps_comment: @vector {int -> varchar(199)}, size: int>]("datasets/tpch/partsupp.tbl")
 
-let nation = load_cstore[{<n_nationkey: int, n_name: varchar(25), n_regionkey: int, n_comment: varchar(152)> -> int}]("datasets/tpch/nation.tbl")
+let nation = load[<n_nationkey: @vector {int -> int}, n_name: @vector {int -> varchar(25)}, n_regionkey: @vector {int -> int}, n_comment: @vector {int -> varchar(152)}, size: int>]("datasets/tpch/nation.tbl")
 
 let germany = ext(`ConstantString`,"GERMANY", 8)
 

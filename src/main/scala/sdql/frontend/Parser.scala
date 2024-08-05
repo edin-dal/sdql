@@ -10,7 +10,7 @@ import CharPredicates._
 object Parser {
   def keywords[_: P] = P (
     StringIn("if", "then", "else", "let", "sum",
-      "false", "true", "in", "join", "load_cstore", "load", "ext", "iter", "int", "double",
+      "false", "true", "in", "join", "load", "ext", "iter", "int", "double",
       "string", "varchar", "date", "range", "unit", "bool", "concat", "promote",
       "mnpr", "mxpr", "mnsm", "mxsm",
       "min_prod", "max_prod", "min_sum", "max_sum",
@@ -76,7 +76,11 @@ object Parser {
   def fieldTpe[_: P]      = P( variable ~/ ":" ~ space ~/ tpe ).map(x => Attribute(x._1.name, x._2))
   def tpeRec[_: P]        =
     P( "<" ~/ fieldTpe.rep(sep=","./) ~ space ~/ ">").map(l => RecordType(l))
-  def tpeDict[_: P]       = P( "{" ~/ tpe ~ space ~ "->" ~ space ~/ tpe ~ "}").map(x => DictType(x._1, x._2))
+  def tpeDict[_: P] = P( hinted.? ~ tpeDictNoHint ).map {
+    case (Some(hint), DictType(kt, vt, _)) => DictType(kt, vt, hint)
+    case (None, dict) => dict
+  }
+  def tpeDictNoHint[_: P]       = P( "{" ~/ tpe ~ space ~ "->" ~ space ~/ tpe ~ "}").map(x => DictType(x._1, x._2))
   def tpe[_: P]: P[Type]  = tpeBool | tpeInt | tpeReal | tpeString | tpeVarChar | tpeDate | tpeRec | tpeDict | tpeIndex | tpeTropSR | tpeEnum | tpeNullable
 
   def strChars[_: P] = P( CharsWhile(stringChars) )
@@ -115,9 +119,6 @@ object Parser {
   def phmap[_: P] = P( "phmap" ).map(_ => NoHint())
   def vecdict[_: P] = P( "vecdict" ).map(_ => VecDict())
   def vector[_: P] = P( "vector" ).map(_ => Vector())
-  def load_cstore[_: P]: P[Load] = P( "load_cstore" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ string ~/ ")").map(x =>
-    Load(x._2.v.asInstanceOf[String], x._1).toColumn
-  )
   def load[_: P]: P[Load] =
     P( "load" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ string ~/ ")").map(x => Load(x._2.v.asInstanceOf[String], x._1))
   def promote[_: P]: P[Promote] =
@@ -135,7 +136,7 @@ object Parser {
     P( "<" ~/ fieldValue.rep(sep=","./) ~ space ~/ ">").map(x => RecNode(x))
 
   def factor[_: P]: P[Exp] = P(space ~ (const | neg | not | dictOrSet |
-    rec | ifThenElse | range | load_cstore | load | concat | promote | unique |
+    rec | ifThenElse | range | load | concat | promote | unique |
     letBinding | sum | variable |
     ext | parens) ~ space)
 

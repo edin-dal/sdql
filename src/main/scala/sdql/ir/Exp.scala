@@ -126,40 +126,7 @@ case class LetBinding(x: Sym, e1: Exp, e2: Exp) extends Exp {
     case _ => super.hashCode()
   }
 }
-case class Load(path: String, tp: Type) extends Exp {
-  private val sizeName = "size"
-
-  def toColumn: Load = Load(this.path, toColumnType(this.tp))
-
-  def toRow: Load = Load(this.path, toRowType(this.tp))
-
-  private def toColumnType(tp: Type) = tp match {
-    case DictType(RecordType(attrs), IntType, NoHint()) => RecordType(
-      attrs.map(attr => Attribute(attr.name, scalarToColumnType(attr.tpe))) ++ Seq(Attribute(sizeName, IntType))
-    )
-    case _ => raise(s"unexpected ${tp.prettyPrint}")
-  }
-
-  private def scalarToColumnType(tp: Type) = tp match {
-    case _ if tp.isScalar => DictType(IntType, tp, VecDict())
-    case _ => raise(s"unexpected ${tp.prettyPrint}")
-  }
-
-  private def toRowType(tp: Type) = tp match {
-    case RecordType(attrs) =>
-      DictType(
-        RecordType(attrs.filter(_.name != sizeName).map(attr => Attribute(attr.name, columnToScalarType(attr.tpe)))),
-        IntType,
-        NoHint(),
-      )
-    case _ => raise(s"unexpected ${tp.prettyPrint}")
-  }
-
-  private def columnToScalarType(tp: Type) = tp match {
-    case DictType(IntType, tp, VecDict()) if tp.isScalar => tp
-    case _ => raise(s"unexpected ${tp.prettyPrint}")
-  }
-}
+case class Load(path: String, tp: Type) extends Exp
 
 case class Promote(tp: Type, e: Exp) extends Exp
 case class External(name: String, args: Seq[Exp]) extends Exp
