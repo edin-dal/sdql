@@ -1,11 +1,11 @@
-let t = load[<id: @vector {int -> int}, title: @vector {int -> string}, imdb_index: @vector {int -> string}, kind_id: @vector {int -> int}, production_year: @vector {int -> int}, imdb_id: @vector {int -> string}, phonetic_code: @vector {int -> string}, episode_of_id: @vector {int -> int}, season_nr: @vector {int -> int}, episode_nr: @vector {int -> int}, series_years: @vector {int -> string}, md5sum: @vector {int -> string}, size: int>]("datasets/job/11c/t.csv")
-let ml = load[<id: @vector {int -> int}, movie_id: @vector {int -> int}, linked_movie_id: @vector {int -> int}, link_type_id: @vector {int -> int}, size: int>]("datasets/job/movie_link.csv")
-let mk = load[<id: @vector {int -> int}, movie_id: @vector {int -> int}, keyword_id: @vector {int -> int}, size: int>]("datasets/job/movie_keyword.csv")
-let mc = load[<id: @vector {int -> int}, movie_id: @vector {int -> int}, company_id: @vector {int -> int}, company_type_id: @vector {int -> int}, note: @vector {int -> string}, size: int>]("datasets/job/11c/mc.csv")
-let lt = load[<id: @vector {int -> int}, link: @vector {int -> string}, size: int>]("datasets/job/link_type.csv")
-let k = load[<id: @vector {int -> int}, keyword: @vector {int -> string}, phonetic_code: @vector {int -> string}, size: int>]("datasets/job/11c/k.csv")
-let ct = load[<id: @vector {int -> int}, kind: @vector {int -> string}, size: int>]("datasets/job/11c/ct.csv")
-let cn = load[<id: @vector {int -> int}, name: @vector {int -> string}, country_code: @vector {int -> string}, imdb_id: @vector {int -> string}, name_pcode_nf: @vector {int -> string}, name_pcode_sf: @vector {int -> string}, md5sum: @vector {int -> string}, size: int>]("datasets/job/11c/cn.csv")
+let t = load[<id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, imdb_id: @vec {int -> string}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, series_years: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/11c/t.csv")
+let ml = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, linked_movie_id: @vec {int -> int}, link_type_id: @vec {int -> int}, size: int>]("datasets/job/movie_link.csv")
+let mk = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @vec {int -> int}, size: int>]("datasets/job/movie_keyword.csv")
+let mc = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, company_id: @vec {int -> int}, company_type_id: @vec {int -> int}, note: @vec {int -> string}, size: int>]("datasets/job/11c/mc.csv")
+let lt = load[<id: @vec {int -> int}, link: @vec {int -> string}, size: int>]("datasets/job/link_type.csv")
+let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/11c/k.csv")
+let ct = load[<id: @vec {int -> int}, kind: @vec {int -> string}, size: int>]("datasets/job/11c/ct.csv")
+let cn = load[<id: @vec {int -> int}, name: @vec {int -> string}, country_code: @vec {int -> string}, imdb_id: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, name_pcode_sf: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/11c/cn.csv")
 
 let t_trie0 = sum(<i,_> <- range(t.size)) { t.id(i) -> @vecdict { i -> 1 } } in
 let ml_trie0 = sum(<i,_> <- range(ml.size)) { ml.movie_id(i) -> @vecdict { i -> 1 } } in

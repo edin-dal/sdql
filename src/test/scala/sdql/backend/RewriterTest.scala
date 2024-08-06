@@ -23,23 +23,23 @@ class RewriterTest extends AnyFlatSpec with Matchers {
 
   it should "remove intermediate tuple TPCH" in {
     val e = sdql"""
-               let lineitem = load[<l_extendedprice: @vector {int -> double}, size: int>]("foo/bar.tbl")
+               let lineitem = load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl")
                sum(<i,_> <- range(lineitem.size))
                    let li = <l_extendedprice=lineitem.l_extendedprice(i)>
                    li.l_extendedprice
                """
     val rewrite = sdql"""
-               let lineitem = load[<l_extendedprice: @vector {int -> double}, size: int>]("foo/bar.tbl")
+               let lineitem = load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl")
                sum(<i,_> <- range(lineitem.size))
                    lineitem.l_extendedprice(i)
                """
     Rewriter(e) should be (rewrite)
   }
 
-  it should "remove intermediate tuple JOB" in {
+  it should "remove intermediate tuple GJ" in {
     val e = sdql"""
                let mk =
-                   load[<id: @vector {int -> int}, movie_id: @vector {int -> int}, keyword_id: @vector {int -> int}>
+                   load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @vec {int -> int}>
                        ]("foo/bar.csv")
                sum(<i,_> <- range(mk.size))
                    let mk_tuple = < id=mk.id(i), movie_id=mk.movie_id(i), keyword_id=mk.keyword_id(i) >
@@ -47,7 +47,7 @@ class RewriterTest extends AnyFlatSpec with Matchers {
                """
     val rewrite = sdql"""
                let mk =
-                   load[<id: @vector {int -> int}, movie_id: @vector {int -> int}, keyword_id: @vector {int -> int}>
+                   load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @vec {int -> int}>
                        ]("foo/bar.csv")
                sum(<i,_> <- range(mk.size))
                    { mk.movie_id(i) -> @vecdict {

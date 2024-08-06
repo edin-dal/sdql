@@ -1,7 +1,7 @@
-let mk = load[<id: @vector {int -> int}, movie_id: @vector {int -> int}, keyword_id: @vector {int -> int}, size: int>]("datasets/job/movie_keyword.csv")
-let t = load[<id: @vector {int -> int}, title: @vector {int -> string}, imdb_index: @vector {int -> string}, kind_id: @vector {int -> int}, production_year: @vector {int -> int}, imdb_id: @vector {int -> string}, phonetic_code: @vector {int -> string}, episode_of_id: @vector {int -> int}, season_nr: @vector {int -> int}, episode_nr: @vector {int -> int}, series_years: @vector {int -> string}, md5sum: @vector {int -> string}, size: int>]("datasets/job/3a/t.csv")
-let mi = load[<id: @vector {int -> int}, movie_id: @vector {int -> int}, info_type_id: @vector {int -> int}, info: @vector {int -> string}, note: @vector {int -> string}, size: int>]("datasets/job/3a/mi.csv")
-let k = load[<id: @vector {int -> int}, keyword: @vector {int -> string}, phonetic_code: @vector {int -> string}, size: int>]("datasets/job/3a/k.csv")
+let mk = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @vec {int -> int}, size: int>]("datasets/job/movie_keyword.csv")
+let t = load[<id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, imdb_id: @vec {int -> string}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, series_years: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/3a/t.csv")
+let mi = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type_id: @vec {int -> int}, info: @vec {int -> string}, note: @vec {int -> string}, size: int>]("datasets/job/3a/mi.csv")
+let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/3a/k.csv")
 
 let mk_trie0 = sum(<i,_> <- range(mk.size)) { mk.movie_id(i) -> @vecdict { i -> 1 } } in
 let t_trie0 = sum(<i,_> <- range(t.size)) { t.id(i) -> @vecdict { i -> 1 } } in
