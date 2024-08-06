@@ -85,7 +85,7 @@ object TypeInference {
     case FieldNode(e1: Exp, field) => run(e1) match {
       case tpe: RecordType => inferRecordField(tpe, field)
       case DictType(tpe: RecordType, IntType, _) => inferRecordField(tpe, field)
-      case tpe => raise(s"unexpected type: ${tpe.prettyPrint}")
+      case tpe => raise(s"unexpected type: ${tpe.prettyPrint} in\n${e.prettyPrint}")
     }
   }
 
