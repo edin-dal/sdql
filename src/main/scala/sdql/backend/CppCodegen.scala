@@ -99,14 +99,8 @@ object CppCodegen {
   }
 
   private def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
-    val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
     val hint = sumHint(e)
-    val aggregation = e match {
-      case Promote(TropicalSemiRingType(false, false, _), _) => MinAgg
-      case Promote(TropicalSemiRingType(true, false, _), _) => MaxAgg
-      case Promote(TropicalSemiRingType(_, true, _), _) => ProdAgg
-      case _ => SumAgg
-    }
+    val aggregation = getAggregation(e)
     val callsLocal = List(SumEnd, IsTernary) ++ callsCtx
 
     e match {
@@ -115,34 +109,35 @@ object CppCodegen {
           val lhs = run(kv._1)(typesCtx, callsLocal)
           val rhs = run(kv._2)(typesCtx, callsLocal)
           if (cond(kv._1) { case _: Unique => true })
-            s"$agg.emplace($lhs, $rhs);"
+            s"$aggregationName.emplace($lhs, $rhs);"
           else hint match {
             case NoHint =>
               val (fields, inner) = splitNested(dict)
               val rhs = run(inner)(typesCtx, callsLocal)
               val accessors = cppAccessors(fields)(typesCtx, callsLocal)
-              s"$agg$accessors += $rhs;"
+              s"$aggregationName$accessors += $rhs;"
             case Vecs =>
               val (fields, inner) = splitNested(dict)
               val rhs = (inner: @unchecked) match {
                 case DictNode(Seq((record: RecNode, Const(1))), Vecs) => run(record)(typesCtx, callsLocal)
               }
               val accessors = cppAccessors(fields)(typesCtx, callsLocal)
-              s"$agg$accessors.push_back($rhs);"
+              s"$aggregationName$accessors.push_back($rhs);"
             case VecDict =>
-              val (fields, _) = splitNested(dict)
+              val (fields, inner) = splitNested(dict)
+              val index = inner match { case DictNode(Seq((Sym(name), _)), VecDict) => name }
               val accessors = cppAccessors(fields)(typesCtx, callsLocal)
-              s"$agg$accessors[${sumVariable(callsLocal)}] += 1;"
+              s"$aggregationName$accessors[$index] += 1;"
             case Vec =>
-              typesCtx(Sym(agg)) match {
+              typesCtx(Sym(aggregationName)) match {
                 case DictType(IntType, vt, Vec) if vt.isScalar =>
-                  s"$agg[$lhs] = $rhs;"
+                  s"$aggregationName[$lhs] = $rhs;"
                 case DictType(IntType, DictType(IntType, _, Vec), Vec) =>
                   val (fields, inner) = splitNested(dict)
                   val lhs = cppAccessors(fields)(typesCtx, callsLocal)
                   val k = (inner: @unchecked) match { case DictNode(Seq((k, Const(1))), Vec) => k }
                   val rhs = run(k)(typesCtx, callsLocal)
-                  s"$agg$lhs.emplace_back($rhs);"
+                  s"$aggregationName$lhs.emplace_back($rhs);"
                 case tpe =>
                   raise(s"Unexpected ${tpe.prettyPrint}")
               }
@@ -150,11 +145,18 @@ object CppCodegen {
         }
       ).mkString("\n")
       case _ => aggregation match {
-        case SumAgg => s"$agg += ${run(e)(typesCtx, callsLocal)};"
-        case MinAgg => s"min_inplace($agg, ${run(e)(typesCtx, callsLocal)});"
+        case SumAgg => s"$aggregationName += ${run(e)(typesCtx, callsLocal)};"
+        case MinAgg => s"min_inplace($aggregationName, ${run(e)(typesCtx, callsLocal)});"
         case _ => raise(s"$aggregation not supported")
       }
     }
+  }
+
+  private def getAggregation(e: Exp) = e match {
+    case Promote(TropicalSemiRingType(false, false, _), _) => MinAgg
+    case Promote(TropicalSemiRingType(true, false, _), _) => MaxAgg
+    case Promote(TropicalSemiRingType(_, true, _), _) => ProdAgg
+    case _ => SumAgg
   }
 
   private def run(e: LetBinding)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
@@ -183,39 +185,35 @@ object CppCodegen {
 
   private def run(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Sum(k, v, e1, e2) =>
-      val agg = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
-      var (tpe, typesLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
-      typesLocal ++= Map(Sym(agg) -> tpe)
+      val (tpe, typesLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
       val callsLocal = List(SumStart) ++ callsCtx
-
       val isNestedSum = inferSumNesting(callsLocal) > 0
       val isLetSum = cond(callsCtx.head) { case _: LetCtx => true }
       val init = if (isNestedSum && !isLetSum) "" else s"${cppType(tpe)} (${cppInit(tpe)});"
-
-      val body = run(e2)(typesLocal, callsLocal)
-
-      if (cond(e1) { case _: RangeNode => true }) {
-        val n = run(e1)
-        assert(v.name == noName)
-        s"""$init
-           |for (${cppType(IntType)} ${k.name} = 0; ${k.name} < $n; ${k.name}++) {
-           |$body
-           |}
-           |
-           |""".stripMargin
-      } else {
-        val iterable = run(e1)(typesLocal, List(SumEnd) ++ callsLocal)
-        val head = TypeInference.run(e1)(typesLocal) match {
-          case DictType(_, _, NoHint) => s"&[${k.name}, ${v.name}] : $iterable"
-          case DictType(IntType, _, VecDict | Vec) => s"${k.name} : $iterable"
-          case DictType(_: RecordType, IntType, Vecs) => s"${k.name} : $iterable"
-          case t => raise(s"unexpected: ${t.prettyPrint}")
-        }
-        s"""$init
-           |for (auto $head) {
-           |$body
-           |}
-           |""".stripMargin
+      val body = run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal)
+      e1 match {
+        case _: RangeNode =>
+          assert(v.name == noName)
+          val n = run(e1)
+          s"""$init
+             |for (${cppType(IntType)} ${k.name} = 0; ${k.name} < $n; ${k.name}++) {
+             |$body
+             |}
+             |
+             |""".stripMargin
+        case _ =>
+          val iterable = run(e1)(typesLocal, List(SumEnd) ++ callsLocal)
+          val head = TypeInference.run(e1)(typesLocal) match {
+            case DictType(_, _, NoHint) => s"&[${k.name}, ${v.name}] : $iterable"
+            case DictType(IntType, _, VecDict | Vec) => s"${k.name} : $iterable"
+            case DictType(_: RecordType, IntType, Vecs) => s"${k.name} : $iterable"
+            case t => raise(s"unexpected: ${t.prettyPrint}")
+          }
+          s"""$init
+             |for (auto $head) {
+             |$body
+             |}
+             |""".stripMargin
       }
   }
 
@@ -594,7 +592,8 @@ object CppCodegen {
   private def checkIsTernary(implicit callsCtx: CallsCtx) =
     callsCtx.exists(cond(_) { case IsTernary  => true })
 
-  private def sumVariable(implicit callsCtx: CallsCtx) = ('i'.toInt + inferSumNesting).toChar
+  private def aggregationName(implicit callsCtx: CallsCtx) =
+    callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
 
   private def inferSumNesting(implicit callsCtx: CallsCtx) =
     (callsCtx.takeWhile(!cond(_) { case SumEnd => true }).count(cond(_) { case SumStart => true }) - 1).max(0)
