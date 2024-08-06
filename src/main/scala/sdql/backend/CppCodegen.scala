@@ -185,9 +185,8 @@ object CppCodegen {
     case Sum(k, v, e1, e2) =>
       val (tpe, typesLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
       val callsLocal = List(SumStart) ++ callsCtx
-      val isNestedSum = inferSumNesting(callsLocal) > 0
       val isLetSum = cond(callsCtx.head) { case _: LetCtx => true }
-      val init = if (isNestedSum && !isLetSum) "" else s"${cppType(tpe)} (${cppInit(tpe)});"
+      val init = if (!isLetSum) "" else s"${cppType(tpe)} (${cppInit(tpe)});"
       val body = run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal)
       e1 match {
         case _: RangeNode =>
@@ -592,9 +591,6 @@ object CppCodegen {
 
   private def aggregationName(implicit callsCtx: CallsCtx) =
     callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
-
-  private def inferSumNesting(implicit callsCtx: CallsCtx) =
-    (callsCtx.takeWhile(!cond(_) { case SumEnd => true }).count(cond(_) { case SumStart => true }) - 1).max(0)
 
   private def cppPrintResult(tpe: Type) = tpe match {
     case DictType(kt, vt, NoHint) =>
