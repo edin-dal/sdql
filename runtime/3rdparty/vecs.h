@@ -15,7 +15,7 @@ public:
     auto size() { if constexpr (sizeof...(Ts) > 0) { return std::get<0>(vecs_).size(); } else { return 0; } }
 
     template <class Tuple>
-    void push_back(Tuple t) { push_back_impl(std::make_index_sequence<std::tuple_size<Tuple>::value>{}, t); }
+    void push_back(Tuple t) { push_back_impl(std::make_index_sequence<std::tuple_size_v<Tuple>>{}, t); }
 
     void push_back(Ts... inputs) {
         push_back_impl(std::make_index_sequence<sizeof...(Ts)>{}, std::forward<Ts>(inputs)...);
@@ -41,7 +41,7 @@ private:
     public:
         using value_type = std::tuple<Ts&...>;
 
-        iterator(vecs* parent, size_t index) : parent_(parent), index_(index) {}
+        iterator(vecs* parent, const size_t index) : parent_(parent), index_(index) {}
 
         iterator& operator++() {
             ++index_;
@@ -68,7 +68,7 @@ private:
 
     private:
         template <std::size_t... Is>
-        value_type dereference(std::index_sequence<Is...>) const {
+        [[nodiscard]] value_type dereference(std::index_sequence<Is...>) const {
             return std::tie(std::get<Is>(parent_->vecs_)[index_]...);
         }
     };
