@@ -5,90 +5,24 @@ let mk = load[<id: @vector {int -> int}, movie_id: @vector {int -> int}, keyword
 let lt = load[<id: @vector {int -> int}, link: @vector {int -> string}, size: int>]("datasets/job/link_type.csv")
 let k = load[<id: @vector {int -> int}, keyword: @vector {int -> string}, phonetic_code: @vector {int -> string}, size: int>]("datasets/job/32b/k.csv")
 
-let t1_trie0 =
-	sum(<i,_> <- range(t1.size))
-		let t1_tuple = <
-			id=t1.id(i),
-			title=t1.title(i),
-			imdb_index=t1.imdb_index(i),
-			kind_id=t1.kind_id(i),
-			production_year=t1.production_year(i),
-			imdb_id=t1.imdb_id(i),
-			phonetic_code=t1.phonetic_code(i),
-			episode_of_id=t1.episode_of_id(i),
-			season_nr=t1.season_nr(i),
-			episode_nr=t1.episode_nr(i),
-			series_years=t1.series_years(i),
-			md5sum=t1.md5sum(i)
-		>
-		{ t1_tuple.id -> @vecdict { t1_tuple -> 1 } } in
-
-let ml_trie0 =
-	sum(<i,_> <- range(ml.size))
-		let ml_tuple = <
-			id=ml.id(i),
-			movie_id=ml.movie_id(i),
-			linked_movie_id=ml.linked_movie_id(i),
-			link_type_id=ml.link_type_id(i)
-		>
-		{ ml_tuple.movie_id -> { ml_tuple.linked_movie_id -> @vecdict { ml_tuple -> 1 } } } in
-
-let t2_trie0 =
-	sum(<i,_> <- range(t2.size))
-		let t2_tuple = <
-			id=t2.id(i),
-			title=t2.title(i),
-			imdb_index=t2.imdb_index(i),
-			kind_id=t2.kind_id(i),
-			production_year=t2.production_year(i),
-			imdb_id=t2.imdb_id(i),
-			phonetic_code=t2.phonetic_code(i),
-			episode_of_id=t2.episode_of_id(i),
-			season_nr=t2.season_nr(i),
-			episode_nr=t2.episode_nr(i),
-			series_years=t2.series_years(i),
-			md5sum=t2.md5sum(i)
-		>
-		{ t2_tuple.id -> @vecdict { t2_tuple -> 1 } } in
-
+let t1_trie0 = sum(<i,_> <- range(t1.size)) { t1.id(i) -> @vecdict { i -> 1 } } in
+let ml_trie0 = sum(<i,_> <- range(ml.size)) { ml.movie_id(i) -> { ml.linked_movie_id(i) -> @vecdict { i -> 1 } } } in
+let t2_trie0 = sum(<i,_> <- range(t2.size)) { t2.id(i) -> @vecdict { i -> 1 } } in
 let interm0_trie0 = sum(<x0, t1_trie1> <- t1_trie0)
 	if (x0 ∈ ml_trie0) then
 		let ml_trie1 = ml_trie0(x0) in
 		sum(<x1, ml_trie2> <- ml_trie1)
 			if (x1 ∈ t2_trie0) then
 				let t2_trie1 = t2_trie0(x1) in
-				sum(<t1_tuple, _> <- t1_trie1)
-					sum(<ml_tuple, _> <- ml_trie2)
-						sum(<t2_tuple, _> <- t2_trie1)
-							{ t1_tuple.id -> { ml_tuple.link_type_id -> @vecs { <col0=t1_tuple.id, col1=t1_tuple.title, col2=ml_tuple.linked_movie_id, col3=ml_tuple.link_type_id, col4=t2_tuple.title> -> 1 } } }
+				sum(<i, _> <- t1_trie1)
+					sum(<j, _> <- ml_trie2)
+						sum(<k, _> <- t2_trie1)
+							{ t1.id(i) -> { ml.link_type_id(j) -> @vecs { <col0=t1.id(i), col1=t1.title(i), col2=ml.linked_movie_id(j), col3=ml.link_type_id(j), col4=t2.title(k)> -> 1 } } }
 in
 
-let mk_trie0 =
-	sum(<i,_> <- range(mk.size))
-		let mk_tuple = <
-			id=mk.id(i),
-			movie_id=mk.movie_id(i),
-			keyword_id=mk.keyword_id(i)
-		>
-		{ mk_tuple.movie_id -> { mk_tuple.keyword_id -> 1 } } in
-
-let lt_trie0 =
-	sum(<i,_> <- range(lt.size))
-		let lt_tuple = <
-			id=lt.id(i),
-			link=lt.link(i)
-		>
-		{ lt_tuple.id -> @vecdict { lt_tuple -> 1 } } in
-
-let k_trie0 =
-	sum(<i,_> <- range(k.size))
-		let k_tuple = <
-			id=k.id(i),
-			keyword=k.keyword(i),
-			phonetic_code=k.phonetic_code(i)
-		>
-		{ k_tuple.id -> 1 } in
-
+let mk_trie0 = sum(<i,_> <- range(mk.size)) { mk.movie_id(i) -> { mk.keyword_id(i) -> 1 } } in
+let lt_trie0 = sum(<i,_> <- range(lt.size)) { lt.id(i) -> @vecdict { i -> 1 } } in
+let k_trie0 = sum(<i,_> <- range(k.size)) { k.id(i) -> 1 } in
 sum(<x0, mk_trie1> <- mk_trie0)
 	if (x0 ∈ interm0_trie0) then
 		let interm0_trie1 = interm0_trie0(x0) in
@@ -99,5 +33,5 @@ sum(<x0, mk_trie1> <- mk_trie0)
 					if (x2 ∈ k_trie0) then
 						let k_trie1 = k_trie0(x2) in
 						let mn_interm0 = sum(<interm0_tuple, _> <- interm0_trie2) promote[min_sum](<col1=interm0_tuple.col1, col4=interm0_tuple.col4>) in
-						let mn_lt = sum(<lt_tuple, _> <- lt_trie1) promote[min_sum](<link=lt_tuple.link>) in
+						let mn_lt = sum(<i, _> <- lt_trie1) promote[min_sum](<link=lt.link(i)>) in
 						promote[min_sum](<col3=mn_interm0.col1, col5=mn_interm0.col4, col6=mn_lt.link>)

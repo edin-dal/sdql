@@ -130,14 +130,9 @@ object CppCodegen {
               val accessors = cppAccessors(fields)(typesCtx, callsLocal)
               s"$agg$accessors.push_back($rhs);"
             case _: VecDict =>
-              typesCtx(Sym(agg)) match {
-                case dt: DictType if isNestedRecordToInt(dt) =>
-                  val (fields, _) = splitNested(dict)
-                  val accessors = cppAccessors(fields)(typesCtx, callsLocal)
-                  s"$agg$accessors[${sumVariable(callsLocal)}] += 1;"
-                case tpe =>
-                  raise(s"Unexpected ${tpe.prettyPrint}")
-              }
+              val (fields, _) = splitNested(dict)
+              val accessors = cppAccessors(fields)(typesCtx, callsLocal)
+              s"$agg$accessors[${sumVariable(callsLocal)}] += 1;"
             case Vector() =>
               typesCtx(Sym(agg)) match {
                 case DictType(IntType, vt, Vector()) if vt.isScalar =>
@@ -279,12 +274,6 @@ object CppCodegen {
     case FieldNode(e1, field) =>
       val tpe = (TypeInference.run(e1): @unchecked) match { case rt: RecordType => rt }
       val idx = (tpe.indexOf(field): @unchecked) match { case Some(idx) => idx }
-      // TODO get rid of hack for job/gj queries
-      if(cond(e1) { case Sym(name) => name.endsWith("_tuple") && !name.startsWith("interm")}) {
-        val name = (e1: @unchecked) match { case Sym(name) => name }
-        val origin = name.dropRight("_tuple".length)
-        return s" /* $field */ std::get<$idx>($origin)[${name}]"
-      }
       s" /* $field */ std::get<$idx>(${run(e1)})"
   }
 
@@ -507,6 +496,7 @@ object CppCodegen {
     case StringType(Some(maxLen)) => s"VarChar<$maxLen>"
     case DictType(kt, vt, NoHint()) => s"phmap::flat_hash_map<${cppType(kt)}, ${cppType(vt)}>"
     case DictType(_: RecordType, vt, VecDict()) => s"vecdict<${cppType(vt)}>"
+    case DictType(IntType, vt, VecDict()) => s"vecdict<${cppType(vt)}>"
     case DictType(IntType, vt, Vector()) => s"std::vector<${cppType(vt)}>"
     case DictType(rt: RecordType, IntType, Vecs()) => vecsType(rt)
     case _: DictType => raise(s"unexpected type: ${tpe.prettyPrint}")

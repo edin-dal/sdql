@@ -4,61 +4,11 @@ let mi_idx = load[<id: @vector {int -> int}, movie_id: @vector {int -> int}, inf
 let k = load[<id: @vector {int -> int}, keyword: @vector {int -> string}, phonetic_code: @vector {int -> string}, size: int>]("datasets/job/4c/k.csv")
 let it = load[<id: @vector {int -> int}, info: @vector {int -> string}, size: int>]("datasets/job/4c/it.csv")
 
-let mk_trie0 =
-	sum(<i,_> <- range(mk.size))
-		let mk_tuple = <
-			id=mk.id(i),
-			movie_id=mk.movie_id(i),
-			keyword_id=mk.keyword_id(i)
-		>
-		{ mk_tuple.movie_id -> { mk_tuple.keyword_id -> 1 } } in
-
-let t_trie0 =
-	sum(<i,_> <- range(t.size))
-		let t_tuple = <
-			id=t.id(i),
-			title=t.title(i),
-			imdb_index=t.imdb_index(i),
-			kind_id=t.kind_id(i),
-			production_year=t.production_year(i),
-			imdb_id=t.imdb_id(i),
-			phonetic_code=t.phonetic_code(i),
-			episode_of_id=t.episode_of_id(i),
-			season_nr=t.season_nr(i),
-			episode_nr=t.episode_nr(i),
-			series_years=t.series_years(i),
-			md5sum=t.md5sum(i)
-		>
-		{ t_tuple.id -> @vecdict { t_tuple -> 1 } } in
-
-let mi_idx_trie0 =
-	sum(<i,_> <- range(mi_idx.size))
-		let mi_idx_tuple = <
-			id=mi_idx.id(i),
-			movie_id=mi_idx.movie_id(i),
-			info_type_id=mi_idx.info_type_id(i),
-			info=mi_idx.info(i),
-			note=mi_idx.note(i)
-		>
-		{ mi_idx_tuple.movie_id -> { mi_idx_tuple.info_type_id -> @vecdict { mi_idx_tuple -> 1 } } } in
-
-let k_trie0 =
-	sum(<i,_> <- range(k.size))
-		let k_tuple = <
-			id=k.id(i),
-			keyword=k.keyword(i),
-			phonetic_code=k.phonetic_code(i)
-		>
-		{ k_tuple.id -> 1 } in
-
-let it_trie0 =
-	sum(<i,_> <- range(it.size))
-		let it_tuple = <
-			id=it.id(i),
-			info=it.info(i)
-		>
-		{ it_tuple.id -> 1 } in
-
+let mk_trie0 = sum(<i,_> <- range(mk.size)) { mk.movie_id(i) -> { mk.keyword_id(i) -> 1 } } in
+let t_trie0 = sum(<i,_> <- range(t.size)) { t.id(i) -> @vecdict { i -> 1 } } in
+let mi_idx_trie0 = sum(<i,_> <- range(mi_idx.size)) { mi_idx.movie_id(i) -> { mi_idx.info_type_id(i) -> @vecdict { i -> 1 } } } in
+let k_trie0 = sum(<i,_> <- range(k.size)) { k.id(i) -> 1 } in
+let it_trie0 = sum(<i,_> <- range(it.size)) { it.id(i) -> 1 } in
 sum(<x0, mk_trie1> <- mk_trie0)
 	if (x0 ∈ t_trie0) then
 		if (x0 ∈ mi_idx_trie0) then
@@ -70,6 +20,6 @@ sum(<x0, mk_trie1> <- mk_trie0)
 					sum(<x2, mi_idx_trie2> <- mi_idx_trie1)
 						if (x2 ∈ it_trie0) then
 							let it_trie1 = it_trie0(x2) in
-							let mn_t = sum(<t_tuple, _> <- t_trie1) promote[min_sum](<title=t_tuple.title>) in
-							let mn_mi_idx = sum(<mi_idx_tuple, _> <- mi_idx_trie2) promote[min_sum](<info=mi_idx_tuple.info>) in
+							let mn_t = sum(<i, _> <- t_trie1) promote[min_sum](<title=t.title(i)>) in
+							let mn_mi_idx = sum(<i, _> <- mi_idx_trie2) promote[min_sum](<info=mi_idx.info(i)>) in
 							promote[min_sum](<col2=mn_t.title, col4=mn_mi_idx.info>)

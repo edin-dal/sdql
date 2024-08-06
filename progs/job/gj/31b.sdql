@@ -10,115 +10,26 @@ let cn = load[<id: @vector {int -> int}, name: @vector {int -> string}, country_
 let ci = load[<id: @vector {int -> int}, person_id: @vector {int -> int}, movie_id: @vector {int -> int}, person_role_id: @vector {int -> int}, note: @vector {int -> string}, nr_order: @vector {int -> int}, role_id: @vector {int -> int}, size: int>]("datasets/job/31b/ci.csv")
 let n = load[<id: @vector {int -> int}, name: @vector {int -> string}, imdb_index: @vector {int -> string}, imdb_id: @vector {int -> string}, gender: @vector {int -> string}, name_pcode_cf: @vector {int -> string}, name_pcode_nf: @vector {int -> string}, surname_pcode: @vector {int -> string}, md5sum: @vector {int -> string}, size: int>]("datasets/job/31b/n.csv")
 
-let mk_trie0 =
-	sum(<i,_> <- range(mk.size))
-		let mk_tuple = <
-			id=mk.id(i),
-			movie_id=mk.movie_id(i),
-			keyword_id=mk.keyword_id(i)
-		>
-		{ mk_tuple.movie_id -> @vecdict { mk_tuple -> 1 } } in
-
-let t_trie0 =
-	sum(<i,_> <- range(t.size))
-		let t_tuple = <
-			id=t.id(i),
-			title=t.title(i),
-			imdb_index=t.imdb_index(i),
-			kind_id=t.kind_id(i),
-			production_year=t.production_year(i),
-			imdb_id=t.imdb_id(i),
-			phonetic_code=t.phonetic_code(i),
-			episode_of_id=t.episode_of_id(i),
-			season_nr=t.season_nr(i),
-			episode_nr=t.episode_nr(i),
-			series_years=t.series_years(i),
-			md5sum=t.md5sum(i)
-		>
-		{ t_tuple.id -> @vecdict { t_tuple -> 1 } } in
-
-let mi_idx_trie0 =
-	sum(<i,_> <- range(mi_idx.size))
-		let mi_idx_tuple = <
-			id=mi_idx.id(i),
-			movie_id=mi_idx.movie_id(i),
-			info_type_id=mi_idx.info_type_id(i),
-			info=mi_idx.info(i),
-			note=mi_idx.note(i)
-		>
-		{ mi_idx_tuple.movie_id -> @vecdict { mi_idx_tuple -> 1 } } in
-
+let mk_trie0 = sum(<i,_> <- range(mk.size)) { mk.movie_id(i) -> @vecdict { i -> 1 } } in
+let t_trie0 = sum(<i,_> <- range(t.size)) { t.id(i) -> @vecdict { i -> 1 } } in
+let mi_idx_trie0 = sum(<i,_> <- range(mi_idx.size)) { mi_idx.movie_id(i) -> @vecdict { i -> 1 } } in
 let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 	if (x0 ∈ t_trie0) then
 		if (x0 ∈ mi_idx_trie0) then
 			let t_trie1 = t_trie0(x0) in
 			let mi_idx_trie1 = mi_idx_trie0(x0) in
-			sum(<mk_tuple, _> <- mk_trie1)
-				sum(<t_tuple, _> <- t_trie1)
-					sum(<mi_idx_tuple, _> <- mi_idx_trie1)
-						{ mk_tuple.movie_id -> { mk_tuple.keyword_id -> { mi_idx_tuple.info_type_id -> @vecs { <col0=mk_tuple.movie_id, col1=mk_tuple.keyword_id, col2=t_tuple.title, col3=mi_idx_tuple.info_type_id, col4=mi_idx_tuple.info> -> 1 } } } }
+			sum(<i, _> <- mk_trie1)
+				sum(<j, _> <- t_trie1)
+					sum(<k, _> <- mi_idx_trie1)
+						{ mk.movie_id(i) -> { mk.keyword_id(i) -> { mi_idx.info_type_id(k) -> @vecs { <col0=mk.movie_id(i), col1=mk.keyword_id(i), col2=t.title(j), col3=mi_idx.info_type_id(k), col4=mi_idx.info(k)> -> 1 } } } }
 in
 
-let mi_trie0 =
-	sum(<i,_> <- range(mi.size))
-		let mi_tuple = <
-			id=mi.id(i),
-			movie_id=mi.movie_id(i),
-			info_type_id=mi.info_type_id(i),
-			info=mi.info(i),
-			note=mi.note(i)
-		>
-		{ mi_tuple.movie_id -> { mi_tuple.info_type_id -> @vecdict { mi_tuple -> 1 } } } in
-
-let mc_trie0 =
-	sum(<i,_> <- range(mc.size))
-		let mc_tuple = <
-			id=mc.id(i),
-			movie_id=mc.movie_id(i),
-			company_id=mc.company_id(i),
-			company_type_id=mc.company_type_id(i),
-			note=mc.note(i)
-		>
-		{ mc_tuple.movie_id -> { mc_tuple.company_id -> @vecdict { mc_tuple -> 1 } } } in
-
-let k_trie0 =
-	sum(<i,_> <- range(k.size))
-		let k_tuple = <
-			id=k.id(i),
-			keyword=k.keyword(i),
-			phonetic_code=k.phonetic_code(i)
-		>
-		{ k_tuple.id -> @vecdict { k_tuple -> 1 } } in
-
-let it2_trie0 =
-	sum(<i,_> <- range(it2.size))
-		let it2_tuple = <
-			id=it2.id(i),
-			info=it2.info(i)
-		>
-		{ it2_tuple.id -> @vecdict { it2_tuple -> 1 } } in
-
-let it1_trie0 =
-	sum(<i,_> <- range(it1.size))
-		let it1_tuple = <
-			id=it1.id(i),
-			info=it1.info(i)
-		>
-		{ it1_tuple.id -> @vecdict { it1_tuple -> 1 } } in
-
-let cn_trie0 =
-	sum(<i,_> <- range(cn.size))
-		let cn_tuple = <
-			id=cn.id(i),
-			name=cn.name(i),
-			country_code=cn.country_code(i),
-			imdb_id=cn.imdb_id(i),
-			name_pcode_nf=cn.name_pcode_nf(i),
-			name_pcode_sf=cn.name_pcode_sf(i),
-			md5sum=cn.md5sum(i)
-		>
-		{ cn_tuple.id -> @vecdict { cn_tuple -> 1 } } in
-
+let mi_trie0 = sum(<i,_> <- range(mi.size)) { mi.movie_id(i) -> { mi.info_type_id(i) -> @vecdict { i -> 1 } } } in
+let mc_trie0 = sum(<i,_> <- range(mc.size)) { mc.movie_id(i) -> { mc.company_id(i) -> @vecdict { i -> 1 } } } in
+let k_trie0 = sum(<i,_> <- range(k.size)) { k.id(i) -> @vecdict { i -> 1 } } in
+let it2_trie0 = sum(<i,_> <- range(it2.size)) { it2.id(i) -> @vecdict { i -> 1 } } in
+let it1_trie0 = sum(<i,_> <- range(it1.size)) { it1.id(i) -> @vecdict { i -> 1 } } in
+let cn_trie0 = sum(<i,_> <- range(cn.size)) { cn.id(i) -> @vecdict { i -> 1 } } in
 let interm1_trie0 = sum(<x0, mi_trie1> <- mi_trie0)
 	if (x0 ∈ interm0_trie0) then
 		if (x0 ∈ mc_trie0) then
@@ -136,46 +47,20 @@ let interm1_trie0 = sum(<x0, mi_trie1> <- mi_trie0)
 									sum(<x4, mc_trie2> <- mc_trie1)
 										if (x4 ∈ cn_trie0) then
 											let cn_trie1 = cn_trie0(x4) in
-											sum(<mi_tuple, _> <- mi_trie2)
+											sum(<i, _> <- mi_trie2)
 												sum(<interm0_tuple, _> <- interm0_trie3)
-													sum(<mc_tuple, _> <- mc_trie2)
-														{ mi_tuple.movie_id -> @vecs { <col0=mi_tuple.movie_id, col1=mi_tuple.info_type_id, col2=mi_tuple.info, col3=interm0_tuple.col1, col4=interm0_tuple.col3, col5=interm0_tuple.col2, col6=interm0_tuple.col4, col7=mc_tuple.company_id> -> 1 } }
+													sum(<j, _> <- mc_trie2)
+														{ mi.movie_id(i) -> @vecs { <col0=mi.movie_id(i), col1=mi.info_type_id(i), col2=mi.info(i), col3=interm0_tuple.col1, col4=interm0_tuple.col3, col5=interm0_tuple.col2, col6=interm0_tuple.col4, col7=mc.company_id(j)> -> 1 } }
 in
 
-let ci_trie0 =
-	sum(<i,_> <- range(ci.size))
-		let ci_tuple = <
-			id=ci.id(i),
-			person_id=ci.person_id(i),
-			movie_id=ci.movie_id(i),
-			person_role_id=ci.person_role_id(i),
-			note=ci.note(i),
-			nr_order=ci.nr_order(i),
-			role_id=ci.role_id(i)
-		>
-		{ ci_tuple.person_id -> { ci_tuple.movie_id -> 1 } } in
-
-let n_trie0 =
-	sum(<i,_> <- range(n.size))
-		let n_tuple = <
-			id=n.id(i),
-			name=n.name(i),
-			imdb_index=n.imdb_index(i),
-			imdb_id=n.imdb_id(i),
-			gender=n.gender(i),
-			name_pcode_cf=n.name_pcode_cf(i),
-			name_pcode_nf=n.name_pcode_nf(i),
-			surname_pcode=n.surname_pcode(i),
-			md5sum=n.md5sum(i)
-		>
-		{ n_tuple.id -> @vecdict { n_tuple -> 1 } } in
-
+let ci_trie0 = sum(<i,_> <- range(ci.size)) { ci.person_id(i) -> { ci.movie_id(i) -> 1 } } in
+let n_trie0 = sum(<i,_> <- range(n.size)) { n.id(i) -> @vecdict { i -> 1 } } in
 sum(<x0, ci_trie1> <- ci_trie0)
 	if (x0 ∈ n_trie0) then
 		let n_trie1 = n_trie0(x0) in
 		sum(<x1, ci_trie2> <- ci_trie1)
 			if (x1 ∈ interm1_trie0) then
 				let interm1_trie1 = interm1_trie0(x1) in
-				let mn_n = sum(<n_tuple, _> <- n_trie1) promote[min_sum](<name=n_tuple.name>) in
+				let mn_n = sum(<i, _> <- n_trie1) promote[min_sum](<name=n.name(i)>) in
 				let mn_interm1 = sum(<interm1_tuple, _> <- interm1_trie1) promote[min_sum](<col2=interm1_tuple.col2, col5=interm1_tuple.col5, col6=interm1_tuple.col6>) in
 				promote[min_sum](<col2=mn_n.name, col4=mn_interm1.col2, col7=mn_interm1.col5, col8=mn_interm1.col6>)
