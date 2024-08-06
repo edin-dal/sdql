@@ -169,11 +169,9 @@ object CppCodegen {
         case External(Limit.SYMBOL, _) => s"${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)}\n"
         case c: Const => s"constexpr auto $name = ${run(c)};"
         case _ =>
-          // FIXME 3a.sdql vs q8.sdql
-          // if it's a vector take a reference rather than copy
-//          val isVector = cond(TypeInference.run(e1)) { case DictType(IntType, _, VecDict | Vec) => true}
-          val isVector = false
-          val cppName = if(isVector) s"&$name" else name
+          val isVector = cond(TypeInference.run(e1)) { case DictType(IntType, _, VecDict | Vec) => true}
+          val isInitialisation = cond(e1) { case _: Sum => true }
+          val cppName = if(isVector && !isInitialisation) s"&$name" else name
           s"auto $cppName = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)};"
       }
       val e2Cpp = e2 match {
