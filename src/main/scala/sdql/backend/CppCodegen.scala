@@ -107,17 +107,11 @@ object CppCodegen {
 
     getAggregation(e) match {
       case SumAgg => sumHint(e) match {
-        case Vec =>
-          typesCtx(Sym(aggregationName)) match {
-            case DictType(IntType, vt, Vec) if vt.isScalar =>
-              s"$aggregationName$lhs = $rhs;"
-            case DictType(IntType, DictType(IntType, _, Vec), Vec) =>
-              val k = (inner: @unchecked) match { case DictNode(Seq((k, Const(1))), Vec) => k }
-              val rhs = run(k)(typesCtx, callsLocal)
-              s"$aggregationName$lhs.emplace_back($rhs);"
-            case tpe =>
-              raise(s"unexpected: ${tpe.prettyPrint}")
-          }
+        case Vec => typesCtx(Sym(aggregationName)) match {
+          case DictType(IntType, vt, Vec) if vt.isScalar => s"$aggregationName$lhs = $rhs;"
+          case DictType(IntType, DictType(IntType, _, Vec), Vec) => s"$aggregationName$lhs.emplace_back($rhs);"
+          case tpe => raise(s"unexpected: ${tpe.prettyPrint}")
+        }
         case NoHint if cond(e) { case dict: DictNode => isUnique(dict) } => s"$aggregationName.emplace($lhs, $rhs);"
         case NoHint | VecDict => s"$aggregationName$lhs += $rhs;"
       }
@@ -165,6 +159,7 @@ object CppCodegen {
     case DictNode(Seq((k, v @ DictNode(_, NoHint | VecDict))), _) =>
       val (lhs, rhs) = splitNested(v)
       (Seq(k) ++ lhs, rhs)
+    case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), Vec))), _) => (Seq(k), rhs)
     case DictNode(Seq((k, rhs)), _) => (Seq(k), rhs)
     case _ => (Seq(), e)
   }
