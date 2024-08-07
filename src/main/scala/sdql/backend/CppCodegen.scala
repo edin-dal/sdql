@@ -105,10 +105,8 @@ object CppCodegen {
     val lhs = cppAccessors(accessors)(typesCtx, callsLocal)
     val rhs = run(inner)(typesCtx, callsLocal)
 
-    e match {
-      case dict: DictNode => sumHint(e) match {
-        case NoHint if isUnique(dict) => s"$aggregationName.emplace($lhs, $rhs);"
-        case NoHint | VecDict => s"$aggregationName$lhs += $rhs;"
+    getAggregation(e) match {
+      case SumAgg => sumHint(e) match {
         case Vec =>
           typesCtx(Sym(aggregationName)) match {
             case DictType(IntType, vt, Vec) if vt.isScalar =>
@@ -118,14 +116,13 @@ object CppCodegen {
               val rhs = run(k)(typesCtx, callsLocal)
               s"$aggregationName$lhs.emplace_back($rhs);"
             case tpe =>
-              raise(s"Unexpected ${tpe.prettyPrint}")
+              raise(s"unexpected: ${tpe.prettyPrint}")
           }
+        case NoHint if cond(e) { case dict: DictNode => isUnique(dict) } => s"$aggregationName.emplace($lhs, $rhs);"
+        case NoHint | VecDict => s"$aggregationName$lhs += $rhs;"
       }
-      case _ => getAggregation(e) match {
-        case MinAgg => s"min_inplace($aggregationName$lhs, $rhs);"
-        case SumAgg => s"$aggregationName$lhs += $rhs;"
-        case agg => raise(s"$agg not supported")
-      }
+      case MinAgg => s"min_inplace($aggregationName$lhs, $rhs);"
+      case agg => raise(s"$agg not supported")
     }
   }
 
@@ -136,7 +133,7 @@ object CppCodegen {
     case _ => SumAgg
   }
 
-  private def sumHint(e: Exp)(implicit typesCtx: TypesCtx): CodegenHint = TypeInference.run(e) match {
+  private def sumHint(e: Exp)(implicit typesCtx: TypesCtx) = TypeInference.run(e) match {
     case dt: DictType => getInnerDictType(dt) match { case DictType(_, _, hint) => hint }
     case _ => NoHint
   }
