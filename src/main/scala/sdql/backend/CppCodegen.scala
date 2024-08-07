@@ -99,30 +99,19 @@ object CppCodegen {
   }
 
   private def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
-    val aggregation = getAggregation(e)
+    cond(e) { case dict @ DictNode(seq, _) if seq.length != 1 => raise(s"unsupported: $dict") }
     val callsLocal = Seq(SumEnd, IsTernary) ++ callsCtx
     val (accessors, inner) = splitNested(e)
     val lhs = cppAccessors(accessors)(typesCtx, callsLocal)
-
-    cond(e) { case dict @ DictNode(seq, _) if seq.length != 1 => raise(s"unsupported: $dict") }
-    if (cond(e) { case dict: DictNode => isUnique(dict) }) {
-      val lhs = (accessors: @unchecked) match { case Seq(field) => run(field)(typesCtx, callsLocal) }
-      val rhs = run(inner)(typesCtx, callsLocal)
-      return s"$aggregationName.emplace($lhs, $rhs);"
-    }
+    val rhs = run(inner)(typesCtx, callsLocal)
 
     e match {
-      case _: DictNode => sumHint(e) match {
-        case NoHint =>
-          val rhs = run(inner)(typesCtx, callsLocal)
-            s"$aggregationName$lhs += $rhs;"
-        case VecDict =>
-          val rhs = run(inner)(typesCtx, callsLocal)
-          s"$aggregationName$lhs += $rhs;"
+      case dict: DictNode => sumHint(e) match {
+        case NoHint if isUnique(dict) => s"$aggregationName.emplace($lhs, $rhs);"
+        case NoHint | VecDict => s"$aggregationName$lhs += $rhs;"
         case Vec =>
           typesCtx(Sym(aggregationName)) match {
             case DictType(IntType, vt, Vec) if vt.isScalar =>
-              val rhs = run(inner)(typesCtx, callsLocal)
               s"$aggregationName$lhs = $rhs;"
             case DictType(IntType, DictType(IntType, _, Vec), Vec) =>
               val k = (inner: @unchecked) match { case DictNode(Seq((k, Const(1))), Vec) => k }
@@ -132,14 +121,10 @@ object CppCodegen {
               raise(s"Unexpected ${tpe.prettyPrint}")
           }
       }
-      case _ => aggregation match {
-        case SumAgg =>
-          val rhs = run(inner)(typesCtx, callsLocal)
-          s"$aggregationName$lhs += $rhs;"
-        case MinAgg =>
-          val rhs = run(inner)(typesCtx, callsLocal)
-          s"min_inplace($aggregationName$lhs, $rhs);"
-        case _ => raise(s"$aggregation not supported")
+      case _ => getAggregation(e) match {
+        case MinAgg => s"min_inplace($aggregationName$lhs, $rhs);"
+        case SumAgg => s"$aggregationName$lhs += $rhs;"
+        case agg => raise(s"$agg not supported")
       }
     }
   }
@@ -171,7 +156,13 @@ object CppCodegen {
   }
 
   private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
-    exps.map(e => s"[${run(e)(typesCtx, callsCtx)}]").mkString("")
+    exps.map(e => {
+      val s = run(e)(typesCtx, callsCtx)
+      e match {
+        case _: Unique => s
+        case _ => s"[$s]"
+      }
+    }).mkString("")
 
   private def splitNested(e: Exp): (Seq[Exp], Exp) = e match {
     case DictNode(Seq((k, v @ DictNode(_, NoHint | VecDict))), _) =>
