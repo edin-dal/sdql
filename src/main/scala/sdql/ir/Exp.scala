@@ -69,11 +69,10 @@ case class RecNode(values: Seq[(Field, Exp)]) extends Exp {
  * @param map a dictionary from expression to other expressions
  */
 case class DictNode(map: Seq[(Exp, Exp)], hint: CodegenHint = NoHint) extends Exp
-sealed trait CodegenHint;
+sealed trait CodegenHint
 case object NoHint extends CodegenHint
 case object VecDict extends CodegenHint
 case object Vec extends CodegenHint
-case object Vecs extends CodegenHint
 
 /**
  * Integer numbers between 0 and n

@@ -117,14 +117,9 @@ object CppCodegen {
             val rhs = run(inner)(typesCtx, callsLocal)
             s"$aggregationName$accessors += $rhs;"
           }
-          case Vecs =>
-            val rhs = (inner: @unchecked) match {
-              case DictNode(Seq((record: RecNode, Const(1))), Vecs) => run(record)(typesCtx, callsLocal)
-            }
-            s"$aggregationName$accessors.push_back($rhs);"
           case VecDict =>
-            val index = inner match { case DictNode(Seq((Sym(name), _)), VecDict) => name }
-            s"$aggregationName$accessors[$index] += 1;"
+            val rhs = inner match { case DictNode(Seq((k, _)), VecDict) => run(k)(typesCtx, callsLocal) }
+            s"$aggregationName$accessors[$rhs] += 1;"
           case Vec =>
             typesCtx(Sym(aggregationName)) match {
               case DictType(IntType, vt, Vec) if vt.isScalar =>
@@ -193,7 +188,7 @@ object CppCodegen {
         case External(Limit.SYMBOL, _) => s"${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)}\n"
         case c: Const => s"constexpr auto $name = ${run(c)};"
         case _ =>
-          val isVector = cond(TypeInference.run(e1)) { case DictType(IntType, _, VecDict | Vec) => true}
+          val isVector = cond(TypeInference.run(e1)) { case DictType(_, _, VecDict | Vec) => true}
           val isInitialisation = cond(e1) { case _: Sum => true }
           val cppName = if(isVector && !isInitialisation) s"&$name" else name
           s"auto $cppName = ${run(e1)(typesCtx, List(LetCtx(name)) ++ localCalls)};"
@@ -226,8 +221,7 @@ object CppCodegen {
           val iterable = run(e1)(typesLocal, List(SumEnd) ++ callsLocal)
           val head = TypeInference.run(e1)(typesLocal) match {
             case DictType(_, _, NoHint) => s"&[${k.name}, ${v.name}] : $iterable"
-            case DictType(IntType, _, VecDict | Vec) => s"${k.name} : $iterable"
-            case DictType(_: RecordType, IntType, Vecs) => s"${k.name} : $iterable"
+            case DictType(_, _, VecDict | Vec) => s"&${k.name} : $iterable"
             case t => raise(s"unexpected: ${t.prettyPrint}")
           }
           s"""$init
@@ -451,7 +445,6 @@ object CppCodegen {
     case StringType(None) => "\"\""
     case StringType(Some(_)) => raise("initialising VarChars shouldn't be needed")
     case DictType(_, _, NoHint)  => "{}"
-    case DictType(_, _, Vecs)  => ""
     case DictType(_, _, Vec) => vecSize.toString
     case RecordType(attrs) => attrs.map(_.tpe).map(cppInit).mkString(", ")
     case tpe => raise(s"unimplemented type: $tpe")
@@ -464,17 +457,10 @@ object CppCodegen {
     case StringType(None) => "std::string"
     case StringType(Some(maxLen)) => s"VarChar<$maxLen>"
     case DictType(kt, vt, NoHint) => s"phmap::flat_hash_map<${cppType(kt)}, ${cppType(vt)}>"
-    case DictType(_: RecordType, vt, VecDict) => s"vecdict<${cppType(vt)}>"
-    case DictType(IntType, vt, VecDict) => s"vecdict<${cppType(vt)}>"
+    case DictType(kt, IntType, VecDict) => s"vecdict<${cppType(kt)}>"
     case DictType(IntType, vt, Vec) => s"std::vector<${cppType(vt)}>"
-    case DictType(rt: RecordType, IntType, Vecs) => vecsType(rt)
-    case _: DictType => raise(s"unexpected type: ${tpe.prettyPrint}")
     case RecordType(attrs) => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
     case tpe => raise(s"unimplemented type: $tpe")
-  }
-
-  private def vecsType(rt: RecordType) = rt match {
-    case RecordType(attrs) => attrs.map(_.tpe).map(cppType).mkString("vecs<", ", ", ">")
   }
 
   private def cppCsvs(exps: Seq[Exp]) = {

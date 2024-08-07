@@ -18,7 +18,7 @@ let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 			sum(<i, _> <- mk_trie1)
 				sum(<j, _> <- t_trie1)
 					sum(<k, _> <- mi_idx_trie1)
-						{ mk.movie_id(i) -> { t.kind_id(j) -> { mk.keyword_id(i) -> { mi_idx.info_type_id(k) -> @vecs { <col0=mk.movie_id(i), col1=mk.keyword_id(i), col2=t.title(j), col3=t.kind_id(j), col4=mi_idx.info_type_id(k), col5=mi_idx.info(k)> -> 1 } } } } }
+						{ mk.movie_id(i) -> { t.kind_id(j) -> { mk.keyword_id(i) -> { mi_idx.info_type_id(k) -> @vecdict { <col0=mk.movie_id(i), col1=mk.keyword_id(i), col2=t.title(j), col3=t.kind_id(j), col4=mi_idx.info_type_id(k), col5=mi_idx.info(k)> -> 1 } } } } }
 in
 
 let mi_trie0 = sum(<i,_> <- range(mi.size)) { mi.movie_id(i) -> { mi.info_type_id(i) -> 1 } } in

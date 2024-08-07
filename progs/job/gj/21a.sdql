@@ -15,7 +15,7 @@ let interm0_trie0 = sum(<x0, t_trie1> <- t_trie0)
 		let ml_trie1 = ml_trie0(x0) in
 		sum(<i, _> <- t_trie1)
 			sum(<j, _> <- ml_trie1)
-				{ t.id(i) -> @vecs { <col0=t.id(i), col1=t.title(i), col2=ml.link_type_id(j)> -> 1 } }
+				{ t.id(i) -> @vecdict { <col0=t.id(i), col1=t.title(i), col2=ml.link_type_id(j)> -> 1 } }
 in
 
 let mk_trie0 = sum(<i,_> <- range(mk.size)) { mk.movie_id(i) -> @vecdict { i -> 1 } } in
@@ -24,7 +24,7 @@ let interm1_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 		let interm0_trie1 = interm0_trie0(x0) in
 		sum(<i, _> <- mk_trie1)
 			sum(<interm0_tuple, _> <- interm0_trie1)
-				{ mk.movie_id(i) -> { interm0_tuple.col2 -> { mk.keyword_id(i) -> @vecs { <col0=mk.movie_id(i), col1=mk.keyword_id(i), col2=interm0_tuple.col1, col3=interm0_tuple.col2> -> 1 } } } }
+				{ mk.movie_id(i) -> { interm0_tuple.col2 -> { mk.keyword_id(i) -> @vecdict { <col0=mk.movie_id(i), col1=mk.keyword_id(i), col2=interm0_tuple.col1, col3=interm0_tuple.col2> -> 1 } } } }
 in
 
 let mi_trie0 = sum(<i,_> <- range(mi.size)) { mi.movie_id(i) -> 1 } in

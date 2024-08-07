@@ -110,8 +110,6 @@ class ParserTest extends AnyFlatSpec with Matchers {
     sdql"@vecdict {x -> y}" should be (DictNode(Seq(Sym("x") -> Sym("y")), VecDict))
     sdql"@vec {0 -> 1}" should be (DictNode(Seq(Const(0) -> Const(1)), Vec))
     sdql"@vec {x -> y}" should be (DictNode(Seq(Sym("x") -> Sym("y")), Vec))
-    sdql"@vecs {< foo = 1  > -> 1}" should be (DictNode(Seq(RecNode(Seq("foo" -> Const(1))) -> Const(1)), Vecs))
-    sdql"@vecs {x -> y}" should be (DictNode(Seq(Sym("x") -> Sym("y")), Vecs))
   }
 
   it should "work for record" in {

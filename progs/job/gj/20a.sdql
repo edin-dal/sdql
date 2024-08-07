@@ -19,7 +19,7 @@ let interm0_trie0 = sum(<x0, cc_trie1> <- cc_trie0)
 			if (x1 ∈ cct2_trie0) then
 				let cct2_trie1 = cct2_trie0(x1) in
 				sum(<i, _> <- cc_trie2)
-					{ cc.movie_id(i) -> @vecs { <col0=cc.subject_id(i), col1=cc.status_id(i), col2=cc.movie_id(i)> -> 1 } }
+					{ cc.movie_id(i) -> @vecdict { <col0=cc.subject_id(i), col1=cc.status_id(i), col2=cc.movie_id(i)> -> 1 } }
 in
 
 let mk_trie0 = sum(<i,_> <- range(mk.size)) { mk.movie_id(i) -> { mk.keyword_id(i) -> @vecdict { i -> 1 } } } in
@@ -37,7 +37,7 @@ let interm1_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 						let k_trie1 = k_trie0(x2) in
 						sum(<i, _> <- mk_trie2)
 							sum(<j, _> <- t_trie2)
-								{ mk.movie_id(i) -> @vecs { <col0=mk.movie_id(i), col1=mk.keyword_id(i), col2=t.kind_id(j), col3=t.title(j)> -> 1 } }
+								{ mk.movie_id(i) -> @vecdict { <col0=mk.movie_id(i), col1=mk.keyword_id(i), col2=t.kind_id(j), col3=t.title(j)> -> 1 } }
 in
 
 let ci_trie0 = sum(<i,_> <- range(ci.size)) { ci.person_id(i) -> { ci.movie_id(i) -> { ci.person_role_id(i) -> 1 } } } in

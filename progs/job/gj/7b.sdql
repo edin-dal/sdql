@@ -18,7 +18,7 @@ let interm0_trie0 = sum(<x0, n_trie1> <- n_trie0)
 				let it_trie1 = it_trie0(x1) in
 				sum(<i, _> <- n_trie1)
 					sum(<j, _> <- pi_trie2)
-						{ n.id(i) -> @vecs { <col0=n.id(i), col1=n.name(i), col2=pi.info_type_id(j)> -> 1 } }
+						{ n.id(i) -> @vecdict { <col0=n.id(i), col1=n.name(i), col2=pi.info_type_id(j)> -> 1 } }
 in
 
 let t_trie0 = sum(<i,_> <- range(t.size)) { t.id(i) -> @vecdict { i -> 1 } } in
@@ -32,7 +32,7 @@ let interm1_trie0 = sum(<x0, t_trie1> <- t_trie0)
 				let lt_trie1 = lt_trie0(x1) in
 				sum(<i, _> <- t_trie1)
 					sum(<j, _> <- ml_trie2)
-						{ t.id(i) -> @vecs { <col0=t.id(i), col1=t.title(i), col2=ml.link_type_id(j)> -> 1 } }
+						{ t.id(i) -> @vecdict { <col0=t.id(i), col1=t.title(i), col2=ml.link_type_id(j)> -> 1 } }
 in
 
 let ci_trie0 = sum(<i,_> <- range(ci.size)) { ci.movie_id(i) -> { ci.person_id(i) -> 1 } } in

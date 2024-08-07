@@ -16,7 +16,7 @@ let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 				sum(<i, _> <- mk_trie2)
 					sum(<j, _> <- t_trie1)
 						sum(<k_, _> <- k_trie1)
-							{ mk.movie_id(i) -> @vecs { <col0=mk.movie_id(i), col1=mk.keyword_id(i), col2=t.title(j), col3=k.keyword(k_)> -> 1 } }
+							{ mk.movie_id(i) -> @vecdict { <col0=mk.movie_id(i), col1=mk.keyword_id(i), col2=t.title(j), col3=k.keyword(k_)> -> 1 } }
 in
 
 let ci_trie0 = sum(<i,_> <- range(ci.size)) { ci.person_id(i) -> { ci.movie_id(i) -> 1 } } in
