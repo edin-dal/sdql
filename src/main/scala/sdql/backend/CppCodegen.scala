@@ -127,15 +127,9 @@ object CppCodegen {
     case _ => SumAgg
   }
 
-  private def sumHint(e: Exp)(implicit typesCtx: TypesCtx) = TypeInference.run(e) match {
-    case dt: DictType => getInnerDictType(dt) match { case DictType(_, _, hint) => hint }
+  private def sumHint(e: Exp)(implicit typesCtx: TypesCtx) = e match {
+    case dict: DictNode => TypeInference.run(getInnerDict(dict)) match { case DictType(_, _, hint) => hint }
     case _ => NoHint
-  }
-
-  @tailrec
-  private def getInnerDictType(dt: DictType): DictType = dt match {
-    case DictType(_, dt: DictType, _) => getInnerDictType(dt)
-    case _ => dt
   }
 
   private def isUnique(dict: DictNode) = cond(getInnerDict(dict)) { case DictNode(Seq((_: Unique, _)), NoHint) => true }
