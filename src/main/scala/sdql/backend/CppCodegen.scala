@@ -107,39 +107,37 @@ object CppCodegen {
     val accessors = cppAccessors(fields)(typesCtx, callsLocal)
 
     e match {
-      case DictNode(seq, _) => seq.map(
-        kv => {
-          val lhs = run(kv._1)(typesCtx, callsLocal)
-          val rhs = run(kv._2)(typesCtx, callsLocal)
-          if (cond(kv._1) { case _: Unique => true }) {
+      case dict: DictNode => hint match {
+        case NoHint =>
+          if (isUnique(dict)) {
             val lhs = accessors.drop(1).dropRight(1)
+            val rhs = run(inner)(typesCtx, callsLocal)
             s"$aggregationName.emplace($lhs, $rhs);"
-          } else hint match {
-            case NoHint =>
-              val rhs = run(inner)(typesCtx, callsLocal)
-              s"$aggregationName$accessors += $rhs;"
-            case Vecs =>
-              val rhs = (inner: @unchecked) match {
-                case DictNode(Seq((record: RecNode, Const(1))), Vecs) => run(record)(typesCtx, callsLocal)
-              }
-              s"$aggregationName$accessors.push_back($rhs);"
-            case VecDict =>
-              val index = inner match { case DictNode(Seq((Sym(name), _)), VecDict) => name }
-              s"$aggregationName$accessors[$index] += 1;"
-            case Vec =>
-              typesCtx(Sym(aggregationName)) match {
-                case DictType(IntType, vt, Vec) if vt.isScalar =>
-                  s"$aggregationName[$lhs] = $rhs;"
-                case DictType(IntType, DictType(IntType, _, Vec), Vec) =>
-                  val k = (inner: @unchecked) match { case DictNode(Seq((k, Const(1))), Vec) => k }
-                  val rhs = run(k)(typesCtx, callsLocal)
-                  s"$aggregationName$accessors.emplace_back($rhs);"
-                case tpe =>
-                  raise(s"Unexpected ${tpe.prettyPrint}")
-              }
+          } else {
+            val rhs = run(inner)(typesCtx, callsLocal)
+            s"$aggregationName$accessors += $rhs;"
           }
-        }
-      ).mkString("\n")
+          case Vecs =>
+            val rhs = (inner: @unchecked) match {
+              case DictNode(Seq((record: RecNode, Const(1))), Vecs) => run(record)(typesCtx, callsLocal)
+            }
+            s"$aggregationName$accessors.push_back($rhs);"
+          case VecDict =>
+            val index = inner match { case DictNode(Seq((Sym(name), _)), VecDict) => name }
+            s"$aggregationName$accessors[$index] += 1;"
+          case Vec =>
+            typesCtx(Sym(aggregationName)) match {
+              case DictType(IntType, vt, Vec) if vt.isScalar =>
+                val rhs = run(inner)(typesCtx, callsLocal)
+                s"$aggregationName$accessors = $rhs;"
+              case DictType(IntType, DictType(IntType, _, Vec), Vec) =>
+                val k = (inner: @unchecked) match { case DictNode(Seq((k, Const(1))), Vec) => k }
+                val rhs = run(k)(typesCtx, callsLocal)
+                s"$aggregationName$accessors.emplace_back($rhs);"
+              case tpe =>
+                raise(s"Unexpected ${tpe.prettyPrint}")
+            }
+          }
       case _ => aggregation match {
         case SumAgg => s"$aggregationName += ${run(e)(typesCtx, callsLocal)};"
         case MinAgg => s"min_inplace($aggregationName, ${run(e)(typesCtx, callsLocal)});"
@@ -156,14 +154,22 @@ object CppCodegen {
   }
 
   private def sumHint(e: Exp)(implicit typesCtx: TypesCtx): CodegenHint = TypeInference.run(e) match {
-    case dt: DictType => getInnerDict(dt) match { case DictType(_, _, hint) => hint }
+    case dt: DictType => getInnerDictType(dt) match { case DictType(_, _, hint) => hint }
     case _ => NoHint
   }
 
   @tailrec
-  private def getInnerDict(dt: DictType): DictType = dt match {
-    case DictType(_, dt: DictType, _) => getInnerDict(dt)
+  private def getInnerDictType(dt: DictType): DictType = dt match {
+    case DictType(_, dt: DictType, _) => getInnerDictType(dt)
     case _ => dt
+  }
+
+  private def isUnique(dict: DictNode) = cond(getInnerDict(dict)) { case DictNode(Seq((_: Unique, _)), NoHint) => true }
+
+  @tailrec
+  private def getInnerDict(dict: DictNode): DictNode = dict match {
+    case DictNode(Seq((_, dict: DictNode)), _) => getInnerDict(dict)
+    case _ => dict
   }
 
   private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
