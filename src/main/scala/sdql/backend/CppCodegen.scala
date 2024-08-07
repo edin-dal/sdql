@@ -99,43 +99,46 @@ object CppCodegen {
   }
 
   private def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
-    cond(e) { case dict @ DictNode(seq, _) if seq.length != 1 => raise(s"unsupported: $dict") }
-    val hint = sumHint(e)
     val aggregation = getAggregation(e)
     val callsLocal = Seq(SumEnd, IsTernary) ++ callsCtx
-    val (fields, inner) = splitNested(e)
-    val accessors = cppAccessors(fields)(typesCtx, callsLocal)
+    val (accessors, inner) = splitNested(e)
+    val lhs = cppAccessors(accessors)(typesCtx, callsLocal)
+
+    cond(e) { case dict @ DictNode(seq, _) if seq.length != 1 => raise(s"unsupported: $dict") }
+    if (cond(e) { case dict: DictNode => isUnique(dict) }) {
+      val lhs = (accessors: @unchecked) match { case Seq(field) => run(field)(typesCtx, callsLocal) }
+      val rhs = run(inner)(typesCtx, callsLocal)
+      return s"$aggregationName.emplace($lhs, $rhs);"
+    }
 
     e match {
-      case dict: DictNode => hint match {
+      case _: DictNode => sumHint(e) match {
         case NoHint =>
-          if (isUnique(dict)) {
-            val lhs = accessors.drop(1).dropRight(1)
-            val rhs = run(inner)(typesCtx, callsLocal)
-            s"$aggregationName.emplace($lhs, $rhs);"
-          } else {
-            val rhs = run(inner)(typesCtx, callsLocal)
-            s"$aggregationName$accessors += $rhs;"
+          val rhs = run(inner)(typesCtx, callsLocal)
+            s"$aggregationName$lhs += $rhs;"
+        case VecDict =>
+          val rhs = run(inner)(typesCtx, callsLocal)
+          s"$aggregationName$lhs += $rhs;"
+        case Vec =>
+          typesCtx(Sym(aggregationName)) match {
+            case DictType(IntType, vt, Vec) if vt.isScalar =>
+              val rhs = run(inner)(typesCtx, callsLocal)
+              s"$aggregationName$lhs = $rhs;"
+            case DictType(IntType, DictType(IntType, _, Vec), Vec) =>
+              val k = (inner: @unchecked) match { case DictNode(Seq((k, Const(1))), Vec) => k }
+              val rhs = run(k)(typesCtx, callsLocal)
+              s"$aggregationName$lhs.emplace_back($rhs);"
+            case tpe =>
+              raise(s"Unexpected ${tpe.prettyPrint}")
           }
-          case VecDict =>
-            val rhs = inner match { case DictNode(Seq((k, _)), VecDict) => run(k)(typesCtx, callsLocal) }
-            s"$aggregationName$accessors[$rhs] += 1;"
-          case Vec =>
-            typesCtx(Sym(aggregationName)) match {
-              case DictType(IntType, vt, Vec) if vt.isScalar =>
-                val rhs = run(inner)(typesCtx, callsLocal)
-                s"$aggregationName$accessors = $rhs;"
-              case DictType(IntType, DictType(IntType, _, Vec), Vec) =>
-                val k = (inner: @unchecked) match { case DictNode(Seq((k, Const(1))), Vec) => k }
-                val rhs = run(k)(typesCtx, callsLocal)
-                s"$aggregationName$accessors.emplace_back($rhs);"
-              case tpe =>
-                raise(s"Unexpected ${tpe.prettyPrint}")
-            }
-          }
+      }
       case _ => aggregation match {
-        case SumAgg => s"$aggregationName += ${run(e)(typesCtx, callsLocal)};"
-        case MinAgg => s"min_inplace($aggregationName, ${run(e)(typesCtx, callsLocal)});"
+        case SumAgg =>
+          val rhs = run(inner)(typesCtx, callsLocal)
+          s"$aggregationName$lhs += $rhs;"
+        case MinAgg =>
+          val rhs = run(inner)(typesCtx, callsLocal)
+          s"min_inplace($aggregationName$lhs, $rhs);"
         case _ => raise(s"$aggregation not supported")
       }
     }
@@ -168,10 +171,10 @@ object CppCodegen {
   }
 
   private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
-    exps.map(f => s"[${run(f)(typesCtx, callsCtx)}]").mkString("")
+    exps.map(e => s"[${run(e)(typesCtx, callsCtx)}]").mkString("")
 
   private def splitNested(e: Exp): (Seq[Exp], Exp) = e match {
-    case DictNode(Seq((k, v @ DictNode(_, NoHint))), _) =>
+    case DictNode(Seq((k, v @ DictNode(_, NoHint | VecDict))), _) =>
       val (lhs, rhs) = splitNested(v)
       (Seq(k) ++ lhs, rhs)
     case DictNode(Seq((k, rhs)), _) => (Seq(k), rhs)
