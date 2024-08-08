@@ -1,7 +1,7 @@
 package sdql
 package backend
 
-import sdql.ir._
+import sdql.ir.*
 
 import scala.PartialFunction.cond
 import scala.annotation.tailrec

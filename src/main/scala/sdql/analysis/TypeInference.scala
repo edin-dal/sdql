@@ -1,8 +1,8 @@
 package sdql
 package analysis
 
-import sdql.ir.ExternalFunctions._
-import sdql.ir._
+import sdql.ir.ExternalFunctions.*
+import sdql.ir.*
 
 import scala.PartialFunction.cond
 import scala.annotation.tailrec

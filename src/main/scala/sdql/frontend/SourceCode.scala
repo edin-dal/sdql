@@ -1,7 +1,7 @@
 package sdql
 package frontend
 
-import sdql.ir._
+import sdql.ir.*
 
 class SourceCode(val fileName: String, val exp: Exp)
 

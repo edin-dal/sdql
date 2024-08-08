@@ -182,7 +182,7 @@ object SetNode {
 }
 
 object PairNode {
-  import PairType._
+  import PairType.*
   def apply(_1: Exp, _2: Exp): Exp = RecNode(Seq((FST -> _1), (SND -> _2)))
   def unapply(e: Exp): Option[(Exp, Exp)] = e match {
     case RecNode(Seq(a1, a2)) if a1._1 == FST && a2._1 == SND => Some(a1._2 -> a2._2)
@@ -207,7 +207,7 @@ object Snd {
 }
 
 object ProjectionNode {
-  import PairType._
+  import PairType.*
   def unapply(e: Exp): Option[(Exp, Int)] = e match {
     case FieldNode(e1, FST) => Some(e1 -> 1)
     case FieldNode(e1, SND) => Some(e1 -> 2)

@@ -1,9 +1,9 @@
 package sdql
 package driver
 
-import sdql.backend._
-import sdql.frontend._
-import sdql.ir._
+import sdql.backend.*
+import sdql.frontend.*
+import sdql.ir.*
 
 import java.nio.file.Path
 

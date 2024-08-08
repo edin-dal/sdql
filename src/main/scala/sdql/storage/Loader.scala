@@ -1,7 +1,7 @@
 package sdql
 package storage
 
-import sdql.ir._
+import sdql.ir.*
 
 /**
  * Code from: https://github.com/epfldata/dblab/blob/develop/components/

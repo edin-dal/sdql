@@ -2,8 +2,8 @@ package sdql
 package backend
 
 import sdql.analysis.TypeInference
-import sdql.ir.ExternalFunctions._
-import sdql.ir._
+import sdql.ir.ExternalFunctions.*
+import sdql.ir.*
 
 import java.util.UUID
 import scala.PartialFunction.{ cond, condOpt }

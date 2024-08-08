@@ -2,8 +2,8 @@ package sdql
 package backend
 
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should._
-import sdql.frontend._
+import org.scalatest.matchers.should.*
+import sdql.frontend.*
 
 class RewriterTest extends AnyFlatSpec with Matchers {
   it should "remove intermediate tuple" in {

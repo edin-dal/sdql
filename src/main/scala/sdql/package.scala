@@ -1,5 +1,5 @@
 package object sdql {
-  import ir._
+  import ir.*
   type Field = String
   type Stmt  = (Sym, Exp)
   val Block              = LetBindingNStriped

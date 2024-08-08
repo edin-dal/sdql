@@ -1,7 +1,7 @@
 package sdql
 package backend
 
-import sdql.ir._
+import sdql.ir.*
 import sdql.storage.{ Loader, Table }
 
 import scala.annotation.{ nowarn, tailrec }
@@ -338,7 +338,7 @@ import scala.annotation.{ nowarn, tailrec }
       case _ => raise(s"`$v1 * $v2` not handled")
     }
   def external(name: String, args: Seq[Value]): Value = {
-    import ExternalFunctions._
+    import ExternalFunctions.*
     def raiseTp(tp: String) = raise(s"ext(`$name`, ...) expects $tp, but given: ${args.mkString(", ")}.")
     import scala.language.implicitConversions
     implicit def bool2double(b: Boolean): Double = if (b) 1 else 0

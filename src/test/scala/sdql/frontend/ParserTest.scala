@@ -2,8 +2,8 @@ package sdql
 package frontend
 
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should._
-import sdql.ir._
+import org.scalatest.matchers.should.*
+import sdql.ir.*
 
 class ParserTest extends AnyFlatSpec with Matchers {
 
