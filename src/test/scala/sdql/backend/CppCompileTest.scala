@@ -149,13 +149,13 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //  }
 //
 //  it should "compile and run TPCH Q19-20 SF=1" in {
-//    CompileHelpers.assertOutputs("progs/tpch/q19.sdql", "src/test/tpch/results/SF_1/q19.result", sf="1")
-//    CompileHelpers.assertOutputs("progs/tpch/q20.sdql", "src/test/tpch/results/SF_1/q20.result", sf="1")
+//    CompileHelpers.assertOutputs("progs/tpch/q19.sdql", "src/test/tpch/results/SF_1/q19.result", sf = "1")
+//    CompileHelpers.assertOutputs("progs/tpch/q20.sdql", "src/test/tpch/results/SF_1/q20.result", sf = "1")
 //  }
 //
 //  it should "compile and run TPCH Q21-22 SF=1" in {
-//    CompileHelpers.assertOutputs("progs/tpch/q21.sdql", "src/test/tpch/results/SF_1/q21.result", sf="1")
-//    CompileHelpers.assertOutputs("progs/tpch/q22.sdql", "src/test/tpch/results/SF_1/q22.result", sf="1")
+//    CompileHelpers.assertOutputs("progs/tpch/q21.sdql", "src/test/tpch/results/SF_1/q21.result", sf = "1")
+//    CompileHelpers.assertOutputs("progs/tpch/q22.sdql", "src/test/tpch/results/SF_1/q22.result", sf = "1")
 //  }
 //}
 
