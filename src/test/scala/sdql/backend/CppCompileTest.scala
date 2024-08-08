@@ -320,6 +320,167 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 //  }
 //}
 
+// uncomment and run these tests on pre-processed datasets in datasets/job
+// manually load balanced - based on GJ queries above (might be different)
+// note: DON'T run them all in parallel - unless you have ~64GB of ram
+//class CppCompileTestFJ extends AnyFlatSpec with ParallelTestExecution {
+//
+//  it should "compile and run FJ 1-5 & 8-15" in {
+//    // 1-5
+//    CompileHelpers.assertOutputs("progs/job/fj/1a.sdql", "src/test/job/results/1a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/1b.sdql", "src/test/job/results/1b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/1c.sdql", "src/test/job/results/1c.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/1d.sdql", "src/test/job/results/1d.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/2a.sdql", "src/test/job/results/2a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/2b.sdql", "src/test/job/results/2b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/2d.sdql", "src/test/job/results/2d.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/3a.sdql", "src/test/job/results/3a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/3b.sdql", "src/test/job/results/3b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/3c.sdql", "src/test/job/results/3c.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/4a.sdql", "src/test/job/results/4a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/4b.sdql", "src/test/job/results/4b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/4c.sdql", "src/test/job/results/4c.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/5c.sdql", "src/test/job/results/5c.result")
+//
+//    // 8-15
+//    CompileHelpers.assertOutputs("progs/job/fj/8a.sdql", "src/test/job/results/8a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/8b.sdql", "src/test/job/results/8b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/8c.sdql", "src/test/job/results/8c.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/8d.sdql", "src/test/job/results/8d.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/9a.sdql", "src/test/job/results/9a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/9b.sdql", "src/test/job/results/9b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/9c.sdql", "src/test/job/results/9c.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/9d.sdql", "src/test/job/results/9d.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/10a.sdql", "src/test/job/results/10a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/10c.sdql", "src/test/job/results/10c.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/11a.sdql", "src/test/job/results/11a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/11b.sdql", "src/test/job/results/11b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/11c.sdql", "src/test/job/results/11c.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/11d.sdql", "src/test/job/results/11d.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/12a.sdql", "src/test/job/results/12a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/12b.sdql", "src/test/job/results/12b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/12c.sdql", "src/test/job/results/12c.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/13b.sdql", "src/test/job/results/13b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/13c.sdql", "src/test/job/results/13c.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/14a.sdql", "src/test/job/results/14a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/14b.sdql", "src/test/job/results/14b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/14c.sdql", "src/test/job/results/14c.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/15a.sdql", "src/test/job/results/15a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/15b.sdql", "src/test/job/results/15b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/15c.sdql", "src/test/job/results/15c.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/15d.sdql", "src/test/job/results/15d.result")
+//  }
+//
+//  it should "compile and run FJ 6-7" in {
+//    CompileHelpers.assertOutputs("progs/job/fj/6a.sdql", "src/test/job/results/6a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/6b.sdql", "src/test/job/results/6b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/6c.sdql", "src/test/job/results/6c.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/6d.sdql", "src/test/job/results/6d.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/6e.sdql", "src/test/job/results/6e.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/6f.sdql", "src/test/job/results/6f.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/7a.sdql", "src/test/job/results/7a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/7b.sdql", "src/test/job/results/7b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/7c.sdql", "src/test/job/results/7c.result")
+//  }
+//
+//  it should "compile and run FJ 16-17" in {
+//    CompileHelpers.assertOutputs("progs/job/fj/16a.sdql", "src/test/job/results/16a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/16b.sdql", "src/test/job/results/16b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/16c.sdql", "src/test/job/results/16c.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/16d.sdql", "src/test/job/results/16d.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/17a.sdql", "src/test/job/results/17a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/17b.sdql", "src/test/job/results/17b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/17c.sdql", "src/test/job/results/17c.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/17d.sdql", "src/test/job/results/17d.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/17e.sdql", "src/test/job/results/17e.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/17f.sdql", "src/test/job/results/17f.result")
+//  }
+//
+//  it should "compile and run FJ 18-20 & 26" in {
+//    // 18-20
+//    CompileHelpers.assertOutputs("progs/job/fj/18a.sdql", "src/test/job/results/18a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/18b.sdql", "src/test/job/results/18b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/18c.sdql", "src/test/job/results/18c.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/19a.sdql", "src/test/job/results/19a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/19b.sdql", "src/test/job/results/19b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/19c.sdql", "src/test/job/results/19c.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/19d.sdql", "src/test/job/results/19d.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/20a.sdql", "src/test/job/results/20a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/20b.sdql", "src/test/job/results/20b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/20c.sdql", "src/test/job/results/20c.result")
+//
+//    // 26
+//    CompileHelpers.assertOutputs("progs/job/fj/26a.sdql", "src/test/job/results/26a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/26b.sdql", "src/test/job/results/26b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/26c.sdql", "src/test/job/results/26c.result")
+//  }
+//
+//  it should "compile and run FJ 21-25 & 27-33" in {
+//    // 21-25
+//    CompileHelpers.assertOutputs("progs/job/fj/21a.sdql", "src/test/job/results/21a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/21b.sdql", "src/test/job/results/21b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/21c.sdql", "src/test/job/results/21c.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/22a.sdql", "src/test/job/results/22a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/22b.sdql", "src/test/job/results/22b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/22c.sdql", "src/test/job/results/22c.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/22d.sdql", "src/test/job/results/22d.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/23a.sdql", "src/test/job/results/23a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/23b.sdql", "src/test/job/results/23b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/23c.sdql", "src/test/job/results/23c.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/24a.sdql", "src/test/job/results/24a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/24b.sdql", "src/test/job/results/24b.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/25a.sdql", "src/test/job/results/25a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/25b.sdql", "src/test/job/results/25b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/25c.sdql", "src/test/job/results/25c.result")
+//
+//    // 27-33
+//    CompileHelpers.assertOutputs("progs/job/fj/27a.sdql", "src/test/job/results/27a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/27b.sdql", "src/test/job/results/27b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/27c.sdql", "src/test/job/results/27c.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/28a.sdql", "src/test/job/results/28a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/28b.sdql", "src/test/job/results/28b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/28c.sdql", "src/test/job/results/28c.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/29a.sdql", "src/test/job/results/29a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/29b.sdql", "src/test/job/results/29b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/29c.sdql", "src/test/job/results/29c.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/30a.sdql", "src/test/job/results/30a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/30b.sdql", "src/test/job/results/30b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/30c.sdql", "src/test/job/results/30c.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/31a.sdql", "src/test/job/results/31a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/31b.sdql", "src/test/job/results/31b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/31c.sdql", "src/test/job/results/31c.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/32b.sdql", "src/test/job/results/32b.result")
+//
+//    CompileHelpers.assertOutputs("progs/job/fj/33a.sdql", "src/test/job/results/33a.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/33b.sdql", "src/test/job/results/33b.result")
+//    CompileHelpers.assertOutputs("progs/job/fj/33c.sdql", "src/test/job/results/33c.result")
+//  }
+//}
+
 object CompileHelpers {
   def assertOutputs(sdqlPath: String, outPath: String, sf: String = ""): Unit = {
     val source_code = SourceCode.fromFile(sdqlPath, if (sf.isEmpty) identity else patch(sf))

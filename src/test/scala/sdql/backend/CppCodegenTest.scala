@@ -402,6 +402,181 @@ class CppCodegenTestGJ extends AnyFlatSpec with ParallelTestExecution {
   }
 }
 
+//class CppCodegenTestFJ extends AnyFlatSpec with ParallelTestExecution {
+//  it should "codegen FJ 1" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/1a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/1b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/1c.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/1d.sdql")
+//  }
+//  it should "codegen FJ 2" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/2a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/2b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/2d.sdql")
+//  }
+//  it should "codegen FJ 3" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/3a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/3b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/3c.sdql")
+//  }
+//  it should "codegen FJ 4" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/4a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/4b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/4c.sdql")
+//  }
+//  it should "codegen FJ 5" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/5c.sdql")
+//  }
+//  it should "codegen FJ 6" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/6a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/6b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/6c.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/6d.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/6e.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/6f.sdql")
+//  }
+//  it should "codegen FJ 7" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/7a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/7b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/7c.sdql")
+//  }
+//  it should "codegen FJ 8" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/8a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/8b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/8c.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/8d.sdql")
+//  }
+//  it should "codegen FJ 9" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/9a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/9b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/9c.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/9d.sdql")
+//  }
+//  it should "codegen FJ 10" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/10a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/10c.sdql")
+//  }
+//  it should "codegen FJ 11" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/11a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/11b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/11c.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/11d.sdql")
+//  }
+//  it should "codegen FJ 12" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/12a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/12b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/12c.sdql")
+//  }
+//  it should "codegen FJ 13" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/13b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/13c.sdql")
+//  }
+//  it should "codegen FJ 14" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/14a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/14b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/14c.sdql")
+//  }
+//  it should "codegen FJ 15" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/15a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/15b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/15c.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/15d.sdql")
+//  }
+//  it should "codegen FJ 16" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/16a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/16b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/16c.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/16d.sdql")
+//  }
+//  it should "codegen FJ 17" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/17a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/17b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/17c.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/17d.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/17e.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/17f.sdql")
+//  }
+//  it should "codegen FJ 18" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/18a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/18b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/18c.sdql")
+//  }
+//  it should "codegen FJ 19" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/19a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/19b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/19c.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/19d.sdql")
+//  }
+//  it should "codegen FJ 20" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/20a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/20b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/20c.sdql")
+//  }
+//  it should "codegen FJ 21" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/21a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/21b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/21c.sdql")
+//  }
+//  it should "codegen FJ 22" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/22a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/22b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/22c.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/22d.sdql")
+//  }
+//  it should "codegen FJ 23" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/23a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/23b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/23c.sdql")
+//  }
+//  it should "codegen FJ 24" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/24a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/24b.sdql")
+//  }
+//  it should "codegen FJ 25" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/25a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/25b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/25c.sdql")
+//  }
+//  it should "codegen FJ 26" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/26a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/26b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/26c.sdql")
+//  }
+//  it should "codegen FJ 27" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/27a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/27b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/27c.sdql")
+//  }
+//  it should "codegen FJ 28" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/28a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/28b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/28c.sdql")
+//  }
+//  it should "codegen FJ 29" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/29a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/29b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/29c.sdql")
+//  }
+//  it should "codegen FJ 30" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/30a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/30b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/30c.sdql")
+//  }
+//  it should "codegen FJ 31" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/31a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/31b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/31c.sdql")
+//  }
+//  it should "codegen FJ 32" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/32b.sdql")
+//  }
+//  it should "codegen FJ 33" in {
+//    CodegenHelpers.compilesFile("progs/job/fj/33a.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/33b.sdql")
+//    CodegenHelpers.compilesFile("progs/job/fj/33c.sdql")
+//  }
+//}
+
 object CodegenHelpers {
   def compilesFile(path: String): Unit = compilesExp(SourceCode.fromFile(path).exp)
   def compilesExp(e: Exp): Unit = assert(fromCpp(CppCodegen(e)) == 0)
