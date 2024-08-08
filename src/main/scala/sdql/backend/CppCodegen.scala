@@ -383,19 +383,7 @@ object CppCodegen {
   }
 
   private def run(e: Concat)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
-    case Concat(v1@RecNode(fs1), v2@RecNode(fs2)) => run(
-      {
-        val (fs1m, fs2m) = fs1.toMap -> fs2.toMap
-        val common =
-          fs1.filter(x1 => fs2m.contains(x1._1)).map(x1 => (x1._1, x1._2, fs2m(x1._1)))
-        if (common.isEmpty)
-          RecNode(fs1 ++ fs2)
-        else if (common.forall(x => x._2 == x._3))
-          RecNode(fs1 ++ fs2.filter(x2 => !fs1m.contains(x2._1)))
-        else
-          raise(s"`concat($v1, $v2)` with different values for the same field name")
-      }
-    )
+    case Concat(e1: RecNode, e2: RecNode) => run(e1.concat(e2))
     case Concat(e1: Sym, e2: Sym) => s"std::tuple_cat(${run(e1)}, ${run(e2)})"
     case Concat(e1: Sym, e2: RecNode) => s"std::tuple_cat(${run(e1)}, ${run(e2)})"
     case Concat(e1: RecNode, e2: Sym) => s"std::tuple_cat(${run(e1)}, ${run(e2)})"

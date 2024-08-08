@@ -62,6 +62,18 @@ case class Const(v: Any) extends Exp
  */
 case class RecNode(values: Seq[(Field, Exp)]) extends Exp {
   def apply(name: Field): Option[Exp] = values.find(_._1 == name).map(_._2)
+
+  def concat(other: RecNode): RecNode = other match {
+    case RecNode(otherValues) =>
+      val (thisMap, otherMap) = values.toMap -> otherValues.toMap
+      val common = values.filter(x1 => otherMap.contains(x1._1)).map(x1 => (x1._1, x1._2, otherMap(x1._1)))
+      if (common.isEmpty)
+        RecNode(values ++ otherValues)
+      else if (common.forall(x => x._2 == x._3))
+        RecNode(values ++ otherValues.filter(x2 => !thisMap.contains(x2._1)))
+      else
+        raise(s"`concat(${this.prettyPrint}, ${other.prettyPrint})` with different values for the same field name")
+  }
 }
 
 /**
