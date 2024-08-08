@@ -168,9 +168,8 @@ object CppCodegen {
         case External(Limit.SYMBOL, _) => s"${run(e1)(typesCtx, Seq(LetCtx(name)) ++ localCalls)}\n"
         case c: Const => s"constexpr auto $name = ${run(c)};"
         case _ =>
-          val isVector = cond(TypeInference.run(e1)) { case DictType(_, _, VecDict | Vec) => true}
           val isInitialisation = cond(e1) { case _: Sum => true }
-          val cppName = if(isVector && !isInitialisation) s"&$name" else name
+          val cppName = if(!isInitialisation && isVector(e1)) s"&$name" else name
           s"auto $cppName = ${run(e1)(typesCtx, Seq(LetCtx(name)) ++ localCalls)};"
       }
       val e2Cpp = e2 match {
@@ -179,6 +178,9 @@ object CppCodegen {
       }
       e1Cpp + e2Cpp
   }
+
+  private def isVector(e: Exp)(implicit typesCtx: TypesCtx) =
+    cond(TypeInference.run(e)) { case DictType(_, _, VecDict | Vec) => true}
 
   private def run(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Sum(k, v, e1, e2) =>
