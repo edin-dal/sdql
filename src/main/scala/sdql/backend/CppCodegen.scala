@@ -99,7 +99,6 @@ object CppCodegen {
   }
 
   private def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
-    cond(e) { case dict @ DictNode(seq, _) if seq.length != 1 => raise(s"unsupported: $dict") }
     val callsLocal = Seq(SumEnd, IsTernary) ++ callsCtx
     val (accessors, inner) = splitNested(e)
     val lhs = cppAccessors(accessors)(typesCtx, callsLocal)
@@ -155,6 +154,7 @@ object CppCodegen {
       (Seq(k) ++ lhs, rhs)
     case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), Vec))), _) => (Seq(k), rhs)
     case DictNode(Seq((k, rhs)), _) => (Seq(k), rhs)
+    case DictNode(map, _) if map.length != 1 => raise(s"unsupported: $this")
     case _ => (Seq(), e)
   }
 
