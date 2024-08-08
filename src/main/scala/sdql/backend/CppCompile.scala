@@ -13,7 +13,7 @@ object CppCompile {
   def writeFormat(sdqlFilePath: String, cpp: String): Unit = {
     val noExtension = getNoExtension(sdqlFilePath)
     reflect.io.File(cppPath(noExtension).toString).writeAll(cpp)
-    inGeneratedDir(clangFormat(noExtension)).!!
+    val _ = inGeneratedDir(clangFormat(noExtension)).!!
   }
 
   private def compileRun(sdqlFilePath: String): String = {

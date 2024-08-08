@@ -12,4 +12,49 @@ libraryDependencies ++= Seq(
 
 Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-P32")
 
-scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Xsource:3", "-Xfatal-warnings")
+// Mostly from https://alexn.org/blog/2020/05/26/scala-fatal-warnings/#2-activate-all-linting-options
+scalacOptions := Seq(
+  // Warnings as errors!
+  "-Xfatal-warnings",
+  // Deprecation options
+  "-deprecation",
+  "-Xsource:3",
+  // Feature options
+  "-encoding",
+  "utf-8",
+  "-explaintypes",
+  "-feature",
+  "-language:existentials",
+  "-language:experimental.macros",
+  "-language:higherKinds",
+  "-language:implicitConversions",
+  "-Ymacro-annotations",
+  // Linting options
+  "-unchecked",
+  "-Xcheckinit",
+  "-Xlint:adapted-args",
+  "-Xlint:constant",
+  "-Xlint:delayedinit-select",
+  "-Xlint:deprecation",
+  "-Xlint:doc-detached",
+  "-Xlint:inaccessible",
+  "-Xlint:infer-any",
+  "-Xlint:missing-interpolator",
+  "-Xlint:nullary-unit",
+  "-Xlint:option-implicit",
+  "-Xlint:package-object-classes",
+  "-Xlint:poly-implicit-overload",
+  "-Xlint:private-shadow",
+  "-Xlint:stars-align",
+  "-Xlint:type-parameter-shadow",
+  "-Wdead-code",
+  "-Wextra-implicit",
+  "-Wnumeric-widen",
+  "-Wunused:implicits",
+  "-Wunused:imports",
+  "-Wunused:locals",
+  "-Wunused:params",
+  "-Wunused:patvars",
+  "-Wunused:privates",
+  "-Wvalue-discard",
+)

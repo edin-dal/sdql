@@ -192,7 +192,7 @@ object Parser {
         cur match {
           case (".", Sym(name)) => FieldNode(acc, name)
           case ("(", e)         => Get(acc, e)
-          case ("^", e) =>
+          case ("^", _) =>
             cur._2 match {
               case Const(2) => Mult(acc, acc)
               case _        => raise("Parsing for power failed")
@@ -233,8 +233,8 @@ object Parser {
 
   def apply(str: String): Exp = {
     val value = parse(str, top(_)) match {
-      case Parsed.Success(value, _)          => value
-      case f @ Parsed.Failure(msg, p, extra) => raise(s"Parse failed `$f` for sdql`$str`")
+      case Parsed.Success(value, _) => value
+      case f: Parsed.Failure        => raise(s"Parse failed `$f` for sdql`$str`")
     }
     value
   }

@@ -293,7 +293,7 @@ object CppCodegen {
 
   private def run(e: Neg)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = s"-${run(e)}"
 
-  private def run(e: Sym)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match { case Sym(name) => name }
+  private def run(e: Sym): String = e match { case Sym(name) => name }
 
   private def run(e: DictNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case DictNode(Nil, _) =>
@@ -392,7 +392,7 @@ object CppCodegen {
          |    []($recTpeCpp const &l, $recTpeCpp const &r) { return std::get<1>(l) $cmp std::get<1>(r); });
          |auto $limit = ${cppType(dictTpe)}($tmp.begin(), $tmp.end());
          |""".stripMargin
-    case External(name, args) =>
+    case External(name, _) =>
       raise(s"unhandled function name: $name")
   }
 

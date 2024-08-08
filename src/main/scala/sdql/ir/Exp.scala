@@ -28,17 +28,17 @@ case class Sym(name: String) extends Exp
 object Sym {
   private val DEFAULT_NAME = "x"
   val START_ID = 1
-  private var lastId: Long = START_ID
+  private var lastId = START_ID.toLong
 
   /** Get a fresh symbol, i.e. xi, where i is the smallest number not used. */
-  def fresh(): Sym = {
+  def fresh: Sym = {
     fresh(DEFAULT_NAME)
   }
   def fresh(name: String): Sym = {
-    val cur = freshId(name)
+    val cur = freshId
     Sym(s"$name$cur")
   }
-  private def freshId(name: String): Long = {
+  private def freshId: Long = {
     val cur = lastId
     lastId += 1
     cur
@@ -46,7 +46,7 @@ object Sym {
 
   /** Reset the symbol index, such that the next fresh symbol will be x1. */
   def reset(): Unit = {
-    lastId = START_ID
+    lastId = START_ID.toLong
   }
 }
 
@@ -261,7 +261,7 @@ object LetBindingN {
   @tailrec def rec(exp: Exp, res: Res): Res = exp match {
     case LetBinding(x, e1, e2) =>
       rec(e2, res match {
-        case Some((seq, b)) => Some((seq :+ (x -> e1)) -> e2)
+        case Some((seq, _)) => Some((seq :+ (x -> e1)) -> e2)
         case None           => Some(Seq(x -> e1) -> e2)
       })
     case _ => res

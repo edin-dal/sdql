@@ -2,7 +2,6 @@ package sdql
 package storage
 
 import java.io.{BufferedReader, FileReader}
-import java.text.SimpleDateFormat
 
 /**
   * Code from: https://github.com/epfldata/dblab/blob/develop/components/
@@ -17,7 +16,6 @@ class FastScanner(filename: String) {
   private var intDigits: Int = 0
   private var delimiter: Char = '|'
   private val br: BufferedReader = new BufferedReader(new FileReader(filename))
-  private val sdf = new SimpleDateFormat("yyyy-MM-dd");
 
   def next_int() = {
     var number = 0
@@ -43,11 +41,11 @@ class FastScanner(filename: String) {
   }
 
   def next_double() = {
-    val numeral: Double = next_int()
-    var fractal: Double = 0.0
+    val numeral = next_int().toDouble
+    var fractal = 0.0
     // Has fractal part
     if (byteRead == '.') {
-      fractal = next_int()
+      fractal = next_int().toDouble
       while (intDigits > 0) {
         fractal = fractal * 0.1
         intDigits = intDigits - 1
