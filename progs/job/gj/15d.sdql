@@ -8,23 +8,23 @@ let ct = load[<id: @vec {int -> int}, kind: @vec {int -> string}, size: int>]("d
 let cn = load[<id: @vec {int -> int}, name: @vec {int -> string}, country_code: @vec {int -> string}, imdb_id: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, name_pcode_sf: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/15d/cn.csv")
 let at = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, note: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/aka_title.csv")
 
-let mk_trie0 = sum(<i,_> <- range(mk.size)) { mk.movie_id(i) -> @vecdict { i -> 1 } } in
-let t_trie0 = sum(<i,_> <- range(t.size)) { t.id(i) -> @vecdict { i -> 1 } } in
+let mk_trie0 = sum(<i, _> <- range(mk.size)) { mk.movie_id(i) -> @vecdict { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @vecdict { i -> 1 } } in
 let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 	if (x0 ∈ t_trie0) then
 		let t_trie1 = t_trie0(x0) in
-		sum(<i, _> <- mk_trie1)
-			sum(<j, _> <- t_trie1)
-				{ mk.movie_id(i) -> { mk.keyword_id(i) -> @vecdict { <col0=mk.movie_id(i), col1=mk.keyword_id(i), col2=t.title(j)> -> 1 } } }
+		sum(<mk_off, _> <- mk_trie1)
+			sum(<t_off, _> <- t_trie1)
+				{ mk.movie_id(mk_off) -> { mk.keyword_id(mk_off) -> @vecdict { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.title(t_off)> -> 1 } } }
 in
 
-let mi_trie0 = sum(<i,_> <- range(mi.size)) { mi.movie_id(i) -> { mi.info_type_id(i) -> 1 } } in
-let mc_trie0 = sum(<i,_> <- range(mc.size)) { mc.movie_id(i) -> { mc.company_type_id(i) -> { mc.company_id(i) -> 1 } } } in
-let k_trie0 = sum(<i,_> <- range(k.size)) { k.id(i) -> 1 } in
-let it1_trie0 = sum(<i,_> <- range(it1.size)) { it1.id(i) -> 1 } in
-let ct_trie0 = sum(<i,_> <- range(ct.size)) { ct.id(i) -> 1 } in
-let cn_trie0 = sum(<i,_> <- range(cn.size)) { cn.id(i) -> 1 } in
-let at_trie0 = sum(<i,_> <- range(at.size)) { at.movie_id(i) -> @vecdict { i -> 1 } } in
+let mi_trie0 = sum(<i, _> <- range(mi.size)) { mi.movie_id(i) -> { mi.info_type_id(i) -> 1 } } in
+let mc_trie0 = sum(<i, _> <- range(mc.size)) { mc.movie_id(i) -> { mc.company_type_id(i) -> { mc.company_id(i) -> 1 } } } in
+let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> 1 } in
+let it1_trie0 = sum(<i, _> <- range(it1.size)) { it1.id(i) -> 1 } in
+let ct_trie0 = sum(<i, _> <- range(ct.size)) { ct.id(i) -> 1 } in
+let cn_trie0 = sum(<i, _> <- range(cn.size)) { cn.id(i) -> 1 } in
+let at_trie0 = sum(<i, _> <- range(at.size)) { at.movie_id(i) -> @vecdict { i -> 1 } } in
 sum(<x0, mi_trie1> <- mi_trie0)
 	if (x0 ∈ interm0_trie0) then
 		if (x0 ∈ mc_trie0) then
@@ -45,5 +45,6 @@ sum(<x0, mi_trie1> <- mi_trie0)
 											if (x0 ∈ at_trie0) then
 												let at_trie1 = at_trie0(x0) in
 												let mn_interm0 = sum(<interm0_tuple, _> <- interm0_trie2) promote[min_sum](<col2=interm0_tuple.col2>) in
-												let mn_at = sum(<i, _> <- at_trie1) promote[min_sum](<title=at.title(i)>) in
+												let mn_at = sum(<at_off, _> <- at_trie1) promote[min_sum](<title=at.title(at_off)>) in
 												promote[min_sum](<col3=mn_interm0.col2, col6=mn_at.title>)
+

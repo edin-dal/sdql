@@ -11,60 +11,60 @@ let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @v
 let n = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> string}, gender: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/name.csv")
 let chn = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> int}, name_pcode_cf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/26a/chn.csv")
 
-let cc_trie0 = sum(<i,_> <- range(cc.size)) { cc.subject_id(i) -> { cc.status_id(i) -> @vecdict { i -> 1 } } } in
-let cct1_trie0 = sum(<i,_> <- range(cct1.size)) { cct1.id(i) -> @vecdict { i -> 1 } } in
-let cct2_trie0 = sum(<i,_> <- range(cct2.size)) { cct2.id(i) -> @vecdict { i -> 1 } } in
+let cc_trie0 = sum(<i, _> <- range(cc.size)) { cc.subject_id(i) -> { cc.status_id(i) -> @vecdict { i -> 1 } } } in
+let cct1_trie0 = sum(<i, _> <- range(cct1.size)) { cct1.id(i) -> 1 } in
+let cct2_trie0 = sum(<i, _> <- range(cct2.size)) { cct2.id(i) -> 1 } in
 let interm0_trie0 = sum(<x0, cc_trie1> <- cc_trie0)
 	if (x0 ∈ cct1_trie0) then
 		let cct1_trie1 = cct1_trie0(x0) in
 		sum(<x1, cc_trie2> <- cc_trie1)
 			if (x1 ∈ cct2_trie0) then
 				let cct2_trie1 = cct2_trie0(x1) in
-				sum(<i, _> <- cc_trie2)
-					{ cc.movie_id(i) -> @vecdict { <col0=cc.subject_id(i), col1=cc.status_id(i), col2=cc.movie_id(i)> -> 1 } }
+				sum(<cc_off, _> <- cc_trie2)
+					{ cc.movie_id(cc_off) -> @vecdict { <col0=cc.subject_id(cc_off), col1=cc.status_id(cc_off), col2=cc.movie_id(cc_off)> -> 1 } }
 in
 
-let mi_idx_trie0 = sum(<i,_> <- range(mi_idx.size)) { mi_idx.info_type_id(i) -> { mi_idx.movie_id(i) -> @vecdict { i -> 1 } } } in
-let it2_trie0 = sum(<i,_> <- range(it2.size)) { it2.id(i) -> @vecdict { i -> 1 } } in
+let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) { mi_idx.info_type_id(i) -> { mi_idx.movie_id(i) -> @vecdict { i -> 1 } } } in
+let it2_trie0 = sum(<i, _> <- range(it2.size)) { it2.id(i) -> 1 } in
 let interm1_trie0 = sum(<x0, mi_idx_trie1> <- mi_idx_trie0)
 	if (x0 ∈ it2_trie0) then
 		let it2_trie1 = it2_trie0(x0) in
 		sum(<x1, mi_idx_trie2> <- mi_idx_trie1)
 			if (x1 ∈ interm0_trie0) then
 				let interm0_trie1 = interm0_trie0(x1) in
-				sum(<i, _> <- mi_idx_trie2)
-					{ mi_idx.movie_id(i) -> @vecdict { <col0=mi_idx.info_type_id(i), col1=mi_idx.movie_id(i), col2=mi_idx.info(i)> -> 1 } }
+				sum(<mi_idx_off, _> <- mi_idx_trie2)
+					{ mi_idx.movie_id(mi_idx_off) -> @vecdict { <col0=mi_idx.info_type_id(mi_idx_off), col1=mi_idx.movie_id(mi_idx_off), col2=mi_idx.info(mi_idx_off)> -> 1 } }
 in
 
-let t_trie0 = sum(<i,_> <- range(t.size)) { t.kind_id(i) -> { t.id(i) -> @vecdict { i -> 1 } } } in
-let kt_trie0 = sum(<i,_> <- range(kt.size)) { kt.id(i) -> @vecdict { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) { t.kind_id(i) -> { t.id(i) -> @vecdict { i -> 1 } } } in
+let kt_trie0 = sum(<i, _> <- range(kt.size)) { kt.id(i) -> 1 } in
 let interm2_trie0 = sum(<x0, t_trie1> <- t_trie0)
 	if (x0 ∈ kt_trie0) then
 		let kt_trie1 = kt_trie0(x0) in
 		sum(<x1, t_trie2> <- t_trie1)
 			if (x1 ∈ interm1_trie0) then
 				let interm1_trie1 = interm1_trie0(x1) in
-				sum(<i, _> <- t_trie2)
+				sum(<t_off, _> <- t_trie2)
 					sum(<interm1_tuple, _> <- interm1_trie1)
-						{ t.id(i) -> @vecdict { <col0=t.kind_id(i), col1=t.id(i), col2=t.title(i), col4=interm1_tuple.col2> -> 1 } }
+						{ t.id(t_off) -> @vecdict { <col0=t.kind_id(t_off), col1=t.id(t_off), col2=t.title(t_off), col4=interm1_tuple.col2> -> 1 } }
 in
 
-let mk_trie0 = sum(<i,_> <- range(mk.size)) { mk.keyword_id(i) -> { mk.movie_id(i) -> @vecdict { i -> 1 } } } in
-let k_trie0 = sum(<i,_> <- range(k.size)) { k.id(i) -> @vecdict { i -> 1 } } in
+let mk_trie0 = sum(<i, _> <- range(mk.size)) { mk.keyword_id(i) -> { mk.movie_id(i) -> @vecdict { i -> 1 } } } in
+let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> 1 } in
 let interm3_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 	if (x0 ∈ k_trie0) then
 		let k_trie1 = k_trie0(x0) in
 		sum(<x1, mk_trie2> <- mk_trie1)
 			if (x1 ∈ interm2_trie0) then
 				let interm2_trie1 = interm2_trie0(x1) in
-				sum(<i, _> <- mk_trie2)
+				sum(<mk_off, _> <- mk_trie2)
 					sum(<interm2_tuple, _> <- interm2_trie1)
-						{ mk.movie_id(i) -> @vecdict { <col0=mk.keyword_id(i), col1=mk.movie_id(i), col3=interm2_tuple.col2, col5=interm2_tuple.col4> -> 1 } }
+						{ mk.movie_id(mk_off) -> @vecdict { <col0=mk.keyword_id(mk_off), col1=mk.movie_id(mk_off), col3=interm2_tuple.col2, col5=interm2_tuple.col4> -> 1 } }
 in
 
-let ci_trie0 = sum(<i,_> <- range(ci.size)) { ci.person_id(i) -> { ci.person_role_id(i) -> { ci.movie_id(i) -> 1 } } } in
-let n_trie0 = sum(<i,_> <- range(n.size)) { n.id(i) -> @vecdict { i -> 1 } } in
-let chn_trie0 = sum(<i,_> <- range(chn.size)) { chn.id(i) -> @vecdict { i -> 1 } } in
+let ci_trie0 = sum(<i, _> <- range(ci.size)) { ci.person_id(i) -> { ci.person_role_id(i) -> { ci.movie_id(i) -> 1 } } } in
+let n_trie0 = sum(<i, _> <- range(n.size)) { n.id(i) -> @vecdict { i -> 1 } } in
+let chn_trie0 = sum(<i, _> <- range(chn.size)) { chn.id(i) -> @vecdict { i -> 1 } } in
 sum(<x0, ci_trie1> <- ci_trie0)
 	if (x0 ∈ n_trie0) then
 		let n_trie1 = n_trie0(x0) in
@@ -74,7 +74,8 @@ sum(<x0, ci_trie1> <- ci_trie0)
 				sum(<x2, ci_trie3> <- ci_trie2)
 					if (x2 ∈ interm3_trie0) then
 						let interm3_trie1 = interm3_trie0(x2) in
-						let mn_n = sum(<i, _> <- n_trie1) promote[min_sum](<name=n.name(i)>) in
-						let mn_chn = sum(<i, _> <- chn_trie1) promote[min_sum](<name=chn.name(i)>) in
+						let mn_n = sum(<n_off, _> <- n_trie1) promote[min_sum](<name=n.name(n_off)>) in
+						let mn_chn = sum(<chn_off, _> <- chn_trie1) promote[min_sum](<name=chn.name(chn_off)>) in
 						let mn_interm3 = sum(<interm3_tuple, _> <- interm3_trie1) promote[min_sum](<col3=interm3_tuple.col3, col5=interm3_tuple.col5>) in
 						promote[min_sum](<col3=mn_n.name, col4=mn_chn.name, col7=mn_interm3.col3, col9=mn_interm3.col5>)
+

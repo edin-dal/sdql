@@ -6,10 +6,10 @@ let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @v
 let rt = load[<id: @vec {int -> int}, role: @vec {int -> string}, size: int>]("datasets/job/role_type.csv")
 let chn = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> int}, name_pcode_cf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/char_name.csv")
 
-let mc_trie0 = sum(<i,_> <- range(mc.size)) { mc.movie_id(i) -> { mc.company_type_id(i) -> { mc.company_id(i) -> @vecdict { i -> 1 } } } } in
-let t_trie0 = sum(<i,_> <- range(t.size)) { t.id(i) -> @vecdict { i -> 1 } } in
-let ct_trie0 = sum(<i,_> <- range(ct.size)) { ct.id(i) -> @vecdict { i -> 1 } } in
-let cn_trie0 = sum(<i,_> <- range(cn.size)) { cn.id(i) -> @vecdict { i -> 1 } } in
+let mc_trie0 = sum(<i, _> <- range(mc.size)) { mc.movie_id(i) -> { mc.company_type_id(i) -> { mc.company_id(i) -> @vecdict { i -> 1 } } } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @vecdict { i -> 1 } } in
+let ct_trie0 = sum(<i, _> <- range(ct.size)) { ct.id(i) -> 1 } in
+let cn_trie0 = sum(<i, _> <- range(cn.size)) { cn.id(i) -> 1 } in
 let interm0_trie0 = sum(<x0, mc_trie1> <- mc_trie0)
 	if (x0 ∈ t_trie0) then
 		let t_trie1 = t_trie0(x0) in
@@ -19,14 +19,14 @@ let interm0_trie0 = sum(<x0, mc_trie1> <- mc_trie0)
 				sum(<x2, mc_trie3> <- mc_trie2)
 					if (x2 ∈ cn_trie0) then
 						let cn_trie1 = cn_trie0(x2) in
-						sum(<i, _> <- mc_trie3)
-							sum(<j, _> <- t_trie1)
-								{ mc.movie_id(i) -> @vecdict { <col0=mc.movie_id(i), col1=mc.company_type_id(i), col2=mc.company_id(i), col3=t.title(j)> -> 1 } }
+						sum(<mc_off, _> <- mc_trie3)
+							sum(<t_off, _> <- t_trie1)
+								{ mc.movie_id(mc_off) -> @vecdict { <col0=mc.movie_id(mc_off), col1=mc.company_type_id(mc_off), col2=mc.company_id(mc_off), col3=t.title(t_off)> -> 1 } }
 in
 
-let ci_trie0 = sum(<i,_> <- range(ci.size)) { ci.role_id(i) -> { ci.movie_id(i) -> { ci.person_role_id(i) -> 1 } } } in
-let rt_trie0 = sum(<i,_> <- range(rt.size)) { rt.id(i) -> 1 } in
-let chn_trie0 = sum(<i,_> <- range(chn.size)) { chn.id(i) -> @vecdict { i -> 1 } } in
+let ci_trie0 = sum(<i, _> <- range(ci.size)) { ci.role_id(i) -> { ci.movie_id(i) -> { ci.person_role_id(i) -> 1 } } } in
+let rt_trie0 = sum(<i, _> <- range(rt.size)) { rt.id(i) -> 1 } in
+let chn_trie0 = sum(<i, _> <- range(chn.size)) { chn.id(i) -> @vecdict { i -> 1 } } in
 sum(<x0, ci_trie1> <- ci_trie0)
 	if (x0 ∈ rt_trie0) then
 		let rt_trie1 = rt_trie0(x0) in
@@ -37,5 +37,6 @@ sum(<x0, ci_trie1> <- ci_trie0)
 					if (x2 ∈ chn_trie0) then
 						let chn_trie1 = chn_trie0(x2) in
 						let mn_interm0 = sum(<interm0_tuple, _> <- interm0_trie1) promote[min_sum](<col3=interm0_tuple.col3>) in
-						let mn_chn = sum(<i, _> <- chn_trie1) promote[min_sum](<name=chn.name(i)>) in
+						let mn_chn = sum(<chn_off, _> <- chn_trie1) promote[min_sum](<name=chn.name(chn_off)>) in
 						promote[min_sum](<col5=mn_interm0.col3, col6=mn_chn.name>)
+

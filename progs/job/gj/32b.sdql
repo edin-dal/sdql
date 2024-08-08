@@ -5,24 +5,24 @@ let mk = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @
 let lt = load[<id: @vec {int -> int}, link: @vec {int -> string}, size: int>]("datasets/job/link_type.csv")
 let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/32b/k.csv")
 
-let t1_trie0 = sum(<i,_> <- range(t1.size)) { t1.id(i) -> @vecdict { i -> 1 } } in
-let ml_trie0 = sum(<i,_> <- range(ml.size)) { ml.movie_id(i) -> { ml.linked_movie_id(i) -> @vecdict { i -> 1 } } } in
-let t2_trie0 = sum(<i,_> <- range(t2.size)) { t2.id(i) -> @vecdict { i -> 1 } } in
+let t1_trie0 = sum(<i, _> <- range(t1.size)) { t1.id(i) -> @vecdict { i -> 1 } } in
+let ml_trie0 = sum(<i, _> <- range(ml.size)) { ml.movie_id(i) -> { ml.linked_movie_id(i) -> @vecdict { i -> 1 } } } in
+let t2_trie0 = sum(<i, _> <- range(t2.size)) { t2.id(i) -> @vecdict { i -> 1 } } in
 let interm0_trie0 = sum(<x0, t1_trie1> <- t1_trie0)
 	if (x0 ∈ ml_trie0) then
 		let ml_trie1 = ml_trie0(x0) in
 		sum(<x1, ml_trie2> <- ml_trie1)
 			if (x1 ∈ t2_trie0) then
 				let t2_trie1 = t2_trie0(x1) in
-				sum(<i, _> <- t1_trie1)
-					sum(<j, _> <- ml_trie2)
-						sum(<k, _> <- t2_trie1)
-							{ t1.id(i) -> { ml.link_type_id(j) -> @vecdict { <col0=t1.id(i), col1=t1.title(i), col2=ml.linked_movie_id(j), col3=ml.link_type_id(j), col4=t2.title(k)> -> 1 } } }
+				sum(<t1_off, _> <- t1_trie1)
+					sum(<ml_off, _> <- ml_trie2)
+						sum(<t2_off, _> <- t2_trie1)
+							{ t1.id(t1_off) -> { ml.link_type_id(ml_off) -> @vecdict { <col0=t1.id(t1_off), col1=t1.title(t1_off), col2=ml.linked_movie_id(ml_off), col3=ml.link_type_id(ml_off), col4=t2.title(t2_off)> -> 1 } } }
 in
 
-let mk_trie0 = sum(<i,_> <- range(mk.size)) { mk.movie_id(i) -> { mk.keyword_id(i) -> 1 } } in
-let lt_trie0 = sum(<i,_> <- range(lt.size)) { lt.id(i) -> @vecdict { i -> 1 } } in
-let k_trie0 = sum(<i,_> <- range(k.size)) { k.id(i) -> 1 } in
+let mk_trie0 = sum(<i, _> <- range(mk.size)) { mk.movie_id(i) -> { mk.keyword_id(i) -> 1 } } in
+let lt_trie0 = sum(<i, _> <- range(lt.size)) { lt.id(i) -> @vecdict { i -> 1 } } in
+let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> 1 } in
 sum(<x0, mk_trie1> <- mk_trie0)
 	if (x0 ∈ interm0_trie0) then
 		let interm0_trie1 = interm0_trie0(x0) in
@@ -33,5 +33,6 @@ sum(<x0, mk_trie1> <- mk_trie0)
 					if (x2 ∈ k_trie0) then
 						let k_trie1 = k_trie0(x2) in
 						let mn_interm0 = sum(<interm0_tuple, _> <- interm0_trie2) promote[min_sum](<col1=interm0_tuple.col1, col4=interm0_tuple.col4>) in
-						let mn_lt = sum(<i, _> <- lt_trie1) promote[min_sum](<link=lt.link(i)>) in
+						let mn_lt = sum(<lt_off, _> <- lt_trie1) promote[min_sum](<link=lt.link(lt_off)>) in
 						promote[min_sum](<col3=mn_interm0.col1, col5=mn_interm0.col4, col6=mn_lt.link>)
+
