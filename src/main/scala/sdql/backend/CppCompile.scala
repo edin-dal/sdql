@@ -44,7 +44,7 @@ object CppCompile {
   def cmake(dirPath: Path, fileNames: Array[String]): Unit = {
     val contents = cmakeContents(fileNames.map(dirPath.resolve).map(_.toString).map(getNoExtension).toSeq)
     val path     = Paths.get(generatedDir.toString, cmakeFileName)
-    val _ = write(path, contents)
+    val _        = write(path, contents)
   }
   private def cmakeContents(noExtensions: Seq[String]): String = {
     val init = s"""# auto-generated config - handy for Clion
