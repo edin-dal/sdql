@@ -18,7 +18,7 @@ class RewriterTest extends AnyFlatSpec with Matchers {
                let x = <inner = <_ = 0>>
                x.inner(i)
                """
-    Rewriter(e) should be (rewrite)
+    Rewriter(e) should be(rewrite)
   }
 
   it should "remove intermediate tuple TPCH" in {
@@ -33,7 +33,7 @@ class RewriterTest extends AnyFlatSpec with Matchers {
                sum(<i,_> <- range(lineitem.size))
                    lineitem.l_extendedprice(i)
                """
-    Rewriter(e) should be (rewrite)
+    Rewriter(e) should be(rewrite)
   }
 
   it should "remove intermediate tuple GJ" in {
@@ -54,6 +54,6 @@ class RewriterTest extends AnyFlatSpec with Matchers {
                        < id=mk.id(i), movie_id=mk.movie_id(i), keyword_id=mk.keyword_id(i) > -> 1
                    } }
                """
-    Rewriter(e) should be (rewrite)
+    Rewriter(e) should be(rewrite)
   }
 }

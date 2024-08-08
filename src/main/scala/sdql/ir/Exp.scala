@@ -6,10 +6,10 @@ import munit.Assertions.munitPrint
 import scala.annotation.tailrec
 
 /**
- * This trait models expressions used in the SDQL language, without also
- * computing them. It can be used to generate an abstract syntax tree of a
- * given program.
- */
+  * This trait models expressions used in the SDQL language, without also
+  * computing them. It can be used to generate an abstract syntax tree of a
+  * given program.
+  */
 sealed trait Exp {
   def prettyPrint: String = munitPrint(this)
 
@@ -20,10 +20,10 @@ sealed trait Exp {
 }
 
 /**
- * This class models a symbol, e.g. "x1" or "x2", and it also includes options
- * to get a fresh symbol, or to reset the used symbol counter (start over from
- * x1).
- */
+  * This class models a symbol, e.g. "x1" or "x2", and it also includes options
+  * to get a fresh symbol, or to reset the used symbol counter (start over from
+  * x1).
+  */
 case class Sym(name: String) extends Exp
 object Sym {
   private val DEFAULT_NAME = "x"
@@ -51,15 +51,15 @@ object Sym {
 }
 
 /**
- * A constant
- * @param v integer, double, string, boolean
- */
+  * A constant
+  * @param v integer, double, string, boolean
+  */
 case class Const(v: Any) extends Exp
 
 /**
- * A record (tuple), with field labels
- * @param values a sequence of expression values with a field label
- */
+  * A record (tuple), with field labels
+  * @param values a sequence of expression values with a field label
+  */
 case class RecNode(values: Seq[(Field, Exp)]) extends Exp {
   def apply(name: Field): Option[Exp] = values.find(_._1 == name).map(_._2)
 
@@ -77,9 +77,9 @@ case class RecNode(values: Seq[(Field, Exp)]) extends Exp {
 }
 
 /**
- * A dictionary that maps expressions to other expressions
- * @param map a dictionary from expression to other expressions
- */
+  * A dictionary that maps expressions to other expressions
+  * @param map a dictionary from expression to other expressions
+  */
 case class DictNode(map: Seq[(Exp, Exp)], hint: CodegenHint = NoHint) extends Exp
 sealed trait CodegenHint
 case object NoHint extends CodegenHint
@@ -87,45 +87,45 @@ case object VecDict extends CodegenHint
 case object Vec extends CodegenHint
 
 /**
- * Integer numbers between 0 and n
- * @param e an expression evaluating to n
- */
+  * Integer numbers between 0 and n
+  * @param e an expression evaluating to n
+  */
 case class RangeNode(e: Exp) extends Exp
 
 /**
- * Addition of two expressions
- * @param e1 exp1
- * @param e2 exp2
- */
+  * Addition of two expressions
+  * @param e1 exp1
+  * @param e2 exp2
+  */
 case class Add(e1: Exp, e2: Exp) extends Exp
 
 /**
- * Multiplication of two expressions
- * @param e1 exp1
- * @param e2 exp2
- */
+  * Multiplication of two expressions
+  * @param e1 exp1
+  * @param e2 exp2
+  */
 case class Mult(e1: Exp, e2: Exp) extends Exp
 
 /**
- * Negative of an expression
- * @param e exp1
- */
+  * Negative of an expression
+  * @param e exp1
+  */
 case class Neg(e: Exp) extends Exp
 
 /**
- * Comparison of two expressions
- * @param e1 exp1
- * @param e2 exp2
- * @param cmp Comparison operator
- */
+  * Comparison of two expressions
+  * @param e1 exp1
+  * @param e2 exp2
+  * @param cmp Comparison operator
+  */
 case class Cmp(e1: Exp, e2: Exp, cmp: String) extends Exp
 
 /**
- * Conditional statement
- * @param cond condition
- * @param thenp expression if true
- * @param elsep expression if false
- */
+  * Conditional statement
+  * @param cond condition
+  * @param thenp expression if true
+  * @param elsep expression if false
+  */
 case class IfThenElse(cond: Exp, thenp: Exp, elsep: Exp) extends Exp
 case class FieldNode(e: Exp, f: Field) extends Exp
 case class Sum(key: Sym, value: Sym, e1: Exp, body: Exp) extends Exp
@@ -145,16 +145,16 @@ case class External(name: String, args: Seq[Exp]) extends Exp
 case class Unique(e: Exp) extends Exp
 
 /**
- * This object models the multiplication of a sequence of expressions. It can
- * either apply the multiplication operation to the sequence, or extract the
- * sequence of expressions (unapply) from a multiplication expression.
- */
+  * This object models the multiplication of a sequence of expressions. It can
+  * either apply the multiplication operation to the sequence, or extract the
+  * sequence of expressions (unapply) from a multiplication expression.
+  */
 object MultN {
   def apply(seq: Seq[Exp]): Exp = seq match {
-    case Seq(e) => e
-    case Seq(e1, e2) => Mult(e1, e2)
+    case Seq(e)            => e
+    case Seq(e1, e2)       => Mult(e1, e2)
     case _ if seq.size > 2 => Mult(seq.head, MultN(seq.tail))
-    case _ => raise(s"MultN with size ${seq.size}")
+    case _                 => raise(s"MultN with size ${seq.size}")
   }
   def unapply(exp: Exp): Option[Seq[Exp]] = exp match {
     case Mult(e1, e2) =>
@@ -175,7 +175,7 @@ object MultN {
 object MultNStriped {
   def unapply(exp: Exp): Option[Seq[Exp]] = exp match {
     case MultN(seq) => Some(seq)
-    case _ => Some(Seq(exp))
+    case _          => Some(Seq(exp))
   }
 }
 
@@ -188,23 +188,23 @@ object PairNode {
   def apply(_1: Exp, _2: Exp): Exp = RecNode(Seq((FST -> _1), (SND -> _2)))
   def unapply(e: Exp): Option[(Exp, Exp)] = e match {
     case RecNode(Seq(a1, a2)) if a1._1 == FST && a2._1 == SND => Some(a1._2 -> a2._2)
-    case _ => None
+    case _                                                    => None
   }
 }
 
 object Fst {
   def apply(e: Exp): Exp = FieldNode(e, PairType.FST)
   def unapply(e: Exp): Option[Exp] = e match {
-    case FieldNode(e1, PairType.FST) => Some(e1) 
-    case _ => None
+    case FieldNode(e1, PairType.FST) => Some(e1)
+    case _                           => None
   }
 }
 
 object Snd {
   def apply(e: Exp): Exp = FieldNode(e, PairType.SND)
   def unapply(e: Exp): Option[Exp] = e match {
-    case FieldNode(e1, PairType.SND) => Some(e1) 
-    case _ => None
+    case FieldNode(e1, PairType.SND) => Some(e1)
+    case _                           => None
   }
 }
 
@@ -213,21 +213,21 @@ object ProjectionNode {
   def unapply(e: Exp): Option[(Exp, Int)] = e match {
     case FieldNode(e1, FST) => Some(e1 -> 1)
     case FieldNode(e1, SND) => Some(e1 -> 2)
-    case _ => None
+    case _                  => None
   }
 }
 
 /**
- * This object models the addition of a sequence of expressions. It can either
- * apply the addition operation to the sequence, or extract the sequence of
- * expressions (unapply) from an addition expression.
- */
+  * This object models the addition of a sequence of expressions. It can either
+  * apply the addition operation to the sequence, or extract the sequence of
+  * expressions (unapply) from an addition expression.
+  */
 object AddN {
   def apply(seq: Seq[Exp]): Exp = seq match {
-    case Seq(e) => e
-    case Seq(e1, e2) => Add(e1, e2)
+    case Seq(e)            => e
+    case Seq(e1, e2)       => Add(e1, e2)
     case _ if seq.size > 2 => Add(seq.head, AddN(seq.tail))
-    case _ => ???
+    case _                 => ???
   }
   def unapply(exp: Exp): Option[Seq[Exp]] = exp match {
     case Add(e1, e2) =>
@@ -246,10 +246,10 @@ object AddN {
 }
 
 /**
- * This object models a sequence of let bindings, where the bindings can either
- * be applied in an expression body, or unapplied and returned from a given
- * expression.
- */
+  * This object models a sequence of let bindings, where the bindings can either
+  * be applied in an expression body, or unapplied and returned from a given
+  * expression.
+  */
 object LetBindingN {
   def apply(bindings: Seq[(Sym, Exp)], body: Exp): Exp =
     bindings.foldRight(body)((cur, acc) => LetBinding(cur._1, cur._2, acc))
@@ -259,10 +259,11 @@ object LetBindingN {
   //   unapplyOpt(exp)
 
   @tailrec def rec(exp: Exp, res: Res): Res = exp match {
-    case LetBinding(x, e1, e2) => rec(e2, res match {
-      case Some((seq, b)) => Some((seq :+ (x -> e1)) -> e2)
-      case None => Some(Seq(x -> e1) -> e2)
-    })
+    case LetBinding(x, e1, e2) =>
+      rec(e2, res match {
+        case Some((seq, b)) => Some((seq :+ (x -> e1)) -> e2)
+        case None           => Some(Seq(x -> e1) -> e2)
+      })
     case _ => res
   }
 
@@ -291,7 +292,7 @@ object LetBindingNStriped {
     case LetBindingN(xs, body) => {
       Some(xs -> body)
     }
-    case _                     => Some(Seq() -> t)
+    case _ => Some(Seq() -> t)
   }
 }
 
@@ -315,7 +316,7 @@ object Not {
   def apply(a: Exp): Exp = IfThenElse(a, Const(false), Const(true))
   def unapply(e: Exp): Option[Exp] = e match {
     case IfThenElse(a, Const(false), Const(true)) => Some(a)
-    case _ => None
+    case _                                        => None
   }
 }
 
@@ -323,6 +324,6 @@ object SingleDict {
   def apply(k: Exp, v: Exp): Exp = DictNode(Seq((k, v)))
   def unapply(exp: Exp): Option[(Exp, Exp)] = exp match {
     case DictNode(Seq((k, v)), _) => Some((k, v))
-    case _ => None
+    case _                        => None
   }
 }

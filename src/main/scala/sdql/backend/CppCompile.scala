@@ -26,7 +26,11 @@ object CppCompile {
     s.replace("\0", "").split("\n").sorted.mkString("\n")
 
   private def clangFormat(noExtension: String) = Seq(
-    "clang-format", "-i", s"$noExtension.cpp", "-style", s"{ColumnLimit: $clangColumnLimit}"
+    "clang-format",
+    "-i",
+    s"$noExtension.cpp",
+    "-style",
+    s"{ColumnLimit: $clangColumnLimit}"
   )
   private val clangColumnLimit = 120
   private def clang(noExtension: String) = clangCmd ++ Seq(s"$noExtension.cpp", "-o", s"$noExtension.out")
@@ -41,7 +45,7 @@ object CppCompile {
     reflect.io.File(path.toString).writeAll(contents)
   }
   private def cmakeContents(noExtensions: Seq[String]): String = {
-    val init =  s"""# auto-generated config - handy for Clion
+    val init = s"""# auto-generated config - handy for Clion
                    |cmake_minimum_required(VERSION $cmakeVersion)
                    |project(generated)
                    |set(CMAKE_CXX_STANDARD $cppStandard)

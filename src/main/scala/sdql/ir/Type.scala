@@ -68,7 +68,7 @@ object PairType {
   def apply(_1: Type, _2: Type): RecordType = RecordType(Seq(Attribute(FST, _1), Attribute(SND, _2)))
   def unapply(tp: Type): Option[(Type, Type)] = tp match {
     case RecordType(Seq(a1, a2)) if a1.name == FST && a2.name == SND => Some(a1.tpe -> a2.tpe)
-    case _ => None
+    case _                                                           => None
   }
 }
 
@@ -80,10 +80,10 @@ object DecimalType {
 }
 
 object ScalarType {
-  def unapply(tp: Type): Option[Type] = if(isScalar(tp)) Some(tp) else None
+  def unapply(tp: Type): Option[Type] = if (isScalar(tp)) Some(tp) else None
   def isScalar(tp: Type) = tp match {
     case _: DenseIntType | RealType | IntType | _: StringType | DateType | CharType | BoolType => true
-    case _ => false
+    case _                                                                                     => false
   }
 }
 

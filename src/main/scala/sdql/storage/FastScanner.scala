@@ -15,15 +15,14 @@ import scala.reflect.runtime.currentMirror
   * An efficient Scanner defined for reading from files.
   *
   */
-
 class FastScanner(filename: String) {
-  
+
   private var byteRead: Int = 0
   private var intDigits: Int = 0
   private var delimiter: Char = '|'
   private val br: BufferedReader = new BufferedReader(new FileReader(filename))
   private val sdf = new SimpleDateFormat("yyyy-MM-dd");
-    
+
   def next_int() = {
     var number = 0
     var signed = false
@@ -41,8 +40,9 @@ class FastScanner(filename: String) {
       intDigits = intDigits + 1
     }
     if ((byteRead != delimiter) && (byteRead != '.') && (byteRead != '\n'))
-      throw new RuntimeException("Tried to read Integer, but found neither delimiter nor . after number (found " +
-        byteRead.asInstanceOf[Char] + ", previous token = " + intDigits + "/" + number + ")")
+      throw new RuntimeException(
+        "Tried to read Integer, but found neither delimiter nor . after number (found " +
+          byteRead.asInstanceOf[Char] + ", previous token = " + intDigits + "/" + number + ")")
     if (signed) -1 * number else number
   }
 

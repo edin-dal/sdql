@@ -16,35 +16,35 @@ object TypeInference {
 
   @tailrec
   def run(e: Exp)(implicit ctx: Ctx): Type = e match {
-    case e: Sum => run(e)
+    case e: Sum        => run(e)
     case e: IfThenElse => run(e)
-    case e: Add => run(e)
-    case e: Mult => run(e)
-    case e: Neg => run(e)
-    case e: Sym => run(e)
-    case e: DictNode => run(e)
-    case e: RecNode => run(e)
-    case e: Cmp => run(e)
-    case e: FieldNode => run(e)
-    case e: Const => run(e)
-    case e: Get => run(e)
-    case e: External => run(e)
+    case e: Add        => run(e)
+    case e: Mult       => run(e)
+    case e: Neg        => run(e)
+    case e: Sym        => run(e)
+    case e: DictNode   => run(e)
+    case e: RecNode    => run(e)
+    case e: Cmp        => run(e)
+    case e: FieldNode  => run(e)
+    case e: Const      => run(e)
+    case e: Get        => run(e)
+    case e: External   => run(e)
     case e: LetBinding => run(e)
-    case e: Load => run(e)
-    case e: Concat => run(e)
+    case e: Load       => run(e)
+    case e: Concat     => run(e)
 
-    case Unique(e: Exp) => run(e)
+    case Unique(e: Exp)     => run(e)
     case Promote(_, e: Exp) => run(e)
 
     case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
 
   def run(e: IfThenElse)(implicit ctx: Ctx): Type = e match {
-    case IfThenElse(a, Const(false), Const(true)) => run(a)
+    case IfThenElse(a, Const(false), Const(true))          => run(a)
     case IfThenElse(_, DictNode(Nil, _), DictNode(Nil, _)) => raise("both branches empty")
-    case IfThenElse(_, DictNode(Nil, _), e2) => run(e2)
-    case IfThenElse(_, e1, DictNode(Nil, _)) => run(e1)
-    case _: IfThenElse => branching(e)
+    case IfThenElse(_, DictNode(Nil, _), e2)               => run(e2)
+    case IfThenElse(_, e1, DictNode(Nil, _))               => run(e1)
+    case _: IfThenElse                                     => branching(e)
   }
 
   def run(e: Sum)(implicit ctx: Ctx): Type = e match {
@@ -60,10 +60,10 @@ object TypeInference {
   }
 
   def run(e: Sym)(implicit ctx: Ctx): Type = e match {
-    case sym@Sym(name) =>
+    case sym @ Sym(name) =>
       ctx.get(sym) match {
         case Some(tpe) => tpe
-        case None => raise(s"unknown name: $name")
+        case None      => raise(s"unknown name: $name")
       }
   }
 
@@ -76,75 +76,85 @@ object TypeInference {
   }
 
   def run(e: RecNode)(implicit ctx: Ctx): Type = e match {
-    case RecNode(values) => RecordType(values.map(v => Attribute(name=v._1, tpe=run(v._2))))
+    case RecNode(values) => RecordType(values.map(v => Attribute(name = v._1, tpe = run(v._2))))
   }
 
   def run(e: Cmp): Type = BoolType
 
   def run(e: FieldNode)(implicit ctx: Ctx): Type = e match {
-    case FieldNode(e1: Exp, field) => run(e1) match {
-      case tpe: RecordType => inferRecordField(tpe, field)
-      case DictType(tpe: RecordType, IntType, _) => inferRecordField(tpe, field)
-      case tpe => raise(s"unexpected type: ${tpe.prettyPrint} in\n${e.prettyPrint}")
-    }
+    case FieldNode(e1: Exp, field) =>
+      run(e1) match {
+        case tpe: RecordType                       => inferRecordField(tpe, field)
+        case DictType(tpe: RecordType, IntType, _) => inferRecordField(tpe, field)
+        case tpe                                   => raise(s"unexpected type: ${tpe.prettyPrint} in\n${e.prettyPrint}")
+      }
   }
 
   private def inferRecordField(tpe: RecordType, field: Field) = {
     val attrs = tpe match { case RecordType(attrs) => attrs }
     tpe.indexOf(field) match {
       case Some(idx) => attrs(idx).tpe
-      case None => raise(attrs.map(_.name).mkString(s"$field not in: ", ", ", "."))
+      case None      => raise(attrs.map(_.name).mkString(s"$field not in: ", ", ", "."))
     }
   }
 
   def run(e: Const): Type = e match {
-    case Const(v) => v match {
-      case _: DateValue => DateType
-      case _: Boolean => BoolType
-      case _: Integer => IntType
-      case _: Double => RealType
-      case _: String => StringType()
-      case v => raise(s"unhandled class: ${v.getClass.getSimpleName}")
-    }
+    case Const(v) =>
+      v match {
+        case _: DateValue => DateType
+        case _: Boolean   => BoolType
+        case _: Integer   => IntType
+        case _: Double    => RealType
+        case _: String    => StringType()
+        case v            => raise(s"unhandled class: ${v.getClass.getSimpleName}")
+      }
   }
 
   def run(e: Get)(implicit ctx: Ctx): Type = e match {
-    case Get(e1, e2) => run(e1) match {
-      case RecordType(attrs) => run(e2) match {
-        case IntType => e2 match {
-          case Const(v: Int) => attrs(v).tpe
-          case tpe => raise(
-            s"expected ${Const.getClass.getSimpleName.init}, not ${tpe.simpleName}"
+    case Get(e1, e2) =>
+      run(e1) match {
+        case RecordType(attrs) =>
+          run(e2) match {
+            case IntType =>
+              e2 match {
+                case Const(v: Int) => attrs(v).tpe
+                case tpe =>
+                  raise(
+                    s"expected ${Const.getClass.getSimpleName.init}, not ${tpe.simpleName}"
+                  )
+              }
+            case tpe =>
+              raise(
+                s"expected ${IntType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
+              )
+          }
+        case DictType(kType, vType, _) =>
+          run(e2) match {
+            case tpe if tpe == kType => vType
+            case tpe =>
+              raise(
+                s"can't index with ${tpe.simpleName} from ${DictType.getClass.getSimpleName.init}"
+              )
+          }
+        case tpe =>
+          raise(
+            s"expected ${RecordType.getClass.getSimpleName.init} or " +
+              s"${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
           )
-        }
-        case tpe => raise(
-          s"expected ${IntType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
-        )
       }
-      case DictType(kType, vType, _) => run(e2) match {
-        case tpe if tpe == kType => vType
-        case tpe => raise(
-          s"can't index with ${tpe.simpleName} from ${DictType.getClass.getSimpleName.init}"
-        )
-      }
-      case tpe => raise(
-        s"expected ${RecordType.getClass.getSimpleName.init} or " +
-          s"${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
-      )
-    }
   }
 
   def run(e: External)(implicit ctx: Ctx): Type = e match {
     case External(ConstantString.SYMBOL, args) =>
-      val (str, maxLen) = args match { case Seq(Const(str: String), Const(maxLen: Int)) => (str, maxLen)}
+      val (str, maxLen) = args match { case Seq(Const(str: String), Const(maxLen: Int)) => (str, maxLen) }
       assert(maxLen == str.length + 1)
       StringType(Some(str.length))
     case External(StrContains.SYMBOL | StrStartsWith.SYMBOL | StrEndsWith.SYMBOL | StrContainsN.SYMBOL, _) =>
       BoolType
     case External(SubString.SYMBOL, args) =>
-      val (str, start, end) = args match { case Seq(str, Const(start: Int), Const(end: Int)) => (str, start, end)}
+      val (str, start, end) = args match { case Seq(str, Const(start: Int), Const(end: Int)) => (str, start, end) }
       TypeInference.run(str) match {
-        case StringType(None) => StringType(None)
+        case StringType(None)    => StringType(None)
         case StringType(Some(_)) => StringType(Some(end - start))
       }
     case External(StrIndexOf.SYMBOL | FirstIndex.SYMBOL | LastIndex.SYMBOL | Year.SYMBOL, _) =>
@@ -158,18 +168,20 @@ object TypeInference {
       val arg = args match { case Seq(e) => e }
       run(arg) match {
         case DictType(_, vt, _) => vt
-        case tpe => raise(
-          s"${MaxValue.SYMBOL} or ${Size.SYMBOL} expect arg " +
-            s"${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
-        )
+        case tpe =>
+          raise(
+            s"${MaxValue.SYMBOL} or ${Size.SYMBOL} expect arg " +
+              s"${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
+          )
       }
     case External(name @ Limit.SYMBOL, args) =>
-      val arg = args match { case Seq(e, _, _) => e}
+      val arg = args match { case Seq(e, _, _) => e }
       run(arg) match {
         case tpe: DictType => tpe
-        case tpe => raise(
-          s"$name expects arg ${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
-        )
+        case tpe =>
+          raise(
+            s"$name expects arg ${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
+          )
       }
     case External(TopN.SYMBOL, _) =>
       raise(s"unimplemented function name: ${TopN.SYMBOL}")
@@ -183,13 +195,13 @@ object TypeInference {
 
   def run(e: Load): Type = e match {
     case Load(_, rt: RecordType) if isColumnStore(rt) => rt
-    case Load(_, tp) => raise(s"unexpected: ${tp.prettyPrint}")
+    case Load(_, tp)                                  => raise(s"unexpected: ${tp.prettyPrint}")
   }
 
   def isColumnStore(rt: RecordType): Boolean = {
     rt("size") match {
       case Some(IntType) =>
-      case _ => return false
+      case _             => return false
     }
     rt match {
       case RecordType(attrs) =>
@@ -204,21 +216,21 @@ object TypeInference {
   }
 
   def run(e: Concat)(implicit ctx: Ctx): Type = e match {
-    case Concat(e1, e2) => (run(e1), run(e2)) match {
-      case (v1 @ RecordType(fs1), v2 @ RecordType(fs2)) =>
-        val (fs1m, fs2m) = fs1.map(x1 => (x1.name, x1.tpe)).toMap -> fs2.map(x2 => (x2.name, x2.tpe)).toMap
-        val common =
-          fs1.filter(x1 => fs2m.contains(x1.name)).map(x1 => (x1.name, x1.tpe, fs2m(x1.name)))
-        if(common.isEmpty)
-          RecordType(fs1 ++ fs2)
-        else
-          if(common.forall(x => x._2 == x._3))
+    case Concat(e1, e2) =>
+      (run(e1), run(e2)) match {
+        case (v1 @ RecordType(fs1), v2 @ RecordType(fs2)) =>
+          val (fs1m, fs2m) = fs1.map(x1 => (x1.name, x1.tpe)).toMap -> fs2.map(x2 => (x2.name, x2.tpe)).toMap
+          val common =
+            fs1.filter(x1 => fs2m.contains(x1.name)).map(x1 => (x1.name, x1.tpe, fs2m(x1.name)))
+          if (common.isEmpty)
+            RecordType(fs1 ++ fs2)
+          else if (common.forall(x => x._2 == x._3))
             RecordType(fs1 ++ fs2.filter(x2 => !fs1m.contains(x2.name)))
           else
             raise(s"`concat($v1, $v2)` with different values for the same field name")
-      case (v1, v2) =>
-        raise(s"`concat($v1,$v2)` needs records, but given `${v1.getClass}`, `${v2.getClass}`")
-    }
+        case (v1, v2) =>
+          raise(s"`concat($v1,$v2)` needs records, but given `${v1.getClass}`, `${v2.getClass}`")
+      }
   }
 
   private def branching(e: Exp)(implicit ctx: Ctx): Type = {
@@ -232,9 +244,9 @@ object TypeInference {
       case IfThenElse(cond, e1, e2) =>
         assert(run(cond) == BoolType)
         (e1, e2)
-      case Add(e1, e2) => (e1, e2)
+      case Add(e1, e2)  => (e1, e2)
       case Mult(e1, e2) => (e1, e2)
-      case _ => raise(s"unhandled class: ${e.simpleName}")
+      case _            => raise(s"unhandled class: ${e.simpleName}")
     }
     val t1 = run(e1)
     val t2 = run(e2)
@@ -265,12 +277,14 @@ object TypeInference {
     val localCtx = ctx ++ (e1 match {
       case _: RangeNode => Map(k -> IntType)
       // from e1 infer types of k, v
-      case _ => run(e1) match {
-        case DictType(kType, vType, _) => Map(k -> kType, v -> vType)
-        case tpe => raise(
-          s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
-        )
-      }
+      case _ =>
+        run(e1) match {
+          case DictType(kType, vType, _) => Map(k -> kType, v -> vType)
+          case tpe =>
+            raise(
+              s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
+            )
+        }
     })
     // from types of k, v infer type of e2
     val tpe = run(e2)(localCtx)

@@ -108,25 +108,21 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
     CodegenHelpers.compilesExp(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) s_v ")
     CodegenHelpers.compilesExp(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) s ")
     CodegenHelpers.compilesExp(sdql"let S = $s in sum(<s, s_v> <- S) s_v ")
-    CodegenHelpers.compilesExp(
-      sdql"""let S = { 1 -> 1.5, 2 -> 2.5 }
+    CodegenHelpers.compilesExp(sdql"""let S = { 1 -> 1.5, 2 -> 2.5 }
       let S1 = sum(<s, s_v> <- S) if(s == 1) then {s -> s_v*3} else {}
       sum(<s, s_v> <- S1) s_v
       """)
-    CodegenHelpers.compilesExp(
-      sdql"""let S = { 1 -> 1.5, 2 -> 2.5 }
+    CodegenHelpers.compilesExp(sdql"""let S = { 1 -> 1.5, 2 -> 2.5 }
       let S1 = sum(<s, s_v> <- S) if(s == 3) then {s -> s_v*3} else {}
       sum(<s, s_v> <- S1) s_v
       """)
-    CodegenHelpers.compilesExp(
-      sdql"""let S = { 1 -> 1.5, 2 -> -1.5 }
+    CodegenHelpers.compilesExp(sdql"""let S = { 1 -> 1.5, 2 -> -1.5 }
       sum(<s, s_v> <- S) {1 -> s_v}
       """)
   }
 
   it should "codegen joins" in {
-    CodegenHelpers.compilesExp(
-      sdql"""
+    CodegenHelpers.compilesExp(sdql"""
 let S = $s in
 let R = $r in
 let H_R = sum(<x_r, x_r_v> <- R)
@@ -136,8 +132,7 @@ sum(<x_s, x_s_v> <- S)
   sum(<x_r, x_r_v> <- R_p)
     { < i = x_s.i, s = x_s.s, c = x_r.c > -> R_p(x_r) * S(x_s) }
 """)
-    CodegenHelpers.compilesExp(
-      sdql"""
+    CodegenHelpers.compilesExp(sdql"""
 let S = $s in
 let R = $r in
 sum(<x_s, x_s_v> <- S)
@@ -150,8 +145,7 @@ sum(<x_s, x_s_v> <- S)
   }
 
   it should "codegen simple graph queries" in {
-    CodegenHelpers.compilesExp(
-      sdql"""let Nodes = {
+    CodegenHelpers.compilesExp(sdql"""let Nodes = {
       0 -> <label = {"Person" -> true, "Director" -> true, "Singer" -> true}, name="Oliver Stone", age=30>,
       1 -> <label = {"Person" -> true, "Director" -> true}, name="Michael Douglas", age=35>,
       2 -> <label = {"Person" -> true, "Actor" -> true}, name="Charlie Sheen",age=32>}

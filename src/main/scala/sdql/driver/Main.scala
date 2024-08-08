@@ -10,12 +10,12 @@ import java.nio.file.Path
 object Main {
 
   def main(args: Array[String]): Unit = {
-    if(args.length < 1) {
+    if (args.length < 1) {
       raise("usage: `run <cmd> <args>*`")
     }
     args(0) match {
       case "interpret" =>
-        if(args.length < 3) {
+        if (args.length < 3) {
           raise("usage: `run interpret <path> <sdql_files>*`")
         }
         val dirPath = Path.of(args(1))
@@ -25,11 +25,11 @@ object Main {
           val prog = SourceCode.fromFile(filePath.toString).exp
           val res = Interpreter(prog)
           println(fileName)
-          println({Value.toString(res)})
+          println({ Value.toString(res) })
           println()
         }
       case "compile" =>
-        if(args.length < 3) {
+        if (args.length < 3) {
           raise("usage: `run compile <path> <sdql_files>*`")
         }
         val dirPath = Path.of(args(1))
@@ -44,7 +44,7 @@ object Main {
           println()
         }
       case "benchmark" =>
-        if(args.length < 4) {
+        if (args.length < 4) {
           raise("usage: `run benchmark n <path> <sdql_files>*`")
         }
         val n = args(1).toInt
