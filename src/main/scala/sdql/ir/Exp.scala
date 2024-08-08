@@ -107,7 +107,7 @@ case class Add(e1: Exp, e2: Exp) extends Exp
 case class Mult(e1: Exp, e2: Exp) extends Exp
 
 /**
- * Nagative of an expression
+ * Negative of an expression
  * @param e exp1
  */
 case class Neg(e: Exp) extends Exp
