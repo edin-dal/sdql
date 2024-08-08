@@ -1,9 +1,6 @@
-val scalaVersion_ = "2.13.14"
-
-scalaVersion := scalaVersion_
+scalaVersion := "2.13.14"
 
 libraryDependencies ++= Seq(
-  "org.scala-lang" % "scala-reflect"  % scalaVersion_,
   "com.lihaoyi"    %% "fastparse"     % "3.1.1",
   "junit"          % "junit-dep"      % "4.11" % "test",
   "org.scalatest"  % "scalatest_2.13" % "3.2.19" % "test",

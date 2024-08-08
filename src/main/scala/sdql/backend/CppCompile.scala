@@ -1,7 +1,7 @@
 package sdql
 package backend
-
-import java.nio.file.{ Path, Paths }
+import java.nio.charset.StandardCharsets
+import java.nio.file.{ Files, Path, Paths }
 import scala.sys.process.{ Process, ProcessBuilder }
 
 object CppCompile {
@@ -12,7 +12,7 @@ object CppCompile {
 
   def writeFormat(sdqlFilePath: String, cpp: String): Unit = {
     val noExtension = getNoExtension(sdqlFilePath)
-    reflect.io.File(cppPath(noExtension).toString).writeAll(cpp)
+    write(cppPath(noExtension), cpp)
     val _ = inGeneratedDir(clangFormat(noExtension)).!!
   }
 
@@ -24,6 +24,8 @@ object CppCompile {
 
   private def prettyPrint(s: String): String =
     s.replace("\u0000", "").split("\n").sorted.mkString("\n")
+
+  private def write(path: Path, contents: String) = Files.write(path, contents.getBytes(StandardCharsets.UTF_8))
 
   private def clangFormat(noExtension: String) = Seq(
     "clang-format",
@@ -42,7 +44,7 @@ object CppCompile {
   def cmake(dirPath: Path, fileNames: Array[String]): Unit = {
     val contents = cmakeContents(fileNames.map(dirPath.resolve).map(_.toString).map(getNoExtension).toSeq)
     val path     = Paths.get(generatedDir.toString, cmakeFileName)
-    reflect.io.File(path.toString).writeAll(contents)
+    val _ = write(path, contents)
   }
   private def cmakeContents(noExtensions: Seq[String]): String = {
     val init = s"""# auto-generated config - handy for Clion
