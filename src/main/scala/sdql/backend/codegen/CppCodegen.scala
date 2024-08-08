@@ -1,19 +1,20 @@
-package sdql
-package backend
+package sdql.backend.codegen
 
 import sdql.analysis.TypeInference
-import sdql.ir.ExternalFunctions.*
+import sdql.backend.Rewriter
+import sdql.backend.codegen.ExternalFunctions
 import sdql.ir.*
+import sdql.ir.ExternalFunctions.{ Inv, Limit }
+import sdql.{ ir, raise }
 
-import java.util.UUID
 import scala.PartialFunction.{ cond, condOpt }
 import scala.annotation.tailrec
 
-private sealed trait CallCtx
-private case class LetCtx(name: String) extends CallCtx
-private case object SumStart            extends CallCtx
-private case object SumEnd              extends CallCtx
-private case object IsTernary           extends CallCtx
+sealed trait CallCtx
+case class LetCtx(name: String) extends CallCtx
+case object SumStart            extends CallCtx
+case object SumEnd              extends CallCtx
+case object IsTernary           extends CallCtx
 
 private sealed trait Aggregation
 private case object SumAgg  extends Aggregation
@@ -22,13 +23,9 @@ private case object MinAgg  extends Aggregation
 private case object MaxAgg  extends Aggregation
 
 object CppCodegen {
-  private type TypesCtx = TypeInference.Ctx
-  private type CallsCtx = Seq[CallCtx]
-
-  private val vecSize    = 6000001
-  private val reDate     = "^(\\d{4})(\\d{2})(\\d{2})$".r
-  private val resultName = "result"
-  private val noName     = "_"
+  private val vecSize = 6000001
+  private val reDate  = "^(\\d{4})(\\d{2})(\\d{2})$".r
+  private val noName  = "_"
 
   private val header = """#include "../runtime/headers.h""""
   private val csvConsts =
@@ -57,7 +54,7 @@ object CppCodegen {
            |if (iter == $benchmarkRuns) {
            |cerr << endl;
            |std::cout << timer.GetMean(0) << " ms" << std::endl;
-           |${cppPrintResult(TypeInference(rewrite))}
+           |${Printing.cppPrintResult(TypeInference(rewrite))}
            |}
            |}""".stripMargin
     s"""$header
@@ -67,7 +64,7 @@ object CppCodegen {
        |$benchStart
        |$queryBody
        |$benchStop
-       |${if (benchmarkRuns == 0) cppPrintResult(TypeInference(rewrite)) else ""}
+       |${if (benchmarkRuns == 0) Printing.cppPrintResult(TypeInference(rewrite)) else ""}
        |}""".stripMargin
   }
 
@@ -326,76 +323,7 @@ object CppCodegen {
       }
   }
 
-  private def run(e: External)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
-    case External(ConstantString.SYMBOL, Seq(Const(str: String), Const(maxLen: Int))) =>
-      assert(maxLen == str.length + 1)
-      s"""ConstantString("$str", $maxLen)"""
-    case External(StrContains.SYMBOL, Seq(str, subStr)) =>
-      val func = ((TypeInference.run(str), TypeInference.run(subStr)): @unchecked) match {
-        case (StringType(None), StringType(None))       => "find"
-        case (StringType(Some(_)), StringType(Some(_))) => "contains"
-        case (StringType(None), StringType(Some(_))) | (StringType(Some(_)), StringType(None)) =>
-          raise(s"${StrContains.SYMBOL} doesn't support fixed and variable length strings together")
-      }
-      s"${run(str)}.$func(${run(subStr)})"
-    case External(StrStartsWith.SYMBOL, Seq(str, prefix)) =>
-      val startsWith = (TypeInference.run(str): @unchecked) match {
-        case StringType(None)    => "starts_with"
-        case StringType(Some(_)) => "startsWith"
-      }
-      s"${run(str)}.$startsWith(${run(prefix)})"
-    case External(StrEndsWith.SYMBOL, Seq(str, suffix)) =>
-      val endsWith = (TypeInference.run(str): @unchecked) match {
-        case StringType(None)    => "ends_with"
-        case StringType(Some(_)) => "endsWith"
-      }
-      s"${run(str)}.$endsWith(${run(suffix)})"
-    case External(SubString.SYMBOL, Seq(str, Const(start: Int), Const(end: Int))) =>
-      val subStr = (TypeInference.run(str): @unchecked) match {
-        case StringType(None)    => "substr"
-        case StringType(Some(_)) => s"substr<${end - start}>"
-      }
-      s"${run(str)}.$subStr($start, $end)"
-    case External(StrIndexOf.SYMBOL, Seq(field: FieldNode, elem, from)) =>
-      assert(cond(TypeInference.run(field)) { case StringType(None) => true })
-      s"${run(field)}.find(${run(elem)}, ${run(from)})"
-    case External(FirstIndex.SYMBOL, Seq(on, patt)) =>
-      s"${run(on)}.firstIndex(${run(patt)})"
-    case External(LastIndex.SYMBOL, Seq(on, patt)) =>
-      s"${run(on)}.lastIndex(${run(patt)})"
-    case External(name @ Inv.SYMBOL, _) =>
-      raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
-    case External(MaxValue.SYMBOL, Seq(arg)) =>
-      val name = (arg: @unchecked) match {
-        case Sym(name) => name
-      }
-      s"""std::max_element($name.begin(), $name.end(), [](const auto &p1, const auto &p2) {
-         |return p1.second < p2.second;
-         |})->second;
-         |""".stripMargin
-    case External(Size.SYMBOL, Seq(arg)) =>
-      TypeInference.run(arg) match {
-        case _: DictType => s"${run(arg)}.size()"
-        case t           => raise(s"unexpected: ${t.prettyPrint}")
-      }
-    case External(Limit.SYMBOL, Seq(sym @ Sym(arg), Const(n: Int), Const(isDescending: Boolean))) =>
-      val limit = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
-      val tmp   = s"tmp_$uuid"
-      val (dictTpe, kt, vt) = (TypeInference.run(sym): @unchecked) match {
-        case dictTpe @ DictType(kt, vt, _) => (dictTpe, kt, vt)
-      }
-      val recTpe    = RecordType(Seq(Attribute("_1", kt), Attribute("_2", vt)))
-      val recTpeCpp = cppType(recTpe)
-      val cmp       = if (isDescending) ">" else "<"
-      s"""std::vector<$recTpeCpp> $tmp($n);
-         |std::partial_sort_copy(
-         |    $arg.begin(), $arg.end(), $tmp.begin(), $tmp.end(),
-         |    []($recTpeCpp const &l, $recTpeCpp const &r) { return std::get<1>(l) $cmp std::get<1>(r); });
-         |auto $limit = ${cppType(dictTpe)}($tmp.begin(), $tmp.end());
-         |""".stripMargin
-    case External(name, _) =>
-      raise(s"unhandled function name: $name")
-  }
+  private def run(e: External)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = ExternalFunctions.run(e)
 
   private def run(e: Concat)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Concat(e1: RecNode, e2: RecNode) => run(e1.concat(e2))
@@ -433,7 +361,7 @@ object CppCodegen {
     case tpe                              => raise(s"unimplemented type: $tpe")
   }
 
-  private def cppType(tpe: ir.Type): String = tpe match {
+  def cppType(tpe: ir.Type): String = tpe match {
     case BoolType                       => "bool"
     case RealType                       => "double"
     case IntType | DateType             => "long"
@@ -548,57 +476,4 @@ object CppCodegen {
 
   private def aggregationName(implicit callsCtx: CallsCtx) =
     callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
-
-  private def cppPrintResult(tpe: Type) = tpe match {
-    case DictType(kt, vt, NoHint) =>
-      s"""for (const auto &[key, val] : $resultName) {
-         |$stdCout << ${_cppPrintResult(kt, "key")} << ":" << ${_cppPrintResult(vt, "val")} << std::endl;
-         |}""".stripMargin
-    case DictType(kt, vt, VecDict) =>
-      assert(vt == IntType, s"${vt.simpleName} != ${IntType.simpleName}")
-      val cond = vt match {
-        case _: DictType =>
-          s"!$resultName[i].empty()"
-        case _: RecordType =>
-          raise(s"Print not implemented for ${vt.simpleName} inside vector")
-        case t =>
-          assert(t.isScalar)
-          s"$resultName[i] != 0"
-      }
-      s"""for (auto i = 0; i < $resultName.size(); ++i) {
-         |if ($cond) {
-         |$stdCout << ${_cppPrintResult(kt, "i")} << ":" << ${_cppPrintResult(vt, s"$resultName[i]")} << std::endl;
-         |}
-         |}""".stripMargin
-    case _ =>
-      s"$stdCout << ${_cppPrintResult(tpe, resultName)} << std::endl;"
-  }
-
-  private def _cppPrintResult(tpe: Type, name: String) = tpe match {
-    case _: DictType =>
-      // we currently don't pretty print inside nested dicts
-      name
-    case RecordType(Nil) =>
-      name
-    case RecordType(attrs) =>
-      attrs.zipWithIndex
-        .map(
-          {
-            case (Attribute(_, tpe: RecordType), _) =>
-              raise(s"Nested ${tpe.simpleName} not supported")
-            case (Attribute(_, DateType), i) =>
-              s"print_date(std::get<$i>($name))"
-            case (Attribute(_, _), i) =>
-              s"std::get<$i>($name)"
-          }
-        )
-        .mkString(""""<" <<""", """ << "," << """, """<< ">"""")
-    case _ =>
-      assert(tpe.isScalar)
-      name
-  }
-
-  private val stdCout = s"std::cout << std::setprecision (std::numeric_limits<double>::digits10)"
-
-  private def uuid = UUID.randomUUID.toString.replace("-", "_")
 }
