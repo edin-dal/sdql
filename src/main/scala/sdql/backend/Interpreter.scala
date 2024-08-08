@@ -1,11 +1,12 @@
 package sdql
 package backend
 
-import ir._
-import storage.{Loader, Table}
-import scala.annotation.tailrec
+import sdql.ir._
+import sdql.storage.{Loader, Table}
 
-object Interpreter {
+import scala.annotation.{nowarn, tailrec}
+
+@nowarn object Interpreter {
   type Value = Any
   type Var = Sym
   type Ctx = Map[Var, Value]
@@ -341,6 +342,7 @@ object Interpreter {
   def external(name: String, args: Seq[Value]): Value = {
     import ExternalFunctions._
     def raiseTp(tp: String) = raise(s"ext(`$name`, ...) expects $tp, but given: ${args.mkString(", ")}.")
+    import scala.language.implicitConversions
     implicit def bool2double(b: Boolean): Double = if (b) 1 else 0
     name match {
       case ParseDate.SYMBOL =>

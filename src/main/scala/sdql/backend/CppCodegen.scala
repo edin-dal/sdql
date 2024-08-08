@@ -330,7 +330,7 @@ object CppCodegen {
       assert(maxLen == str.length + 1)
       s"""ConstantString("$str", $maxLen)"""
     case External(StrContains.SYMBOL, Seq(str, subStr)) =>
-      val func = (TypeInference.run(str), TypeInference.run(subStr)) match {
+      val func = ((TypeInference.run(str), TypeInference.run(subStr)): @unchecked) match {
         case (StringType(None), StringType(None))       => "find"
         case (StringType(Some(_)), StringType(Some(_))) => "contains"
         case (StringType(None), StringType(Some(_))) | (StringType(Some(_)), StringType(None)) =>
@@ -338,19 +338,19 @@ object CppCodegen {
       }
       s"${run(str)}.$func(${run(subStr)})"
     case External(StrStartsWith.SYMBOL, Seq(str, prefix)) =>
-      val startsWith = TypeInference.run(str) match {
+      val startsWith = (TypeInference.run(str): @unchecked) match {
         case StringType(None)    => "starts_with"
         case StringType(Some(_)) => "startsWith"
       }
       s"${run(str)}.$startsWith(${run(prefix)})"
     case External(StrEndsWith.SYMBOL, Seq(str, suffix)) =>
-      val endsWith = TypeInference.run(str) match {
+      val endsWith = (TypeInference.run(str): @unchecked) match {
         case StringType(None)    => "ends_with"
         case StringType(Some(_)) => "endsWith"
       }
       s"${run(str)}.$endsWith(${run(suffix)})"
     case External(SubString.SYMBOL, Seq(str, Const(start: Int), Const(end: Int))) =>
-      val subStr = TypeInference.run(str) match {
+      val subStr = (TypeInference.run(str): @unchecked) match {
         case StringType(None)    => "substr"
         case StringType(Some(_)) => s"substr<${end - start}>"
       }
@@ -454,7 +454,7 @@ object CppCodegen {
               e =>
                 condOpt(e) {
                   case LetBinding(Sym(name), load @ Load(path, tp: RecordType), _) if TypeInference.isColumnStore(tp) =>
-                    val recordType = load match { case Load(_, recordType: RecordType) => recordType }
+                    val recordType = (load: @unchecked) match { case Load(_, recordType: RecordType) => recordType }
                     (path, name, recordType)
               }
           ))

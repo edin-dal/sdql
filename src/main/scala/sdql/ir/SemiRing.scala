@@ -1,7 +1,7 @@
 package sdql
 package ir
 
-trait SemiRing
+import scala.annotation.nowarn
 
 abstract class TropicalSemiRing[T](val kind: TropicalSemiRingType, val value: Option[T])
 object TropicalSemiRing {
@@ -10,10 +10,11 @@ object TropicalSemiRing {
     case MaxSumSemiRingType  => MaxSumSemiRing(Some(value))
     case MinProdSemiRingType => MinProdSemiRing(Some(value))
     case MaxProdSemiRingType => MaxProdSemiRing(Some(value))
+    case t                   => raise(s"unexpected: ${t.prettyPrint}")
   }
   def unapply(e: Any): Option[(TropicalSemiRingType, Option[Double])] = e match {
-    case t: TropicalSemiRing[Double] => Some((t.kind, t.value))
-    case _                           => None
+    case t: TropicalSemiRing[Double] @nowarn => Some((t.kind, t.value))
+    case _                                   => None
   }
   val MinSumSemiRingType = TropicalSemiRingType(false, false, RealType)
   val MaxSumSemiRingType = TropicalSemiRingType(true, false, RealType)

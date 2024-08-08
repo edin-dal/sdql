@@ -23,7 +23,7 @@ object CppCompile {
   }
 
   private def prettyPrint(s: String): String =
-    s.replace("\0", "").split("\n").sorted.mkString("\n")
+    s.replace("\u0000", "").split("\n").sorted.mkString("\n")
 
   private def clangFormat(noExtension: String) = Seq(
     "clang-format",

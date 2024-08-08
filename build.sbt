@@ -11,3 +11,5 @@ libraryDependencies ++= Seq(
 )
 
 Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-P32")
+
+scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Xfatal-warnings")

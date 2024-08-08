@@ -67,7 +67,7 @@ object TypeInference {
       }
   }
 
-  def run(e: DictNode)(implicit ctx: Ctx): Type = e match {
+  def run(e: DictNode)(implicit ctx: Ctx): DictType = e match {
     case DictNode(Nil, _) =>
       raise("Type inference needs backtracking to infer empty type { }")
     case DictNode(seq, hint) =>
@@ -75,7 +75,7 @@ object TypeInference {
       tpe
   }
 
-  def run(e: RecNode)(implicit ctx: Ctx): Type = e match {
+  def run(e: RecNode)(implicit ctx: Ctx): RecordType = e match {
     case RecNode(values) => RecordType(values.map(v => Attribute(name = v._1, tpe = run(v._2))))
   }
 
@@ -156,6 +156,7 @@ object TypeInference {
       TypeInference.run(str) match {
         case StringType(None)    => StringType(None)
         case StringType(Some(_)) => StringType(Some(end - start))
+        case t                   => raise(s"unexpected: ${t.prettyPrint}")
       }
     case External(StrIndexOf.SYMBOL | FirstIndex.SYMBOL | LastIndex.SYMBOL | Year.SYMBOL, _) =>
       IntType
