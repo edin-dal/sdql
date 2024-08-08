@@ -47,6 +47,18 @@ case class RecordType(attrs: Seq[Attribute]) extends Type {
     names.zipWithIndex.find(_._1 == name).map(_._2)
   }
   def apply(name: Field): Option[Type] = attrs.find(_.name == name).map(_.tpe)
+  def concat(other: RecordType): RecordType = other match {
+    case RecordType(attrs2) =>
+      val (fs1m, fs2m) = attrs.map(x1 => (x1.name, x1.tpe)).toMap -> attrs2.map(x2 => (x2.name, x2.tpe)).toMap
+      val common =
+        attrs.filter(x1 => fs2m.contains(x1.name)).map(x1 => (x1.name, x1.tpe, fs2m(x1.name)))
+      if (common.isEmpty)
+        RecordType(attrs ++ attrs2)
+      else if (common.forall(x => x._2 == x._3))
+        RecordType(attrs ++ attrs2.filter(x2 => !fs1m.contains(x2.name)))
+      else
+        raise(s"`concat(${this.prettyPrint}, ${other.prettyPrint})` with different values for the same field name")
+  }
 }
 
 object TupleType {
