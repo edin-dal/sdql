@@ -40,7 +40,7 @@ object CppCompile {
   private val reFilename = "^(.+/)*(.+)\\.(.+)$".r
 
   def cmake(dirPath: Path, fileNames: Array[String]): Unit = {
-    val contents = cmakeContents(fileNames.map(dirPath.resolve).map(_.toString).map(getNoExtension))
+    val contents = cmakeContents(fileNames.map(dirPath.resolve).map(_.toString).map(getNoExtension).toSeq)
     val path = Paths.get(generatedDir.toString, cmakeFileName)
     reflect.io.File(path.toString).writeAll(contents)
   }

@@ -27,8 +27,8 @@ object Loader {
     while (i < size && ldr.hasNext()) {
       val values = table.attributes.map(arg =>
         arg.tpe match {
-          case IntType       => ldr.next_int
-          case RealType      => ldr.next_double
+          case IntType       => ldr.next_int()
+          case RealType      => ldr.next_double()
           case _: StringType => ldr.next_string
           case DateType      => DateValue(ldr.next_date)
           case t             => raise(s"Not handled type `$t` in the loader.")

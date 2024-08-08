@@ -8,9 +8,9 @@ package object frontend {
     def sdql(args: Any*): Exp = {
       val strings = sc.parts.iterator
       val expressions = args.iterator
-      val buf = new StringBuffer(strings.next)
+      val buf = new StringBuffer(strings.next())
       while (strings.hasNext) {
-        val nextExpression = expressions.next match {
+        val nextExpression = expressions.next() match {
           case b: Boolean     => valueToString(b)
           case s: String      => valueToString(s)
           case d: Double      => valueToString(d)
@@ -27,7 +27,7 @@ package object frontend {
             raise(s"doesn't know how to splice `$x`")
         }
         buf.append(nextExpression)
-        buf.append(strings.next)
+        buf.append(strings.next())
       }
       Parser(buf.toString)
     }

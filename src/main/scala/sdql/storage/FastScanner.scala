@@ -97,10 +97,10 @@ class FastScanner(filename: String) {
 
   def next_date: Int = {
     delimiter = '-'
-    val year = next_int
-    val month = next_int
+    val year = next_int()
+    val month = next_int()
     delimiter = '|'
-    val day = next_int
+    val day = next_int()
     //val date_str = year + "-" + month + "-" + day
     year * 10000 + month * 100 + day
   }
