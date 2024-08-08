@@ -1,10 +1,10 @@
 package sdql
 package frontend
 
-import ir._
+import fastparse.CharPredicates._
+import fastparse.NoWhitespace._
 import fastparse._
-import NoWhitespace._
-import CharPredicates._
+import sdql.ir._
 
 object Parser {
   def keywords[_: P] = P(

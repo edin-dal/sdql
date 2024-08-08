@@ -1,12 +1,8 @@
 package sdql
 package storage
 
-import java.io.FileReader
-import java.io.BufferedReader
+import java.io.{BufferedReader, FileReader}
 import java.text.SimpleDateFormat
-import scala.reflect._
-import scala.reflect.runtime.universe._
-import scala.reflect.runtime.currentMirror
 
 /**
   * Code from: https://github.com/epfldata/dblab/blob/develop/components/

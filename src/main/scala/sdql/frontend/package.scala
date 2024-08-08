@@ -1,5 +1,5 @@
 package sdql
-import ir._
+import sdql.ir._
 
 package object frontend {
   implicit class Interpolator(val sc: StringContext) {

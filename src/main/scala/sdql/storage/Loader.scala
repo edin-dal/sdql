@@ -1,10 +1,7 @@
 package sdql
 package storage
 
-import java.io.FileReader
-import java.io.BufferedReader
-import java.text.SimpleDateFormat
-import ir._
+import sdql.ir._
 
 /**
   * Code from: https://github.com/epfldata/dblab/blob/develop/components/
