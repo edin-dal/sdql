@@ -484,9 +484,9 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 object CompileHelpers {
   def assertOutputs(sdqlPath: String, outPath: String, sf: String = ""): Unit = {
     val source_code = SourceCode.fromFile(sdqlPath, if (sf.isEmpty) identity else patch(sf))
-    val cpp = CppCodegen(source_code.exp)
-    val actual = compile(sdqlPath, cpp)
-    val source = scala.io.Source.fromFile(outPath)
+    val cpp         = CppCodegen(source_code.exp)
+    val actual      = compile(sdqlPath, cpp)
+    val source      = scala.io.Source.fromFile(outPath)
     val expected = try source.mkString
     finally source.close()
     assert(actual.trim == expected.trim, s"\n${actual.trim}\n!=\n${expected.trim}")

@@ -1,20 +1,20 @@
 package sdql
 package storage
 
-import java.io.{BufferedReader, FileReader}
+import java.io.{ BufferedReader, FileReader }
 
 /**
-  * Code from: https://github.com/epfldata/dblab/blob/develop/components/
-  *             src/main/scala/ch/epfl/data/dblab/storagemanager/
-  *
-  * An efficient Scanner defined for reading from files.
-  *
-  */
+ * Code from: https://github.com/epfldata/dblab/blob/develop/components/
+ *             src/main/scala/ch/epfl/data/dblab/storagemanager/
+ *
+ * An efficient Scanner defined for reading from files.
+ *
+ */
 class FastScanner(filename: String) {
 
-  private var byteRead: Int = 0
-  private var intDigits: Int = 0
-  private var delimiter: Char = '|'
+  private var byteRead: Int      = 0
+  private var intDigits: Int     = 0
+  private var delimiter: Char    = '|'
   private val br: BufferedReader = new BufferedReader(new FileReader(filename))
 
   def next_int() = {
@@ -36,7 +36,8 @@ class FastScanner(filename: String) {
     if ((byteRead != delimiter) && (byteRead != '.') && (byteRead != '\n'))
       throw new RuntimeException(
         "Tried to read Integer, but found neither delimiter nor . after number (found " +
-          byteRead.asInstanceOf[Char] + ", previous token = " + intDigits + "/" + number + ")")
+          byteRead.asInstanceOf[Char] + ", previous token = " + intDigits + "/" + number + ")"
+      )
     if (signed) -1 * number else number
   }
 
@@ -63,9 +64,8 @@ class FastScanner(filename: String) {
     byteRead.asInstanceOf[Char]
   }
 
-  def next(buf: Array[Byte]): Int = {
+  def next(buf: Array[Byte]): Int =
     next(buf, 0)
-  }
 
   def next(buf: Array[Byte], offset: Int) = {
     byteRead = br.read()
@@ -95,7 +95,7 @@ class FastScanner(filename: String) {
 
   def next_date: Int = {
     delimiter = '-'
-    val year = next_int()
+    val year  = next_int()
     val month = next_int()
     delimiter = '|'
     val day = next_int()
@@ -109,7 +109,6 @@ class FastScanner(filename: String) {
     f
   }
 
-  def close() = {
+  def close() =
     br.close()
-  }
 }

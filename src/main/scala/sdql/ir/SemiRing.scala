@@ -16,8 +16,8 @@ object TropicalSemiRing {
     case t: TropicalSemiRing[Double] @nowarn => Some((t.kind, t.value))
     case _                                   => None
   }
-  val MinSumSemiRingType = TropicalSemiRingType(false, false, RealType)
-  val MaxSumSemiRingType = TropicalSemiRingType(true, false, RealType)
+  val MinSumSemiRingType  = TropicalSemiRingType(false, false, RealType)
+  val MaxSumSemiRingType  = TropicalSemiRingType(true, false, RealType)
   val MinProdSemiRingType = TropicalSemiRingType(false, true, RealType)
   val MaxProdSemiRingType = TropicalSemiRingType(true, true, RealType)
 }
@@ -57,8 +57,8 @@ sealed trait EnumSemiRingValue[+T] {
     case _                        => ???
   }
 }
-case object TopEnumSemiRing extends EnumSemiRingValue[Nothing]
-case object BottomEnumSemiRing extends EnumSemiRingValue[Nothing]
+case object TopEnumSemiRing                    extends EnumSemiRingValue[Nothing]
+case object BottomEnumSemiRing                 extends EnumSemiRingValue[Nothing]
 case class SingletonEnumSemiRing[+T](value: T) extends EnumSemiRingValue[T]
 
 case class EnumSemiRingType(tp: Type) extends CustomSemiRingType("enum", Seq(tp))

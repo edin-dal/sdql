@@ -45,20 +45,20 @@ object Parser {
     ) ~
       !idRest
   )
-  def `false`(implicit ctx: P[?]) = P("false").map(_ => Const(false))
-  def `true`(implicit ctx: P[?]) = P("true").map(_ => Const(true))
-  def unit(implicit ctx: P[?]) = P("unit").map(_ => Const(()))
+  def `false`(implicit ctx: P[?])       = P("false").map(_ => Const(false))
+  def `true`(implicit ctx: P[?])        = P("true").map(_ => Const(true))
+  def unit(implicit ctx: P[?])          = P("unit").map(_ => Const(()))
   def singleComment(implicit ctx: P[?]) = P("//" ~/ (!newline ~ AnyChar).rep ~/ newline)
-  def multiComment(implicit ctx: P[?]) = P("/*" ~/ (!"*/" ~ AnyChar).rep ~/ "*/")
-  def comment(implicit ctx: P[?]) = P(multiComment | singleComment)
-  def newline(implicit ctx: P[?]) = P("\n" | "\r\n" | "\r")
-  def whitespace(implicit ctx: P[?]) = P(" " | "\t" | newline)
-  def spaceToken(implicit ctx: P[?]) = P(comment | whitespace.rep(1))
-  def space(implicit ctx: P[?]) = P(spaceToken.rep)
-  def digits(implicit ctx: P[?]) = P(CharsWhileIn("0-9"))
-  def exponent(implicit ctx: P[?]) = P(CharIn("eE") ~ CharIn("+\\-").? ~ digits)
-  def fractional(implicit ctx: P[?]) = P("." ~ digits)
-  def integral(implicit ctx: P[?]) = P("0" | CharIn("1-9") ~ digits.?)
+  def multiComment(implicit ctx: P[?])  = P("/*" ~/ (!"*/" ~ AnyChar).rep ~/ "*/")
+  def comment(implicit ctx: P[?])       = P(multiComment | singleComment)
+  def newline(implicit ctx: P[?])       = P("\n" | "\r\n" | "\r")
+  def whitespace(implicit ctx: P[?])    = P(" " | "\t" | newline)
+  def spaceToken(implicit ctx: P[?])    = P(comment | whitespace.rep(1))
+  def space(implicit ctx: P[?])         = P(spaceToken.rep)
+  def digits(implicit ctx: P[?])        = P(CharsWhileIn("0-9"))
+  def exponent(implicit ctx: P[?])      = P(CharIn("eE") ~ CharIn("+\\-").? ~ digits)
+  def fractional(implicit ctx: P[?])    = P("." ~ digits)
+  def integral(implicit ctx: P[?])      = P("0" | CharIn("1-9") ~ digits.?)
 
   def int(implicit ctx: P[?]) = P(CharIn("+\\-").? ~ integral).!.map(
     x => Const(x.toInt)
@@ -80,31 +80,32 @@ object Parser {
     x => Concat(x._1, x._2)
   )
 
-  def stringChars(c: Char) = c != '\"' && c != '\\'
-  def hexDigit(implicit ctx: P[?]) = P(CharIn("0-9a-fA-F"))
+  def stringChars(c: Char)              = c != '\"' && c != '\\'
+  def hexDigit(implicit ctx: P[?])      = P(CharIn("0-9a-fA-F"))
   def unicodeEscape(implicit ctx: P[?]) = P("u" ~ hexDigit ~ hexDigit ~ hexDigit ~ hexDigit)
-  def escape(implicit ctx: P[?]) = P("\\" ~ (CharIn("\"/\\\\bfnrt") | unicodeEscape))
-  def alpha(implicit ctx: P[?]) = P(CharPred(isLetter))
+  def escape(implicit ctx: P[?])        = P("\\" ~ (CharIn("\"/\\\\bfnrt") | unicodeEscape))
+  def alpha(implicit ctx: P[?])         = P(CharPred(isLetter))
 
   def tpeTropSR(implicit ctx: P[?]) =
     P(
       ("mnpr" | "mxpr" | "mnsm" | "mxsm" |
-        "min_prod" | "max_prod" | "min_sum" | "max_sum").!).map(x => TropicalSemiRingType(x))
+        "min_prod" | "max_prod" | "min_sum" | "max_sum").!
+    ).map(x => TropicalSemiRingType(x))
   def tpeEnum(implicit ctx: P[?]) =
     P("enum" ~ ("[" ~ space ~/ tpe ~/ space ~/ "]")).map(x => EnumSemiRingType(x))
   def tpeNullable(implicit ctx: P[?]) =
     P("nullable" ~ ("[" ~ space ~/ tpe ~/ space ~/ "]")).map(x => NullableSemiRingType(x))
-  def tpeBool(implicit ctx: P[?]) = P("bool").map(_ => BoolType)
-  def tpeInt(implicit ctx: P[?]) = P("int").map(_ => IntType)
-  def tpeReal(implicit ctx: P[?]) = P("double" | "real").map(_ => RealType)
+  def tpeBool(implicit ctx: P[?])   = P("bool").map(_ => BoolType)
+  def tpeInt(implicit ctx: P[?])    = P("int").map(_ => IntType)
+  def tpeReal(implicit ctx: P[?])   = P("double" | "real").map(_ => RealType)
   def tpeString(implicit ctx: P[?]) = P("string").map(_ => StringType())
   def tpeVarChar(implicit ctx: P[?]) = P("varchar" ~ "(" ~ (integral.!.map(_.toInt)) ~ space ~ ")").map(
     x => VarCharType(x)
   )
   def tpeDate(implicit ctx: P[?]) = P("date").map(_ => DateType)
   def tpeIndex(implicit ctx: P[?]) =
-    P("dense_int" ~ ("[" ~ space ~/ ("-1" | integral).!.map(_.toInt) ~/ space ~/ "]").?).map(x =>
-      DenseIntType(x.getOrElse(-1)))
+    P("dense_int" ~ ("[" ~ space ~/ ("-1" | integral).!.map(_.toInt) ~/ space ~/ "]").?)
+      .map(x => DenseIntType(x.getOrElse(-1)))
   def fieldTpe(implicit ctx: P[?]) = P(variable ~/ ":" ~ space ~/ tpe).map(x => Attribute(x._1.name, x._2))
   def tpeRec(implicit ctx: P[?]) =
     P("<" ~/ fieldTpe.rep(sep = ","./) ~ space ~/ ">").map(l => RecordType(l))
@@ -133,18 +134,19 @@ object Parser {
     case (cond: Exp, thenp: Exp, None)             => IfThenElse(cond, thenp, DictNode(Nil))
   }
   def ifThen(implicit ctx: P[?]): P[(Exp, Exp)] = P("if" ~/ expr ~/ "then" ~/ expr)
-  def maybeElse(implicit ctx: P[?]): P[Exp] = P("else" ~/ expr)
+  def maybeElse(implicit ctx: P[?]): P[Exp]     = P("else" ~/ expr)
   def letBinding(implicit ctx: P[?]): P[LetBinding] =
     P("let" ~/ variable ~/ "=" ~/ expr ~/ "in".? ~/ expr).map(x => LetBinding(x._1, x._2, x._3))
   def sum(implicit ctx: P[?]): P[Sum] =
     P(
       "sum" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/
-        expr).map(x => Sum(x._1, x._2, x._3, x._4))
+        expr
+    ).map(x => Sum(x._1, x._2, x._3, x._4))
   // def set(implicit ctx: P[?]): P[DictNode] = P( "{" ~/ (expr ~ !("->")).rep(sep=","./) ~ space ~/ "}" ).map(x => SetNode(x))
   def range(implicit ctx: P[?]): P[RangeNode] = P(("range(" ~ expr ~ space ~ ")")).map(RangeNode.apply)
   def ext(implicit ctx: P[?]): P[External] =
-    P("ext(" ~/ fieldConst ~/ "," ~/ expr.rep(1, sep = ","./) ~ space ~/ ")").map(x =>
-      External(x._1.v.asInstanceOf[Symbol].name, x._2))
+    P("ext(" ~/ fieldConst ~/ "," ~/ expr.rep(1, sep = ","./) ~ space ~/ ")")
+      .map(x => External(x._1.v.asInstanceOf[Symbol].name, x._2))
   def keyValue(implicit ctx: P[?]) = P(expr ~/ "->" ~/ expr)
   // def keyNoValue(implicit ctx: P[?]) = P( expr ~ !("->") ).map(x => (x, Const(true)))
   def dict(implicit ctx: P[?]): P[DictNode] = P(hinted.? ~ dictNoHint).map {
@@ -153,11 +155,11 @@ object Parser {
   }
   def dictNoHint(implicit ctx: P[?]): P[DictNode] =
     P("{" ~/ keyValue.rep(sep = ","./) ~ space ~/ "}").map(x => DictNode(x))
-  def hinted(implicit ctx: P[?]) = P("@" ~/ hint ~/ space)
-  def hint(implicit ctx: P[?]) = phmap | vecdict | vec
-  def phmap(implicit ctx: P[?]) = P("phmap").map(_ => NoHint)
+  def hinted(implicit ctx: P[?])  = P("@" ~/ hint ~/ space)
+  def hint(implicit ctx: P[?])    = phmap | vecdict | vec
+  def phmap(implicit ctx: P[?])   = P("phmap").map(_ => NoHint)
   def vecdict(implicit ctx: P[?]) = P("vecdict").map(_ => VecDict)
-  def vec(implicit ctx: P[?]) = P("vec").map(_ => Vec)
+  def vec(implicit ctx: P[?])     = P("vec").map(_ => Vec)
   def load(implicit ctx: P[?]): P[Load] =
     P("load" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ string ~/ ")").map(x => Load(x._2.v.asInstanceOf[String], x._1))
   def promote(implicit ctx: P[?]): P[Promote] =
@@ -179,7 +181,8 @@ object Parser {
       space ~ (const | neg | not | dictOrSet |
         rec | ifThenElse | range | load | concat | promote | unique |
         letBinding | sum | variable |
-        ext | parens) ~ space)
+        ext | parens) ~ space
+    )
 
   def neg(implicit ctx: P[?]): P[Neg] = P("-" ~ !(">") ~ factor).map(Neg.apply)
   def not(implicit ctx: P[?]): P[Exp] = P("!" ~ factor).map(Not.apply)
@@ -187,27 +190,36 @@ object Parser {
     P(
       factor ~ ((".".! ~/ variable) |
         ("^".! ~/ factor) |
-        ("(".! ~/ expr ~/ ")" ~ space)).rep).map(x =>
-      x._2.foldLeft(x._1)((acc, cur) =>
-        cur match {
-          case (".", Sym(name)) => FieldNode(acc, name)
-          case ("(", e)         => Get(acc, e)
-          case ("^", _) =>
-            cur._2 match {
-              case Const(2) => Mult(acc, acc)
-              case _        => raise("Parsing for power failed")
-            }
-          case _ => raise("Parsing for factorMult failed")
-      }))
+        ("(".! ~/ expr ~/ ")" ~ space)).rep
+    ).map(
+      x =>
+        x._2.foldLeft(x._1)(
+          (acc, cur) =>
+            cur match {
+              case (".", Sym(name)) => FieldNode(acc, name)
+              case ("(", e)         => Get(acc, e)
+              case ("^", _) =>
+                cur._2 match {
+                  case Const(2) => Mult(acc, acc)
+                  case _        => raise("Parsing for power failed")
+                }
+              case _ => raise("Parsing for factorMult failed")
+          }
+      )
+    )
   def divMul(implicit ctx: P[?]): P[Exp] =
-    P(factorMult ~ (StringIn("*", "/", "|", "&&", "||").! ~/ factorMult).rep).map(x =>
-      x._2.foldLeft(x._1)((acc, cur) =>
-        cur._1 match {
-          case "*"  => Mult(acc, cur._2)
-          case "/"  => Mult(acc, ExternalFunctions.Inv(cur._2))
-          case "&&" => And(acc, cur._2)
-          case "||" => Or(acc, cur._2)
-      }))
+    P(factorMult ~ (StringIn("*", "/", "|", "&&", "||").! ~/ factorMult).rep).map(
+      x =>
+        x._2.foldLeft(x._1)(
+          (acc, cur) =>
+            cur._1 match {
+              case "*"  => Mult(acc, cur._2)
+              case "/"  => Mult(acc, ExternalFunctions.Inv(cur._2))
+              case "&&" => And(acc, cur._2)
+              case "||" => Or(acc, cur._2)
+          }
+      )
+    )
   // def addSubCmp(implicit ctx: P[?]): P[Exp] = P( divMul ~ (StringIn("+", "-", "<", "==", "<=", ">=", ">", "!=").! ~ !(">") ~/ divMul).rep ).map(x =>
   //   x._2.foldLeft(x._1)((acc, cur) => cur._1 match {
   //     case "+" => Add(acc, cur._2)
@@ -215,21 +227,27 @@ object Parser {
   //     case op => Cmp(acc, cur._2, op)
   //   } ))
   def addSub(implicit ctx: P[?]): P[Exp] =
-    P(divMul ~ (StringIn("+", "-").! ~ !(">") ~/ divMul).rep).map(x =>
-      x._2.foldLeft(x._1)((acc, cur) =>
-        cur._1 match {
-          case "+" => Add(acc, cur._2)
-          case "-" => Add(acc, Neg(cur._2))
-      }))
+    P(divMul ~ (StringIn("+", "-").! ~ !(">") ~/ divMul).rep).map(
+      x =>
+        x._2.foldLeft(x._1)(
+          (acc, cur) =>
+            cur._1 match {
+              case "+" => Add(acc, cur._2)
+              case "-" => Add(acc, Neg(cur._2))
+          }
+      )
+    )
   def addSubCmp(implicit ctx: P[?]): P[Exp] =
-    P(addSub ~ (StringIn("<", "==", "<=", "!=", "∈").! ~/ addSub).?).map(x =>
-      x._2 match {
-        case Some((op, y)) => Cmp(x._1, y, op)
-        case None          => x._1
-    })
+    P(addSub ~ (StringIn("<", "==", "<=", "!=", "∈").! ~/ addSub).?).map(
+      x =>
+        x._2 match {
+          case Some((op, y)) => Cmp(x._1, y, op)
+          case None          => x._1
+      }
+    )
   def parens(implicit ctx: P[?]): P[Exp] = P("(" ~/ expr ~/ ")")
-  def expr(implicit ctx: P[?]): P[Exp] = P(addSubCmp)
-  def top(implicit ctx: P[?]): P[Exp] = P(expr ~ End)
+  def expr(implicit ctx: P[?]): P[Exp]   = P(addSubCmp)
+  def top(implicit ctx: P[?]): P[Exp]    = P(expr ~ End)
 
   def apply(str: String): Exp = {
     val value = parse(str, top(_)) match {

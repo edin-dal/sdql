@@ -18,7 +18,7 @@ class InterpreterTest extends AnyFlatSpec with Matchers {
     interpreter(sdql""" "foo" """) should be("foo")
     interpreter(sdql"date(19700101)") should be(DateValue(19700101))
     interpreter(sdql"< a = 1, b = 2 >") should be(RecordValue(Seq("a" -> 1, "b" -> 2)))
-    interpreter(sdql"""{ "a" -> 1, "b" -> 2 }""") should be(Map("a" -> 1, "b" -> 2))
+    interpreter(sdql"""{ "a" -> 1, "b" -> 2 }""") should be(Map("a"   -> 1, "b"   -> 2))
     interpreter(sdql"""{ "a" -> 1, "b" -> 2.5 }""") should be(Map("a" -> 1.0, "b" -> 2.5))
   }
 
@@ -63,18 +63,18 @@ class InterpreterTest extends AnyFlatSpec with Matchers {
 
   it should "work for records" in {
     interpreter(sdql"< >") should be(RecordValue(Nil))
-    interpreter(sdql"< a=1, b=1.5 >") should be(RecordValue(Seq("a" -> 1, "b" -> 1.5)))
-    interpreter(sdql"concat(< a=1 >, < b=1.5 >)") should be(RecordValue(Seq("a" -> 1, "b" -> 1.5)))
+    interpreter(sdql"< a=1, b=1.5 >") should be(RecordValue(Seq("a"                    -> 1, "b" -> 1.5)))
+    interpreter(sdql"concat(< a=1 >, < b=1.5 >)") should be(RecordValue(Seq("a"        -> 1, "b" -> 1.5)))
     interpreter(sdql"concat(< a=1, b=1.5 >, < b=1.5 >)") should be(RecordValue(Seq("a" -> 1, "b" -> 1.5)))
     assertThrows[Exception] {
       interpreter(sdql"concat(< a=1, b=2.5 >, < b=1.5 >)")
     }
   }
 
-  val iList = 0 until 10
-  val sList = 100 until 110
-  val sRel = for (i <- iList; s <- sList) yield (i, s, i * s + 42)
-  val rRel = for (s <- sList) yield (s, s - 42)
+  val iList       = 0 until 10
+  val sList       = 100 until 110
+  val sRel        = for (i <- iList; s <- sList) yield (i, s, i * s + 42)
+  val rRel        = for (s <- sList) yield (s, s - 42)
   val s_join_rRel = sRel.map(e => (e._1, e._2, rRel.toMap.apply(e._2)))
 
   val s = {
@@ -131,26 +131,33 @@ sum(<x_s, x_s_v> <- S)
   it should "work for dictionaries" in {
     interpreter(sdql"{ 1 -> 1.0 } + { 1 -> 2.0 }") should be(interpreter(sdql"{ 1 -> 3.0 }"))
     interpreter(sdql"{ 1 -> 1.0, 2 -> 2.0 } + { 1 -> 2.0, 3 -> 4.0 }") should be(
-      interpreter(sdql"{ 1 -> 3.0, 2 -> 2.0, 3 -> 4.0 }"))
+      interpreter(sdql"{ 1 -> 3.0, 2 -> 2.0, 3 -> 4.0 }")
+    )
     interpreter(sdql"{ 1 -> 2.0 } * 2.5") should be(interpreter(sdql"{ 1 -> 5.0 }"))
     interpreter(sdql"2 * { 1 -> 2.0 }") should be(interpreter(sdql"{ 1 -> 4.0 }"))
     interpreter(sdql"{ 1 -> 2.0 } * { 2 -> 2.5 }") should be(interpreter(sdql"{ 1 -> { 2 -> 5.0 } }"))
     interpreter(sdql"let Q = { <i=1, s=1, c=1, p=1> -> 2 } in Q") should be(
-      interpreter(sdql"{ <i=1, s=1, c=1, p=1> -> 2 }"))
+      interpreter(sdql"{ <i=1, s=1, c=1, p=1> -> 2 }")
+    )
     interpreter(sdql"{ 1 -> 5.0 }(1)") should be(5.0)
     interpreter(sdql"{ 1 -> 5.0 }(2)") should be(ZeroValue)
     interpreter(sdql"{ 1 -> 0.0 }") should be(interpreter(sdql"{ }"))
     interpreter(sdql"{ 1 -> 1.0 } + { 1 -> -1.0 }") should be(interpreter(sdql"{ }"))
     interpreter(sdql"{ 1 -> promote[enum[double]](1.0) } + { }") should be(
-      interpreter(sdql"{ 1 -> promote[enum[double]](1.0) }"))
+      interpreter(sdql"{ 1 -> promote[enum[double]](1.0) }")
+    )
     interpreter(sdql"{ 1 -> promote[enum[double]](0.0) } + { }") should be(
-      interpreter(sdql"{ 1 -> promote[enum[double]](0.0) }"))
+      interpreter(sdql"{ 1 -> promote[enum[double]](0.0) }")
+    )
     interpreter(sdql"{ 1 -> promote[nullable[double]](1.0) } + { 1 -> promote[nullable[double]](-1.0) }") should be(
-      interpreter(sdql"{ 1 -> promote[nullable[double]](0.0) }"))
+      interpreter(sdql"{ 1 -> promote[nullable[double]](0.0) }")
+    )
     interpreter(sdql"{ 1 -> promote[nullable[double]](1.0) } + { }") should be(
-      interpreter(sdql"{ 1 -> promote[nullable[double]](1.0) }"))
+      interpreter(sdql"{ 1 -> promote[nullable[double]](1.0) }")
+    )
     interpreter(sdql"{ 1 -> promote[nullable[double]](0.0) } + { }") should be(
-      interpreter(sdql"{ 1 -> promote[nullable[double]](0.0) }"))
+      interpreter(sdql"{ 1 -> promote[nullable[double]](0.0) }")
+    )
   }
 
   it should "work for semirings" in {
@@ -164,27 +171,38 @@ sum(<x_s, x_s_v> <- S)
     interpreter(sdql"promote[mnpr](2.7) * promote[mnpr](3.2)") should be(MinProdSemiRing(Some(2.7 * 3.2)))
     interpreter(sdql"promote[mxpr](2.7) * promote[mxpr](3.2)") should be(MaxProdSemiRing(Some(2.7 * 3.2)))
     interpreter(sdql"promote[enum[double]](2.7) + promote[enum[double]](3.2)") should be(
-      EnumSemiRing(EnumSemiRingType(RealType), TopEnumSemiRing))
+      EnumSemiRing(EnumSemiRingType(RealType), TopEnumSemiRing)
+    )
     interpreter(sdql"promote[enum[double]](2.7) * promote[enum[double]](3.2)") should be(
-      EnumSemiRing(EnumSemiRingType(RealType), BottomEnumSemiRing))
+      EnumSemiRing(EnumSemiRingType(RealType), BottomEnumSemiRing)
+    )
     interpreter(sdql"promote[enum[double]](2.7) + promote[enum[double]](2.7)") should be(
-      EnumSemiRing(EnumSemiRingType(RealType), SingletonEnumSemiRing(2.7)))
+      EnumSemiRing(EnumSemiRingType(RealType), SingletonEnumSemiRing(2.7))
+    )
     interpreter(sdql"promote[enum[double]](2.7) * promote[enum[double]](2.7)") should be(
-      EnumSemiRing(EnumSemiRingType(RealType), SingletonEnumSemiRing(2.7)))
+      EnumSemiRing(EnumSemiRingType(RealType), SingletonEnumSemiRing(2.7))
+    )
     interpreter(sdql"promote[nullable[double]](2.7) + promote[nullable[double]](3.2)") should be(
-      NullableSemiRing(NullableSemiRingType(RealType), Some(5.9)))
+      NullableSemiRing(NullableSemiRingType(RealType), Some(5.9))
+    )
     interpreter(sdql"promote[nullable[double]](2.7) * promote[nullable[double]](3.2)") should be(
-      NullableSemiRing(NullableSemiRingType(RealType), Some(2.7 * 3.2)))
+      NullableSemiRing(NullableSemiRingType(RealType), Some(2.7 * 3.2))
+    )
     interpreter(sdql"promote[nullable[double]](2.7) + promote[nullable[double]](2.7)") should be(
-      NullableSemiRing(NullableSemiRingType(RealType), Some(5.4)))
+      NullableSemiRing(NullableSemiRingType(RealType), Some(5.4))
+    )
     interpreter(sdql"promote[nullable[double]](2.7) * promote[nullable[double]](2.7)") should be(
-      NullableSemiRing(NullableSemiRingType(RealType), Some(2.7 * 2.7)))
+      NullableSemiRing(NullableSemiRingType(RealType), Some(2.7 * 2.7))
+    )
     interpreter(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) promote[mxsm](s_v) ") should be(
-      MaxSumSemiRing(Some(2.5)))
+      MaxSumSemiRing(Some(2.5))
+    )
     interpreter(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) promote[mxpr](s_v) ") should be(
-      MaxProdSemiRing(Some(2.5)))
+      MaxProdSemiRing(Some(2.5))
+    )
     interpreter(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) promote[mnsm](s_v) ") should be(
-      MinSumSemiRing(Some(1.5)))
+      MinSumSemiRing(Some(1.5))
+    )
   }
 
   it should "handle external functions" in {
@@ -236,10 +254,12 @@ sum(<x_s, x_s_v> <- S)
     }
     writeToFile("1|one|2.5|1989-07-13")
     interpreter(sdql"""load[{<a:int, b: string, c: real, d: date> -> int}]($file)""") should be(
-      interpreter(sdql"""{ <a=1, b="one", c=2.5, d=ext(`ParseDate`, "1989-07-13")> -> 1 }"""))
+      interpreter(sdql"""{ <a=1, b="one", c=2.5, d=ext(`ParseDate`, "1989-07-13")> -> 1 }""")
+    )
     writeToFile("1|1|2.5|1989-07-13")
     interpreter(sdql"""load[{<a:int, b: int, c: real, d: date> -> int}]($file)""") should be(
-      interpreter(sdql"""{ <a=1, b=1, c=2.5, d=ext(`ParseDate`, "1989-07-13")> -> 1 }"""))
+      interpreter(sdql"""{ <a=1, b=1, c=2.5, d=ext(`ParseDate`, "1989-07-13")> -> 1 }""")
+    )
     writeToFile("1|1|0.08|1989-07-13")
     interpreter(sdql"""let R = load[{<a:int, b: int, c: real, d: date> -> int}]($file)
       sum(<x, v> <- R) if(x.c <= 0.08) then v else 0""") should be(1)

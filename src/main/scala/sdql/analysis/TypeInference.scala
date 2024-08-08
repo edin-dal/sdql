@@ -9,8 +9,8 @@ import scala.annotation.tailrec
 
 object TypeInference {
   type Type = ir.Type
-  type Var = Sym
-  type Ctx = Map[Var, Type]
+  type Var  = Sym
+  type Ctx  = Map[Var, Type]
 
   def apply(e: Exp): Type = run(e)(Map())
 
@@ -244,7 +244,7 @@ object TypeInference {
     promote(t1, t2)
   }
 
-  private def promote(t1: Type, t2: Type): Type = {
+  private def promote(t1: Type, t2: Type): Type =
     (t1, t2) match {
       case (IntType, DateType) | (DateType, IntType) =>
         IntType
@@ -262,7 +262,6 @@ object TypeInference {
       case (t1, t2) =>
         raise(s"can't promote types: ${t1.simpleName} ≠ ${t2.simpleName}")
     }
-  }
 
   def sumInferTypeAndCtx(k: Sym, v: Sym, e1: Exp, e2: Exp)(implicit ctx: Ctx): (Type, Ctx) = {
     val localCtx = ctx ++ (e1 match {

@@ -2,14 +2,14 @@ package sdql
 package backend
 
 import sdql.ir._
-import sdql.storage.{Loader, Table}
+import sdql.storage.{ Loader, Table }
 
-import scala.annotation.{nowarn, tailrec}
+import scala.annotation.{ nowarn, tailrec }
 
 @nowarn object Interpreter {
   type Value = Any
-  type Var = Sym
-  type Ctx = Map[Var, Value]
+  type Var   = Sym
+  type Ctx   = Map[Var, Value]
   def apply(e: Exp): Value = run(e)(Map())
   def run(e: Exp)(implicit ctx: Ctx): Value = e match {
     case Const(v)      => v
@@ -98,7 +98,7 @@ import scala.annotation.{nowarn, tailrec}
       (v1, v2) match {
         case (RecordValue(fs1), RecordValue(fs2)) =>
           val (fs1m, fs2m) = fs1.toMap -> fs2.toMap
-          val common = fs1.filter(x1 => fs2m.contains(x1._1)).map(x1 => (x1._1, x1._2, fs2m(x1._1)))
+          val common       = fs1.filter(x1 => fs2m.contains(x1._1)).map(x1 => (x1._1, x1._2, fs2m(x1._1)))
           if (common.isEmpty)
             RecordValue(fs1 ++ fs2)
           else if (common.forall(x => x._2 == x._3))
@@ -118,9 +118,9 @@ import scala.annotation.{nowarn, tailrec}
             ZeroValue
           else {
             var res: Value = ZeroValue
-            val mutRes = scala.collection.mutable.Map[Value, Value]()
-            var inPlace = false
-            var firstIter = true
+            val mutRes     = scala.collection.mutable.Map[Value, Value]()
+            var inPlace    = false
+            var firstIter  = true
             for (kv <- range) {
               val cur = run(e2)(ctx ++ Map(k -> kv._1, v -> kv._2))
               if (firstIter) {
@@ -152,7 +152,7 @@ import scala.annotation.{nowarn, tailrec}
           raise(s"`load[$tp]('${path}')` only supports the type `{ < ... > -> int }`")
       }
     case Promote(tp, e1) =>
-      val v1 = run(e1)
+      val v1             = run(e1)
       def notSupported() = raise(s"`promote[$tp]($v1)` not supported for value of type `${v1.getClass}`")
       tp match {
         case tsrt: TropicalSemiRingType =>
@@ -190,14 +190,13 @@ import scala.annotation.{nowarn, tailrec}
       val vs = args.map(x => run(x)(ctx))
       external(name, vs)
   }
-  def equal(v1: Value, v2: Value): Boolean = {
+  def equal(v1: Value, v2: Value): Boolean =
     (v1, v2) match {
       case (ZeroValue, ZeroValue)        => true
       case (_, ZeroValue)                => equal(v2, v1)
       case (ZeroValue, v2) if isZero(v2) => true
       case _                             => v1 == v2
     }
-  }
   def isZero(v: Value): Boolean = v match {
     case false                                               => true
     case 0                                                   => true
@@ -210,7 +209,7 @@ import scala.annotation.{nowarn, tailrec}
     case RecordValue(vals) if vals.forall(x => isZero(x._2)) => true
     case _                                                   => false
   }
-  def inPlaceAdd(v1: scala.collection.mutable.Map[Value, Value], v2: Map[Value, Value]): Unit = {
+  def inPlaceAdd(v1: scala.collection.mutable.Map[Value, Value], v2: Map[Value, Value]): Unit =
     for (x <- v2) {
       val rhs =
         if (v1.contains(x._1))
@@ -222,8 +221,7 @@ import scala.annotation.{nowarn, tailrec}
       else if (isZero(rhs) && v1.contains(x._1))
         v1.remove(x._1)
     }
-  }
-  def add(v1: Value, v2: Value): Value = {
+  def add(v1: Value, v2: Value): Value =
     (v1, v2) match {
       case (MinSumSemiRing(Some(s1)), MinSumSemiRing(Some(s2))) =>
         MinSumSemiRing(Some(math.min(s1, s2)))
@@ -268,23 +266,24 @@ import scala.annotation.{nowarn, tailrec}
           RecordValue(vs1.zip(vs2).map(x => x._1._1 -> add(x._1._2, x._2._2)))
       case (r1: Map[Value, _], r2: Map[Value, _]) =>
         val res = (r1.keys ++ r2.keys)
-          .map(k =>
-            k -> {
-              (r1.get(k), r2.get(k)) match {
-                case (Some(vv1), Some(vv2)) =>
-                  add(vv1, vv2)
-                case (Some(vv1), None) =>
-                  vv1
-                case (None, Some(vv2)) =>
-                  vv2
-                case _ => ???
-              }
-          })
+          .map(
+            k =>
+              k -> {
+                (r1.get(k), r2.get(k)) match {
+                  case (Some(vv1), Some(vv2)) =>
+                    add(vv1, vv2)
+                  case (Some(vv1), None) =>
+                    vv1
+                  case (None, Some(vv2)) =>
+                    vv2
+                  case _ => ???
+                }
+            }
+          )
           .toMap
         normalize(res)
       case _ => raise(s"`$v1 + $v2` not handled")
     }
-  }
   def normalize(v: Value): Value = v match {
     case m: Map[Value, Value] =>
       m.map(kv => kv._1 -> normalize(kv._2)).filter(kv => !isZero(kv._2))
@@ -293,7 +292,7 @@ import scala.annotation.{nowarn, tailrec}
     case _ =>
       v
   }
-  def mult(v1: Value, v2: Value): Value = {
+  def mult(v1: Value, v2: Value): Value =
     (v1, v2) match {
       case (MinSumSemiRing(Some(s1)), MinSumSemiRing(Some(s2))) =>
         MinSumSemiRing(Some(s1 + s2))
@@ -338,7 +337,6 @@ import scala.annotation.{nowarn, tailrec}
         r1.map(kv => kv._1 -> mult(kv._2, r2))
       case _ => raise(s"`$v1 * $v2` not handled")
     }
-  }
   def external(name: String, args: Seq[Value]): Value = {
     import ExternalFunctions._
     def raiseTp(tp: String) = raise(s"ext(`$name`, ...) expects $tp, but given: ${args.mkString(", ")}.")
@@ -348,7 +346,7 @@ import scala.annotation.{nowarn, tailrec}
       case ParseDate.SYMBOL =>
         args(0) match {
           case v: String =>
-            val arr = v.split('-')
+            val arr            = v.split('-')
             val Array(y, m, d) = arr.map(_.toInt)
             DateValue(y * 10000 + m * 100 + d)
           case _ => raiseTp("string")
@@ -380,7 +378,7 @@ import scala.annotation.{nowarn, tailrec}
           case _                            => raiseTp("string, string")
         }
       case StrContainsN.SYMBOL =>
-        val as = args.map(_.asInstanceOf[String])
+        val as        = args.map(_.asInstanceOf[String])
         val (obj, xs) = as.head -> as.tail
         xs.forall(x => obj.contains(x))
       case StrIndexOf.SYMBOL =>

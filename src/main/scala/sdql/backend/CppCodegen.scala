@@ -6,29 +6,29 @@ import sdql.ir.ExternalFunctions._
 import sdql.ir._
 
 import java.util.UUID
-import scala.PartialFunction.{cond, condOpt}
+import scala.PartialFunction.{ cond, condOpt }
 import scala.annotation.tailrec
 
 private sealed trait CallCtx
 private case class LetCtx(name: String) extends CallCtx
-private case object SumStart extends CallCtx
-private case object SumEnd extends CallCtx
-private case object IsTernary extends CallCtx
+private case object SumStart            extends CallCtx
+private case object SumEnd              extends CallCtx
+private case object IsTernary           extends CallCtx
 
 private sealed trait Aggregation
-private case object SumAgg extends Aggregation
+private case object SumAgg  extends Aggregation
 private case object ProdAgg extends Aggregation
-private case object MinAgg extends Aggregation
-private case object MaxAgg extends Aggregation
+private case object MinAgg  extends Aggregation
+private case object MaxAgg  extends Aggregation
 
 object CppCodegen {
   private type TypesCtx = TypeInference.Ctx
   private type CallsCtx = Seq[CallCtx]
 
-  private val vecSize = 6000001
-  private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
+  private val vecSize    = 6000001
+  private val reDate     = "^(\\d{4})(\\d{2})(\\d{2})$".r
   private val resultName = "result"
-  private val noName = "_"
+  private val noName     = "_"
 
   private val header = """#include "../runtime/headers.h""""
   private val csvConsts =
@@ -37,29 +37,29 @@ object CppCodegen {
        |""".stripMargin
 
   def apply(e: Exp, benchmarkRuns: Int = 0): String = {
-    val rewrite = Rewriter(e)
-    val csvBody = cppCsvs(Seq(rewrite))
+    val rewrite   = Rewriter(e)
+    val csvBody   = cppCsvs(Seq(rewrite))
     val queryBody = run(rewrite)(Map(), Seq())
     val benchStart =
       if (benchmarkRuns == 0) ""
       else
         s"""HighPrecisionTimer timer;
-         |for (${cppType(IntType)} iter = 1; iter <= $benchmarkRuns; iter++) {
-         |timer.Reset();
-         |""".stripMargin
+           |for (${cppType(IntType)} iter = 1; iter <= $benchmarkRuns; iter++) {
+           |timer.Reset();
+           |""".stripMargin
     val benchStop =
       if (benchmarkRuns == 0) ""
       else
         s"""
-         |doNotOptimiseAway($resultName);
-         |timer.StoreElapsedTime(0);
-         |cerr << "*" << " " << flush;
-         |if (iter == $benchmarkRuns) {
-         |cerr << endl;
-         |std::cout << timer.GetMean(0) << " ms" << std::endl;
-         |${cppPrintResult(TypeInference(rewrite))}
-         |}
-         |}""".stripMargin
+           |doNotOptimiseAway($resultName);
+           |timer.StoreElapsedTime(0);
+           |cerr << "*" << " " << flush;
+           |if (iter == $benchmarkRuns) {
+           |cerr << endl;
+           |std::cout << timer.GetMean(0) << " ms" << std::endl;
+           |${cppPrintResult(TypeInference(rewrite))}
+           |}
+           |}""".stripMargin
     s"""$header
        |$csvConsts
        |$csvBody
@@ -103,10 +103,10 @@ object CppCodegen {
   }
 
   private def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
-    val callsLocal = Seq(SumEnd, IsTernary) ++ callsCtx
+    val callsLocal         = Seq(SumEnd, IsTernary) ++ callsCtx
     val (accessors, inner) = splitNested(e)
-    val lhs = cppAccessors(accessors)(typesCtx, callsLocal)
-    val rhs = run(inner)(typesCtx, callsLocal)
+    val lhs                = cppAccessors(accessors)(typesCtx, callsLocal)
+    val rhs                = run(inner)(typesCtx, callsLocal)
 
     getAggregation(e) match {
       case SumAgg =>
@@ -168,7 +168,7 @@ object CppCodegen {
 
   private def run(e: LetBinding)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case LetBinding(x @ Sym(name), e1, e2) =>
-      val isTernary = !cond(e1) { case _: Sum => true }
+      val isTernary  = !cond(e1) { case _: Sum => true }
       val localCalls = if (isTernary) Seq(IsTernary) ++ callsCtx else callsCtx
       val e1Cpp = e1 match {
         // codegen for loads was handled in a separate tree traversal
@@ -177,7 +177,7 @@ object CppCodegen {
         case c: Const                  => s"constexpr auto $name = ${run(c)};"
         case _ =>
           val isInitialisation = cond(e1) { case _: Sum => true }
-          val cppName = if (!isInitialisation && isVector(e1)) s"&$name" else name
+          val cppName          = if (!isInitialisation && isVector(e1)) s"&$name" else name
           s"auto $cppName = ${run(e1)(typesCtx, Seq(LetCtx(name)) ++ localCalls)};"
       }
       val e2Cpp = e2 match {
@@ -193,10 +193,10 @@ object CppCodegen {
   private def run(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Sum(k, v, e1, e2) =>
       val (tpe, typesLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
-      val callsLocal = Seq(SumStart) ++ callsCtx
-      val isLetSum = cond(callsCtx.head) { case _: LetCtx => true }
-      val init = if (!isLetSum) "" else s"${cppType(tpe)} (${cppInit(tpe)});"
-      val body = run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal)
+      val callsLocal        = Seq(SumStart) ++ callsCtx
+      val isLetSum          = cond(callsCtx.head) { case _: LetCtx => true }
+      val init              = if (!isLetSum) "" else s"${cppType(tpe)} (${cppInit(tpe)});"
+      val body              = run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal)
       e1 match {
         case _: RangeNode =>
           assert(v.name == noName)
@@ -232,14 +232,14 @@ object CppCodegen {
 
     case IfThenElse(cond, e1, e2) if checkIsTernary =>
       val callsLocal = Seq(SumEnd) ++ callsCtx
-      val condBody = run(cond)(typesCtx, callsLocal)
-      val ifBody = run(e1)(typesCtx, callsLocal)
-      val elseBody = run(e2)(typesCtx, callsLocal)
+      val condBody   = run(cond)(typesCtx, callsLocal)
+      val ifBody     = run(e1)(typesCtx, callsLocal)
+      val elseBody   = run(e2)(typesCtx, callsLocal)
       s"($condBody) ? $ifBody : $elseBody"
 
     case IfThenElse(cond, e1, e2) =>
       val condBody = run(cond)(typesCtx, Seq(SumEnd) ++ callsCtx)
-      val ifBody = run(e1)
+      val ifBody   = run(e1)
       val elseBody = e2 match {
         case DictNode(Nil, _) | Const(0) | Const(0.0) => ""
         case _                                        => s" else {\n${run(e2)}\n}"
@@ -254,7 +254,8 @@ object CppCodegen {
         case tpe =>
           raise(
             s"expression ${e2.simpleName} should be of type " +
-              s"${DictType.getClass.getSimpleName.init} not ${tpe.prettyPrint}")
+              s"${DictType.getClass.getSimpleName.init} not ${tpe.prettyPrint}"
+          )
       }
     case Cmp(e @ Get(e1, e2), DictNode(Nil, _), "!=") if getArgsMatch(e) => dictCmpNil(e1, e2)
     case Cmp(DictNode(Nil, _), e @ Get(e1, e2), "!=") if getArgsMatch(e) => dictCmpNil(e1, e2)
@@ -313,7 +314,7 @@ object CppCodegen {
   private def run(e: RecNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case RecNode(values) =>
       val localCalls = Seq(IsTernary) ++ callsCtx
-      val tpe = TypeInference.run(e)
+      val tpe        = TypeInference.run(e)
       values.map(e => run(e._2)(typesCtx, localCalls)).mkString(s"${cppType(tpe)}(", ", ", ")")
   }
 
@@ -379,13 +380,13 @@ object CppCodegen {
       }
     case External(Limit.SYMBOL, Seq(sym @ Sym(arg), Const(n: Int), Const(isDescending: Boolean))) =>
       val limit = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
-      val tmp = s"tmp_$uuid"
+      val tmp   = s"tmp_$uuid"
       val (dictTpe, kt, vt) = (TypeInference.run(sym): @unchecked) match {
         case dictTpe @ DictType(kt, vt, _) => (dictTpe, kt, vt)
       }
-      val recTpe = RecordType(Seq(Attribute("_1", kt), Attribute("_2", vt)))
+      val recTpe    = RecordType(Seq(Attribute("_1", kt), Attribute("_2", vt)))
       val recTpeCpp = cppType(recTpe)
-      val cmp = if (isDescending) ">" else "<"
+      val cmp       = if (isDescending) ">" else "<"
       s"""std::vector<$recTpeCpp> $tmp($n);
          |std::partial_sort_copy(
          |    $arg.begin(), $arg.end(), $tmp.begin(), $tmp.end(),
@@ -457,7 +458,8 @@ object CppCodegen {
                     val recordType = (load: @unchecked) match { case Load(_, recordType: RecordType) => recordType }
                     (path, name, recordType)
               }
-          ))
+          )
+      )
       .distinct
       .sortBy(_._2)
 
@@ -531,7 +533,7 @@ object CppCodegen {
   private def checkIsSumBody(e: Exp)(implicit callsCtx: CallsCtx): Boolean =
     !cond(e) { case _: LetBinding | _: IfThenElse | _: Sum => true } && checkActiveSumCtx
 
-  private def checkActiveSumCtx(implicit callsCtx: CallsCtx) = {
+  private def checkActiveSumCtx(implicit callsCtx: CallsCtx) =
     callsCtx.indexWhere(x => cond(x) { case SumStart => true }) match {
       case -1 => false
       case start =>
@@ -540,7 +542,6 @@ object CppCodegen {
           case end => start < end
         }
     }
-  }
 
   private def checkIsTernary(implicit callsCtx: CallsCtx) =
     callsCtx.exists(cond(_) { case IsTernary => true })

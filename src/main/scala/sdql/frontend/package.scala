@@ -6,9 +6,9 @@ package object frontend {
     // val sdqlCG = new BaseDocument {}
     def valueToString(v: Any): String = Value.toString(v)
     def sdql(args: Any*): Exp = {
-      val strings = sc.parts.iterator
+      val strings     = sc.parts.iterator
       val expressions = args.iterator
-      val buf = new StringBuffer(strings.next())
+      val buf         = new StringBuffer(strings.next())
       while (strings.hasNext) {
         val nextExpression = expressions.next() match {
           case b: Boolean     => valueToString(b)

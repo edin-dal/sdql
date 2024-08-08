@@ -90,10 +90,10 @@ class ParserTest extends AnyFlatSpec with Matchers {
     sdql"{}" should be(SetNode(Seq()))
     // sdql"{x}" should be (SetNode(Seq(Sym("x"))))
     // sdql"{  x   , y   }" should be (SetNode(Seq(Sym("x"), Sym("y"))))
-    sdql"{0  ->  1}" should be(DictNode(Seq(Const(0) -> Const(1)), NoHint))
-    sdql"{x  ->  y}" should be(DictNode(Seq(Sym("x") -> Sym("y"))))
+    sdql"{0  ->  1}" should be(DictNode(Seq(Const(0)                   -> Const(1)), NoHint))
+    sdql"{x  ->  y}" should be(DictNode(Seq(Sym("x")                   -> Sym("y"))))
     sdql"{x.z  ->  y}" should be(DictNode(Seq(FieldNode(Sym("x"), "z") -> Sym("y"))))
-    sdql"{x  ->  y, z -> 1 }" should be(DictNode(Seq(Sym("x") -> Sym("y"), Sym("z") -> Const(1.0))))
+    sdql"{x  ->  y, z -> 1 }" should be(DictNode(Seq(Sym("x")          -> Sym("y"), Sym("z") -> Const(1.0))))
     sdql"x(y)" should be(Get(Sym("x"), Sym("y")))
     sdql"x(y)(z)" should be(Get(Get(Sym("x"), Sym("y")), Sym("z")))
     sdql"x(   y)" should be(Get(Sym("x"), Sym("y")))
@@ -104,16 +104,16 @@ class ParserTest extends AnyFlatSpec with Matchers {
   }
 
   it should "work for dict hints" in {
-    sdql"@phmap {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), NoHint))
-    sdql"@phmap {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), NoHint))
+    sdql"@phmap {0 -> 1}" should be(DictNode(Seq(Const(0)   -> Const(1)), NoHint))
+    sdql"@phmap {x -> y}" should be(DictNode(Seq(Sym("x")   -> Sym("y")), NoHint))
     sdql"@vecdict {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), VecDict))
     sdql"@vecdict {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), VecDict))
-    sdql"@vec {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), Vec))
-    sdql"@vec {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), Vec))
+    sdql"@vec {0 -> 1}" should be(DictNode(Seq(Const(0)     -> Const(1)), Vec))
+    sdql"@vec {x -> y}" should be(DictNode(Seq(Sym("x")     -> Sym("y")), Vec))
   }
 
   it should "work for record" in {
-    sdql"< foo = 1  >" should be(RecNode(Seq("foo" -> Const(1.0))))
+    sdql"< foo = 1  >" should be(RecNode(Seq("foo"              -> Const(1.0))))
     sdql"< foo = 1, goo  =  hoo  >" should be(RecNode(Seq("foo" -> Const(1.0), "goo" -> Sym("hoo"))))
     sdql"x.name" should be(FieldNode(Sym("x"), "name"))
     sdql"x.name * 2" should be(Mult(FieldNode(Sym("x"), "name"), Const(2.0)))
@@ -126,7 +126,8 @@ class ParserTest extends AnyFlatSpec with Matchers {
     sdql"ext(`TopN`, x)" should be(External("TopN", Seq(Sym("x"))))
     sdql"""load[{string -> bool}]("foo.csv")""" should be(Load("foo.csv", DictType(StringType(), BoolType)))
     sdql"""load[{<a:dense_int,b:double> -> int}]("foo.csv")""" should be(
-      Load("foo.csv", DictType(RecordType(Seq(Attribute("a", DenseIntType(-1)), Attribute("b", RealType))), IntType)))
+      Load("foo.csv", DictType(RecordType(Seq(Attribute("a", DenseIntType(-1)), Attribute("b", RealType))), IntType))
+    )
   }
 
   it should "work for semirings" in {
@@ -135,7 +136,8 @@ class ParserTest extends AnyFlatSpec with Matchers {
     sdql"""promote[enum[int]](x)""" should be(Promote(EnumSemiRingType(IntType), Sym("x")))
     sdql"""promote[nullable[int]](x)""" should be(Promote(NullableSemiRingType(IntType), Sym("x")))
     sdql"""load[{string -> min_prod}]("foo.csv")""" should be(
-      Load("foo.csv", DictType(StringType(), TropicalSemiRingType("min_prod"))))
+      Load("foo.csv", DictType(StringType(), TropicalSemiRingType("min_prod")))
+    )
   }
 
   it should "perform desugaring" in {
@@ -144,14 +146,14 @@ class ParserTest extends AnyFlatSpec with Matchers {
   }
 
   it should "splice constants" in {
-    val TRUE = true
-    val FALSE = false
-    val ONE = 1
+    val TRUE     = true
+    val FALSE    = false
+    val ONE      = 1
     val ONE_HALF = 1.5
-    val MAP = Map(ONE -> TRUE)
-    val REC = RecordValue(Seq("a" -> ONE, "b" -> ONE_HALF))
-    val MAP_REC = Map(REC -> ONE_HALF)
-    val STRING = "foo"
+    val MAP      = Map(ONE -> TRUE)
+    val REC      = RecordValue(Seq("a" -> ONE, "b" -> ONE_HALF))
+    val MAP_REC  = Map(REC -> ONE_HALF)
+    val STRING   = "foo"
     sdql"$TRUE" should be(sdql"true")
     sdql"$FALSE" should be(sdql"false")
     sdql"$ONE" should be(sdql"1")

@@ -20,8 +20,8 @@ object Rewriter {
 private trait TermRewriter { def apply(e: Exp): Exp }
 
 /**
-  * Term rewriter for removing intermediate tuples in sums – see test cases for examples
-  */
+ * Term rewriter for removing intermediate tuples in sums – see test cases for examples
+ */
 private object RemoveIntermediateTuple extends TermRewriter {
   private type ReplaceCtx = Map[Sym, RecNode]
 

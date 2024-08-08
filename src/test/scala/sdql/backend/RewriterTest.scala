@@ -7,7 +7,7 @@ import sdql.frontend._
 
 class RewriterTest extends AnyFlatSpec with Matchers {
   it should "remove intermediate tuple" in {
-    val e = sdql"""
+    val e       = sdql"""
                let i = 0
                let x = <inner = <_ = 0>>
                let y = <inner = x.inner(i)>
@@ -22,7 +22,7 @@ class RewriterTest extends AnyFlatSpec with Matchers {
   }
 
   it should "remove intermediate tuple TPCH" in {
-    val e = sdql"""
+    val e       = sdql"""
                let lineitem = load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl")
                sum(<i,_> <- range(lineitem.size))
                    let li = <l_extendedprice=lineitem.l_extendedprice(i)>
@@ -37,7 +37,7 @@ class RewriterTest extends AnyFlatSpec with Matchers {
   }
 
   it should "remove intermediate tuple GJ" in {
-    val e = sdql"""
+    val e       = sdql"""
                let mk =
                    load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @vec {int -> int}>
                        ]("foo/bar.csv")

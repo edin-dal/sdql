@@ -3,9 +3,9 @@ package backend
 
 import org.scalatest.ParallelTestExecution
 import org.scalatest.flatspec.AnyFlatSpec
-import sdql.backend.CppCompile.{clangCmd, inGeneratedDir}
-import sdql.frontend.{Interpolator, SourceCode}
-import sdql.ir.{Exp, RecordValue}
+import sdql.backend.CppCompile.{ clangCmd, inGeneratedDir }
+import sdql.frontend.{ Interpolator, SourceCode }
+import sdql.ir.{ Exp, RecordValue }
 
 // comprehensive subset of tests from the parser useful for TPCH
 class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
@@ -37,7 +37,7 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
   it should "codegen constant map requiring type promotion" in {
     val e = sdql"""{ "a" -> 1, "b" -> 2.5 }"""
     import sdql.analysis.TypeInference
-    import sdql.ir.{DictType, RealType, StringType}
+    import sdql.ir.{ DictType, RealType, StringType }
     assert(TypeInference(e) == DictType(StringType(), RealType))
     CodegenHelpers.compilesExp(e)
   }
@@ -95,8 +95,8 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
 
   private val iList = 0 until 10
   private val sList = 100 until 110
-  private val sRel = for (i <- iList; s <- sList) yield (i, s, i * s + 42)
-  private val rRel = for (s <- sList) yield (s, s - 42)
+  private val sRel  = for (i <- iList; s <- sList) yield (i, s, i * s + 42)
+  private val rRel  = for (s <- sList) yield (s, s - 42)
   private val s = {
     sRel.map(e => RecordValue(Seq("i" -> e._1, "s" -> e._2, "u" -> e._3)) -> 1).toMap
   }
@@ -579,10 +579,10 @@ class CppCodegenTestGJ extends AnyFlatSpec with ParallelTestExecution {
 
 object CodegenHelpers {
   def compilesFile(path: String): Unit = compilesExp(SourceCode.fromFile(path).exp)
-  def compilesExp(e: Exp): Unit = assert(fromCpp(CppCodegen(e)) == 0)
-  private def fromCpp(cpp: String) = inGeneratedDir(Seq("bash", "-c", cmd(escape(cpp)))).run().exitValue()
-  private def cmd(cpp: String) = s"${clangCmd.mkString(" ")} -xc++ -fsyntax-only - <<< '$cpp'"
+  def compilesExp(e: Exp): Unit        = assert(fromCpp(CppCodegen(e)) == 0)
+  private def fromCpp(cpp: String)     = inGeneratedDir(Seq("bash", "-c", cmd(escape(cpp)))).run().exitValue()
+  private def cmd(cpp: String)         = s"${clangCmd.mkString(" ")} -xc++ -fsyntax-only - <<< '$cpp'"
   // silly hack - escape single quotes in C++ source code so we can pass it to bash
   private def escape(cpp: String) = cpp.replace(singleQuote.toString, s"char(${singleQuote.toInt})")
-  private val singleQuote = '\''
+  private val singleQuote         = '\''
 }
