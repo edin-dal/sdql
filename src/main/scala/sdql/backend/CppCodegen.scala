@@ -517,17 +517,15 @@ object CppCodegen {
   private def checkNoLetBindings(e: Exp)(implicit callsCtx: CallsCtx) =
     !cond(e) { case _: LetBinding => true } && !callsCtx.exists(cond(_) { case _: LetCtx  => true })
 
-  private def checkIsSumBody(e: Exp)(implicit callsCtx: CallsCtx): Boolean = {
+  private def checkIsSumBody(e: Exp)(implicit callsCtx: CallsCtx): Boolean =
     !cond(e) { case _: LetBinding | _: IfThenElse | _: Sum => true } && checkActiveSumCtx
-  }
 
   private def checkActiveSumCtx(implicit callsCtx: CallsCtx) = {
     callsCtx.indexWhere(x => cond(x) { case SumStart => true }) match {
       case -1 => false
       case start => callsCtx.indexWhere(x => cond(x) { case _: LetCtx | SumEnd => true }) match {
         case -1 => true
-        case end =>
-          start < end
+        case end => start < end
       }
     }
   }
