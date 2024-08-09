@@ -66,7 +66,5 @@ private object RemoveIntermediateTuple extends TermRewriter {
     case RecNode(values)      => RecNode(values.map(v => (v._1, run(v._2))))
     case DictNode(map, hint)  => DictNode(map.map(x => (run(x._1), run(x._2))), hint)
     case External(name, args) => External(name, args.map(run(_)))
-    // unhandled
-    case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
 }

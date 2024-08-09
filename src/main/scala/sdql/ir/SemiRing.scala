@@ -12,9 +12,10 @@ object TropicalSemiRing {
     case MaxProdSemiRingType => MaxProdSemiRing(Some(value))
     case t                   => raise(s"unexpected: ${t.prettyPrint}")
   }
+  @nowarn
   def unapply(e: Any): Option[(TropicalSemiRingType, Option[Double])] = e match {
-    case t: TropicalSemiRing[Double] @nowarn => Some((t.kind, t.value))
-    case _                                   => None
+    case t: TropicalSemiRing[Double] => Some((t.kind, t.value))
+    case _                           => None
   }
   val MinSumSemiRingType  = TropicalSemiRingType(false, false, RealType)
   val MaxSumSemiRingType  = TropicalSemiRingType(true, false, RealType)
