@@ -1,10 +1,9 @@
 package sdql.backend.codegen
 
-import sdql.ir.{ Attribute, DateType, DictType, IntType, NoHint, RecordType, Type, VecDict }
+import sdql.ir.*
 import sdql.raise
 
-object Printing {
-
+object PrintUtils {
   def cppPrintResult(tpe: Type): String = tpe match {
     case DictType(kt, vt, NoHint) =>
       s"""for (const auto &[key, val] : $resultName) {

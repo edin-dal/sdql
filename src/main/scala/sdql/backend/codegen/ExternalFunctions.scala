@@ -9,7 +9,6 @@ import java.util.UUID
 import scala.PartialFunction.{ cond, condOpt }
 
 object ExternalFunctions {
-
   def run(e: External)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case External(ConstantString.SYMBOL, Seq(Const(str: String), Const(maxLen: Int))) =>
       assert(maxLen == str.length + 1)
@@ -69,13 +68,13 @@ object ExternalFunctions {
         case dictTpe @ DictType(kt, vt, NoHint) => (dictTpe, kt, vt)
       }
       val recTpe    = RecordType(Seq(Attribute("_1", kt), Attribute("_2", vt)))
-      val recTpeCpp = CppCodegen.cppType(recTpe)
+      val recTpeCpp = cppType(recTpe)
       val cmp       = if (isDescending) ">" else "<"
       s"""std::vector<$recTpeCpp> $tmp($n);
          |std::partial_sort_copy(
          |    $arg.begin(), $arg.end(), $tmp.begin(), $tmp.end(),
          |    []($recTpeCpp const &l, $recTpeCpp const &r) { return std::get<1>(l) $cmp std::get<1>(r); });
-         |auto $limit = ${CppCodegen.cppType(dictTpe)}($tmp.begin(), $tmp.end());
+         |auto $limit = ${cppType(dictTpe)}($tmp.begin(), $tmp.end());
          |""".stripMargin
     case External(name, _) =>
       raise(s"unhandled function name: $name")

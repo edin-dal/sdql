@@ -23,8 +23,8 @@ private case object MinAgg  extends Aggregation
 private case object MaxAgg  extends Aggregation
 
 object CppCodegen {
-  private val reDate  = "^(\\d{4})(\\d{2})(\\d{2})$".r
-  private val noName  = "_"
+  private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
+  private val noName = "_"
 
   private val header = """#include "../runtime/headers.h""""
   private val csvConsts =
@@ -34,7 +34,7 @@ object CppCodegen {
 
   def apply(e: Exp, benchmarkRuns: Int = 0): String = {
     val rewrite   = Rewriter(e)
-    val csvBody   = cppCsvs(Seq(rewrite))
+    val csvBody   = ReadUtils.cppCsvs(Seq(rewrite))
     val queryBody = run(rewrite)(Map(), Seq())
     val benchStart =
       if (benchmarkRuns == 0) ""
@@ -53,7 +53,7 @@ object CppCodegen {
            |if (iter == $benchmarkRuns) {
            |cerr << endl;
            |std::cout << timer.GetMean(0) << " ms" << std::endl;
-           |${Printing.cppPrintResult(TypeInference(rewrite))}
+           |${PrintUtils.cppPrintResult(TypeInference(rewrite))}
            |}
            |}""".stripMargin
     s"""$header
@@ -63,7 +63,7 @@ object CppCodegen {
        |$benchStart
        |$queryBody
        |$benchStop
-       |${if (benchmarkRuns == 0) Printing.cppPrintResult(TypeInference(rewrite)) else ""}
+       |${if (benchmarkRuns == 0) PrintUtils.cppPrintResult(TypeInference(rewrite)) else ""}
        |}""".stripMargin
   }
 
@@ -129,17 +129,11 @@ object CppCodegen {
   }
 
   private def sumHint(e: Exp)(implicit typesCtx: TypesCtx) = e match {
-    case dict: DictNode => TypeInference.run(getInnerDict(dict)) match { case DictType(_, _, hint) => hint }
+    case dict: DictNode => TypeInference.run(dict.getInnerDict) match { case DictType(_, _, hint) => hint }
     case _              => NoHint
   }
 
-  private def isUnique(dict: DictNode) = cond(getInnerDict(dict)) { case DictNode(Seq((_: Unique, _)), NoHint) => true }
-
-  @tailrec
-  private def getInnerDict(dict: DictNode): DictNode = dict match {
-    case DictNode(Seq((_, dict: DictNode)), _) => getInnerDict(dict)
-    case _                                     => dict
-  }
+  private def isUnique(dict: DictNode) = cond(dict.getInnerDict) { case DictNode(Seq((_: Unique, _)), NoHint) => true }
 
   private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
     exps
@@ -219,20 +213,21 @@ object CppCodegen {
   }
 
   private def run(e: IfThenElse)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
-    // not
     case IfThenElse(a, Const(false), Const(true)) => s"!(${run(a)})"
-    // and
-    case IfThenElse(a, b, Const(false)) => s"(${run(a)} && ${run(b)})"
-    // or
-    case IfThenElse(a, Const(true), b) => s"(${run(a)} || ${run(b)})"
-
-    case IfThenElse(cond, e1, e2) if checkIsTernary =>
+    case IfThenElse(a, b, Const(false))           => s"(${run(a)} && ${run(b)})"
+    case IfThenElse(a, Const(true), b)            => s"(${run(a)} || ${run(b)})"
+    case _ if checkIsTernary                      => ternary(e)
+    case _                                        => default(e)
+  }
+  private def ternary(e: IfThenElse)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+    case IfThenElse(cond, e1, e2) =>
       val callsLocal = Seq(SumEnd) ++ callsCtx
       val condBody   = run(cond)(typesCtx, callsLocal)
       val ifBody     = run(e1)(typesCtx, callsLocal)
       val elseBody   = run(e2)(typesCtx, callsLocal)
       s"($condBody) ? $ifBody : $elseBody"
-
+  }
+  private def default(e: IfThenElse)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
     case IfThenElse(cond, e1, e2) =>
       val condBody = run(cond)(typesCtx, Seq(SumEnd) ++ callsCtx)
       val ifBody   = run(e1)
@@ -257,11 +252,9 @@ object CppCodegen {
     case Cmp(DictNode(Nil, _), e @ Get(e1, e2), "!=") if getArgsMatch(e) => dictCmpNil(e1, e2)
     case Cmp(e1, e2, cmp)                                                => s"${run(e1)} $cmp ${run(e2)}"
   }
-
   private def getArgsMatch(e: Get)(implicit typesCtx: TypesCtx) = e match {
     case Get(e1, e2) => cond(TypeInference.run(e1)) { case DictType(kt, _, _) => TypeInference.run(e2) == kt }
   }
-
   private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
     TypeInference.run(e1) match {
       case DictType(IntType, _, Vec) => s"${run(e1)}[${run(e2)}] != 0"
@@ -293,8 +286,7 @@ object CppCodegen {
   private def run(e: Sym): String = e match { case Sym(name) => name }
 
   private def run(e: DictNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
-    case DictNode(Nil, _) =>
-      ""
+    case DictNode(Nil, _) => ""
     case DictNode(seq, _) =>
       val localCalls = Seq(IsTernary) ++ callsCtx
       seq
@@ -359,100 +351,6 @@ object CppCodegen {
     case RecordType(attrs)                => attrs.map(_.tpe).map(cppInit).mkString(", ")
     case tpe                              => raise(s"unimplemented type: $tpe")
   }
-
-  def cppType(tpe: ir.Type): String = tpe match {
-    case BoolType                       => "bool"
-    case RealType                       => "double"
-    case IntType | DateType             => "long"
-    case StringType(None)               => "std::string"
-    case StringType(Some(maxLen))       => s"VarChar<$maxLen>"
-    case DictType(kt, vt, NoHint)       => s"phmap::flat_hash_map<${cppType(kt)}, ${cppType(vt)}>"
-    case DictType(kt, IntType, VecDict) => s"vecdict<${cppType(kt)}>"
-    case DictType(IntType, vt, Vec)     => s"std::vector<${cppType(vt)}>"
-    case RecordType(attrs)              => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
-    case tpe                            => raise(s"unimplemented type: $tpe")
-  }
-
-  private def cppCsvs(exps: Seq[Exp]) = {
-    val pathNameType = exps
-      .flatMap(
-        e =>
-          iterExps(e)
-            .flatMap(
-              e =>
-                condOpt(e) {
-                  case LetBinding(Sym(name), load @ Load(path, tp: RecordType), _) if TypeInference.isColumnStore(tp) =>
-                    val recordType = (load: @unchecked) match { case Load(_, recordType: RecordType) => recordType }
-                    (path, name, recordType)
-              }
-          )
-      )
-      .distinct
-      .sortBy(_._2)
-
-    val csvConsts = pathNameType.map({ case (path, name, _) => makeCsvConst(name, path) }).mkString("", "\n", "\n")
-    val tuples = pathNameType
-      .map({
-        case (_, name, recordType) =>
-          val init = makeTupleInit(name, recordType)
-          s"auto ${name.toLowerCase} = ${cppType(recordType)}($init);\n"
-      })
-      .mkString("\n")
-
-    Seq(csvConsts, tuples).mkString("\n")
-  }
-
-  private def makeCsvConst(name: String, path: String) =
-    s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR);"""
-
-  private def makeTupleInit(name: String, recordType: RecordType) = {
-    assert(recordType.attrs.last.name == "size")
-    val attrs = recordType.attrs
-      .dropRight(1)
-      .map(attr => (attr.tpe: @unchecked) match { case DictType(IntType, vt, Vec) => Attribute(attr.name, vt) })
-
-    (attrs.zipWithIndex.map({
-      case (Attribute(attr_name, tpe), i) =>
-        s"/* $attr_name */" ++ (tpe match {
-          case DateType =>
-            s"dates_to_numerics(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(StringType())}>($i)" + ")"
-          case StringType(Some(maxLen)) =>
-            s"strings_to_varchars<$maxLen>(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(StringType())}>($i)" + ")"
-          case _ =>
-            s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)"
-        })
-    }) ++ Seq(s"/* size */static_cast<${cppType(IntType)}>(${name.toUpperCase}_CSV.GetRowCount())"))
-      .mkString(",\n")
-  }
-
-  private def iterExps(e: Exp): Iterator[Exp] =
-    Iterator(e) ++ (
-      e match {
-        // 0-ary
-        case _: Sym | _: Const | _: RangeNode | _: Load => Iterator()
-        // 1-ary
-        case Neg(e)          => iterExps(e)
-        case FieldNode(e, _) => iterExps(e)
-        case Promote(_, e)   => iterExps(e)
-        case Unique(e)       => iterExps(e)
-        // 2-ary
-        case Add(e1, e2)           => iterExps(e1) ++ iterExps(e2)
-        case Mult(e1, e2)          => iterExps(e1) ++ iterExps(e2)
-        case Cmp(e1, e2, _)        => iterExps(e1) ++ iterExps(e2)
-        case Sum(_, _, e1, e2)     => iterExps(e1) ++ iterExps(e2)
-        case Get(e1, e2)           => iterExps(e1) ++ iterExps(e2)
-        case Concat(e1, e2)        => iterExps(e1) ++ iterExps(e2)
-        case LetBinding(_, e1, e2) => iterExps(e1) ++ iterExps(e2)
-        // 3-ary
-        case IfThenElse(e1, e2, e3) => iterExps(e1) ++ iterExps(e2) ++ iterExps(e3)
-        // n-ary
-        case RecNode(values)   => values.map(_._2).flatMap(iterExps)
-        case DictNode(dict, _) => dict.flatMap(x => iterExps(x._1) ++ iterExps(x._2))
-        case External(_, args) => args.flatMap(iterExps)
-        // unhandled
-        case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
-      }
-    )
 
   private def checkNoLetBindings(e: Exp)(implicit callsCtx: CallsCtx) =
     !cond(e) { case _: LetBinding => true } && !callsCtx.exists(cond(_) { case _: LetCtx => true })

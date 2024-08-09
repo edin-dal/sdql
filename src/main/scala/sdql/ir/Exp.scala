@@ -78,11 +78,17 @@ case class RecNode(values: Seq[(Field, Exp)]) extends Exp {
  * A dictionary that maps expressions to other expressions
  * @param map a dictionary from expression to other expressions
  */
-case class DictNode(map: Seq[(Exp, Exp)], hint: CodegenHint = NoHint) extends Exp
-sealed trait CodegenHint
-case object NoHint  extends CodegenHint
-case object VecDict extends CodegenHint
-case object Vec     extends CodegenHint
+case class DictNode(map: Seq[(Exp, Exp)], hint: DictHint = NoHint) extends Exp {
+  @tailrec
+  final def getInnerDict: DictNode = this match {
+    case DictNode(Seq((_, dict: DictNode)), _) => dict.getInnerDict
+    case _                                     => this
+  }
+}
+sealed trait DictHint
+case object NoHint  extends DictHint
+case object VecDict extends DictHint
+case object Vec     extends DictHint
 
 /**
  * Integer numbers between 0 and n
