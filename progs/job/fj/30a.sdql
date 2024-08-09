@@ -13,37 +13,40 @@ let n = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @ve
 
 let cct2_trie0 = sum(<i, _> <- range(cct2.size)) { cct2.id(i) -> 1 } in
 let cct1_trie0 = sum(<i, _> <- range(cct1.size)) { cct1.id(i) -> 1 } in
-let interm0_trie0 = sum(<cc_off, _> <- range(cc.size))
+let interm0 = sum(<cc_off, _> <- range(cc.size))
 	let x0 = cc.status_id(cc_off) in
 	if (x0 ∈ cct2_trie0) then
 		let cct2_trie1 = cct2_trie0(x0) in
 		let x1 = cc.subject_id(cc_off) in
 		if (x1 ∈ cct1_trie0) then
 			let cct1_trie1 = cct1_trie0(x1) in
-			{ cc.movie_id(cc_off) -> @vecdict { <col0=cc.subject_id(cc_off), col1=cc.status_id(cc_off), col2=cc.movie_id(cc_off)> -> 1 } }
+			@vecdict { <col0=cc.subject_id(cc_off), col1=cc.status_id(cc_off), col2=cc.movie_id(cc_off)> -> 1 }
 in
 
 let it2_trie0 = sum(<i, _> <- range(it2.size)) { it2.id(i) -> 1 } in
-let interm1_trie0 = sum(<mi_idx_off, _> <- range(mi_idx.size))
+let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) { interm0_tuple.col2 -> 1 } in
+let interm1 = sum(<mi_idx_off, _> <- range(mi_idx.size))
 	let x0 = mi_idx.info_type_id(mi_idx_off) in
 	if (x0 ∈ it2_trie0) then
 		let it2_trie1 = it2_trie0(x0) in
 		let x1 = mi_idx.movie_id(mi_idx_off) in
 		if (x1 ∈ interm0_trie0) then
 			let interm0_trie1 = interm0_trie0(x1) in
-			{ mi_idx.movie_id(mi_idx_off) -> @vecdict { <col0=mi_idx.info_type_id(mi_idx_off), col1=mi_idx.movie_id(mi_idx_off), col2=mi_idx.info(mi_idx_off)> -> 1 } }
+			@vecdict { <col0=mi_idx.info_type_id(mi_idx_off), col1=mi_idx.movie_id(mi_idx_off), col2=mi_idx.info(mi_idx_off)> -> 1 }
 in
 
-let interm2_trie0 = sum(<t_off, _> <- range(t.size))
+let interm1_trie0 = sum(<interm1_tuple, _> <- interm1) { interm1_tuple.col1 -> @vecdict { interm1_tuple -> 1 } } in
+let interm2 = sum(<t_off, _> <- range(t.size))
 	let x0 = t.id(t_off) in
 	if (x0 ∈ interm1_trie0) then
 		let interm1_trie1 = interm1_trie0(x0) in
 		sum(<interm1_tuple, _> <- interm1_trie1)
-			{ t.id(t_off) -> @vecdict { <col0=t.id(t_off), col1=t.title(t_off), col3=interm1_tuple.col2> -> 1 } }
+			@vecdict { <col0=t.id(t_off), col1=t.title(t_off), col3=interm1_tuple.col2> -> 1 }
 in
 
 let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> 1 } in
-let interm3_trie0 = sum(<mk_off, _> <- range(mk.size))
+let interm2_trie0 = sum(<interm2_tuple, _> <- interm2) { interm2_tuple.col0 -> @vecdict { interm2_tuple -> 1 } } in
+let interm3 = sum(<mk_off, _> <- range(mk.size))
 	let x0 = mk.keyword_id(mk_off) in
 	if (x0 ∈ k_trie0) then
 		let k_trie1 = k_trie0(x0) in
@@ -51,11 +54,12 @@ let interm3_trie0 = sum(<mk_off, _> <- range(mk.size))
 		if (x1 ∈ interm2_trie0) then
 			let interm2_trie1 = interm2_trie0(x1) in
 			sum(<interm2_tuple, _> <- interm2_trie1)
-				{ mk.movie_id(mk_off) -> @vecdict { <col0=mk.keyword_id(mk_off), col1=mk.movie_id(mk_off), col2=interm2_tuple.col1, col4=interm2_tuple.col3> -> 1 } }
+				@vecdict { <col0=mk.keyword_id(mk_off), col1=mk.movie_id(mk_off), col2=interm2_tuple.col1, col4=interm2_tuple.col3> -> 1 }
 in
 
 let it1_trie0 = sum(<i, _> <- range(it1.size)) { it1.id(i) -> 1 } in
-let interm4_trie0 = sum(<mi_off, _> <- range(mi.size))
+let interm3_trie0 = sum(<interm3_tuple, _> <- interm3) { interm3_tuple.col1 -> @vecdict { interm3_tuple -> 1 } } in
+let interm4 = sum(<mi_off, _> <- range(mi.size))
 	let x0 = mi.info_type_id(mi_off) in
 	if (x0 ∈ it1_trie0) then
 		let it1_trie1 = it1_trie0(x0) in
@@ -63,9 +67,10 @@ let interm4_trie0 = sum(<mi_off, _> <- range(mi.size))
 		if (x1 ∈ interm3_trie0) then
 			let interm3_trie1 = interm3_trie0(x1) in
 			sum(<interm3_tuple, _> <- interm3_trie1)
-				{ mi.movie_id(mi_off) -> @vecdict { <col0=mi.info_type_id(mi_off), col1=mi.movie_id(mi_off), col2=mi.info(mi_off), col4=interm3_tuple.col2, col6=interm3_tuple.col4> -> 1 } }
+				@vecdict { <col0=mi.info_type_id(mi_off), col1=mi.movie_id(mi_off), col2=mi.info(mi_off), col4=interm3_tuple.col2, col6=interm3_tuple.col4> -> 1 }
 in
 
+let interm4_trie0 = sum(<interm4_tuple, _> <- interm4) { interm4_tuple.col1 -> @vecdict { interm4_tuple -> 1 } } in
 let n_trie0 = sum(<i, _> <- range(n.size)) { n.id(i) -> @vecdict { i -> 1 } } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.movie_id(ci_off) in

@@ -7,15 +7,16 @@ let t = load[<id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @v
 let an = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/aka_name.csv")
 
 let cn_trie0 = sum(<i, _> <- range(cn.size)) { cn.id(i) -> 1 } in
-let interm0_trie0 = sum(<mc_off, _> <- range(mc.size))
+let interm0 = sum(<mc_off, _> <- range(mc.size))
 	let x0 = mc.company_id(mc_off) in
 	if (x0 ∈ cn_trie0) then
 		let cn_trie1 = cn_trie0(x0) in
-		{ mc.movie_id(mc_off) -> @vecdict { <col0=mc.company_id(mc_off), col1=mc.movie_id(mc_off)> -> 1 } }
+		@vecdict { <col0=mc.company_id(mc_off), col1=mc.movie_id(mc_off)> -> 1 }
 in
 
 let rt_trie0 = sum(<i, _> <- range(rt.size)) { rt.id(i) -> 1 } in
 let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @vecdict { i -> 1 } } in
+let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) { interm0_tuple.col1 -> 1 } in
 let n_trie0 = sum(<i, _> <- range(n.size)) { n.id(i) -> 1 } in
 let an_trie0 = sum(<i, _> <- range(an.size)) { an.person_id(i) -> @vecdict { i -> 1 } } in
 sum(<ci_off, _> <- range(ci.size))
