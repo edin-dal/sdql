@@ -82,6 +82,7 @@ case class DictNode(map: Seq[(Exp, Exp)], hint: DictHint = NoHint) extends Exp {
   @tailrec
   final def getInnerDict: DictNode = this match {
     case DictNode(Seq((_, dict: DictNode)), _) => dict.getInnerDict
+    case DictNode(map, _) if map.length != 1   => raise(s"unsupported: $this")
     case _                                     => this
   }
 }
