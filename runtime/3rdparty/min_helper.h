@@ -1,3 +1,5 @@
+#pragma once
+
 inline void min_inplace(long& a, const long& b) {
   a = (a == 0) ? b : std::min(a, b);
 }

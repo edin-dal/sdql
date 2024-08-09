@@ -17,3 +17,6 @@ using namespace std;
 #include "3rdparty/vecdict.h"
 #include "3rdparty/min_helper.h"
 #include "3rdparty/converters.h"
+
+const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
+const auto SEPARATOR = rapidcsv::SeparatorParams('|');

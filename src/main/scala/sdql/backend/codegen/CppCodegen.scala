@@ -23,15 +23,6 @@ private case object MinAgg  extends Aggregation
 private case object MaxAgg  extends Aggregation
 
 object CppCodegen {
-  private val reDate = "^(\\d{4})(\\d{2})(\\d{2})$".r
-  private val noName = "_"
-
-  private val header = """#include "../runtime/headers.h""""
-  private val csvConsts =
-    s"""const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
-       |const auto SEPARATOR = rapidcsv::SeparatorParams('|');
-       |""".stripMargin
-
   def apply(e: Exp, benchmarkRuns: Int = 0): String = {
     val rewrite   = Rewriter(e)
     val csvBody   = ReadUtils.cppCsvs(Seq(rewrite))
@@ -56,8 +47,7 @@ object CppCodegen {
            |${PrintUtils.cppPrintResult(TypeInference(rewrite))}
            |}
            |}""".stripMargin
-    s"""$header
-       |$csvConsts
+    s"""#include "../runtime/headers.h"
        |$csvBody
        |int main() {
        |$benchStart
@@ -189,7 +179,7 @@ object CppCodegen {
       val body              = run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal)
       e1 match {
         case _: RangeNode =>
-          assert(v.name == noName)
+          assert(v.name == "_")
           val n = run(e1)
           s"""$init
              |for (${cppType(IntType)} ${k.name} = 0; ${k.name} < $n; ${k.name}++) {
@@ -324,7 +314,7 @@ object CppCodegen {
 
   private def run(e: Const) = e match {
     case Const(DateValue(v)) =>
-      val yyyymmdd = reDate.findAllIn(v.toString).matchData.next()
+      val yyyymmdd = "^(\\d{4})(\\d{2})(\\d{2})$".r.findAllIn(v.toString).matchData.next()
       s"${yyyymmdd.group(1)}${yyyymmdd.group(2)}${yyyymmdd.group(3)}"
     case Const(v: String) => s""""$v""""
     case Const(v)         => v.toString
