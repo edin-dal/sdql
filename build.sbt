@@ -7,6 +7,7 @@ libraryDependencies ++= Seq(
   "org.scalameta" %% "munit"         % "1.0.0" // for pretty printing expressions
 )
 
+// Note: IntelliJ accepts -P but SBT requires no. of threads
 Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-P32")
 
 // Mostly from https://alexn.org/blog/2020/05/26/scala-fatal-warnings/#2-activate-all-linting-options
