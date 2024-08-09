@@ -2,19 +2,13 @@ package sdql.backend.codegen
 
 import sdql.analysis.TypeInference
 import sdql.backend.Rewriter
-import sdql.backend.codegen.ExternalFunctions
+import sdql.backend.codegen.ChecksUtils.*
 import sdql.ir.*
 import sdql.ir.ExternalFunctions.{ Inv, Limit }
 import sdql.{ ir, raise }
 
-import scala.PartialFunction.{ cond, condOpt }
+import scala.PartialFunction.cond
 import scala.annotation.tailrec
-
-sealed trait CallCtx
-case class LetCtx(name: String) extends CallCtx
-case object SumStart            extends CallCtx
-case object SumEnd              extends CallCtx
-case object IsTernary           extends CallCtx
 
 private sealed trait Aggregation
 private case object SumAgg  extends Aggregation
@@ -296,7 +290,7 @@ object CppCodegen {
       }
   }
 
-  private def run(e: External)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = ExternalFunctions.run(e)
+  private def run(e: External)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = ExternalUtils.run(e)
 
   private def run(e: Concat)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Concat(e1: RecNode, e2: RecNode) => run(e1.concat(e2))
@@ -331,26 +325,4 @@ object CppCodegen {
     case RecordType(attrs)                => attrs.map(_.tpe).map(cppInit).mkString(", ")
     case tpe                              => raise(s"unimplemented type: $tpe")
   }
-
-  private def checkNoLetBindings(e: Exp)(implicit callsCtx: CallsCtx) =
-    !cond(e) { case _: LetBinding => true } && !callsCtx.exists(cond(_) { case _: LetCtx => true })
-
-  private def checkIsSumBody(e: Exp)(implicit callsCtx: CallsCtx) =
-    !cond(e) { case _: LetBinding | _: IfThenElse | _: Sum => true } && checkActiveSumCtx
-
-  private def checkActiveSumCtx(implicit callsCtx: CallsCtx) =
-    callsCtx.indexWhere(x => cond(x) { case SumStart => true }) match {
-      case -1 => false
-      case start =>
-        callsCtx.indexWhere(x => cond(x) { case _: LetCtx | SumEnd => true }) match {
-          case -1  => true
-          case end => start < end
-        }
-    }
-
-  private def checkIsTernary(implicit callsCtx: CallsCtx) =
-    callsCtx.exists(cond(_) { case IsTernary => true })
-
-  private def aggregationName(implicit callsCtx: CallsCtx) =
-    callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
 }
