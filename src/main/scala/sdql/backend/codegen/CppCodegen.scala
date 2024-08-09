@@ -274,11 +274,8 @@ object CppCodegen {
   }
 
   private def run(e: Mult)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
-    case Mult(e1, External(Inv.SYMBOL, args)) =>
-      val divisor = args match { case Seq(divisorExp: Exp) => run(divisorExp) }
-      s"(${run(e1)} / $divisor)"
-    case Mult(e1, e2) =>
-      s"(${run(e1)} * ${run(e2)})"
+    case Mult(e1, External(Inv.SYMBOL, Seq(e2))) => s"(${run(e1)} / ${run(e2)})"
+    case Mult(e1, e2)                            => s"(${run(e1)} * ${run(e2)})"
   }
 
   private def run(e: Neg)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = s"-${run(e)}"
@@ -290,12 +287,7 @@ object CppCodegen {
     case DictNode(seq, _) =>
       val localCalls = Seq(IsTernary) ++ callsCtx
       seq
-        .map({
-          case (e1, e2) =>
-            val e1Cpp = run(e1)(typesCtx, localCalls)
-            val e2Cpp = run(e2)(typesCtx, localCalls)
-            s"{$e1Cpp, $e2Cpp}"
-        })
+        .map({ case (e1, e2) => s"{${run(e1)(typesCtx, localCalls)}, ${run(e2)(typesCtx, localCalls)}}" })
         .mkString(s"${cppType(TypeInference.run(e))}({", ", ", "})")
   }
 
@@ -334,10 +326,8 @@ object CppCodegen {
     case Const(DateValue(v)) =>
       val yyyymmdd = reDate.findAllIn(v.toString).matchData.next()
       s"${yyyymmdd.group(1)}${yyyymmdd.group(2)}${yyyymmdd.group(3)}"
-    case Const(v: String) =>
-      s""""$v""""
-    case Const(v) =>
-      v.toString
+    case Const(v: String) => s""""$v""""
+    case Const(v)         => v.toString
   }
 
   private def cppInit(tpe: ir.Type): String = tpe match {
@@ -355,7 +345,7 @@ object CppCodegen {
   private def checkNoLetBindings(e: Exp)(implicit callsCtx: CallsCtx) =
     !cond(e) { case _: LetBinding => true } && !callsCtx.exists(cond(_) { case _: LetCtx => true })
 
-  private def checkIsSumBody(e: Exp)(implicit callsCtx: CallsCtx): Boolean =
+  private def checkIsSumBody(e: Exp)(implicit callsCtx: CallsCtx) =
     !cond(e) { case _: LetBinding | _: IfThenElse | _: Sum => true } && checkActiveSumCtx
 
   private def checkActiveSumCtx(implicit callsCtx: CallsCtx) =
