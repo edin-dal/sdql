@@ -1,6 +1,8 @@
 #include <regex>
 #include <sstream>
 
+const long DEFAULT_VEC_SIZE = 6000001;
+
 const std::regex RE_DATE("-");
 
 inline long date_to_numeric(std::string str) {

@@ -23,7 +23,6 @@ private case object MinAgg  extends Aggregation
 private case object MaxAgg  extends Aggregation
 
 object CppCodegen {
-  private val vecSize = 6000001
   private val reDate  = "^(\\d{4})(\\d{2})(\\d{2})$".r
   private val noName  = "_"
 
@@ -356,7 +355,7 @@ object CppCodegen {
     case StringType(None)                 => "\"\""
     case StringType(Some(_))              => raise("initialising VarChars shouldn't be needed")
     case DictType(_, _, NoHint | VecDict) => "{}"
-    case DictType(_, _, Vec)              => vecSize.toString
+    case DictType(_, _, Vec)              => "DEFAULT_VEC_SIZE"
     case RecordType(attrs)                => attrs.map(_.tpe).map(cppInit).mkString(", ")
     case tpe                              => raise(s"unimplemented type: $tpe")
   }
