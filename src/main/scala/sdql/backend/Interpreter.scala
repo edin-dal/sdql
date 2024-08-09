@@ -125,7 +125,7 @@ import scala.annotation.{ nowarn, tailrec }
               val cur = run(e2)(ctx ++ Map(k -> kv._1, v -> kv._2))
               if (firstIter) {
                 firstIter = false
-                if (cur.isInstanceOf[Map[_, _]]) {
+                if (cur.isInstanceOf[Map[?, ?]]) {
                   inPlace = true
                 } else
                   inPlace = false
@@ -205,7 +205,7 @@ import scala.annotation.{ nowarn, tailrec }
     case EnumSemiRing(_, BottomEnumSemiRing)                 => true
     case NullableSemiRing(_, None)                           => true
     case ZeroValue                                           => true
-    case x: Map[_, _] if x.isEmpty                           => true
+    case x: Map[?, ?] if x.isEmpty                           => true
     case RecordValue(vals) if vals.forall(x => isZero(x._2)) => true
     case _                                                   => false
   }

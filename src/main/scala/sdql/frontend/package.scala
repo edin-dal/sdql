@@ -15,7 +15,7 @@ package object frontend {
           case s: String      => valueToString(s)
           case d: Double      => valueToString(d)
           case i: Int         => valueToString(i)
-          case m: Map[_, _]   => valueToString(m)
+          case m: Map[?, ?]   => valueToString(m)
           case r: RecordValue => valueToString(r)
           // case t: Exp =>
           //   val snippet = sdqlCG(t)

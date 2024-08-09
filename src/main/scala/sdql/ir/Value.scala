@@ -15,7 +15,7 @@ object Value {
     case s: String => "\"" + s + "\""
     case d: Double => d.toString
     case i: Int    => i.toString
-    case m: Map[_, _] =>
+    case m: Map[?, ?] =>
       m.map(kv => s"${toString(kv._1)} -> ${toString(kv._2)}").mkString("{", ", ", "}")
     case RecordValue(vals) =>
       vals.map(fv => s"${fv._1} = ${fv._2}").mkString("<", ", ", ">")
