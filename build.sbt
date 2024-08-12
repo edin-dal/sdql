@@ -9,6 +9,11 @@ libraryDependencies ++= Seq(
 
 // Note: IntelliJ accepts -P but SBT requires no. of threads
 Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-P32")
+Test / testOptions ++= Seq(
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "SlowTPCH"),
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "SlowGJ"),
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "SlowFJ"),
+)
 
 // Mostly from https://alexn.org/blog/2020/05/26/scala-fatal-warnings/#2-activate-all-linting-options
 scalacOptions := Seq(
