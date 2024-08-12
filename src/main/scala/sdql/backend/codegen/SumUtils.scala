@@ -3,9 +3,10 @@ package sdql.backend.codegen
 import sdql.analysis.TypeInference
 import sdql.backend.codegen.ChecksUtils.*
 import sdql.ir.*
-import sdql.{ ir, raise }
+import sdql.raise
 
 import scala.PartialFunction.cond
+import scala.annotation.tailrec
 
 private sealed trait Aggregation
 private case object SumAgg  extends Aggregation
@@ -19,7 +20,8 @@ object SumUtils {
       val (tpe, typesLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
       val callsLocal        = Seq(SumStart) ++ callsCtx
       val isLetSum          = cond(callsCtx.head) { case _: LetCtx => true }
-      val init              = if (!isLetSum) "" else s"${cppType(tpe)} (${cppInit(tpe)});"
+      val agg               = getAggregation(getSumBody(e2))
+      val init              = if (isLetSum) s"${cppType(tpe)} (${cppInit(tpe)(agg)});" else ""
       val body              = CppCodegen.run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal)
       e1 match {
         case _: RangeNode =>
@@ -44,6 +46,17 @@ object SumUtils {
              |}
              |""".stripMargin
       }
+  }
+
+  @tailrec
+  private def getSumBody(e: Exp): Exp = e match {
+    case Sum(_, _, _, e2)                                  => getSumBody(e2)
+    case LetBinding(_, _, e2)                              => getSumBody(e2)
+    case IfThenElse(_, DictNode(Nil, _), DictNode(Nil, _)) => raise("both branches empty")
+    case IfThenElse(_, DictNode(Nil, _), e2)               => getSumBody(e2)
+    case IfThenElse(_, e1, DictNode(Nil, _))               => getSumBody(e1)
+    case IfThenElse(_, e1, _)                              => getSumBody(e1) // pick arbitrary branch
+    case _                                                 => e
   }
 
   def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
@@ -104,15 +117,34 @@ object SumUtils {
     case _                                                          => (Seq(), e)
   }
 
-  private def cppInit(tpe: ir.Type): String = tpe match {
-    case BoolType                         => "false"
-    case RealType                         => "0.0"
-    case IntType | DateType               => "0"
-    case StringType(None)                 => "\"\""
-    case StringType(Some(_))              => raise("initialising VarChars shouldn't be needed")
+  private def cppInit(tpe: Type)(implicit agg: Aggregation): String = tpe match {
     case DictType(_, _, NoHint | VecDict) => "{}"
     case DictType(_, _, Vec)              => "DEFAULT_VEC_SIZE"
     case RecordType(attrs)                => attrs.map(_.tpe).map(cppInit).mkString(", ")
-    case tpe                              => raise(s"unimplemented type: $tpe")
+    case BoolType =>
+      agg match {
+        case SumAgg | MaxAgg  => "false"
+        case ProdAgg | MinAgg => "true"
+      }
+    case RealType =>
+      agg match {
+        case SumAgg | MaxAgg => "0.0"
+        case ProdAgg         => "1.0"
+        case MinAgg          => s"std::numeric_limits<${cppType(RealType)}>::max()"
+      }
+    case IntType | DateType =>
+      agg match {
+        case SumAgg | MaxAgg => "0"
+        case ProdAgg         => "1"
+        case MinAgg          => s"std::numeric_limits<${cppType(IntType)}>::max()"
+      }
+    case StringType(None) =>
+      agg match {
+        case SumAgg | MaxAgg => "\"\""
+        case ProdAgg         => raise("undefined")
+        case MinAgg          => s"MAX_STRING"
+      }
+    case StringType(Some(_)) => raise("initialising VarChars shouldn't be needed")
+    case tpe                 => raise(s"unimplemented type: $tpe")
   }
 }

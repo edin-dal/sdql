@@ -3,7 +3,8 @@
 #include <regex>
 #include <sstream>
 
-const long DEFAULT_VEC_SIZE = 6000001;
+constexpr long DEFAULT_VEC_SIZE = 6000001;
+const auto MAX_STRING = std::string("zzzzzzzzzzzzzzzzzz");
 
 const std::regex RE_DATE("-");
 
