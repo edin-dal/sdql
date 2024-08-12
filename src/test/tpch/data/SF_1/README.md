@@ -1,1 +1,0 @@
-Place in this directory TPCH datasets with scaling factor of 1.

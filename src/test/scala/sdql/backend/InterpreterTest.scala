@@ -279,10 +279,11 @@ sum(<x_s, x_s_v> <- S)
 
   it should "interpret queries" in {
     // doesn't check results - just that interpreter doesn't crash on these queries
-    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q1.sdql").exp)
-    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q6.sdql").exp)
-    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13.sdql").exp)
-    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13_promote.sdql").exp)
-    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13_promote_unfused.sdql").exp)
+    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q1.sdql", patch).exp)
+    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q6.sdql", patch).exp)
+    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13.sdql", patch).exp)
+    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13_promote.sdql", patch).exp)
+    interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13_promote_unfused.sdql", patch).exp)
   }
+  private def patch(s: String) = s.replace("datasets/tpch/", s"src/test/tpch/data/")
 }

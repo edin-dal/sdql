@@ -9,95 +9,95 @@ import sdql.frontend.SourceCode
 class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 
   it should "compile and run TPCH Q1 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q1.sdql", "src/test/tpch/results/SF_0.01/q1.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q1.sdql", "src/test/tpch/results/SF_0.01/q1.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q2 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q2.sdql", "src/test/tpch/results/SF_0.01/q2.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q2.sdql", "src/test/tpch/results/SF_0.01/q2.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q3 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q3.sdql", "src/test/tpch/results/SF_0.01/q3.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q3.sdql", "src/test/tpch/results/SF_0.01/q3.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q4 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q4.sdql", "src/test/tpch/results/SF_0.01/q4.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q4.sdql", "src/test/tpch/results/SF_0.01/q4.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q5 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q5.sdql", "src/test/tpch/results/SF_0.01/q5.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q5.sdql", "src/test/tpch/results/SF_0.01/q5.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q6 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q6.sdql", "src/test/tpch/results/SF_0.01/q6.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q6.sdql", "src/test/tpch/results/SF_0.01/q6.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q7 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q7.sdql", "src/test/tpch/results/SF_0.01/q7.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q7.sdql", "src/test/tpch/results/SF_0.01/q7.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q8 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q8.sdql", "src/test/tpch/results/SF_0.01/q8.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q8.sdql", "src/test/tpch/results/SF_0.01/q8.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q9 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q9.sdql", "src/test/tpch/results/SF_0.01/q9.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q9.sdql", "src/test/tpch/results/SF_0.01/q9.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q10 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q10.sdql", "src/test/tpch/results/SF_0.01/q10.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q10.sdql", "src/test/tpch/results/SF_0.01/q10.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q11 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q11.sdql", "src/test/tpch/results/SF_0.01/q11.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q11.sdql", "src/test/tpch/results/SF_0.01/q11.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q12 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q12.sdql", "src/test/tpch/results/SF_0.01/q12.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q12.sdql", "src/test/tpch/results/SF_0.01/q12.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q13 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q13.sdql", "src/test/tpch/results/SF_0.01/q13.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q13.sdql", "src/test/tpch/results/SF_0.01/q13.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q14 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q14.sdql", "src/test/tpch/results/SF_0.01/q14.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q14.sdql", "src/test/tpch/results/SF_0.01/q14.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q15 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q15.sdql", "src/test/tpch/results/SF_0.01/q15.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q15.sdql", "src/test/tpch/results/SF_0.01/q15.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q16 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q16.sdql", "src/test/tpch/results/SF_0.01/q16.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q16.sdql", "src/test/tpch/results/SF_0.01/q16.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q17 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q17.sdql", "src/test/tpch/results/SF_0.01/q17.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q17.sdql", "src/test/tpch/results/SF_0.01/q17.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q18 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q18.sdql", "src/test/tpch/results/SF_0.01/q18.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q18.sdql", "src/test/tpch/results/SF_0.01/q18.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q19 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q19.sdql", "src/test/tpch/results/SF_0.01/q19.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q19.sdql", "src/test/tpch/results/SF_0.01/q19.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q20 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q20.sdql", "src/test/tpch/results/SF_0.01/q20.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q20.sdql", "src/test/tpch/results/SF_0.01/q20.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q21 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q21.sdql", "src/test/tpch/results/SF_0.01/q21.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q21.sdql", "src/test/tpch/results/SF_0.01/q21.result", tpchPatch = true)
   }
 
   it should "compile and run TPCH Q22 SF=0.01" in {
-    CompileHelpers.assertOutputs("progs/tpch/q22.sdql", "src/test/tpch/results/SF_0.01/q22.result", sf = "0.01")
+    CompileHelpers.assertOutputs("progs/tpch/q22.sdql", "src/test/tpch/results/SF_0.01/q22.result", tpchPatch = true)
   }
 }
 
-// run these tests on dbgen TPCH datasets with scaling factor 1 in src/test/tpch/data/SF_1/
+// run these tests on dbgen TPCH datasets with scaling factor 1
 // also run this test separately from the SF=0.01 ones above - there's a concurrency bug when patching paths
 // note: DON'T run them all in parallel - unless you have ~64GB of ram
 class CppCompileTestTPCH1 extends AnyFlatSpec with ParallelTestExecution {
@@ -105,59 +105,59 @@ class CppCompileTestTPCH1 extends AnyFlatSpec with ParallelTestExecution {
   object SlowTPCH extends Tag("SlowTPCH")
 
   it should "compile and run TPCH Q1-2 SF=1" taggedAs SlowTPCH in {
-    CompileHelpers.assertOutputs("progs/tpch/q1.sdql", "src/test/tpch/results/SF_1/q1.result", sf = "1")
-    CompileHelpers.assertOutputs("progs/tpch/q2.sdql", "src/test/tpch/results/SF_1/q2.result", sf = "1")
+    CompileHelpers.assertOutputs("progs/tpch/q1.sdql", "src/test/tpch/results/SF_1/q1.result")
+    CompileHelpers.assertOutputs("progs/tpch/q2.sdql", "src/test/tpch/results/SF_1/q2.result")
   }
 
   it should "compile and run TPCH Q3-4 SF=1" taggedAs SlowTPCH in {
-    CompileHelpers.assertOutputs("progs/tpch/q3.sdql", "src/test/tpch/results/SF_1/q3.result", sf = "1")
-    CompileHelpers.assertOutputs("progs/tpch/q4.sdql", "src/test/tpch/results/SF_1/q4.result", sf = "1")
+    CompileHelpers.assertOutputs("progs/tpch/q3.sdql", "src/test/tpch/results/SF_1/q3.result")
+    CompileHelpers.assertOutputs("progs/tpch/q4.sdql", "src/test/tpch/results/SF_1/q4.result")
   }
 
   it should "compile and run TPCH Q5-6 SF=1" taggedAs SlowTPCH in {
-    CompileHelpers.assertOutputs("progs/tpch/q5.sdql", "src/test/tpch/results/SF_1/q5.result", sf = "1")
-    CompileHelpers.assertOutputs("progs/tpch/q6.sdql", "src/test/tpch/results/SF_1/q6.result", sf = "1")
+    CompileHelpers.assertOutputs("progs/tpch/q5.sdql", "src/test/tpch/results/SF_1/q5.result")
+    CompileHelpers.assertOutputs("progs/tpch/q6.sdql", "src/test/tpch/results/SF_1/q6.result")
   }
 
   it should "compile and run TPCH Q7-8 SF=1" taggedAs SlowTPCH in {
-    CompileHelpers.assertOutputs("progs/tpch/q7.sdql", "src/test/tpch/results/SF_1/q7.result", sf = "1")
-    CompileHelpers.assertOutputs("progs/tpch/q8.sdql", "src/test/tpch/results/SF_1/q8.result", sf = "1")
+    CompileHelpers.assertOutputs("progs/tpch/q7.sdql", "src/test/tpch/results/SF_1/q7.result")
+    CompileHelpers.assertOutputs("progs/tpch/q8.sdql", "src/test/tpch/results/SF_1/q8.result")
   }
 
   it should "compile and run TPCH Q9-10 SF=1" taggedAs SlowTPCH in {
-    CompileHelpers.assertOutputs("progs/tpch/q9.sdql", "src/test/tpch/results/SF_1/q9.result", sf = "1")
-    CompileHelpers.assertOutputs("progs/tpch/q10.sdql", "src/test/tpch/results/SF_1/q10.result", sf = "1")
+    CompileHelpers.assertOutputs("progs/tpch/q9.sdql", "src/test/tpch/results/SF_1/q9.result")
+    CompileHelpers.assertOutputs("progs/tpch/q10.sdql", "src/test/tpch/results/SF_1/q10.result")
   }
 
   it should "compile and run TPCH Q11-12 SF=1" taggedAs SlowTPCH in {
-    CompileHelpers.assertOutputs("progs/tpch/q11.sdql", "src/test/tpch/results/SF_1/q11.result", sf = "1")
-    CompileHelpers.assertOutputs("progs/tpch/q12.sdql", "src/test/tpch/results/SF_1/q12.result", sf = "1")
+    CompileHelpers.assertOutputs("progs/tpch/q11.sdql", "src/test/tpch/results/SF_1/q11.result")
+    CompileHelpers.assertOutputs("progs/tpch/q12.sdql", "src/test/tpch/results/SF_1/q12.result")
   }
 
   it should "compile and run TPCH Q13-14 SF=1" taggedAs SlowTPCH in {
-    CompileHelpers.assertOutputs("progs/tpch/q13.sdql", "src/test/tpch/results/SF_1/q13.result", sf = "1")
-    CompileHelpers.assertOutputs("progs/tpch/q14.sdql", "src/test/tpch/results/SF_1/q14.result", sf = "1")
+    CompileHelpers.assertOutputs("progs/tpch/q13.sdql", "src/test/tpch/results/SF_1/q13.result")
+    CompileHelpers.assertOutputs("progs/tpch/q14.sdql", "src/test/tpch/results/SF_1/q14.result")
   }
 
   it should "compile and run TPCH Q15-16 SF=1" taggedAs SlowTPCH in {
-    CompileHelpers.assertOutputs("progs/tpch/q15.sdql", "src/test/tpch/results/SF_1/q15.result", sf = "1")
-    CompileHelpers.assertOutputs("progs/tpch/q16.sdql", "src/test/tpch/results/SF_1/q16.result", sf = "1")
+    CompileHelpers.assertOutputs("progs/tpch/q15.sdql", "src/test/tpch/results/SF_1/q15.result")
+    CompileHelpers.assertOutputs("progs/tpch/q16.sdql", "src/test/tpch/results/SF_1/q16.result")
 
   }
 
   it should "compile and run TPCH 17-18 SF=1" taggedAs SlowTPCH in {
-    CompileHelpers.assertOutputs("progs/tpch/q17.sdql", "src/test/tpch/results/SF_1/q17.result", sf = "1")
-    CompileHelpers.assertOutputs("progs/tpch/q18.sdql", "src/test/tpch/results/SF_1/q18.result", sf = "1")
+    CompileHelpers.assertOutputs("progs/tpch/q17.sdql", "src/test/tpch/results/SF_1/q17.result")
+    CompileHelpers.assertOutputs("progs/tpch/q18.sdql", "src/test/tpch/results/SF_1/q18.result")
   }
 
   it should "compile and run TPCH Q19-20 SF=1" taggedAs SlowTPCH in {
-    CompileHelpers.assertOutputs("progs/tpch/q19.sdql", "src/test/tpch/results/SF_1/q19.result", sf = "1")
-    CompileHelpers.assertOutputs("progs/tpch/q20.sdql", "src/test/tpch/results/SF_1/q20.result", sf = "1")
+    CompileHelpers.assertOutputs("progs/tpch/q19.sdql", "src/test/tpch/results/SF_1/q19.result")
+    CompileHelpers.assertOutputs("progs/tpch/q20.sdql", "src/test/tpch/results/SF_1/q20.result")
   }
 
   it should "compile and run TPCH Q21-22 SF=1" taggedAs SlowTPCH in {
-    CompileHelpers.assertOutputs("progs/tpch/q21.sdql", "src/test/tpch/results/SF_1/q21.result", sf = "1")
-    CompileHelpers.assertOutputs("progs/tpch/q22.sdql", "src/test/tpch/results/SF_1/q22.result", sf = "1")
+    CompileHelpers.assertOutputs("progs/tpch/q21.sdql", "src/test/tpch/results/SF_1/q21.result")
+    CompileHelpers.assertOutputs("progs/tpch/q22.sdql", "src/test/tpch/results/SF_1/q22.result")
   }
 }
 
@@ -488,14 +488,14 @@ class CppCompileTestFJ extends AnyFlatSpec with ParallelTestExecution {
 }
 
 object CompileHelpers {
-  def assertOutputs(sdqlPath: String, outPath: String, sf: String = ""): Unit = {
-    val source_code = SourceCode.fromFile(sdqlPath, if (sf.isEmpty) identity else patch(sf))
-    val cpp         = CppCodegen(source_code.exp)
-    val actual      = compile(sdqlPath, cpp)
-    val source      = scala.io.Source.fromFile(outPath)
+  def assertOutputs(sdqlPath: String, outPath: String, tpchPatch: Boolean = false): Unit = {
+    val code   = SourceCode.fromFile(sdqlPath, if (tpchPatch) patch else identity)
+    val cpp    = CppCodegen(code.exp)
+    val actual = compile(sdqlPath, cpp)
+    val source = scala.io.Source.fromFile(outPath)
     val expected = try source.mkString
     finally source.close()
     assert(actual.trim == expected.trim, s"\n${actual.trim}\n!=\n${expected.trim}")
   }
-  private def patch(sf: String)(s: String) = s.replace("datasets/tpch/", s"src/test/tpch/data/SF_$sf/")
+  private def patch(s: String) = s.replace("datasets/tpch/", s"src/test/tpch/data/")
 }
