@@ -12,16 +12,24 @@ package object codegen {
 
   val resultName = "result"
 
-  def cppType(tpe: Type): String = tpe match {
-    case BoolType                       => "bool"
-    case RealType                       => "double"
-    case IntType | DateType             => "long"
-    case StringType(None)               => "std::string"
-    case StringType(Some(maxLen))       => s"VarChar<$maxLen>"
-    case DictType(kt, vt, NoHint)       => s"phmap::flat_hash_map<${cppType(kt)}, ${cppType(vt)}>"
-    case DictType(kt, IntType, VecDict) => s"vecdict<${cppType(kt)}>"
-    case DictType(IntType, vt, Vec)     => s"std::vector<${cppType(vt)}>"
-    case RecordType(attrs)              => attrs.map(_.tpe).map(cppType).mkString("std::tuple<", ", ", ">")
-    case tpe                            => raise(s"unimplemented type: $tpe")
+  def cppType(tpe: Type, noTemplate: Boolean = false): String = tpe match {
+    case DictType(kt, vt, NoHint) =>
+      val template = if (noTemplate) "" else s"<${cppType(kt)}, ${cppType(vt)}>"
+      s"phmap::flat_hash_map$template"
+    case DictType(kt, IntType, VecDict) =>
+      val template = if (noTemplate) "" else s"<${cppType(kt)}>"
+      s"vecdict$template"
+    case DictType(IntType, vt, Vec) =>
+      val template = if (noTemplate) "" else s"<${cppType(vt)}>"
+      s"std::vector$template"
+    case RecordType(attrs) =>
+      val template = if (noTemplate) "" else attrs.map(_.tpe).map(cppType(_)).mkString("<", ", ", ">")
+      s"std::tuple$template"
+    case BoolType                 => "bool"
+    case RealType                 => "double"
+    case IntType | DateType       => "long"
+    case StringType(None)         => "std::string"
+    case StringType(Some(maxLen)) => s"VarChar<$maxLen>"
+    case tpe                      => raise(s"unimplemented type: $tpe")
   }
 }

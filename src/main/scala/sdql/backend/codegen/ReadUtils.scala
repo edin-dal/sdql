@@ -28,7 +28,7 @@ object ReadUtils {
       .map({
         case (_, name, recordType) =>
           val init = makeTupleInit(name, recordType)
-          s"auto ${name.toLowerCase} = ${cppType(recordType)}($init);\n"
+          s"auto ${name.toLowerCase} = ${cppType(recordType, noTemplate = true)}($init);\n"
       })
       .mkString("\n")
 
