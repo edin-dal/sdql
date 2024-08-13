@@ -23,7 +23,7 @@ let l_h =
       l_comment=lineitem.l_comment(i)
     >
     if((l.l_commitdate < l.l_receiptdate)) then
-      { unique(l.l_orderkey) -> 1 }
+      @vec(6000000) { l.l_orderkey -> 1 }
     else
       { }
 
