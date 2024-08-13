@@ -88,7 +88,9 @@ class ParserTest extends AnyFlatSpec with Matchers {
 
   it should "work for set & dict" in {
     sdql"{}" should be(SetNode(Seq()))
+    sdql"{ 1 }" should be(SetNode(Seq(Const(1))))
     sdql"{ x }" should be(SetNode(Seq(Sym("x"))))
+    sdql"{  0   , 1   }" should be(SetNode(Seq(Const(0), Const(1))))
     sdql"{  x   , y   }" should be(SetNode(Seq(Sym("x"), Sym("y"))))
     sdql"{0  ->  1}" should be(DictNode(Seq(Const(0)                   -> Const(1)), NoHint))
     sdql"{x  ->  y}" should be(DictNode(Seq(Sym("x")                   -> Sym("y"))))
@@ -127,6 +129,9 @@ class ParserTest extends AnyFlatSpec with Matchers {
   it should "work for load & ext" in {
     sdql"ext(`TopN`, x)" should be(External("TopN", Seq(Sym("x"))))
     sdql"""load[{string -> bool}]("foo.csv")""" should be(Load("foo.csv", DictType(StringType(), BoolType)))
+    sdql"""load[{string -> bool}]("foo.csv", { 0, 1 })""" should be(
+      Load("foo.csv", DictType(StringType(), BoolType), SetNode(Seq(Const(0), Const(1))))
+    )
     sdql"""load[{<a:dense_int,b:double> -> int}]("foo.csv")""" should be(
       Load("foo.csv", DictType(RecordType(Seq(Attribute("a", DenseIntType(-1)), Attribute("b", RealType))), IntType))
     )

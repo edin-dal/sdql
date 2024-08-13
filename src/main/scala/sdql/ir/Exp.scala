@@ -143,7 +143,7 @@ case class LetBinding(x: Sym, e1: Exp, e2: Exp) extends Exp {
     case _ => super.hashCode()
   }
 }
-case class Load(path: String, tp: Type, skipCols: DictNode = DictNode(Nil)) extends Exp
+case class Load(path: String, tp: Type, skipCols: DictNode = SetNode(Nil)) extends Exp
 
 case class Promote(tp: Type, e: Exp)              extends Exp
 case class External(name: String, args: Seq[Exp]) extends Exp

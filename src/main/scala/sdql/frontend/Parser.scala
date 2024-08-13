@@ -142,13 +142,22 @@ object Parser {
   private def ext(implicit ctx: P[?]) =
     P("ext(" ~/ fieldConst ~/ "," ~/ expr.rep(1, sep = ","./) ~ space ~/ ")")
       .map(x => External(x._1.v.asInstanceOf[Symbol].name, x._2))
-  private def load(implicit ctx: P[?]) =
-    P("load" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ string ~/ ")").map(x => Load(x._2.v.asInstanceOf[String], x._1))
   private def promote(implicit ctx: P[?]) =
     P("promote" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ expr ~/ ")").map(x => Promote(x._1, x._2))
   private def unique(implicit ctx: P[?])     = P("unique" ~/ "(" ~/ expr ~/ ")").map(Unique.apply)
   private def fieldValue(implicit ctx: P[?]) = P(variable ~/ "=" ~/ expr).map(x => (x._1.name, x._2))
   private def rec(implicit ctx: P[?])        = P("<" ~/ fieldValue.rep(sep = ","./) ~ space ~/ ">").map(RecNode.apply)
+
+  private def load(implicit ctx: P[?]) =
+    P("load" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ string ~/ skipCols.? ~ ")")
+      .map(x => {
+        val skipCols = x._3 match {
+          case Some(cols) => cols
+          case None       => SetNode(Nil)
+        }
+        Load(x._2.v.asInstanceOf[String], x._1, skipCols)
+      })
+  private def skipCols(implicit ctx: P[?]) = P("," ~ space ~ set)
 
   private def dictOrSet(implicit ctx: P[?])  = dict | set
   private def keyNoValue(implicit ctx: P[?]) = P(expr ~/ !"->")
