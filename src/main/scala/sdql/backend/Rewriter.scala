@@ -46,11 +46,12 @@ private object RemoveAliases extends TermRewriter {
 
   private def runInner(e: Exp)(implicit aliasCtx: AliasCtx) = e match {
     // 0-ary
-    case _: Sym | _: Const | _: RangeNode | _: Load => e
+    case _: Sym | _: Const | _: Load => e
     // 1-ary
     case Neg(e)          => Neg(run(e))
     case FieldNode(e, f) => FieldNode(run(e), f)
     case Promote(tp, e)  => Promote(tp, run(e))
+    case RangeNode(e)    => RangeNode(run(e))
     case Unique(e)       => Unique(run(e))
     // 2-ary
     case Add(e1, e2)             => Add(run(e1), run(e2))
@@ -84,11 +85,12 @@ private object SkipUnusedColumns extends TermRewriter {
   }
   private def runInner(e: Exp)(implicit columnsCtx: Columns) = e match {
     // 0-ary
-    case _: Sym | _: Const | _: RangeNode | _: Load => e
+    case _: Sym | _: Const | _: Load => e
     // 1-ary
     case Neg(e)          => Neg(run(e))
     case FieldNode(e, f) => FieldNode(run(e), f)
     case Promote(tp, e)  => Promote(tp, run(e))
+    case RangeNode(e)    => RangeNode(run(e))
     case Unique(e)       => Unique(run(e))
     // 2-ary
     case Add(e1, e2)             => Add(run(e1), run(e2))
@@ -120,7 +122,7 @@ private object SkipUnusedColumns extends TermRewriter {
     case Neg(e)          => find(e)
     case FieldNode(e, _) => find(e)
     case Promote(_, e)   => find(e)
-    case RangeNode(e)    => find(e) // FIXME move RangeNode to 1-ary everywhere
+    case RangeNode(e)    => find(e)
     case Unique(e)       => find(e)
     // 2-ary
     case Add(e1, e2)           => sumColumns(find(e1), find(e2))
@@ -167,11 +169,12 @@ private object RemoveIntermediateTuples extends TermRewriter {
 
   private def runInner(e: Exp)(implicit replaceCtx: ReplaceCtx) = e match {
     // 0-ary
-    case _: Sym | _: Const | _: RangeNode | _: Load => e
+    case _: Sym | _: Const | _: Load => e
     // 1-ary
     case Neg(e)          => Neg(run(e))
     case FieldNode(e, f) => FieldNode(run(e), f)
     case Promote(tp, e)  => Promote(tp, run(e))
+    case RangeNode(e)    => RangeNode(run(e))
     case Unique(e)       => Unique(run(e))
     // 2-ary
     case Add(e1, e2)             => Add(run(e1), run(e2))

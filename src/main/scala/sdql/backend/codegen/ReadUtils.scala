@@ -67,11 +67,12 @@ object ReadUtils {
     Iterator(e) ++ (
       e match {
         // 0-ary
-        case _: Sym | _: Const | _: RangeNode | _: Load => Iterator()
+        case _: Sym | _: Const | _: Load => Iterator()
         // 1-ary
         case Neg(e)          => iterExps(e)
         case FieldNode(e, _) => iterExps(e)
         case Promote(_, e)   => iterExps(e)
+        case RangeNode(e)    => iterExps(e)
         case Unique(e)       => iterExps(e)
         // 2-ary
         case Add(e1, e2)           => iterExps(e1) ++ iterExps(e2)
