@@ -136,7 +136,7 @@ private object SkipUnusedColumns extends TermRewriter {
     case IfThenElse(e1, e2, e3) => sumColumns(sumColumns(find(e1), find(e2)), find(e3))
     // n-ary
     case RecNode(values)   => sumColumns(values.map(_._2).map(find))
-    case DictNode(map, _)  => sumColumns((map.map(_._1) ++ map.map(_._1)).map(find))
+    case DictNode(map, _)  => sumColumns((map.map(_._1) ++ map.map(_._2)).map(find))
     case External(_, args) => sumColumns(args.map(find))
   }
   private def sumColumns(cols: Iterable[Columns]): Columns = cols.foldLeft[Columns](Map()) { (acc, cols) =>
