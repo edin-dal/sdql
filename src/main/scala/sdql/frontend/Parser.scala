@@ -90,16 +90,15 @@ object Parser {
     P(("mnpr" | "mxpr" | "mnsm" | "mxsm" | "min_prod" | "max_prod" | "min_sum" | "max_sum").!)
       .map(TropicalSemiRingType(_))
   private def tpeEnum(implicit ctx: P[?]) =
-    P("enum" ~ ("[" ~ space ~/ tpe ~/ space ~/ "]")).map(x => EnumSemiRingType(x))
+    P("enum" ~ ("[" ~ space ~/ tpe ~/ space ~/ "]")).map(EnumSemiRingType.apply)
   private def tpeNullable(implicit ctx: P[?]) =
-    P("nullable" ~ ("[" ~ space ~/ tpe ~/ space ~/ "]")).map(x => NullableSemiRingType(x))
+    P("nullable" ~ ("[" ~ space ~/ tpe ~/ space ~/ "]")).map(NullableSemiRingType.apply)
   private def tpeBool(implicit ctx: P[?])   = P("bool").map(_ => BoolType)
   private def tpeInt(implicit ctx: P[?])    = P("int").map(_ => IntType)
   private def tpeReal(implicit ctx: P[?])   = P("double" | "real").map(_ => RealType)
   private def tpeString(implicit ctx: P[?]) = P("string").map(_ => StringType())
-  private def tpeVarChar(implicit ctx: P[?]) = P("varchar" ~ "(" ~ (integral.!.map(_.toInt)) ~ space ~ ")").map(
-    x => VarCharType(x)
-  )
+  private def tpeVarChar(implicit ctx: P[?]) =
+    P("varchar" ~ "(" ~ integral.!.map(_.toInt) ~ space ~ ")").map(VarCharType.apply)
   private def tpeDate(implicit ctx: P[?]) = P("date").map(_ => DateType)
   private def tpeIndex(implicit ctx: P[?]) =
     P("dense_int" ~ ("[" ~ space ~/ ("-1" | integral).!.map(_.toInt) ~/ space ~/ "]").?)
@@ -123,55 +122,51 @@ object Parser {
   private def fieldChars(implicit ctx: P[?]) = P(CharsWhile(_ != '`'))
   private def fieldConst(implicit ctx: P[?]) =
     P(space ~ "`" ~/ (fieldChars | escape).rep.! ~ "`").map(x => Const(Symbol(x)))
-  private def const(implicit ctx: P[?]): P[Const] =
-    P(`true` | `false` | unit | number | int | string | denseInt | dateValue)
-  private def idRest(implicit ctx: P[?]): P[Char] = P(CharPred(c => isLetter(c) | isDigit(c) | c == '_').!).map(_(0))
-  private def variable(implicit ctx: P[?]): P[Sym] =
-    P(space ~ !keywords ~ ((alpha | "_" | "$") ~ idRest.rep).! ~ space).map(x => Sym(x))
-  private def ifThenElse(implicit ctx: P[?]): P[IfThenElse] = P(ifThen ~/ maybeElse.?).map {
+  private def const(implicit ctx: P[?])  = `true` | `false` | unit | number | int | string | denseInt | dateValue
+  private def idRest(implicit ctx: P[?]) = P(CharPred(c => isLetter(c) | isDigit(c) | c == '_').!).map(_(0))
+  private def variable(implicit ctx: P[?]) =
+    P(space ~ !keywords ~ ((alpha | "_" | "$") ~ idRest.rep).! ~ space).map(Sym.apply)
+  private def ifThenElse(implicit ctx: P[?]) = P(ifThen ~/ maybeElse.?).map {
     case (cond: Exp, thenp: Exp, Some(elsep: Exp)) => IfThenElse(cond, thenp, elsep)
     case (cond: Exp, thenp: Exp, None)             => IfThenElse(cond, thenp, DictNode(Nil))
   }
-  private def ifThen(implicit ctx: P[?]): P[(Exp, Exp)] = P("if" ~/ expr ~/ "then" ~/ expr)
-  private def maybeElse(implicit ctx: P[?]): P[Exp]     = P("else" ~/ expr)
-  private def letBinding(implicit ctx: P[?]): P[LetBinding] =
+  private def ifThen(implicit ctx: P[?])    = P("if" ~/ expr ~/ "then" ~/ expr)
+  private def maybeElse(implicit ctx: P[?]) = P("else" ~/ expr)
+  private def letBinding(implicit ctx: P[?]) =
     P("let" ~/ variable ~/ "=" ~/ expr ~/ "in".? ~/ expr).map(x => LetBinding(x._1, x._2, x._3))
-  private def sum(implicit ctx: P[?]): P[Sum] =
+  private def sum(implicit ctx: P[?]) =
     P(
       "sum" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/ expr
     ).map(x => Sum(x._1, x._2, x._3, x._4))
-  private def range(implicit ctx: P[?]): P[RangeNode] = P(("range(" ~ expr ~ space ~ ")")).map(RangeNode.apply)
-  private def ext(implicit ctx: P[?]): P[External] =
+  private def range(implicit ctx: P[?]) = P(("range(" ~ expr ~ space ~ ")")).map(RangeNode.apply)
+  private def ext(implicit ctx: P[?]) =
     P("ext(" ~/ fieldConst ~/ "," ~/ expr.rep(1, sep = ","./) ~ space ~/ ")")
       .map(x => External(x._1.v.asInstanceOf[Symbol].name, x._2))
-  private def keyValue(implicit ctx: P[?])   = P(expr ~ "->" ~/ expr)
+  private def load(implicit ctx: P[?]) =
+    P("load" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ string ~/ ")").map(x => Load(x._2.v.asInstanceOf[String], x._1))
+  private def promote(implicit ctx: P[?]) =
+    P("promote" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ expr ~/ ")").map(x => Promote(x._1, x._2))
+  private def unique(implicit ctx: P[?])     = P("unique" ~/ "(" ~/ expr ~/ ")").map(Unique.apply)
+  private def fieldValue(implicit ctx: P[?]) = P(variable ~/ "=" ~/ expr).map(x => (x._1.name, x._2))
+  private def rec(implicit ctx: P[?])        = P("<" ~/ fieldValue.rep(sep = ","./) ~ space ~/ ">").map(RecNode.apply)
+
+  private def dictOrSet(implicit ctx: P[?])  = dict | set
   private def keyNoValue(implicit ctx: P[?]) = P(expr ~/ !"->")
-  def dict(implicit ctx: P[?]): P[DictNode] = P(hinted.? ~ dictNoHint).map {
+  private def keyValue(implicit ctx: P[?])   = P(expr ~ "->" ~/ expr)
+  private def set(implicit ctx: P[?])        = P("{" ~ keyNoValue.rep(sep = ",") ~ space ~ "}").map(SetNode.apply)
+  private def dict(implicit ctx: P[?]) = P(hinted.? ~ dictNoHint).map {
     case (Some(hint), DictNode(map, _)) => DictNode(map, hint)
     case (None, dict)                   => dict
   }
-  private def dictNoHint(implicit ctx: P[?]): P[DictNode] =
-    P("{" ~ keyValue.rep(sep = ","./) ~ space ~ "}").map(x => DictNode(x))
-  private def hinted(implicit ctx: P[?])  = P("@" ~/ hint ~/ space)
-  private def hint(implicit ctx: P[?])    = phmap | vecdict | vec
-  private def phmap(implicit ctx: P[?])   = P("phmap").map(_ => NoHint)
-  private def vecdict(implicit ctx: P[?]) = P("vecdict").map(_ => VecDict)
-  private def vec(implicit ctx: P[?])     = P("vec" ~ sized.?).map(Vec.apply)
-  private def sized(implicit ctx: P[?])   = P("(" ~/ integral.!.map(_.toInt) ~/ ")")
-  private def load(implicit ctx: P[?]): P[Load] =
-    P("load" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ string ~/ ")").map(x => Load(x._2.v.asInstanceOf[String], x._1))
-  private def promote(implicit ctx: P[?]): P[Promote] =
-    P("promote" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ expr ~/ ")").map(x => Promote(x._1, x._2))
-  private def unique(implicit ctx: P[?]): P[Unique] = P("unique" ~/ "(" ~/ expr ~/ ")").map(Unique.apply)
-  private def set(implicit ctx: P[?]): P[DictNode] =
-    P("{" ~ keyNoValue.rep(sep = ",") ~ space ~ "}").map(x => SetNode(x))
-  private def dictOrSet(implicit ctx: P[?]): P[DictNode] = dict | set
+  private def dictNoHint(implicit ctx: P[?]) = P("{" ~ keyValue.rep(sep = ","./) ~ space ~ "}").map(DictNode(_))
+  private def hinted(implicit ctx: P[?])     = P("@" ~/ hint ~/ space)
+  private def hint(implicit ctx: P[?])       = phmap | vecdict | vec
+  private def phmap(implicit ctx: P[?])      = P("phmap").map(_ => NoHint)
+  private def vecdict(implicit ctx: P[?])    = P("vecdict").map(_ => VecDict)
+  private def vec(implicit ctx: P[?])        = P("vec" ~ sized.?).map(Vec.apply)
+  private def sized(implicit ctx: P[?])      = P("(" ~/ integral.!.map(_.toInt) ~/ ")")
 
-  private def fieldValue(implicit ctx: P[?]) = P(variable ~/ "=" ~/ expr).map(x => (x._1.name, x._2))
-  private def rec(implicit ctx: P[?]) =
-    P("<" ~/ fieldValue.rep(sep = ","./) ~ space ~/ ">").map(x => RecNode(x))
-
-  private def factor(implicit ctx: P[?]): P[Exp] =
+  private def factor(implicit ctx: P[?]) =
     P(
       space ~ (const | neg | not | dictOrSet |
         rec | ifThenElse | range | load | concat | promote | unique |
@@ -181,7 +176,7 @@ object Parser {
 
   private def neg(implicit ctx: P[?]): P[Neg] = P("-" ~ !(">") ~ factor).map(Neg.apply)
   private def not(implicit ctx: P[?]): P[Exp] = P("!" ~ factor).map(Not.apply)
-  private def factorMult(implicit ctx: P[?]): P[Exp] =
+  private def factorMult(implicit ctx: P[?]) =
     P(
       factor ~ ((".".! ~/ variable) |
         ("^".! ~/ factor) |
@@ -202,7 +197,7 @@ object Parser {
           }
       )
     )
-  private def divMul(implicit ctx: P[?]): P[Exp] =
+  private def divMul(implicit ctx: P[?]) =
     P(factorMult ~ (StringIn("*", "/", "|", "&&", "||").! ~/ factorMult).rep).map(
       x =>
         x._2.foldLeft(x._1)(
@@ -215,13 +210,19 @@ object Parser {
           }
       )
     )
-  // private def addSubCmp(implicit ctx: P[?]): P[Exp] = P( divMul ~ (StringIn("+", "-", "<", "==", "<=", ">=", ">", "!=").! ~ !(">") ~/ divMul).rep ).map(x =>
-  //   x._2.foldLeft(x._1)((acc, cur) => cur._1 match {
-  //     case "+" => Add(acc, cur._2)
-  //     case "-" => Add(acc, Neg(cur._2))
-  //     case op => Cmp(acc, cur._2, op)
-  //   } ))
-  private def addSub(implicit ctx: P[?]): P[Exp] =
+//  private def addSubCmp(implicit ctx: P[?]) =
+//    P(divMul ~ (StringIn("+", "-", "<", "==", "<=", ">=", ">", "!=").! ~ !(">") ~/ divMul).rep).map(
+//      x =>
+//        x._2.foldLeft(x._1)(
+//          (acc, cur) =>
+//            cur._1 match {
+//              case "+" => Add(acc, cur._2)
+//              case "-" => Add(acc, Neg(cur._2))
+//              case op  => Cmp(acc, cur._2, op)
+//          }
+//      )
+//    )
+  private def addSub(implicit ctx: P[?]) =
     P(divMul ~ (StringIn("+", "-").! ~ !(">") ~/ divMul).rep).map(
       x =>
         x._2.foldLeft(x._1)(
@@ -232,7 +233,7 @@ object Parser {
           }
       )
     )
-  private def addSubCmp(implicit ctx: P[?]): P[Exp] =
+  private def addSubCmp(implicit ctx: P[?]) =
     P(addSub ~ (StringIn("<", "==", "<=", "!=", "∈").! ~/ addSub).?).map(
       x =>
         x._2 match {
@@ -240,9 +241,9 @@ object Parser {
           case None          => x._1
       }
     )
-  private def parens(implicit ctx: P[?]): P[Exp] = P("(" ~/ expr ~/ ")")
-  private def expr(implicit ctx: P[?]): P[Exp]   = P(addSubCmp)
-  private def top(implicit ctx: P[?]): P[Exp]    = P(expr ~ End)
+  private def parens(implicit ctx: P[?])       = P("(" ~/ expr ~/ ")")
+  private def expr(implicit ctx: P[?]): P[Exp] = addSubCmp
+  private def top(implicit ctx: P[?])          = P(expr ~ End)
 
   def apply(str: String): Exp = {
     val value = parse(str, top(_)) match {
@@ -251,5 +252,4 @@ object Parser {
     }
     value
   }
-
 }
