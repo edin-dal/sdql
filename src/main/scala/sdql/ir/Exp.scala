@@ -86,6 +86,8 @@ case class DictNode(map: Seq[(Exp, Exp)], hint: DictHint = NoHint) extends Exp {
     case _                                     => this
   }
   def isSetNode: Boolean = this == SetNode(this.map.map(_._1))
+  def toSkipColsSet: Set[String] =
+    this.map.map(_._1).map(k => (k: @unchecked) match { case Const(s: String) => s }).toSet
 }
 sealed trait DictHint
 case object NoHint                       extends DictHint

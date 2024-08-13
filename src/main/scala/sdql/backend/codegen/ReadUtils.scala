@@ -7,7 +7,7 @@ import scala.PartialFunction.condOpt
 
 object ReadUtils {
   def cppCsvs(exps: Seq[Exp]): String = {
-    val pathNameType = exps
+    val pathNameTypeSkip = exps
       .flatMap(
         e =>
           iterExps(e)
@@ -17,18 +17,21 @@ object ReadUtils {
                   case LetBinding(Sym(name), load @ Load(path, tp: RecordType, _), _)
                       if TypeInference.isColumnStore(tp) =>
                     val recordType = (load: @unchecked) match { case Load(_, recordType: RecordType, _) => recordType }
-                    (path, name, recordType)
+                    val skipCols: Set[String] =
+                      (load: @unchecked) match { case Load(_, _, skipCols) => skipCols.toSkipColsSet }
+                    (path, name, recordType, skipCols)
               }
           )
       )
       .distinct
       .sortBy(_._2)
 
-    val csvConsts = pathNameType.map({ case (path, name, _) => makeCsvConst(name, path) }).mkString("", "\n", "\n")
-    val tuples = pathNameType
+    val csvConsts =
+      pathNameTypeSkip.map({ case (path, name, _, _) => makeCsvConst(name, path) }).mkString("", "\n", "\n")
+    val tuples = pathNameTypeSkip
       .map({
-        case (_, name, recordType) =>
-          val init = makeTupleInit(name, recordType)
+        case (_, name, recordType, skipCols) =>
+          val init = makeTupleInit(name, recordType, skipCols)
           s"auto ${name.toLowerCase} = ${cppType(recordType, noTemplate = true)}($init);\n"
       })
       .mkString("\n")
@@ -39,10 +42,11 @@ object ReadUtils {
   private def makeCsvConst(name: String, path: String) =
     s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR);"""
 
-  private def makeTupleInit(name: String, recordType: RecordType) = {
+  private def makeTupleInit(name: String, recordType: RecordType, skipCols: Set[String]) = {
     assert(recordType.attrs.last.name == "size")
     val attrs = recordType.attrs
       .dropRight(1)
+      .filter(attr => !skipCols.contains(attr.name))
       .map(attr => (attr.tpe: @unchecked) match { case DictType(IntType, vt, Vec(None)) => Attribute(attr.name, vt) })
 
     (attrs.zipWithIndex.map({

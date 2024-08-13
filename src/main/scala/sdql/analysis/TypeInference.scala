@@ -190,8 +190,10 @@ object TypeInference {
   }
 
   def run(e: Load): Type = e match {
-    case Load(_, rt: RecordType, skipCols) if isColumnStore(rt) && skipCols.isSetNode => rt
-    case Load(_, tp, _)                                                               => raise(s"unexpected: ${tp.prettyPrint}")
+    case Load(_, rt: RecordType, skipCols) if isColumnStore(rt) && skipCols.isSetNode =>
+      val set = skipCols.toSkipColsSet
+      RecordType(rt.attrs.filter(attr => !set.contains(attr.name)))
+    case Load(_, tp, _) => raise(s"unexpected: ${tp.prettyPrint}")
   }
 
   def isColumnStore(rt: RecordType): Boolean = {
