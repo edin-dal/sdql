@@ -8,8 +8,8 @@ import scala.annotation.tailrec
 
 object Rewriter {
   private val rewriters: Seq[TermRewriter] = Seq(
-    RemoveIntermediateTuple,
-    // add term rewriters here
+    SkipUnusedColumns,
+    RemoveIntermediateTuples
   )
 
   def apply(e: Exp): Exp = rewriters.foldLeft(e) { (acc, f) =>
@@ -20,9 +20,16 @@ object Rewriter {
 private trait TermRewriter { def apply(e: Exp): Exp }
 
 /**
- * Term rewriter for removing intermediate tuples in sums – see test cases for examples
+ * Term rewriter for skipping unused columns in loads
  */
-private object RemoveIntermediateTuple extends TermRewriter {
+private object SkipUnusedColumns extends TermRewriter {
+  def apply(e: Exp): Exp = e // TODO
+}
+
+/**
+ * Term rewriter for removing intermediate tuples in sums
+ */
+private object RemoveIntermediateTuples extends TermRewriter {
   private type ReplaceCtx = Map[Sym, RecNode]
 
   def apply(e: Exp): Exp = run(e)

@@ -5,8 +5,24 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.*
 import sdql.frontend.*
 
-class RewriterTest extends AnyFlatSpec with Matchers {
-  it should "remove intermediate tuple" in {
+class SkipUnusedColumnsTest extends AnyFlatSpec with Matchers {
+  it should "skip unused columns" in {
+    val e       = sdql"""
+               let lineitem = load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl")
+               sum(<i,_> <- range(lineitem.size))
+                   1
+               """
+    val rewrite = sdql"""
+               let lineitem = load[<size: int>]("foo/bar.tbl")
+               sum(<i,_> <- range(lineitem.size))
+                   1
+               """
+    SkipUnusedColumns(e) should be(rewrite)
+  }
+}
+
+class RemoveIntermediateTupleTest extends AnyFlatSpec with Matchers {
+  it should "remove intermediate tuples" in {
     val e       = sdql"""
                let i = 0
                let x = <inner = <_ = 0>>
@@ -18,10 +34,10 @@ class RewriterTest extends AnyFlatSpec with Matchers {
                let x = <inner = <_ = 0>>
                x.inner(i)
                """
-    Rewriter(e) should be(rewrite)
+    RemoveIntermediateTuples(e) should be(rewrite)
   }
 
-  it should "remove intermediate tuple TPCH" in {
+  it should "remove intermediate tuples TPCH" in {
     val e       = sdql"""
                let lineitem = load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl")
                sum(<i,_> <- range(lineitem.size))
@@ -33,10 +49,10 @@ class RewriterTest extends AnyFlatSpec with Matchers {
                sum(<i,_> <- range(lineitem.size))
                    lineitem.l_extendedprice(i)
                """
-    Rewriter(e) should be(rewrite)
+    RemoveIntermediateTuples(e) should be(rewrite)
   }
 
-  it should "remove intermediate tuple GJ" in {
+  it should "remove intermediate tuples GJ" in {
     val e       = sdql"""
                let mk =
                    load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @vec {int -> int}>
@@ -54,6 +70,6 @@ class RewriterTest extends AnyFlatSpec with Matchers {
                        < id=mk.id(i), movie_id=mk.movie_id(i), keyword_id=mk.keyword_id(i) > -> 1
                    } }
                """
-    Rewriter(e) should be(rewrite)
+    RemoveIntermediateTuples(e) should be(rewrite)
   }
 }
