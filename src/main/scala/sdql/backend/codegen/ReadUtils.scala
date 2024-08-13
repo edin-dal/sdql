@@ -46,20 +46,20 @@ object ReadUtils {
     assert(recordType.attrs.last.name == "size")
     val attrs = recordType.attrs
       .dropRight(1)
-      .filter(attr => !skipCols.contains(attr.name))
       .map(attr => (attr.tpe: @unchecked) match { case DictType(IntType, vt, Vec(None)) => Attribute(attr.name, vt) })
 
-    (attrs.zipWithIndex.map({
-      case (Attribute(attr_name, tpe), i) =>
-        s"/* $attr_name */" ++ (tpe match {
-          case DateType =>
-            s"dates_to_numerics(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(StringType())}>($i)" + ")"
-          case StringType(Some(maxLen)) =>
-            s"strings_to_varchars<$maxLen>(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(StringType())}>($i)" + ")"
-          case _ =>
-            s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)"
-        })
-    }) ++ Seq(s"/* size */static_cast<${cppType(IntType)}>(${name.toUpperCase}_CSV.GetRowCount())"))
+    (attrs.zipWithIndex.filter { case (attr, _) => !skipCols.contains(attr.name) }
+      .map({
+        case (Attribute(attr_name, tpe), i) =>
+          s"/* $attr_name */" ++ (tpe match {
+            case DateType =>
+              s"dates_to_numerics(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(StringType())}>($i)" + ")"
+            case StringType(Some(maxLen)) =>
+              s"strings_to_varchars<$maxLen>(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(StringType())}>($i)" + ")"
+            case _ =>
+              s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)"
+          })
+      }) ++ Seq(s"/* size */static_cast<${cppType(IntType)}>(${name.toUpperCase}_CSV.GetRowCount())"))
       .mkString(",\n")
   }
 
