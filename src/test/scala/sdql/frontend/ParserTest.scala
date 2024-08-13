@@ -88,8 +88,8 @@ class ParserTest extends AnyFlatSpec with Matchers {
 
   it should "work for set & dict" in {
     sdql"{}" should be(SetNode(Seq()))
-    // sdql"{x}" should be (SetNode(Seq(Sym("x"))))
-    // sdql"{  x   , y   }" should be (SetNode(Seq(Sym("x"), Sym("y"))))
+    sdql"{ x }" should be(SetNode(Seq(Sym("x"))))
+    sdql"{  x   , y   }" should be(SetNode(Seq(Sym("x"), Sym("y"))))
     sdql"{0  ->  1}" should be(DictNode(Seq(Const(0)                   -> Const(1)), NoHint))
     sdql"{x  ->  y}" should be(DictNode(Seq(Sym("x")                   -> Sym("y"))))
     sdql"{x.z  ->  y}" should be(DictNode(Seq(FieldNode(Sym("x"), "z") -> Sym("y"))))

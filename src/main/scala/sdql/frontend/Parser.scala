@@ -87,10 +87,8 @@ object Parser {
   private def alpha(implicit ctx: P[?])         = P(CharPred(isLetter))
 
   private def tpeTropSR(implicit ctx: P[?]) =
-    P(
-      ("mnpr" | "mxpr" | "mnsm" | "mxsm" |
-        "min_prod" | "max_prod" | "min_sum" | "max_sum").!
-    ).map(x => TropicalSemiRingType(x))
+    P(("mnpr" | "mxpr" | "mnsm" | "mxsm" | "min_prod" | "max_prod" | "min_sum" | "max_sum").!)
+      .map(TropicalSemiRingType(_))
   private def tpeEnum(implicit ctx: P[?]) =
     P("enum" ~ ("[" ~ space ~/ tpe ~/ space ~/ "]")).map(x => EnumSemiRingType(x))
   private def tpeNullable(implicit ctx: P[?]) =
@@ -140,22 +138,20 @@ object Parser {
     P("let" ~/ variable ~/ "=" ~/ expr ~/ "in".? ~/ expr).map(x => LetBinding(x._1, x._2, x._3))
   private def sum(implicit ctx: P[?]): P[Sum] =
     P(
-      "sum" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/
-        expr
+      "sum" ~ space ~/ "(" ~/ "<" ~/ variable ~/ "," ~/ variable ~/ ">" ~/ space ~/ ("<-" | "in") ~/ expr ~/ ")" ~/ expr
     ).map(x => Sum(x._1, x._2, x._3, x._4))
-  // private def set(implicit ctx: P[?]): P[DictNode] = P( "{" ~/ (expr ~ !("->")).rep(sep=","./) ~ space ~/ "}" ).map(x => SetNode(x))
   private def range(implicit ctx: P[?]): P[RangeNode] = P(("range(" ~ expr ~ space ~ ")")).map(RangeNode.apply)
   private def ext(implicit ctx: P[?]): P[External] =
     P("ext(" ~/ fieldConst ~/ "," ~/ expr.rep(1, sep = ","./) ~ space ~/ ")")
       .map(x => External(x._1.v.asInstanceOf[Symbol].name, x._2))
-  private def keyValue(implicit ctx: P[?]) = P(expr ~/ "->" ~/ expr)
-  // private def keyNoValue(implicit ctx: P[?]) = P( expr ~ !("->") ).map(x => (x, Const(true)))
-  private def dict(implicit ctx: P[?]): P[DictNode] = P(hinted.? ~ dictNoHint).map {
+  private def keyValue(implicit ctx: P[?])   = P(expr ~ "->" ~/ expr)
+  private def keyNoValue(implicit ctx: P[?]) = P(expr ~/ !"->")
+  def dict(implicit ctx: P[?]): P[DictNode] = P(hinted.? ~ dictNoHint).map {
     case (Some(hint), DictNode(map, _)) => DictNode(map, hint)
     case (None, dict)                   => dict
   }
   private def dictNoHint(implicit ctx: P[?]): P[DictNode] =
-    P("{" ~/ keyValue.rep(sep = ","./) ~ space ~/ "}").map(x => DictNode(x))
+    P("{" ~ keyValue.rep(sep = ","./) ~ space ~ "}").map(x => DictNode(x))
   private def hinted(implicit ctx: P[?])  = P("@" ~/ hint ~/ space)
   private def hint(implicit ctx: P[?])    = phmap | vecdict | vec
   private def phmap(implicit ctx: P[?])   = P("phmap").map(_ => NoHint)
@@ -167,12 +163,9 @@ object Parser {
   private def promote(implicit ctx: P[?]): P[Promote] =
     P("promote" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ expr ~/ ")").map(x => Promote(x._1, x._2))
   private def unique(implicit ctx: P[?]): P[Unique] = P("unique" ~/ "(" ~/ expr ~/ ")").map(Unique.apply)
-  // private def set(implicit ctx: P[?]): P[DictNode] =
-  //   P( "{" ~/ keyNoValue.rep(sep=","./) ~ space ~/ "}").map(x => DictNode(x))
-  // private def dictOrSet(implicit ctx: P[?]): P[DictNode] =
-  //   P( "{" ~/ (keyNoValue | keyValue).rep(sep=","./) ~ space ~/ "}").map(x => DictNode(x))
-  // private def dictOrSet(implicit ctx: P[?]): P[DictNode] = P( dict | set )
-  private def dictOrSet(implicit ctx: P[?]): P[DictNode] = P(dict)
+  private def set(implicit ctx: P[?]): P[DictNode] =
+    P("{" ~ keyNoValue.rep(sep = ",") ~ space ~ "}").map(x => SetNode(x))
+  private def dictOrSet(implicit ctx: P[?]): P[DictNode] = dict | set
 
   private def fieldValue(implicit ctx: P[?]) = P(variable ~/ "=" ~/ expr).map(x => (x._1.name, x._2))
   private def rec(implicit ctx: P[?]) =
