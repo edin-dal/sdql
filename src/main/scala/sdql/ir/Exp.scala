@@ -183,7 +183,10 @@ object MultNStriped {
   }
 }
 
-object SetNode { def apply(es: Seq[Exp]): DictNode = DictNode(es.map(x => x -> Const(1))) }
+object SetNode {
+  def apply(es: Seq[Exp]): DictNode               = DictNode(es.map(x => x -> Const(1)))
+  def fromSkipColsSet(set: Set[String]): DictNode = SetNode(set.map(Const.apply).toSeq)
+}
 
 object PairNode {
   import PairType.*
