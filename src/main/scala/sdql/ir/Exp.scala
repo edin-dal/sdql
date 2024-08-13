@@ -85,6 +85,7 @@ case class DictNode(map: Seq[(Exp, Exp)], hint: DictHint = NoHint) extends Exp {
     case DictNode(map, _) if map.length != 1   => raise(s"unsupported: $this")
     case _                                     => this
   }
+  def isSetNode: Boolean = this == SetNode(this.map.map(_._1))
 }
 sealed trait DictHint
 case object NoHint                       extends DictHint
