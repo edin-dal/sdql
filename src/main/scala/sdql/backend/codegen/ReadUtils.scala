@@ -27,7 +27,7 @@ object ReadUtils {
       .sortBy(_._2)
 
     val csvConsts =
-      pathNameTypeSkip.map({ case (path, name, _, _) => makeCsvConst(name, path) }).mkString("", "\n", "\n")
+      pathNameTypeSkip.map({ case (path, name, _, _) => makeCsvConst(name, path) }).mkString("\n", "\n", "\n")
     val tuples = pathNameTypeSkip
       .map({
         case (_, name, recordType, skipCols) =>
