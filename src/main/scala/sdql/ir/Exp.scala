@@ -143,7 +143,7 @@ case class LetBinding(x: Sym, e1: Exp, e2: Exp) extends Exp {
     case _ => super.hashCode()
   }
 }
-case class Load(path: String, tp: Type) extends Exp
+case class Load(path: String, tp: Type, skipCols: DictNode = DictNode(Nil)) extends Exp
 
 case class Promote(tp: Type, e: Exp)              extends Exp
 case class External(name: String, args: Seq[Exp]) extends Exp
@@ -164,14 +164,10 @@ object MultN {
   def unapply(exp: Exp): Option[Seq[Exp]] = exp match {
     case Mult(e1, e2) =>
       (MultN.unapply(e1), MultN.unapply(e2)) match {
-        case (Some(s1), Some(s2)) =>
-          Some(s1 ++ s2)
-        case (None, Some(s2)) =>
-          Some(e1 +: s2)
-        case (Some(s1), None) =>
-          Some(s1 :+ e2)
-        case _ =>
-          Some(Seq(e1, e2))
+        case (Some(s1), Some(s2)) => Some(s1 ++ s2)
+        case (None, Some(s2))     => Some(e1 +: s2)
+        case (Some(s1), None)     => Some(s1 :+ e2)
+        case _                    => Some(Seq(e1, e2))
       }
     case _ => None
   }
@@ -184,9 +180,7 @@ object MultNStriped {
   }
 }
 
-object SetNode {
-  def apply(es: Seq[Exp]): DictNode = DictNode(es.map(x => x -> Const(true)))
-}
+object SetNode { def apply(es: Seq[Exp]): DictNode = DictNode(es.map(x => x -> Const(1))) }
 
 object PairNode {
   import PairType.*
@@ -237,14 +231,10 @@ object AddN {
   def unapply(exp: Exp): Option[Seq[Exp]] = exp match {
     case Add(e1, e2) =>
       (AddN.unapply(e1), AddN.unapply(e2)) match {
-        case (Some(s1), Some(s2)) =>
-          Some(s1 ++ s2)
-        case (None, Some(s2)) =>
-          Some(e1 +: s2)
-        case (Some(s1), None) =>
-          Some(s1 :+ e2)
-        case _ =>
-          Some(Seq(e1, e2))
+        case (Some(s1), Some(s2)) => Some(s1 ++ s2)
+        case (None, Some(s2))     => Some(e1 +: s2)
+        case (Some(s1), None)     => Some(s1 :+ e2)
+        case _                    => Some(Seq(e1, e2))
       }
     case _ => None
   }
@@ -258,7 +248,7 @@ object AddN {
 object LetBindingN {
   def apply(bindings: Seq[(Sym, Exp)], body: Exp): Exp =
     bindings.foldRight(body)((cur, acc) => LetBinding(cur._1, cur._2, acc))
-  type Res = Option[(Seq[(Sym, Exp)], Exp)]
+  private type Res = Option[(Seq[(Sym, Exp)], Exp)]
   def unapply(exp: Exp): Res =
     rec(exp, None)
   //   unapplyOpt(exp)
@@ -294,10 +284,8 @@ object LetBindingN {
 
 object LetBindingNStriped {
   def unapply(t: Exp): Option[(Seq[(Sym, Exp)], Exp)] = t match {
-    case LetBindingN(xs, body) => {
-      Some(xs -> body)
-    }
-    case _ => Some(Seq() -> t)
+    case LetBindingN(xs, body) => Some(xs    -> body)
+    case _                     => Some(Seq() -> t)
   }
 }
 
@@ -309,13 +297,9 @@ object LetBindingNStriped {
 //   }
 // }
 
-object And {
-  def apply(a: Exp, b: Exp): Exp = IfThenElse(a, b, Const(false))
-}
+object And { def apply(a: Exp, b: Exp): Exp = IfThenElse(a, b, Const(false)) }
 
-object Or {
-  def apply(a: Exp, b: Exp): Exp = IfThenElse(a, Const(true), b)
-}
+object Or { def apply(a: Exp, b: Exp): Exp = IfThenElse(a, Const(true), b) }
 
 object Not {
   def apply(a: Exp): Exp = IfThenElse(a, Const(false), Const(true))

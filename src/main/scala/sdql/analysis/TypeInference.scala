@@ -190,8 +190,8 @@ object TypeInference {
   }
 
   def run(e: Load): Type = e match {
-    case Load(_, rt: RecordType) if isColumnStore(rt) => rt
-    case Load(_, tp)                                  => raise(s"unexpected: ${tp.prettyPrint}")
+    case Load(_, rt: RecordType, _) if isColumnStore(rt) => rt
+    case Load(_, tp, _)                                  => raise(s"unexpected: ${tp.prettyPrint}")
   }
 
   def isColumnStore(rt: RecordType): Boolean = {

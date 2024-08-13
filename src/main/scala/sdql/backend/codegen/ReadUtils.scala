@@ -14,8 +14,9 @@ object ReadUtils {
             .flatMap(
               e =>
                 condOpt(e) {
-                  case LetBinding(Sym(name), load @ Load(path, tp: RecordType), _) if TypeInference.isColumnStore(tp) =>
-                    val recordType = (load: @unchecked) match { case Load(_, recordType: RecordType) => recordType }
+                  case LetBinding(Sym(name), load @ Load(path, tp: RecordType, _), _)
+                      if TypeInference.isColumnStore(tp) =>
+                    val recordType = (load: @unchecked) match { case Load(_, recordType: RecordType, _) => recordType }
                     (path, name, recordType)
               }
           )

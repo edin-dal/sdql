@@ -143,7 +143,7 @@ import scala.annotation.{ nowarn, tailrec }
         case _ =>
           raise(s"`sum(<$k,$v> <- $v1) ...` doesn't have a dictionary range: `${v1.getClass}`")
       }
-    case Load(path, tp) =>
+    case Load(path, tp, _) =>
       tp match {
         case DictType(RecordType(fs), IntType, _) =>
           val arr = Loader.loadTable(Table(path, fs, path))
