@@ -48,7 +48,7 @@ object ReadUtils {
       .dropRight(1)
       .map(attr => (attr.tpe: @unchecked) match { case DictType(IntType, vt, Vec(None)) => Attribute(attr.name, vt) })
 
-    (attrs.zipWithIndex.filter { case (attr, _) => !skipCols.contains(attr.name) }
+    val readCols = attrs.zipWithIndex.filter { case (attr, _) => !skipCols.contains(attr.name) }
       .map({
         case (Attribute(attr_name, tpe), i) =>
           s"/* $attr_name */" ++ (tpe match {
@@ -59,8 +59,11 @@ object ReadUtils {
             case _ =>
               s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)"
           })
-      }) ++ Seq(s"/* size */static_cast<${cppType(IntType)}>(${name.toUpperCase}_CSV.GetRowCount())"))
-      .mkString(",\n")
+      })
+    val readSize =
+      if (skipCols.contains("size")) Seq()
+      else Seq(s"/* size */static_cast<${cppType(IntType)}>(${name.toUpperCase}_CSV.GetRowCount())")
+    (readCols ++ readSize).mkString(",\n")
   }
 
   private def iterExps(e: Exp): Iterator[Exp] =
