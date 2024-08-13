@@ -160,7 +160,8 @@ object Parser {
   private def hint(implicit ctx: P[?])    = phmap | vecdict | vec
   private def phmap(implicit ctx: P[?])   = P("phmap").map(_ => NoHint)
   private def vecdict(implicit ctx: P[?]) = P("vecdict").map(_ => VecDict)
-  private def vec(implicit ctx: P[?])     = P("vec").map(_ => Vec)
+  private def vec(implicit ctx: P[?])     = P("vec" ~ sized.?).map(Vec.apply)
+  private def sized(implicit ctx: P[?])   = P("(" ~/ integral.!.map(_.toInt) ~/ ")")
   private def load(implicit ctx: P[?]): P[Load] =
     P("load" ~/ "[" ~/ tpe ~ space ~/ "]" ~/ "(" ~/ string ~/ ")").map(x => Load(x._2.v.asInstanceOf[String], x._1))
   private def promote(implicit ctx: P[?]): P[Promote] =

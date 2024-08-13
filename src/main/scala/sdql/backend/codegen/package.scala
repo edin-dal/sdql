@@ -19,7 +19,7 @@ package object codegen {
     case DictType(kt, IntType, VecDict) =>
       val template = if (noTemplate) "" else s"<${cppType(kt)}>"
       s"vecdict$template"
-    case DictType(IntType, vt, Vec) =>
+    case DictType(IntType, vt, _: Vec) =>
       val template = if (noTemplate) "" else s"<${cppType(vt)}>"
       s"std::vector$template"
     case RecordType(attrs) =>

@@ -42,7 +42,7 @@ object ReadUtils {
     assert(recordType.attrs.last.name == "size")
     val attrs = recordType.attrs
       .dropRight(1)
-      .map(attr => (attr.tpe: @unchecked) match { case DictType(IntType, vt, Vec) => Attribute(attr.name, vt) })
+      .map(attr => (attr.tpe: @unchecked) match { case DictType(IntType, vt, Vec(None)) => Attribute(attr.name, vt) })
 
     (attrs.zipWithIndex.map({
       case (Attribute(attr_name, tpe), i) =>

@@ -145,8 +145,8 @@ object CppCodegen {
   }
   private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
     TypeInference.run(e1) match {
-      case DictType(IntType, _, Vec) => s"${run(e1)}[${run(e2)}] != 0"
-      case _                         => s"${run(e1)}.contains(${run(e2)})"
+      case DictType(IntType, _, _: Vec) => s"${run(e1)}[${run(e2)}] != 0"
+      case _                            => s"${run(e1)}.contains(${run(e2)})"
     }
 
   private def run(e: FieldNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {

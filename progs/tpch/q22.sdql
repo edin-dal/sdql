@@ -23,7 +23,7 @@ let o_h =
       o_shippriority=orders.o_shippriority(i),
       o_comment=orders.o_comment(i)
     >
-    @vec { o.o_custkey -> 1 }
+    @vec(150000) { o.o_custkey -> 1 }
 
 let fused =
   sum(<i,_> <- range(customer.size))

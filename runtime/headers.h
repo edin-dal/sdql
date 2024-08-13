@@ -19,5 +19,3 @@
 #include "csv_helper.h"
 #include "min_helper.h"
 #include "vecdict.h"
-
-constexpr long DEFAULT_VEC_SIZE = 6000001;

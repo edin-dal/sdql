@@ -104,12 +104,14 @@ class ParserTest extends AnyFlatSpec with Matchers {
   }
 
   it should "work for dict hints" in {
-    sdql"@phmap {0 -> 1}" should be(DictNode(Seq(Const(0)   -> Const(1)), NoHint))
-    sdql"@phmap {x -> y}" should be(DictNode(Seq(Sym("x")   -> Sym("y")), NoHint))
-    sdql"@vecdict {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), VecDict))
-    sdql"@vecdict {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), VecDict))
-    sdql"@vec {0 -> 1}" should be(DictNode(Seq(Const(0)     -> Const(1)), Vec))
-    sdql"@vec {x -> y}" should be(DictNode(Seq(Sym("x")     -> Sym("y")), Vec))
+    sdql"@phmap {0 -> 1}" should be(DictNode(Seq(Const(0)    -> Const(1)), NoHint))
+    sdql"@phmap {x -> y}" should be(DictNode(Seq(Sym("x")    -> Sym("y")), NoHint))
+    sdql"@vecdict {0 -> 1}" should be(DictNode(Seq(Const(0)  -> Const(1)), VecDict))
+    sdql"@vecdict {x -> y}" should be(DictNode(Seq(Sym("x")  -> Sym("y")), VecDict))
+    sdql"@vec {0 -> 1}" should be(DictNode(Seq(Const(0)      -> Const(1)), Vec()))
+    sdql"@vec {x -> y}" should be(DictNode(Seq(Sym("x")      -> Sym("y")), Vec()))
+    sdql"@vec(1) {0 -> 1}" should be(DictNode(Seq(Const(0)   -> Const(1)), Vec(Some(1))))
+    sdql"@vec(100) {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), Vec(Some(100))))
   }
 
   it should "work for record" in {

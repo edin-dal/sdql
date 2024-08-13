@@ -36,9 +36,9 @@ object SumUtils {
         case _ =>
           val iterable = CppCodegen.run(e1)(typesLocal, Seq(SumEnd) ++ callsLocal)
           val head = TypeInference.run(e1)(typesLocal) match {
-            case DictType(_, _, NoHint)        => s"&[${k.name}, ${v.name}] : $iterable"
-            case DictType(_, _, VecDict | Vec) => s"&${k.name} : $iterable"
-            case t                             => raise(s"unexpected: ${t.prettyPrint}")
+            case DictType(_, _, NoHint)           => s"&[${k.name}, ${v.name}] : $iterable"
+            case DictType(_, _, VecDict | _: Vec) => s"&${k.name} : $iterable"
+            case t                                => raise(s"unexpected: ${t.prettyPrint}")
           }
           s"""$init
              |for (auto $head) {
@@ -68,11 +68,12 @@ object SumUtils {
     getAggregation(e) match {
       case SumAgg =>
         sumHint(e) match {
-          case Vec =>
+          case _: Vec =>
             typesCtx(Sym(aggregationName)) match {
-              case DictType(IntType, vt, Vec) if vt.isScalar         => s"$aggregationName$lhs = $rhs;"
-              case DictType(IntType, DictType(IntType, _, Vec), Vec) => s"$aggregationName$lhs.emplace_back($rhs);"
-              case tpe                                               => raise(s"unexpected: ${tpe.prettyPrint}")
+              case DictType(IntType, vt, _: Vec) if vt.isScalar => s"$aggregationName$lhs = $rhs;"
+              case DictType(IntType, DictType(IntType, _, _: Vec), _: Vec) =>
+                s"$aggregationName$lhs.emplace_back($rhs);"
+              case tpe => raise(s"unexpected: ${tpe.prettyPrint}")
             }
           case NoHint if cond(e) { case dict: DictNode => isUnique(dict) } => s"$aggregationName.emplace($lhs, $rhs);"
           case NoHint | VecDict => s"$aggregationName$lhs += $rhs;"
@@ -111,16 +112,20 @@ object SumUtils {
     case DictNode(Seq((k, v @ DictNode(_, NoHint | VecDict))), _) =>
       val (lhs, rhs) = splitNested(v)
       (Seq(k) ++ lhs, rhs)
-    case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), Vec))), _) => (Seq(k), rhs)
-    case DictNode(Seq((k, rhs)), _)                                 => (Seq(k), rhs)
-    case DictNode(map, _) if map.length != 1                        => raise(s"unsupported: $this")
-    case _                                                          => (Seq(), e)
+    case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _) => (Seq(k), rhs)
+    case DictNode(Seq((k, rhs)), _)                                    => (Seq(k), rhs)
+    case DictNode(map, _) if map.length != 1                           => raise(s"unsupported: $this")
+    case _                                                             => (Seq(), e)
   }
 
   private def cppInit(tpe: Type)(implicit agg: Aggregation): String = tpe match {
     case DictType(_, _, NoHint | VecDict) => "{}"
-    case DictType(_, _, Vec)              => "DEFAULT_VEC_SIZE"
-    case RecordType(attrs)                => attrs.map(_.tpe).map(cppInit).mkString(", ")
+    case DictType(_, _, Vec(size)) =>
+      size match {
+        case None       => ""
+        case Some(size) => (size + 1).toString
+      }
+    case RecordType(attrs) => attrs.map(_.tpe).map(cppInit).mkString(", ")
     case BoolType =>
       agg match {
         case SumAgg | MaxAgg  => "false"
