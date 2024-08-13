@@ -3,8 +3,8 @@
 #include <regex>
 #include <sstream>
 
-constexpr long DEFAULT_VEC_SIZE = 6000001;
-const auto MAX_STRING = std::string("zzzzzzzzzzzzzzzzzz");
+const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
+const auto SEPARATOR = rapidcsv::SeparatorParams('|');
 
 const std::regex RE_DATE("-");
 
@@ -40,17 +40,4 @@ inline std::string print_date(const long yyyymmdd) {
   std::stringstream ss;
   ss << yyyy << "-" << mm_str << "-" << dd_str;
   return ss.str();
-}
-
-// putting this here to leave untouched varchar.h
-static wchar_t* ConstantString(const char* data, int len)
-{
-    wchar_t* wc = new wchar_t[len];
-    mbstowcs (wc, data, len);
-    return wc;
-}
-
-// prevents dead-code elimination, clang-only (https://stackoverflow.com/a/36781982)
-template <class T>
-__attribute__((__optnone__)) void doNotOptimiseAway(T&& datum) {
 }

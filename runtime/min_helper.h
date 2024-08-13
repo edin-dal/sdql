@@ -1,5 +1,7 @@
 #pragma once
 
+const auto MAX_STRING = std::string("zzzzzzzzzzzzzzzzzz");
+
 template <typename T>
 void min_inplace(T& a, const T& b) { a = std::min(a, b); }
 

@@ -7,16 +7,17 @@
 #include "3rdparty/parallel_hashmap/phmap.h"
 #include "3rdparty/rapidcsv.h"
 
-using namespace std;
-#include "3rdparty/tuple_helper.h"
-#include "3rdparty/vector_helper.h"
-#include "3rdparty/map_helper.h"
-#include "3rdparty/varchar.h"
-#include "3rdparty/high_precision_timer.h"
+// from sdlqpy's runtime
+#include "constant_string.h"
+#include "high_precision_timer.h"
+#include "map_helper.h"
+#include "tuple_helper.h"
+#include "varchar.h"
+#include "vector_helper.h"
 
-#include "3rdparty/vecdict.h"
-#include "3rdparty/min_helper.h"
-#include "3rdparty/converters.h"
+#include "bench_helper.h"
+#include "csv_helper.h"
+#include "min_helper.h"
+#include "vecdict.h"
 
-const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
-const auto SEPARATOR = rapidcsv::SeparatorParams('|');
+constexpr long DEFAULT_VEC_SIZE = 6000001;
