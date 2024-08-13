@@ -9,8 +9,7 @@ import scala.annotation.tailrec
 object Rewriter {
   private val rewriters = Seq(
     RemoveAliases,
-    // TODO
-    //  SkipUnusedColumns,
+    SkipUnusedColumns,
     RemoveIntermediateTuples
   )
 
