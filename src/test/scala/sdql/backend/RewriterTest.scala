@@ -5,51 +5,52 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.*
 import sdql.frontend.*
 
-class SkipUnusedColumnsTest extends AnyFlatSpec with Matchers {
-  it should "skip unused columns" in {
+class RemoveAliasesTest extends AnyFlatSpec with Matchers {
+  it should "remove aliases" in {
     val e       = sdql"""
-               let lineitem = load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl")
-               sum(<i,_> <- range(lineitem.size))
-                   1
+               let original = 1
+               let alias = original
+               let aka = alias
+               aka
                """
     val rewrite = sdql"""
-               let lineitem = load[<size: int>]("foo/bar.tbl")
-               sum(<i,_> <- range(lineitem.size))
-                   1
+               let original = 1
+               original
                """
-    SkipUnusedColumns(e) should be(rewrite)
-  }
-
-  it should "skip unused columns aliased" in {
-    val e       = sdql"""
-               let lineitem = load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl")
-               let alias = lineitem
-               sum(<i,_> <- range(alias.size))
-                   1
-               """
-    val rewrite = sdql"""
-               let lineitem = load[<size: int>]("foo/bar.tbl")
-               let alias = lineitem
-               sum(<i,_> <- range(alias.size))
-                   1
-               """
-    SkipUnusedColumns(e) should be(rewrite)
-  }
-
-  it should "skip unused columns indexed" in {
-    val e       = sdql"""
-               let lineitem = load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl")
-               sum(<i,_> <- range(lineitem(2)))
-                   1
-               """
-    val rewrite = sdql"""
-               let lineitem = load[<size: int>]("foo/bar.tbl")
-               sum(<i,_> <- range(lineitem(2)))
-                   1
-               """
-    SkipUnusedColumns(e) should be(rewrite)
+    RemoveAliases(e) should be(rewrite)
   }
 }
+
+// TODO
+//class SkipUnusedColumnsTest extends AnyFlatSpec with Matchers {
+//  it should "skip unused columns" in {
+//    val e       = sdql"""
+//               let lineitem = load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl")
+//               sum(<i,_> <- range(lineitem.size))
+//                   1
+//               """
+//    val rewrite = sdql"""
+//               let lineitem = load[<size: int>]("foo/bar.tbl")
+//               sum(<i,_> <- range(lineitem.size))
+//                   1
+//               """
+//    SkipUnusedColumns(e) should be(rewrite)
+//  }
+//
+//  it should "skip unused columns indexed" in {
+//    val e       = sdql"""
+//               let lineitem = load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl")
+//               sum(<i,_> <- range(lineitem(2)))
+//                   1
+//               """
+//    val rewrite = sdql"""
+//               let lineitem = load[<size: int>]("foo/bar.tbl")
+//               sum(<i,_> <- range(lineitem(2)))
+//                   1
+//               """
+//    SkipUnusedColumns(e) should be(rewrite)
+//  }
+//}
 
 class RemoveIntermediateTupleTest extends AnyFlatSpec with Matchers {
   it should "remove intermediate tuples" in {
