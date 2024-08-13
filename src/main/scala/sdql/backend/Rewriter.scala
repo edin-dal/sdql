@@ -7,7 +7,7 @@ import scala.PartialFunction.cond
 import scala.annotation.tailrec
 
 object Rewriter {
-  private val rewriters: Seq[TermRewriter] = Seq(
+  private val rewriters = Seq(
     SkipUnusedColumns,
     RemoveIntermediateTuples
   )
