@@ -68,9 +68,9 @@ object SumUtils {
     getAggregation(e) match {
       case SumAgg =>
         sumHint(e) match {
-          case _: Vec => s"$aggregationName$lhs = $rhs;"
-          case NoHint if cond(e) { case dict: DictNode => isUnique(dict) } => s"$aggregationName.emplace($lhs, $rhs);"
-          case NoHint | VecDict => s"$aggregationName$lhs += $rhs;"
+          case VecDict | NoHint if !cond(e) { case dict: DictNode => isUnique(dict) } =>
+            s"$aggregationName$lhs += $rhs;"
+          case _ => s"$aggregationName$lhs = $rhs;"
         }
       case MinAgg => s"min_inplace($aggregationName$lhs, $rhs);"
       case agg    => raise(s"$agg not supported")
@@ -92,15 +92,7 @@ object SumUtils {
   private def isUnique(dict: DictNode) = cond(dict.getInnerDict) { case DictNode(Seq((_: Unique, _)), NoHint) => true }
 
   private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
-    exps
-      .map(e => {
-        val s = CppCodegen.run(e)(typesCtx, callsCtx)
-        e match {
-          case _: Unique => s
-          case _         => s"[$s]"
-        }
-      })
-      .mkString("")
+    exps.map(e => { s"[${CppCodegen.run(e)(typesCtx, callsCtx)}]" }).mkString("")
 
   private def splitNested(e: Exp): (Seq[Exp], Exp) = e match {
     case DictNode(Seq((k, v @ DictNode(_, NoHint | VecDict))), _) =>
