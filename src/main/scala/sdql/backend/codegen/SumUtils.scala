@@ -68,13 +68,7 @@ object SumUtils {
     getAggregation(e) match {
       case SumAgg =>
         sumHint(e) match {
-          case _: Vec =>
-            typesCtx(Sym(aggregationName)) match {
-              case DictType(IntType, vt, _: Vec) if vt.isScalar => s"$aggregationName$lhs = $rhs;"
-              case DictType(IntType, DictType(IntType, _, _: Vec), _: Vec) =>
-                s"$aggregationName$lhs.emplace_back($rhs);"
-              case tpe => raise(s"unexpected: ${tpe.prettyPrint}")
-            }
+          case _: Vec => s"$aggregationName$lhs = $rhs;"
           case NoHint if cond(e) { case dict: DictNode => isUnique(dict) } => s"$aggregationName.emplace($lhs, $rhs);"
           case NoHint | VecDict => s"$aggregationName$lhs += $rhs;"
         }
