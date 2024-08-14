@@ -21,6 +21,32 @@ class RemoveAliasesTest extends AnyFlatSpec with Matchers {
   }
 }
 
+// TODO
+//class RemoveRecordGetTest extends AnyFlatSpec with Matchers {
+//  it should "remove record get" in {
+//    val e       = sdql"let record = <a = 0, b = 1> in record(2)"
+//    val rewrite = sdql"let record = <a = 0, b = 1> in record.b"
+//    RemoveRecordGet(e) should be(rewrite)
+//  }
+//
+//  it should "not remove record get when field name is duplicate" in {
+//    val e = sdql"let record = <_ = 0, _ = 1> in record(2)"
+//    RemoveRecordGet(e) should be(e)
+//  }
+//
+//  it should "remove record get load" in {
+//    val e       = sdql"""
+//                 let lineitem = load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl")
+//                 lineitem(1)
+//                 """
+//    val rewrite = sdql"""
+//                 let lineitem = load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl")
+//                 lineitem.l_extendedprice
+//                 """
+//    RemoveRecordGet(e) should be(rewrite)
+//  }
+//}
+
 class SkipUnusedColumnsTest extends AnyFlatSpec with Matchers {
   it should "skip unused columns" in {
     val e       = sdql"""
@@ -50,22 +76,6 @@ class SkipUnusedColumnsTest extends AnyFlatSpec with Matchers {
                """
     SkipUnusedColumns(e) should be(rewrite)
   }
-
-// TODO
-//  it should "skip unused columns indexed" in {
-//    val e       = sdql"""
-//               let lineitem = load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl")
-//               sum(<i,_> <- range(lineitem(2)))
-//                   1
-//               """
-//    val rewrite = sdql"""
-//               let lineitem =
-//                   load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl", {"l_extendedprice"})
-//               sum(<i,_> <- range(lineitem(2)))
-//                   1
-//               """
-//    SkipUnusedColumns(e) should be(rewrite)
-//  }
 }
 
 class RemoveIntermediateTupleTest extends AnyFlatSpec with Matchers {

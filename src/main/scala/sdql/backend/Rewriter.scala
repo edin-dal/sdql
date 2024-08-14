@@ -9,6 +9,7 @@ import scala.annotation.tailrec
 object Rewriter {
   private val rewriters = Seq(
     RemoveAliases,
+//    RemoveRecordGet,
     SkipUnusedColumns,
     RemoveIntermediateTuples
   )
@@ -19,6 +20,10 @@ object Rewriter {
 }
 
 private trait TermRewriter { def apply(e: Exp): Exp }
+
+private object RemoveRecordGet extends TermRewriter {
+  def apply(e: Exp): Exp = ???
+}
 
 private object RemoveAliases extends TermRewriter {
   private type AliasCtx = Map[Sym, Sym]
