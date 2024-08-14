@@ -1,6 +1,6 @@
-package sdql
-package backend
+package sdql.transformations
 
+import sdql.Field
 import sdql.ir.*
 
 import scala.PartialFunction.cond

@@ -1,11 +1,11 @@
 package sdql.backend.codegen
 
 import sdql.analysis.TypeInference
-import sdql.backend.Rewriter
 import sdql.backend.codegen.ChecksUtils.*
 import sdql.ir.*
 import sdql.ir.ExternalFunctions.{ Inv, Limit }
 import sdql.raise
+import sdql.transformations.Rewriter
 
 import scala.PartialFunction.cond
 import scala.annotation.tailrec
