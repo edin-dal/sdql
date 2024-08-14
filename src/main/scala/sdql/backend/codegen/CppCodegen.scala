@@ -3,7 +3,7 @@ package sdql.backend.codegen
 import sdql.analysis.TypeInference
 import sdql.backend.codegen.ChecksUtils.*
 import sdql.ir.*
-import sdql.ir.ExternalFunctions.{ Inv, Limit }
+import sdql.ir.ExternalFunctions.{ ConstantString, Inv, Limit }
 import sdql.raise
 import sdql.transformations.Rewriter
 
@@ -82,9 +82,10 @@ object CppCodegen {
       val localCalls = if (isTernary) Seq(IsTernary) ++ callsCtx else callsCtx
       val e1Cpp = e1 match {
         // codegen for loads was handled in a separate tree traversal
-        case _: Load                   => ""
-        case External(Limit.SYMBOL, _) => s"${run(e1)(typesCtx, Seq(LetCtx(name)) ++ localCalls)}\n"
-        case c: Const                  => s"constexpr auto $name = ${run(c)};"
+        case _: Load                                 => ""
+        case External(Limit.SYMBOL, _)               => s"${run(e1)(typesCtx, Seq(LetCtx(name)) ++ localCalls)}\n"
+        case e1 @ External(ConstantString.SYMBOL, _) => s"const auto $name = ${run(e1)};"
+        case e1: Const                               => s"constexpr auto $name = ${run(e1)};"
         case _ =>
           val isRetrieval = cond(e1) { case _: FieldNode | _: Get => true }
           def isDict      = cond(TypeInference.run(e1)) { case _: DictType => true }
