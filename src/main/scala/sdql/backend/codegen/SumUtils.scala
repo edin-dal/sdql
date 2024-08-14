@@ -62,17 +62,17 @@ object SumUtils {
   def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
     val callsLocal         = Seq(SumEnd, IsTernary) ++ callsCtx
     val (accessors, inner) = splitNested(e)
-    val lhs                = cppAccessors(accessors)(typesCtx, callsLocal)
+    val bracketed          = cppAccessors(accessors)(typesCtx, callsLocal)
+    val lhs                = s"$aggregationName$bracketed"
     val rhs                = CppCodegen.run(inner)(typesCtx, callsLocal)
 
     getAggregation(e) match {
       case SumAgg =>
         sumHint(e) match {
-          case VecDict | NoHint if !cond(e) { case dict: DictNode => isUnique(dict) } =>
-            s"$aggregationName$lhs += $rhs;"
-          case _ => s"$aggregationName$lhs = $rhs;"
+          case VecDict | NoHint if !cond(e) { case dict: DictNode => isUnique(dict) } => s"$lhs += $rhs;"
+          case _ => s"$lhs = $rhs;"
         }
-      case MinAgg => s"min_inplace($aggregationName$lhs, $rhs);"
+      case MinAgg => s"min_inplace($lhs, $rhs);"
       case agg    => raise(s"$agg not supported")
     }
   }
