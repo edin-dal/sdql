@@ -1,3 +1,4 @@
+import enum
 import os
 import re
 import subprocess
@@ -14,14 +15,19 @@ SCRIPTS_DIR: Final[str] = os.path.join(FILE_DIR, "scripts")
 DTYPES: Final[dict[str, Any]] = {"Query": "string", "Runtime (ms)": int}
 
 
-def read_job_results() -> pd.DataFrame:
-    JOBS_DATA_DIR: Final[str] = os.path.join(FILE_DIR, "gj_results")
-    JOB_RESULTS: Final[str] = os.path.join(FILE_DIR, f"gj_results.csv")
+class Mode(enum.Enum):
+    FJ = "fj"
+    GJ = "gj"
+
+
+def read_job_results(mode: Mode) -> pd.DataFrame:
+    JOBS_DATA_DIR: Final[str] = os.path.join(FILE_DIR, f"{mode.value}_results")
+    JOB_RESULTS: Final[str] = os.path.join(FILE_DIR, f"{mode.value}_results.csv")
 
     if not Path(JOBS_DATA_DIR).is_dir():
-        subprocess.call("./codegen_job.sh gj 5", shell=True, cwd=SCRIPTS_DIR)
-        subprocess.call("./compile_job.sh gj", shell=True, cwd=SCRIPTS_DIR)
-        subprocess.call("./run_job.sh gj", shell=True, cwd=SCRIPTS_DIR)
+        subprocess.call(f"./codegen_job.sh {mode.value} 5", shell=True, cwd=SCRIPTS_DIR)
+        subprocess.call(f"./compile_job.sh {mode.value}", shell=True, cwd=SCRIPTS_DIR)
+        subprocess.call(f"./run_job.sh {mode.value}", shell=True, cwd=SCRIPTS_DIR)
 
     if not Path(JOB_RESULTS).is_file():
         write_results_frame(JOBS_DATA_DIR, JOB_RESULTS)
@@ -30,9 +36,9 @@ def read_job_results() -> pd.DataFrame:
 
 
 # 5 iterations were ran for https://github.com/edin-dal/sdql/tree/wcoj
-def read_wcoj_results() -> pd.DataFrame:
-    WCOJ_DATA_DIR: Final[str] = os.path.join(FILE_DIR, "wcoj_gj_results")
-    WCOJ_RESULTS: Final[str] = os.path.join(FILE_DIR, "wcoj_gj_results.csv")
+def read_wcoj_results(mode: Mode) -> pd.DataFrame:
+    WCOJ_DATA_DIR: Final[str] = os.path.join(FILE_DIR, f"wcoj_{mode.value}_results")
+    WCOJ_RESULTS: Final[str] = os.path.join(FILE_DIR, f"wcoj_{mode.value}_results.csv")
 
     if not Path(WCOJ_RESULTS).is_file():
         write_results_frame(WCOJ_DATA_DIR, WCOJ_RESULTS)
@@ -81,9 +87,12 @@ def plot(df: pd.DataFrame) -> None:
     plt.show()
 
 
+# switch mode here
+MODE: Mode = Mode.GJ
+
 if __name__ == "__main__":
-    job_df = read_job_results()
-    wcoj_df = read_wcoj_results()
+    job_df = read_job_results(MODE)
+    wcoj_df = read_wcoj_results(MODE)
     df = pd.merge(
         wcoj_df, job_df, how="outer", on="Query", suffixes=(" expected", " actual")
     ).set_index("Query")
