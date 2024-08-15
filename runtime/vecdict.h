@@ -4,9 +4,10 @@
 
 template<typename T>
 class vecdict {
+public:
+    // public so vecdicts can access it
     std::vector<T> vec_;
 
-public:
     class Proxy {
         vecdict &vecdict_;
         T key_;

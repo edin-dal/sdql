@@ -22,11 +22,14 @@ package object codegen {
     case DictType(kt, IntType, VecDict) =>
       val template = if (noTemplate) "" else s"<${cppType(kt)}>"
       s"vecdict$template"
+    case DictType(rt: RecordType, IntType, VecDicts) =>
+      val template = if (noTemplate) "" else recordTemplate(rt)
+      s"vecdicts$template"
     case DictType(IntType, vt, _: Vec) =>
       val template = if (noTemplate) "" else s"<${cppType(vt)}>"
       s"std::vector$template"
-    case RecordType(attrs) =>
-      val template = if (noTemplate) "" else attrs.map(_.tpe).map(cppType(_)).mkString("<", ", ", ">")
+    case rt: RecordType =>
+      val template = if (noTemplate) "" else recordTemplate(rt)
       s"std::tuple$template"
     case BoolType                 => "bool"
     case RealType                 => "double"
@@ -34,5 +37,8 @@ package object codegen {
     case StringType(None)         => "std::string"
     case StringType(Some(maxLen)) => s"VarChar<$maxLen>"
     case tpe                      => raise(s"unimplemented type: $tpe")
+  }
+  private def recordTemplate(rt: RecordType) = rt match {
+    case RecordType(attrs) => attrs.map(_.tpe).map(cppType(_)).mkString("<", ", ", ">")
   }
 }

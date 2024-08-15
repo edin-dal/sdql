@@ -36,12 +36,11 @@ object SumUtils {
         case _ =>
           val iterable = CppCodegen.run(e1)(typesLocal, Seq(SumEnd) ++ callsLocal)
           val head = TypeInference.run(e1)(typesLocal) match {
-            case DictType(_, _, NoHint)                             => s"&[${k.name}, ${v.name}] : $iterable"
-            case DictType(_, _, _: SmallVecDict | VecDict | _: Vec) => s"&${k.name} : $iterable"
-            case t                                                  => raise(s"unexpected: ${t.prettyPrint}")
+            case DictType(_, _, NoHint) => s"&[${k.name}, ${v.name}]"
+            case _                      => s"&${k.name}"
           }
           s"""$init
-             |for (auto $head) {
+             |for (auto $head : $iterable) {
              |$body
              |}
              |""".stripMargin
@@ -69,7 +68,7 @@ object SumUtils {
     getAggregation(e) match {
       case SumAgg =>
         sumHint(e) match {
-          case NoHint | _: SmallVecDict | VecDict if !cond(e) { case dict: DictNode => isUnique(dict) } =>
+          case NoHint | _: SmallVecDict | VecDict | VecDicts if !cond(e) { case dict: DictNode => isUnique(dict) } =>
             s"$lhs += $rhs;"
           case _ => s"$lhs = $rhs;"
         }
@@ -96,7 +95,7 @@ object SumUtils {
     exps.map(e => { s"[${CppCodegen.run(e)(typesCtx, callsCtx)}]" }).mkString("")
 
   private def splitNested(e: Exp): (Seq[Exp], Exp) = e match {
-    case DictNode(Seq((k, v @ DictNode(_, NoHint | _: SmallVecDict | VecDict))), _) =>
+    case DictNode(Seq((k, v @ DictNode(_, NoHint | _: SmallVecDict | VecDict | VecDicts))), _) =>
       val (lhs, rhs) = splitNested(v)
       (Seq(k) ++ lhs, rhs)
     case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _) => (Seq(k), rhs)
@@ -112,7 +111,8 @@ object SumUtils {
         case None       => ""
         case Some(size) => (size + 1).toString
       }
-    case RecordType(attrs) => attrs.map(_.tpe).map(cppInit).mkString(", ")
+    case DictType(_, _, VecDicts) => ""
+    case RecordType(attrs)        => attrs.map(_.tpe).map(cppInit).mkString(", ")
     case BoolType =>
       agg match {
         case SumAgg | MaxAgg  => "false"

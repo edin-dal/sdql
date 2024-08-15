@@ -169,9 +169,10 @@ object Parser {
   }
   private def dictNoHint(implicit ctx: P[?])   = P("{" ~ keyValue.rep(sep = ","./) ~ space ~ "}").map(DictNode(_))
   private def hinted(implicit ctx: P[?])       = P("@" ~/ hint ~/ space)
-  private def hint(implicit ctx: P[?])         = phmap | smallvecdict | vecdict | vec
+  private def hint(implicit ctx: P[?])         = phmap | smallvecdict | vecdicts | vecdict | vec
   private def phmap(implicit ctx: P[?])        = P("phmap").map(_ => NoHint)
   private def smallvecdict(implicit ctx: P[?]) = P("smallvecdict" ~ sized).map(SmallVecDict.apply)
+  private def vecdicts(implicit ctx: P[?])     = P("vecdicts").map(_ => VecDicts)
   private def vecdict(implicit ctx: P[?])      = P("vecdict").map(_ => VecDict)
   private def vec(implicit ctx: P[?])          = P("vec" ~ sized.?).map(Vec.apply)
   private def sized(implicit ctx: P[?])        = P("(" ~/ integral.!.map(_.toInt) ~/ ")")

@@ -20,3 +20,4 @@
 #include "min_helper.h"
 #include "smallvecdict.h"
 #include "vecdict.h"
+#include "vecdicts.h"
