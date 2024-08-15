@@ -7,9 +7,9 @@ let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_cod
 let it2 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/14c/it2.csv")
 let it1 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/14c/it1.csv")
 
-let mk_trie0 = sum(<i, _> <- range(mk.size)) { mk.movie_id(i) -> @vecdict { i -> 1 } } in
-let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @vecdict { i -> 1 } } in
-let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) { mi_idx.movie_id(i) -> @vecdict { i -> 1 } } in
+let mk_trie0 = sum(<i, _> <- range(mk.size)) { mk.movie_id(i) -> @smallvecdict(0) { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(0) { i -> 1 } } in
+let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) { mi_idx.movie_id(i) -> @smallvecdict(0) { i -> 1 } } in
 let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 	if (x0 ∈ t_trie0) then
 		if (x0 ∈ mi_idx_trie0) then
@@ -18,7 +18,7 @@ let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 			sum(<mk_off, _> <- mk_trie1)
 				sum(<t_off, _> <- t_trie1)
 					sum(<mi_idx_off, _> <- mi_idx_trie1)
-						{ mk.movie_id(mk_off) -> { t.kind_id(t_off) -> { mk.keyword_id(mk_off) -> { mi_idx.info_type_id(mi_idx_off) -> @vecdict { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.title(t_off), col3=t.kind_id(t_off), col4=mi_idx.info_type_id(mi_idx_off), col5=mi_idx.info(mi_idx_off)> -> 1 } } } } }
+						{ mk.movie_id(mk_off) -> { t.kind_id(t_off) -> { mk.keyword_id(mk_off) -> { mi_idx.info_type_id(mi_idx_off) -> @smallvecdict(0) { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.title(t_off), col3=t.kind_id(t_off), col4=mi_idx.info_type_id(mi_idx_off), col5=mi_idx.info(mi_idx_off)> -> 1 } } } } }
 in
 
 let mi_trie0 = sum(<i, _> <- range(mi.size)) { mi.movie_id(i) -> { mi.info_type_id(i) -> 1 } } in

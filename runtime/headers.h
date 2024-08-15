@@ -19,5 +19,4 @@
 #include "csv_helper.h"
 #include "min_helper.h"
 #include "smallvecdict.h"
-#include "vecdict.h"
-#include "vecdicts.h"
+#include "smallvecdicts.h"

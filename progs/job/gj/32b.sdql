@@ -5,9 +5,9 @@ let mk = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @
 let lt = load[<id: @vec {int -> int}, link: @vec {int -> string}, size: int>]("datasets/job/link_type.csv")
 let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/32b/k.csv")
 
-let t1_trie0 = sum(<i, _> <- range(t1.size)) { t1.id(i) -> @vecdict { i -> 1 } } in
-let ml_trie0 = sum(<i, _> <- range(ml.size)) { ml.movie_id(i) -> { ml.linked_movie_id(i) -> @vecdict { i -> 1 } } } in
-let t2_trie0 = sum(<i, _> <- range(t2.size)) { t2.id(i) -> @vecdict { i -> 1 } } in
+let t1_trie0 = sum(<i, _> <- range(t1.size)) { t1.id(i) -> @smallvecdict(0) { i -> 1 } } in
+let ml_trie0 = sum(<i, _> <- range(ml.size)) { ml.movie_id(i) -> { ml.linked_movie_id(i) -> @smallvecdict(0) { i -> 1 } } } in
+let t2_trie0 = sum(<i, _> <- range(t2.size)) { t2.id(i) -> @smallvecdict(0) { i -> 1 } } in
 let interm0_trie0 = sum(<x0, t1_trie1> <- t1_trie0)
 	if (x0 ∈ ml_trie0) then
 		let ml_trie1 = ml_trie0(x0) in
@@ -17,11 +17,11 @@ let interm0_trie0 = sum(<x0, t1_trie1> <- t1_trie0)
 				sum(<t1_off, _> <- t1_trie1)
 					sum(<ml_off, _> <- ml_trie2)
 						sum(<t2_off, _> <- t2_trie1)
-							{ t1.id(t1_off) -> { ml.link_type_id(ml_off) -> @vecdict { <col0=t1.id(t1_off), col1=t1.title(t1_off), col2=ml.linked_movie_id(ml_off), col3=ml.link_type_id(ml_off), col4=t2.title(t2_off)> -> 1 } } }
+							{ t1.id(t1_off) -> { ml.link_type_id(ml_off) -> @smallvecdict(0) { <col0=t1.id(t1_off), col1=t1.title(t1_off), col2=ml.linked_movie_id(ml_off), col3=ml.link_type_id(ml_off), col4=t2.title(t2_off)> -> 1 } } }
 in
 
 let mk_trie0 = sum(<i, _> <- range(mk.size)) { mk.movie_id(i) -> { mk.keyword_id(i) -> 1 } } in
-let lt_trie0 = sum(<i, _> <- range(lt.size)) { lt.id(i) -> @vecdict { i -> 1 } } in
+let lt_trie0 = sum(<i, _> <- range(lt.size)) { lt.id(i) -> @smallvecdict(0) { i -> 1 } } in
 let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> 1 } in
 sum(<x0, mk_trie1> <- mk_trie0)
 	if (x0 ∈ interm0_trie0) then

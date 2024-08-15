@@ -11,13 +11,13 @@ let interm0 = sum(<mc_off, _> <- range(mc.size))
 	let x0 = mc.company_id(mc_off) in
 	if (x0 ∈ cn_trie0) then
 		let cn_trie1 = cn_trie0(x0) in
-		@vecdict { <col0=mc.company_id(mc_off), col1=mc.movie_id(mc_off)> -> 1 }
+		@smallvecdict(0) { <col0=mc.company_id(mc_off), col1=mc.movie_id(mc_off)> -> 1 }
 in
 
 let rt_trie0 = sum(<i, _> <- range(rt.size)) { rt.id(i) -> 1 } in
-let an1_trie0 = sum(<i, _> <- range(an1.size)) { an1.person_id(i) -> @vecdict { i -> 1 } } in
+let an1_trie0 = sum(<i, _> <- range(an1.size)) { an1.person_id(i) -> @smallvecdict(0) { i -> 1 } } in
 let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) { interm0_tuple.col1 -> 1 } in
-let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @vecdict { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(0) { i -> 1 } } in
 let n1_trie0 = sum(<i, _> <- range(n1.size)) { n1.id(i) -> 1 } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.role_id(ci_off) in

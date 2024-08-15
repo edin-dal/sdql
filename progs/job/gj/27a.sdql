@@ -11,17 +11,17 @@ let mk = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @
 let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/27a/k.csv")
 let mi = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type_id: @vec {int -> int}, info: @vec {int -> string}, note: @vec {int -> string}, size: int>]("datasets/job/27a/mi.csv")
 
-let ml_trie0 = sum(<i, _> <- range(ml.size)) { ml.link_type_id(i) -> @vecdict { i -> 1 } } in
-let lt_trie0 = sum(<i, _> <- range(lt.size)) { lt.id(i) -> @vecdict { i -> 1 } } in
+let ml_trie0 = sum(<i, _> <- range(ml.size)) { ml.link_type_id(i) -> @smallvecdict(0) { i -> 1 } } in
+let lt_trie0 = sum(<i, _> <- range(lt.size)) { lt.id(i) -> @smallvecdict(0) { i -> 1 } } in
 let interm0_trie0 = sum(<x0, ml_trie1> <- ml_trie0)
 	if (x0 ∈ lt_trie0) then
 		let lt_trie1 = lt_trie0(x0) in
 		sum(<ml_off, _> <- ml_trie1)
 			sum(<lt_off, _> <- lt_trie1)
-				{ ml.movie_id(ml_off) -> @vecdict { <col0=ml.link_type_id(ml_off), col1=ml.movie_id(ml_off), col2=lt.link(lt_off)> -> 1 } }
+				{ ml.movie_id(ml_off) -> @smallvecdict(0) { <col0=ml.link_type_id(ml_off), col1=ml.movie_id(ml_off), col2=lt.link(lt_off)> -> 1 } }
 in
 
-let cc_trie0 = sum(<i, _> <- range(cc.size)) { cc.subject_id(i) -> { cc.status_id(i) -> { cc.movie_id(i) -> @vecdict { i -> 1 } } } } in
+let cc_trie0 = sum(<i, _> <- range(cc.size)) { cc.subject_id(i) -> { cc.status_id(i) -> { cc.movie_id(i) -> @smallvecdict(0) { i -> 1 } } } } in
 let cct1_trie0 = sum(<i, _> <- range(cct1.size)) { cct1.id(i) -> 1 } in
 let cct2_trie0 = sum(<i, _> <- range(cct2.size)) { cct2.id(i) -> 1 } in
 let interm1_trie0 = sum(<x0, cc_trie1> <- cc_trie0)
@@ -35,21 +35,21 @@ let interm1_trie0 = sum(<x0, cc_trie1> <- cc_trie0)
 						let interm0_trie1 = interm0_trie0(x2) in
 						sum(<cc_off, _> <- cc_trie3)
 							sum(<interm0_tuple, _> <- interm0_trie1)
-								{ cc.movie_id(cc_off) -> @vecdict { <col0=cc.subject_id(cc_off), col1=cc.status_id(cc_off), col2=cc.movie_id(cc_off), col4=interm0_tuple.col2> -> 1 } }
+								{ cc.movie_id(cc_off) -> @smallvecdict(0) { <col0=cc.subject_id(cc_off), col1=cc.status_id(cc_off), col2=cc.movie_id(cc_off), col4=interm0_tuple.col2> -> 1 } }
 in
 
-let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @vecdict { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(0) { i -> 1 } } in
 let interm2_trie0 = sum(<x0, t_trie1> <- t_trie0)
 	if (x0 ∈ interm1_trie0) then
 		let interm1_trie1 = interm1_trie0(x0) in
 		sum(<t_off, _> <- t_trie1)
 			sum(<interm1_tuple, _> <- interm1_trie1)
-				{ t.id(t_off) -> @vecdict { <col0=t.id(t_off), col1=t.title(t_off), col5=interm1_tuple.col4> -> 1 } }
+				{ t.id(t_off) -> @smallvecdict(0) { <col0=t.id(t_off), col1=t.title(t_off), col5=interm1_tuple.col4> -> 1 } }
 in
 
-let mc_trie0 = sum(<i, _> <- range(mc.size)) { mc.company_type_id(i) -> { mc.company_id(i) -> { mc.movie_id(i) -> @vecdict { i -> 1 } } } } in
+let mc_trie0 = sum(<i, _> <- range(mc.size)) { mc.company_type_id(i) -> { mc.company_id(i) -> { mc.movie_id(i) -> @smallvecdict(0) { i -> 1 } } } } in
 let ct_trie0 = sum(<i, _> <- range(ct.size)) { ct.id(i) -> 1 } in
-let cn_trie0 = sum(<i, _> <- range(cn.size)) { cn.id(i) -> @vecdict { i -> 1 } } in
+let cn_trie0 = sum(<i, _> <- range(cn.size)) { cn.id(i) -> @smallvecdict(0) { i -> 1 } } in
 let interm3_trie0 = sum(<x0, mc_trie1> <- mc_trie0)
 	if (x0 ∈ ct_trie0) then
 		let ct_trie1 = ct_trie0(x0) in
@@ -62,10 +62,10 @@ let interm3_trie0 = sum(<x0, mc_trie1> <- mc_trie0)
 						sum(<mc_off, _> <- mc_trie3)
 							sum(<cn_off, _> <- cn_trie1)
 								sum(<interm2_tuple, _> <- interm2_trie1)
-									{ mc.movie_id(mc_off) -> @vecdict { <col0=mc.company_type_id(mc_off), col1=mc.company_id(mc_off), col2=mc.movie_id(mc_off), col3=cn.name(cn_off), col4=interm2_tuple.col1, col8=interm2_tuple.col5> -> 1 } }
+									{ mc.movie_id(mc_off) -> @smallvecdict(0) { <col0=mc.company_type_id(mc_off), col1=mc.company_id(mc_off), col2=mc.movie_id(mc_off), col3=cn.name(cn_off), col4=interm2_tuple.col1, col8=interm2_tuple.col5> -> 1 } }
 in
 
-let mk_trie0 = sum(<i, _> <- range(mk.size)) { mk.keyword_id(i) -> { mk.movie_id(i) -> @vecdict { i -> 1 } } } in
+let mk_trie0 = sum(<i, _> <- range(mk.size)) { mk.keyword_id(i) -> { mk.movie_id(i) -> @smallvecdict(0) { i -> 1 } } } in
 let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> 1 } in
 let interm4_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 	if (x0 ∈ k_trie0) then
@@ -75,7 +75,7 @@ let interm4_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 				let interm3_trie1 = interm3_trie0(x1) in
 				sum(<mk_off, _> <- mk_trie2)
 					sum(<interm3_tuple, _> <- interm3_trie1)
-						{ mk.movie_id(mk_off) -> @vecdict { <col0=mk.keyword_id(mk_off), col1=mk.movie_id(mk_off), col4=interm3_tuple.col3, col5=interm3_tuple.col4, col9=interm3_tuple.col8> -> 1 } }
+						{ mk.movie_id(mk_off) -> @smallvecdict(0) { <col0=mk.keyword_id(mk_off), col1=mk.movie_id(mk_off), col4=interm3_tuple.col3, col5=interm3_tuple.col4, col9=interm3_tuple.col8> -> 1 } }
 in
 
 let mi_trie0 = sum(<i, _> <- range(mi.size)) { mi.movie_id(i) -> 1 } in

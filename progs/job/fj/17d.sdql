@@ -8,7 +8,7 @@ let n = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @ve
 
 let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> 1 } in
 let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> 1 } in
-let mc_trie0 = sum(<i, _> <- range(mc.size)) { mc.movie_id(i) -> @vecdict { i -> 1 } } in
+let mc_trie0 = sum(<i, _> <- range(mc.size)) { mc.movie_id(i) -> @smallvecdict(0) { i -> 1 } } in
 let cn_trie0 = sum(<i, _> <- range(cn.size)) { cn.id(i) -> 1 } in
 let interm0 = sum(<mk_off, _> <- range(mk.size))
 	let x0 = mk.keyword_id(mk_off) in
@@ -23,10 +23,10 @@ let interm0 = sum(<mk_off, _> <- range(mk.size))
 					let x2 = mc.company_id(mc_off) in
 					if (x2 ∈ cn_trie0) then
 						let cn_trie1 = cn_trie0(x2) in
-						@vecdict { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=mc.company_id(mc_off)> -> 1 }
+						@smallvecdict(0) { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=mc.company_id(mc_off)> -> 1 }
 in
 
-let n_trie0 = sum(<i, _> <- range(n.size)) { n.id(i) -> @vecdict { i -> 1 } } in
+let n_trie0 = sum(<i, _> <- range(n.size)) { n.id(i) -> @smallvecdict(0) { i -> 1 } } in
 let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) { interm0_tuple.col0 -> 1 } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.person_id(ci_off) in

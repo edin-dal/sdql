@@ -42,14 +42,14 @@ class RemoveIntermediateTupleTest extends AnyFlatSpec with Matchers {
                        ]("foo/bar.csv")
                sum(<i,_> <- range(mk.size))
                    let mk_tuple = < id=mk.id(i), movie_id=mk.movie_id(i), keyword_id=mk.keyword_id(i) >
-                   { mk_tuple.movie_id -> @vecdict { mk_tuple -> 1 } }
+                   { mk_tuple.movie_id -> @smallvecdict(0) { mk_tuple -> 1 } }
                """
     val rewrite = sdql"""
                let mk =
                    load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @vec {int -> int}>
                        ]("foo/bar.csv")
                sum(<i,_> <- range(mk.size))
-                   { mk.movie_id(i) -> @vecdict {
+                   { mk.movie_id(i) -> @smallvecdict(0) {
                        < id=mk.id(i), movie_id=mk.movie_id(i), keyword_id=mk.keyword_id(i) > -> 1
                    } }
                """

@@ -7,8 +7,8 @@ let lt = load[<id: @vec {int -> int}, link: @vec {int -> string}, size: int>]("d
 let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @vec {int -> int}, person_role_id: @vec {int -> int}, note: @vec {int -> string}, nr_order: @vec {int -> int}, role_id: @vec {int -> int}, size: int>]("datasets/job/cast_info.csv")
 let an = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/7c/an.csv")
 
-let n_trie0 = sum(<i, _> <- range(n.size)) { n.id(i) -> @vecdict { i -> 1 } } in
-let pi_trie0 = sum(<i, _> <- range(pi.size)) { pi.person_id(i) -> { pi.info_type_id(i) -> @vecdict { i -> 1 } } } in
+let n_trie0 = sum(<i, _> <- range(n.size)) { n.id(i) -> @smallvecdict(0) { i -> 1 } } in
+let pi_trie0 = sum(<i, _> <- range(pi.size)) { pi.person_id(i) -> { pi.info_type_id(i) -> @smallvecdict(0) { i -> 1 } } } in
 let it_trie0 = sum(<i, _> <- range(it.size)) { it.id(i) -> 1 } in
 let interm0_trie0 = sum(<x0, n_trie1> <- n_trie0)
 	if (x0 ∈ pi_trie0) then
@@ -18,11 +18,11 @@ let interm0_trie0 = sum(<x0, n_trie1> <- n_trie0)
 				let it_trie1 = it_trie0(x1) in
 				sum(<n_off, _> <- n_trie1)
 					sum(<pi_off, _> <- pi_trie2)
-						{ n.id(n_off) -> @vecdict { <col0=n.id(n_off), col1=n.name(n_off), col2=pi.info_type_id(pi_off), col3=pi.info(pi_off)> -> 1 } }
+						{ n.id(n_off) -> @smallvecdict(0) { <col0=n.id(n_off), col1=n.name(n_off), col2=pi.info_type_id(pi_off), col3=pi.info(pi_off)> -> 1 } }
 in
 
-let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @vecdict { i -> 1 } } in
-let ml_trie0 = sum(<i, _> <- range(ml.size)) { ml.linked_movie_id(i) -> { ml.link_type_id(i) -> @vecdict { i -> 1 } } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(0) { i -> 1 } } in
+let ml_trie0 = sum(<i, _> <- range(ml.size)) { ml.linked_movie_id(i) -> { ml.link_type_id(i) -> @smallvecdict(0) { i -> 1 } } } in
 let lt_trie0 = sum(<i, _> <- range(lt.size)) { lt.id(i) -> 1 } in
 let interm1_trie0 = sum(<x0, t_trie1> <- t_trie0)
 	if (x0 ∈ ml_trie0) then
@@ -32,7 +32,7 @@ let interm1_trie0 = sum(<x0, t_trie1> <- t_trie0)
 				let lt_trie1 = lt_trie0(x1) in
 				sum(<t_off, _> <- t_trie1)
 					sum(<ml_off, _> <- ml_trie2)
-						{ t.id(t_off) -> @vecdict { <col0=t.id(t_off), col1=ml.link_type_id(ml_off)> -> 1 } }
+						{ t.id(t_off) -> @smallvecdict(0) { <col0=t.id(t_off), col1=ml.link_type_id(ml_off)> -> 1 } }
 in
 
 let ci_trie0 = sum(<i, _> <- range(ci.size)) { ci.movie_id(i) -> { ci.person_id(i) -> 1 } } in

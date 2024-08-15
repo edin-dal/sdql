@@ -110,16 +110,14 @@ class ParserTest extends AnyFlatSpec with Matchers {
     sdql"@phmap {x -> y}" should be(DictNode(Seq(Sym("x")           -> Sym("y")), NoHint))
     sdql"@smallvecdict(4) {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), SmallVecDict(4)))
     sdql"@smallvecdict(4) {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), SmallVecDict(4)))
-    sdql"@vecdict {0 -> 1}" should be(DictNode(Seq(Const(0)         -> Const(1)), VecDict))
-    sdql"@vecdict {x -> y}" should be(DictNode(Seq(Sym("x")         -> Sym("y")), VecDict))
-    sdql"@vecdicts {< foo = 1  > -> 1}" should be(
-      DictNode(Seq(RecNode(Seq("foo" -> Const(1.0))) -> Const(1)), VecDicts)
+    sdql"@smallvecdicts(4) {< foo = 1  > -> 1}" should be(
+      DictNode(Seq(RecNode(Seq("foo" -> Const(1.0))) -> Const(1)), SmallVecDicts(4))
     )
-    sdql"@vecdicts {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), VecDicts))
-    sdql"@vec {0 -> 1}" should be(DictNode(Seq(Const(0)      -> Const(1)), Vec()))
-    sdql"@vec {x -> y}" should be(DictNode(Seq(Sym("x")      -> Sym("y")), Vec()))
-    sdql"@vec(1) {0 -> 1}" should be(DictNode(Seq(Const(0)   -> Const(1)), Vec(Some(1))))
-    sdql"@vec(100) {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), Vec(Some(100))))
+    sdql"@smallvecdicts(4) {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), SmallVecDicts(4)))
+    sdql"@vec {0 -> 1}" should be(DictNode(Seq(Const(0)              -> Const(1)), Vec()))
+    sdql"@vec {x -> y}" should be(DictNode(Seq(Sym("x")              -> Sym("y")), Vec()))
+    sdql"@vec(1) {0 -> 1}" should be(DictNode(Seq(Const(0)           -> Const(1)), Vec(Some(1))))
+    sdql"@vec(100) {x -> y}" should be(DictNode(Seq(Sym("x")         -> Sym("y")), Vec(Some(100))))
   }
 
   it should "work for record" in {

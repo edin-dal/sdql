@@ -2,35 +2,35 @@
 
 #include <tuple>
 
-template <typename... Ts>
-class vecdicts {
-    std::tuple<vecdict<Ts>...> vecdicts_;
+template <size_t N, typename... Ts>
+class smallvecdicts {
+    std::tuple<smallvecdict<Ts, N>...> smallvecdicts_;
 
 public:
     class Proxy {
-        vecdicts &vecdicts_;
+        smallvecdicts &smallvecdicts_;
         std::tuple<Ts...> key_;
 
     public:
-        Proxy(vecdicts &vecdicts, std::tuple<Ts...> key) : vecdicts_(vecdicts), key_(std::move(key)) {}
+        Proxy(smallvecdicts &smallvecdicts, std::tuple<Ts...> key) : smallvecdicts_(smallvecdicts), key_(std::move(key)) {}
 
         Proxy &operator+=(long) {
-            add_to_vecdicts(std::make_index_sequence<sizeof...(Ts)>{});
+            add_to_smallvecdicts(std::make_index_sequence<sizeof...(Ts)>{});
             return *this;
         }
 
     private:
         template <std::size_t... Is>
-        void add_to_vecdicts(std::index_sequence<Is...>) {
-            (..., (std::get<Is>(vecdicts_.vecdicts_)[std::get<Is>(key_)] += 1));
+        void add_to_smallvecdicts(std::index_sequence<Is...>) {
+            (..., (std::get<Is>(smallvecdicts_.smallvecdicts_)[std::get<Is>(key_)] += 1));
         }
     };
 
-    explicit vecdicts(): vecdicts_(vecdict<Ts>()...) {}
-    explicit vecdicts(long n) : vecdicts_(vecdict<Ts>(n)...) {}
-    explicit vecdicts(std::vector<Ts>... vecs) : vecdicts_(vecdict<Ts>(vecs)...) {}
+    explicit smallvecdicts(): smallvecdicts_(smallvecdict<Ts, N>()...) {}
+    explicit smallvecdicts(long n) : smallvecdicts_(smallvecdict<Ts, N>(n)...) {}
+    explicit smallvecdicts(std::vector<Ts>... vecs) : smallvecdicts_(smallvecdict<Ts, N>(vecs)...) {}
 
-    auto size() { if constexpr (sizeof...(Ts) > 0) { return std::get<0>(vecdicts_).size(); } else { return 0; } }
+    auto size() { if constexpr (sizeof...(Ts) > 0) { return std::get<0>(smallvecdicts_).size(); } else { return 0; } }
 
     Proxy operator[](std::tuple<Ts...> key) { return Proxy(*this, key); }
 
@@ -39,13 +39,13 @@ public:
 
 private:
     class iterator {
-        vecdicts* parent_;
+        smallvecdicts* parent_;
         size_t index_;
 
     public:
         using value_type = std::tuple<Ts&...>;
 
-        iterator(vecdicts* parent, const size_t index) : parent_(parent), index_(index) {}
+        iterator(smallvecdicts* parent, const size_t index) : parent_(parent), index_(index) {}
 
         iterator& operator++() {
             ++index_;
@@ -73,7 +73,7 @@ private:
     private:
         template <std::size_t... Is>
         [[nodiscard]] value_type dereference(std::index_sequence<Is...>) const {
-            return std::tie(std::get<Is>(parent_->vecdicts_).vec_[index_]...);
+            return std::tie(std::get<Is>(parent_->smallvecdicts_).svec_[index_]...);
         }
     };
 };

@@ -6,9 +6,9 @@ let cn = load[<id: @vec {int -> int}, name: @vec {int -> string}, country_code: 
 let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @vec {int -> int}, person_role_id: @vec {int -> int}, note: @vec {int -> string}, nr_order: @vec {int -> int}, role_id: @vec {int -> int}, size: int>]("datasets/job/cast_info.csv")
 let n = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> string}, gender: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/17f/n.csv")
 
-let mk_trie0 = sum(<i, _> <- range(mk.size)) { mk.movie_id(i) -> { mk.keyword_id(i) -> @vecdict { i -> 1 } } } in
+let mk_trie0 = sum(<i, _> <- range(mk.size)) { mk.movie_id(i) -> { mk.keyword_id(i) -> @smallvecdict(0) { i -> 1 } } } in
 let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> 1 } in
-let mc_trie0 = sum(<i, _> <- range(mc.size)) { mc.movie_id(i) -> { mc.company_id(i) -> @vecdict { i -> 1 } } } in
+let mc_trie0 = sum(<i, _> <- range(mc.size)) { mc.movie_id(i) -> { mc.company_id(i) -> @smallvecdict(0) { i -> 1 } } } in
 let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> 1 } in
 let cn_trie0 = sum(<i, _> <- range(cn.size)) { cn.id(i) -> 1 } in
 let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
@@ -24,11 +24,11 @@ let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 							let cn_trie1 = cn_trie0(x2) in
 							sum(<mk_off, _> <- mk_trie2)
 								sum(<mc_off, _> <- mc_trie2)
-									{ mk.movie_id(mk_off) -> @vecdict { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=mc.company_id(mc_off)> -> 1 } }
+									{ mk.movie_id(mk_off) -> @smallvecdict(0) { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=mc.company_id(mc_off)> -> 1 } }
 in
 
 let ci_trie0 = sum(<i, _> <- range(ci.size)) { ci.person_id(i) -> { ci.movie_id(i) -> 1 } } in
-let n_trie0 = sum(<i, _> <- range(n.size)) { n.id(i) -> @vecdict { i -> 1 } } in
+let n_trie0 = sum(<i, _> <- range(n.size)) { n.id(i) -> @smallvecdict(0) { i -> 1 } } in
 sum(<x0, ci_trie1> <- ci_trie0)
 	if (x0 ∈ n_trie0) then
 		let n_trie1 = n_trie0(x0) in

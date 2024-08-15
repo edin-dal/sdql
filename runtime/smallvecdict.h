@@ -115,9 +115,11 @@ struct container_type<T, 0> { using type = std::vector<T>; };
 template<typename T, size_t N>
 class smallvecdict {
 	using Container = typename container_type<T, N>::type;
-	Container svec_;
 
 public:
+    // public so smallvecdicts can access it
+	Container svec_;
+
 	inline size_t size() const { return svec_.size(); }
 
 	class Proxy {

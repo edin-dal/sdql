@@ -9,7 +9,7 @@ object PrintUtils {
       s"""for (const auto &[key, val] : $resultName) {
          |$stdCout << ${_cppPrintResult(kt, "key")} << ":" << ${_cppPrintResult(vt, "val")} << std::endl;
          |}""".stripMargin
-    case DictType(kt, vt, _: SmallVecDict | VecDict) =>
+    case DictType(kt, vt, _: SmallVecDict) =>
       assert(vt == IntType, s"${vt.simpleName} != ${IntType.simpleName}")
       val cond = vt match {
         case _: DictType =>
