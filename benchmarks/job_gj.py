@@ -15,13 +15,13 @@ DTYPES: Final[dict[str, Any]] = {"Query": "string", "Runtime (ms)": int}
 
 
 def read_job_results() -> pd.DataFrame:
-    JOBS_DATA_DIR: Final[str] = os.path.join(FILE_DIR, "job_results")
-    JOB_RESULTS: Final[str] = os.path.join(FILE_DIR, f"job_results.csv")
+    JOBS_DATA_DIR: Final[str] = os.path.join(FILE_DIR, "gj_results")
+    JOB_RESULTS: Final[str] = os.path.join(FILE_DIR, f"gj_results.csv")
 
     if not Path(JOBS_DATA_DIR).is_dir():
-        subprocess.call("./codegen_job.sh 5", shell=True, cwd=SCRIPTS_DIR)
-        subprocess.call("./compile_job.sh", shell=True, cwd=SCRIPTS_DIR)
-        subprocess.call("./run_job.sh", shell=True, cwd=SCRIPTS_DIR)
+        subprocess.call("./codegen_job.sh gj 5", shell=True, cwd=SCRIPTS_DIR)
+        subprocess.call("./compile_job.sh gj", shell=True, cwd=SCRIPTS_DIR)
+        subprocess.call("./run_job.sh gj", shell=True, cwd=SCRIPTS_DIR)
 
     if not Path(JOB_RESULTS).is_file():
         write_results_frame(JOBS_DATA_DIR, JOB_RESULTS)
@@ -31,8 +31,8 @@ def read_job_results() -> pd.DataFrame:
 
 # 5 iterations were ran for https://github.com/edin-dal/sdql/tree/wcoj
 def read_wcoj_results() -> pd.DataFrame:
-    WCOJ_DATA_DIR: Final[str] = os.path.join(FILE_DIR, "wcoj_results")
-    WCOJ_RESULTS: Final[str] = os.path.join(FILE_DIR, f"wcoj_results.csv")
+    WCOJ_DATA_DIR: Final[str] = os.path.join(FILE_DIR, "wcoj_gj_results")
+    WCOJ_RESULTS: Final[str] = os.path.join(FILE_DIR, "wcoj_gj_results.csv")
 
     if not Path(WCOJ_RESULTS).is_file():
         write_results_frame(WCOJ_DATA_DIR, WCOJ_RESULTS)
