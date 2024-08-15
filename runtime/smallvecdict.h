@@ -107,8 +107,15 @@ public:
 };
 
 template<typename T, size_t N>
+struct container_type { using type = smallvec<T, N>; };
+
+template<typename T>
+struct container_type<T, 0> { using type = std::vector<T>; };
+
+template<typename T, size_t N>
 class smallvecdict {
-	smallvec<T, N> svec_;
+	using Container = typename container_type<T, N>::type;
+	Container svec_;
 
 public:
 	inline size_t size() const { return svec_.size(); }
@@ -130,7 +137,7 @@ public:
 		return Proxy(*this, key);
 	}
 
-	inline typename smallvec<T, N>::iterator begin() { return svec_.begin(); }
+	inline typename Container::iterator begin() { return svec_.begin(); }
 
-	inline typename smallvec<T, N>::iterator end() { return svec_.end(); }
+	inline typename Container::iterator end() { return svec_.end(); }
 };
