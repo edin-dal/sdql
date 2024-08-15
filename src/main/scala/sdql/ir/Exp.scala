@@ -91,6 +91,7 @@ case class DictNode(map: Seq[(Exp, Exp)], hint: DictHint = NoHint) extends Exp {
 }
 sealed trait DictHint
 case object NoHint                       extends DictHint
+case class SmallVecDict(size: Int)       extends DictHint
 case object VecDict                      extends DictHint
 case class Vec(size: Option[Int] = None) extends DictHint
 

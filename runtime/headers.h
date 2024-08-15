@@ -18,4 +18,5 @@
 #include "bench_helper.h"
 #include "csv_helper.h"
 #include "min_helper.h"
+#include "smallvecdict.h"
 #include "vecdict.h"

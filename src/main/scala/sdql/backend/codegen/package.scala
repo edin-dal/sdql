@@ -16,6 +16,9 @@ package object codegen {
     case DictType(kt, vt, NoHint) =>
       val template = if (noTemplate) "" else s"<${cppType(kt)}, ${cppType(vt)}>"
       s"phmap::flat_hash_map$template"
+    case DictType(kt, IntType, SmallVecDict(size)) =>
+      val template = if (noTemplate) "" else s"<${cppType(kt)}, $size>"
+      s"smallvecdict$template"
     case DictType(kt, IntType, VecDict) =>
       val template = if (noTemplate) "" else s"<${cppType(kt)}>"
       s"vecdict$template"

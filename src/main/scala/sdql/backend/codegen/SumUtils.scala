@@ -36,9 +36,9 @@ object SumUtils {
         case _ =>
           val iterable = CppCodegen.run(e1)(typesLocal, Seq(SumEnd) ++ callsLocal)
           val head = TypeInference.run(e1)(typesLocal) match {
-            case DictType(_, _, NoHint)           => s"&[${k.name}, ${v.name}] : $iterable"
-            case DictType(_, _, VecDict | _: Vec) => s"&${k.name} : $iterable"
-            case t                                => raise(s"unexpected: ${t.prettyPrint}")
+            case DictType(_, _, NoHint)                             => s"&[${k.name}, ${v.name}] : $iterable"
+            case DictType(_, _, _: SmallVecDict | VecDict | _: Vec) => s"&${k.name} : $iterable"
+            case t                                                  => raise(s"unexpected: ${t.prettyPrint}")
           }
           s"""$init
              |for (auto $head) {
@@ -69,7 +69,8 @@ object SumUtils {
     getAggregation(e) match {
       case SumAgg =>
         sumHint(e) match {
-          case VecDict | NoHint if !cond(e) { case dict: DictNode => isUnique(dict) } => s"$lhs += $rhs;"
+          case NoHint | _: SmallVecDict | VecDict if !cond(e) { case dict: DictNode => isUnique(dict) } =>
+            s"$lhs += $rhs;"
           case _ => s"$lhs = $rhs;"
         }
       case MinAgg => s"min_inplace($lhs, $rhs);"
@@ -95,7 +96,7 @@ object SumUtils {
     exps.map(e => { s"[${CppCodegen.run(e)(typesCtx, callsCtx)}]" }).mkString("")
 
   private def splitNested(e: Exp): (Seq[Exp], Exp) = e match {
-    case DictNode(Seq((k, v @ DictNode(_, NoHint | VecDict))), _) =>
+    case DictNode(Seq((k, v @ DictNode(_, NoHint | _: SmallVecDict | VecDict))), _) =>
       val (lhs, rhs) = splitNested(v)
       (Seq(k) ++ lhs, rhs)
     case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _) => (Seq(k), rhs)
@@ -105,7 +106,7 @@ object SumUtils {
   }
 
   private def cppInit(tpe: Type)(implicit agg: Aggregation): String = tpe match {
-    case DictType(_, _, NoHint | VecDict) => "{}"
+    case DictType(_, _, NoHint | _: SmallVecDict | VecDict) => "{}"
     case DictType(_, _, Vec(size)) =>
       size match {
         case None       => ""

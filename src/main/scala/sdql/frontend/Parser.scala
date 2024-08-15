@@ -167,13 +167,14 @@ object Parser {
     case (Some(hint), DictNode(map, _)) => DictNode(map, hint)
     case (None, dict)                   => dict
   }
-  private def dictNoHint(implicit ctx: P[?]) = P("{" ~ keyValue.rep(sep = ","./) ~ space ~ "}").map(DictNode(_))
-  private def hinted(implicit ctx: P[?])     = P("@" ~/ hint ~/ space)
-  private def hint(implicit ctx: P[?])       = phmap | vecdict | vec
-  private def phmap(implicit ctx: P[?])      = P("phmap").map(_ => NoHint)
-  private def vecdict(implicit ctx: P[?])    = P("vecdict").map(_ => VecDict)
-  private def vec(implicit ctx: P[?])        = P("vec" ~ sized.?).map(Vec.apply)
-  private def sized(implicit ctx: P[?])      = P("(" ~/ integral.!.map(_.toInt) ~/ ")")
+  private def dictNoHint(implicit ctx: P[?])   = P("{" ~ keyValue.rep(sep = ","./) ~ space ~ "}").map(DictNode(_))
+  private def hinted(implicit ctx: P[?])       = P("@" ~/ hint ~/ space)
+  private def hint(implicit ctx: P[?])         = phmap | smallvecdict | vecdict | vec
+  private def phmap(implicit ctx: P[?])        = P("phmap").map(_ => NoHint)
+  private def smallvecdict(implicit ctx: P[?]) = P("smallvecdict" ~ sized).map(SmallVecDict.apply)
+  private def vecdict(implicit ctx: P[?])      = P("vecdict").map(_ => VecDict)
+  private def vec(implicit ctx: P[?])          = P("vec" ~ sized.?).map(Vec.apply)
+  private def sized(implicit ctx: P[?])        = P("(" ~/ integral.!.map(_.toInt) ~/ ")")
 
   private def factor(implicit ctx: P[?]) =
     P(
