@@ -35,7 +35,8 @@ def read_job_results(mode: Mode) -> pd.DataFrame:
     return pd.read_csv(JOB_RESULTS, dtype=DTYPES)
 
 
-# 5 iterations were ran for https://github.com/edin-dal/sdql/tree/wcoj
+# FJ: 5 iterations were ran for https://github.com/edin-dal/wcoj
+# GJ: 5 iterations were ran for https://github.com/edin-dal/sdql/tree/wcoj
 def read_wcoj_results(mode: Mode) -> pd.DataFrame:
     WCOJ_DATA_DIR: Final[str] = os.path.join(FILE_DIR, f"wcoj_{mode.value}_results")
     WCOJ_RESULTS: Final[str] = os.path.join(FILE_DIR, f"wcoj_{mode.value}_results.csv")
@@ -88,7 +89,7 @@ def plot(df: pd.DataFrame) -> None:
 
 
 # switch mode here
-MODE: Mode = Mode.GJ
+MODE: Mode = Mode.FJ
 
 if __name__ == "__main__":
     job_df = read_job_results(MODE)
