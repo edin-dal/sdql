@@ -156,6 +156,16 @@ sum(<x_s, x_s_v> <- S)
         {}
     """)
   }
+
+  // checks we support columnar layout - though we use row layout in GF/FJ queries
+  it should "codegen smallvecdicts" in {
+    CodegenHelpers.compilesExp(sdql"""
+      let a = { 0 -> 1, 1 -> 10, 2 -> 100 }
+      let b = { 0 -> "a", 1 -> "b", 2 -> "c" }
+      let c = sum(<i, _> <- range(3)) @smallvecdicts(0) { <a = a(i), b = b(i)> -> 1 }
+      sum(<record, _> <- c) <a = record.a, b = record.b>
+      """)
+  }
 }
 
 class CppCodegenTestTPCH extends AnyFlatSpec with ParallelTestExecution {
