@@ -65,7 +65,7 @@ object ExternalUtils {
       val limit = callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
       val tmp   = s"tmp_$uuid"
       val (dictTpe, kt, vt) = (TypeInference.run(sym): @unchecked) match {
-        case dictTpe @ DictType(kt, vt, NoHint) => (dictTpe, kt, vt)
+        case dictTpe @ DictType(kt, vt, _: PHmap) => (dictTpe, kt, vt)
       }
       val recTpe    = RecordType(Seq(Attribute("_1", kt), Attribute("_2", vt)))
       val recTpeCpp = cppType(recTpe)

@@ -78,7 +78,7 @@ case class RecNode(values: Seq[(Field, Exp)]) extends Exp {
  * A dictionary that maps expressions to other expressions
  * @param map a dictionary from expression to other expressions
  */
-case class DictNode(map: Seq[(Exp, Exp)], hint: DictHint = NoHint) extends Exp {
+case class DictNode(map: Seq[(Exp, Exp)], hint: DictHint = PHmap()) extends Exp {
   @tailrec
   final def getInnerDict: DictNode = this match {
     case DictNode(Seq((_, dict: DictNode)), _) => dict.getInnerDict
@@ -90,7 +90,7 @@ case class DictNode(map: Seq[(Exp, Exp)], hint: DictHint = NoHint) extends Exp {
     this.map.map(_._1).map(k => (k: @unchecked) match { case Const(s: String) => s }).toSet
 }
 sealed trait DictHint
-case object NoHint                       extends DictHint
+case class PHmap(e: Option[Exp] = None)  extends DictHint
 case class SmallVecDict(size: Int)       extends DictHint
 case class SmallVecDicts(size: Int)      extends DictHint
 case class Vec(size: Option[Int] = None) extends DictHint

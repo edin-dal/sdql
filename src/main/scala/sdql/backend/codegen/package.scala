@@ -13,7 +13,7 @@ package object codegen {
   val resultName = "result"
 
   def cppType(tpe: Type, noTemplate: Boolean = false): String = tpe match {
-    case DictType(kt, vt, NoHint) =>
+    case DictType(kt, vt, _: PHmap) =>
       val template = if (noTemplate) "" else s"<${cppType(kt)}, ${cppType(vt)}>"
       s"phmap::flat_hash_map$template"
     case DictType(kt, IntType, SmallVecDict(size)) =>

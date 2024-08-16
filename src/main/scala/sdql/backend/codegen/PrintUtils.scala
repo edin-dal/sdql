@@ -5,7 +5,7 @@ import sdql.raise
 
 object PrintUtils {
   def cppPrintResult(tpe: Type): String = tpe match {
-    case DictType(kt, vt, NoHint) =>
+    case DictType(kt, vt, _: PHmap) =>
       s"""for (const auto &[key, val] : $resultName) {
          |$stdCout << ${_cppPrintResult(kt, "key")} << ":" << ${_cppPrintResult(vt, "val")} << std::endl;
          |}""".stripMargin

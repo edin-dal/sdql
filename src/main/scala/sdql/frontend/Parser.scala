@@ -170,7 +170,7 @@ object Parser {
   private def dictNoHint(implicit ctx: P[?])    = P("{" ~ keyValue.rep(sep = ","./) ~ space ~ "}").map(DictNode(_))
   private def hinted(implicit ctx: P[?])        = P("@" ~/ hint ~/ space)
   private def hint(implicit ctx: P[?])          = phmap | smallvecdicts | smallvecdict | vec
-  private def phmap(implicit ctx: P[?])         = P("phmap").map(_ => NoHint)
+  private def phmap(implicit ctx: P[?])         = P("phmap" ~ parens.?).map(PHmap.apply)
   private def smallvecdict(implicit ctx: P[?])  = P("smallvecdict" ~ sized).map(SmallVecDict.apply)
   private def smallvecdicts(implicit ctx: P[?]) = P("smallvecdicts" ~ sized).map(SmallVecDicts.apply)
   private def vec(implicit ctx: P[?])           = P("vec" ~ sized.?).map(Vec.apply)

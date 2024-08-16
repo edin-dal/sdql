@@ -21,7 +21,7 @@ object SumUtils {
       val callsLocal        = Seq(SumStart) ++ callsCtx
       val isLetSum          = cond(callsCtx.head) { case _: LetCtx => true }
       val agg               = getAggregation(getSumBody(e2))
-      val init              = if (isLetSum) s"${cppType(tpe)} (${cppInit(tpe)(agg)});" else ""
+      val init              = if (isLetSum) s"${cppType(tpe)} (${cppInit(tpe)(agg, typesCtx, callsCtx)});" else ""
       val body              = CppCodegen.run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal)
       e1 match {
         case _: RangeNode =>
@@ -36,7 +36,7 @@ object SumUtils {
         case _ =>
           val iterable = CppCodegen.run(e1)(typesLocal, Seq(SumEnd) ++ callsLocal)
           val head = TypeInference.run(e1)(typesLocal) match {
-            case DictType(_, _, NoHint)           => s"&[${k.name}, ${v.name}]"
+            case DictType(_, _, _: PHmap)         => s"&[${k.name}, ${v.name}]"
             case DictType(_, _, _: SmallVecDicts) => s"${k.name}"
             case _                                => s"&${k.name}"
           }
@@ -69,7 +69,9 @@ object SumUtils {
     getAggregation(e) match {
       case SumAgg =>
         sumHint(e) match {
-          case NoHint | _: SmallVecDict | _: SmallVecDicts if !cond(e) { case dict: DictNode => isUnique(dict) } =>
+          case None | Some(_: PHmap | _: SmallVecDict | _: SmallVecDicts) if !cond(e) {
+                case dict: DictNode => isUnique(dict)
+              } =>
             s"$lhs += $rhs;"
           case _ => s"$lhs = $rhs;"
         }
@@ -86,17 +88,19 @@ object SumUtils {
   }
 
   private def sumHint(e: Exp)(implicit typesCtx: TypesCtx) = e match {
-    case dict: DictNode => TypeInference.run(dict.getInnerDict) match { case DictType(_, _, hint) => hint }
-    case _              => NoHint
+    case dict: DictNode => TypeInference.run(dict.getInnerDict) match { case DictType(_, _, hint) => Some(hint) }
+    case _              => None
   }
 
-  private def isUnique(dict: DictNode) = cond(dict.getInnerDict) { case DictNode(Seq((_: Unique, _)), NoHint) => true }
+  private def isUnique(dict: DictNode) = cond(dict.getInnerDict) {
+    case DictNode(Seq((_: Unique, _)), _: PHmap) => true
+  }
 
   private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
     exps.map(e => { s"[${CppCodegen.run(e)(typesCtx, callsCtx)}]" }).mkString("")
 
   private def splitNested(e: Exp): (Seq[Exp], Exp) = e match {
-    case DictNode(Seq((k, v @ DictNode(_, NoHint | _: SmallVecDict | _: SmallVecDicts))), _) =>
+    case DictNode(Seq((k, v @ DictNode(_, _: PHmap | _: SmallVecDict | _: SmallVecDicts))), _) =>
       val (lhs, rhs) = splitNested(v)
       (Seq(k) ++ lhs, rhs)
     case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _) => (Seq(k), rhs)
@@ -105,39 +109,41 @@ object SumUtils {
     case _                                                             => (Seq(), e)
   }
 
-  private def cppInit(tpe: Type)(implicit agg: Aggregation): String = tpe match {
-    case DictType(_, _, NoHint | _: SmallVecDict) => "{}"
-    case DictType(_, _, Vec(size)) =>
-      size match {
-        case None       => ""
-        case Some(size) => (size + 1).toString
-      }
-    case DictType(_, _, _: SmallVecDicts) => ""
-    case RecordType(attrs)                => attrs.map(_.tpe).map(cppInit).mkString(", ")
-    case BoolType =>
-      agg match {
-        case SumAgg | MaxAgg  => "false"
-        case ProdAgg | MinAgg => "true"
-      }
-    case RealType =>
-      agg match {
-        case SumAgg | MaxAgg => "0.0"
-        case ProdAgg         => "1.0"
-        case MinAgg          => s"std::numeric_limits<${cppType(RealType)}>::max()"
-      }
-    case IntType | DateType =>
-      agg match {
-        case SumAgg | MaxAgg => "0"
-        case ProdAgg         => "1"
-        case MinAgg          => s"std::numeric_limits<${cppType(IntType)}>::max()"
-      }
-    case StringType(None) =>
-      agg match {
-        case SumAgg | MaxAgg => "\"\""
-        case ProdAgg         => raise("undefined")
-        case MinAgg          => s"MAX_STRING"
-      }
-    case StringType(Some(_)) => raise("initialising VarChars shouldn't be needed")
-    case tpe                 => raise(s"unimplemented type: $tpe")
-  }
+  private def cppInit(tpe: Type)(implicit agg: Aggregation, typesCtx: TypesCtx, callsCtx: CallsCtx): String =
+    tpe match {
+      case DictType(_, _, PHmap(Some(e)))                => CppCodegen.run(e)
+      case DictType(_, _, PHmap(None) | _: SmallVecDict) => "{}"
+      case DictType(_, _, Vec(size)) =>
+        size match {
+          case None       => ""
+          case Some(size) => (size + 1).toString
+        }
+      case DictType(_, _, _: SmallVecDicts) => ""
+      case RecordType(attrs)                => attrs.map(_.tpe).map(cppInit).mkString(", ")
+      case BoolType =>
+        agg match {
+          case SumAgg | MaxAgg  => "false"
+          case ProdAgg | MinAgg => "true"
+        }
+      case RealType =>
+        agg match {
+          case SumAgg | MaxAgg => "0.0"
+          case ProdAgg         => "1.0"
+          case MinAgg          => s"std::numeric_limits<${cppType(RealType)}>::max()"
+        }
+      case IntType | DateType =>
+        agg match {
+          case SumAgg | MaxAgg => "0"
+          case ProdAgg         => "1"
+          case MinAgg          => s"std::numeric_limits<${cppType(IntType)}>::max()"
+        }
+      case StringType(None) =>
+        agg match {
+          case SumAgg | MaxAgg => "\"\""
+          case ProdAgg         => raise("undefined")
+          case MinAgg          => s"MAX_STRING"
+        }
+      case StringType(Some(_)) => raise("initialising VarChars shouldn't be needed")
+      case tpe                 => raise(s"unimplemented type: $tpe")
+    }
 }
