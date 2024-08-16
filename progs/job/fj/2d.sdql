@@ -4,10 +4,10 @@ let mc = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, company_id: @
 let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/2d/k.csv")
 let cn = load[<id: @vec {int -> int}, name: @vec {int -> string}, country_code: @vec {int -> string}, imdb_id: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, name_pcode_sf: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/2d/cn.csv")
 
-let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> 1 } in
-let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
-let mc_trie0 = sum(<i, _> <- range(mc.size)) { mc.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
-let cn_trie0 = sum(<i, _> <- range(cn.size)) { cn.id(i) -> 1 } in
+let k_trie0 = sum(<i, _> <- range(k.size)) @phmap(k.size) { k.id(i) -> 1 } in
+let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
+let mc_trie0 = sum(<i, _> <- range(mc.size)) @phmap(mc.size) { mc.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
+let cn_trie0 = sum(<i, _> <- range(cn.size)) @phmap(cn.size) { cn.id(i) -> 1 } in
 sum(<mk_off, _> <- range(mk.size))
 	let x0 = mk.keyword_id(mk_off) in
 	if (x0 ∈ k_trie0) then

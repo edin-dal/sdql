@@ -7,8 +7,8 @@ let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_cod
 let it2 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/14a/it2.csv")
 let it1 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/14a/it1.csv")
 
-let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
-let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) { mi_idx.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
+let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) @phmap(mi_idx.size) { mi_idx.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm0 = sum(<mk_off, _> <- range(mk.size))
 	let x0 = mk.movie_id(mk_off) in
 	if (x0 ∈ t_trie0) then
@@ -20,11 +20,11 @@ let interm0 = sum(<mk_off, _> <- range(mk.size))
 					@smallvecdict(4) { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.title(t_off), col3=t.kind_id(t_off), col4=mi_idx.info_type_id(mi_idx_off), col5=mi_idx.info(mi_idx_off)> -> 1 }
 in
 
-let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) { interm0_tuple.col0 -> @smallvecdict(4) { interm0_tuple -> 1 } } in
-let kt_trie0 = sum(<i, _> <- range(kt.size)) { kt.id(i) -> 1 } in
-let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> 1 } in
-let it2_trie0 = sum(<i, _> <- range(it2.size)) { it2.id(i) -> 1 } in
-let it1_trie0 = sum(<i, _> <- range(it1.size)) { it1.id(i) -> 1 } in
+let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) @phmap(ext(`Size`, interm0)) { interm0_tuple.col0 -> @smallvecdict(4) { interm0_tuple -> 1 } } in
+let kt_trie0 = sum(<i, _> <- range(kt.size)) @phmap(kt.size) { kt.id(i) -> 1 } in
+let k_trie0 = sum(<i, _> <- range(k.size)) @phmap(k.size) { k.id(i) -> 1 } in
+let it2_trie0 = sum(<i, _> <- range(it2.size)) @phmap(it2.size) { it2.id(i) -> 1 } in
+let it1_trie0 = sum(<i, _> <- range(it1.size)) @phmap(it1.size) { it1.id(i) -> 1 } in
 sum(<mi_off, _> <- range(mi.size))
 	let x0 = mi.movie_id(mi_off) in
 	if (x0 ∈ interm0_trie0) then

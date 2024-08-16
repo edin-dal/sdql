@@ -7,8 +7,8 @@ let lt = load[<id: @vec {int -> int}, link: @vec {int -> string}, size: int>]("d
 let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @vec {int -> int}, person_role_id: @vec {int -> int}, note: @vec {int -> string}, nr_order: @vec {int -> int}, role_id: @vec {int -> int}, size: int>]("datasets/job/cast_info.csv")
 let an = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/7a/an.csv")
 
-let pi_trie0 = sum(<i, _> <- range(pi.size)) { pi.person_id(i) -> @smallvecdict(4) { i -> 1 } } in
-let it_trie0 = sum(<i, _> <- range(it.size)) { it.id(i) -> 1 } in
+let pi_trie0 = sum(<i, _> <- range(pi.size)) @phmap(pi.size) { pi.person_id(i) -> @smallvecdict(4) { i -> 1 } } in
+let it_trie0 = sum(<i, _> <- range(it.size)) @phmap(it.size) { it.id(i) -> 1 } in
 let interm0 = sum(<n_off, _> <- range(n.size))
 	let x0 = n.id(n_off) in
 	if (x0 ∈ pi_trie0) then
@@ -20,8 +20,8 @@ let interm0 = sum(<n_off, _> <- range(n.size))
 				@smallvecdict(4) { <col0=n.id(n_off), col1=n.name(n_off), col2=pi.info_type_id(pi_off)> -> 1 }
 in
 
-let ml_trie0 = sum(<i, _> <- range(ml.size)) { ml.linked_movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
-let lt_trie0 = sum(<i, _> <- range(lt.size)) { lt.id(i) -> 1 } in
+let ml_trie0 = sum(<i, _> <- range(ml.size)) @phmap(ml.size) { ml.linked_movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
+let lt_trie0 = sum(<i, _> <- range(lt.size)) @phmap(lt.size) { lt.id(i) -> 1 } in
 let interm1 = sum(<t_off, _> <- range(t.size))
 	let x0 = t.id(t_off) in
 	if (x0 ∈ ml_trie0) then
@@ -33,9 +33,9 @@ let interm1 = sum(<t_off, _> <- range(t.size))
 				@smallvecdict(4) { <col0=t.id(t_off), col1=t.title(t_off), col2=ml.link_type_id(ml_off)> -> 1 }
 in
 
-let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) { interm0_tuple.col0 -> @smallvecdict(4) { interm0_tuple -> 1 } } in
-let interm1_trie0 = sum(<interm1_tuple, _> <- interm1) { interm1_tuple.col0 -> @smallvecdict(4) { interm1_tuple -> 1 } } in
-let an_trie0 = sum(<i, _> <- range(an.size)) { an.person_id(i) -> 1 } in
+let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) @phmap(ext(`Size`, interm0)) { interm0_tuple.col0 -> @smallvecdict(4) { interm0_tuple -> 1 } } in
+let interm1_trie0 = sum(<interm1_tuple, _> <- interm1) @phmap(ext(`Size`, interm1)) { interm1_tuple.col0 -> @smallvecdict(4) { interm1_tuple -> 1 } } in
+let an_trie0 = sum(<i, _> <- range(an.size)) @phmap(an.size) { an.person_id(i) -> 1 } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.person_id(ci_off) in
 	if (x0 ∈ interm0_trie0) then

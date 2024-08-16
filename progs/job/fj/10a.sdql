@@ -6,9 +6,9 @@ let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @v
 let rt = load[<id: @vec {int -> int}, role: @vec {int -> string}, size: int>]("datasets/job/10a/rt.csv")
 let chn = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> int}, name_pcode_cf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/char_name.csv")
 
-let ct_trie0 = sum(<i, _> <- range(ct.size)) { ct.id(i) -> 1 } in
-let cn_trie0 = sum(<i, _> <- range(cn.size)) { cn.id(i) -> 1 } in
-let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
+let ct_trie0 = sum(<i, _> <- range(ct.size)) @phmap(ct.size) { ct.id(i) -> 1 } in
+let cn_trie0 = sum(<i, _> <- range(cn.size)) @phmap(cn.size) { cn.id(i) -> 1 } in
+let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm0 = sum(<mc_off, _> <- range(mc.size))
 	let x0 = mc.company_type_id(mc_off) in
 	if (x0 ∈ ct_trie0) then
@@ -23,9 +23,9 @@ let interm0 = sum(<mc_off, _> <- range(mc.size))
 					@smallvecdict(4) { <col0=mc.movie_id(mc_off), col1=mc.company_type_id(mc_off), col2=mc.company_id(mc_off), col3=t.title(t_off)> -> 1 }
 in
 
-let rt_trie0 = sum(<i, _> <- range(rt.size)) { rt.id(i) -> 1 } in
-let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) { interm0_tuple.col0 -> @smallvecdict(4) { interm0_tuple -> 1 } } in
-let chn_trie0 = sum(<i, _> <- range(chn.size)) { chn.id(i) -> @smallvecdict(4) { i -> 1 } } in
+let rt_trie0 = sum(<i, _> <- range(rt.size)) @phmap(rt.size) { rt.id(i) -> 1 } in
+let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) @phmap(ext(`Size`, interm0)) { interm0_tuple.col0 -> @smallvecdict(4) { interm0_tuple -> 1 } } in
+let chn_trie0 = sum(<i, _> <- range(chn.size)) @phmap(chn.size) { chn.id(i) -> @smallvecdict(4) { i -> 1 } } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.role_id(ci_off) in
 	if (x0 ∈ rt_trie0) then
