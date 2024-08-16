@@ -22,7 +22,7 @@ let interm0 = sum(<cc_off, _> <- range(cc.size))
 		let x1 = cc.status_id(cc_off) in
 		if (x1 ∈ cct2_trie0) then
 			let cct2_trie1 = cct2_trie0(x1) in
-			@smallvecdict(0) { <col0=cc.subject_id(cc_off), col1=cc.status_id(cc_off), col2=cc.movie_id(cc_off)> -> 1 }
+			@smallvecdict(4) { <col0=cc.subject_id(cc_off), col1=cc.status_id(cc_off), col2=cc.movie_id(cc_off)> -> 1 }
 in
 
 let it2_trie0 = sum(<i, _> <- range(it2.size)) { it2.id(i) -> 1 } in
@@ -34,11 +34,11 @@ let interm1 = sum(<mi_idx_off, _> <- range(mi_idx.size))
 		let x1 = mi_idx.movie_id(mi_idx_off) in
 		if (x1 ∈ interm0_trie0) then
 			let interm0_trie1 = interm0_trie0(x1) in
-			@smallvecdict(0) { <col0=mi_idx.info_type_id(mi_idx_off), col1=mi_idx.movie_id(mi_idx_off), col2=mi_idx.info(mi_idx_off)> -> 1 }
+			@smallvecdict(4) { <col0=mi_idx.info_type_id(mi_idx_off), col1=mi_idx.movie_id(mi_idx_off), col2=mi_idx.info(mi_idx_off)> -> 1 }
 in
 
 let kt_trie0 = sum(<i, _> <- range(kt.size)) { kt.id(i) -> 1 } in
-let interm1_trie0 = sum(<interm1_tuple, _> <- interm1) { interm1_tuple.col1 -> @smallvecdict(0) { interm1_tuple -> 1 } } in
+let interm1_trie0 = sum(<interm1_tuple, _> <- interm1) { interm1_tuple.col1 -> @smallvecdict(4) { interm1_tuple -> 1 } } in
 let interm2 = sum(<t_off, _> <- range(t.size))
 	let x0 = t.kind_id(t_off) in
 	if (x0 ∈ kt_trie0) then
@@ -47,12 +47,12 @@ let interm2 = sum(<t_off, _> <- range(t.size))
 		if (x1 ∈ interm1_trie0) then
 			let interm1_trie1 = interm1_trie0(x1) in
 			sum(<interm1_tuple, _> <- interm1_trie1)
-				@smallvecdict(0) { <col0=t.kind_id(t_off), col1=t.id(t_off), col2=t.title(t_off), col4=interm1_tuple.col2> -> 1 }
+				@smallvecdict(4) { <col0=t.kind_id(t_off), col1=t.id(t_off), col2=t.title(t_off), col4=interm1_tuple.col2> -> 1 }
 in
 
 let ct_trie0 = sum(<i, _> <- range(ct.size)) { ct.id(i) -> 1 } in
-let interm2_trie0 = sum(<interm2_tuple, _> <- interm2) { interm2_tuple.col1 -> @smallvecdict(0) { interm2_tuple -> 1 } } in
-let cn_trie0 = sum(<i, _> <- range(cn.size)) { cn.id(i) -> @smallvecdict(0) { i -> 1 } } in
+let interm2_trie0 = sum(<interm2_tuple, _> <- interm2) { interm2_tuple.col1 -> @smallvecdict(4) { interm2_tuple -> 1 } } in
+let cn_trie0 = sum(<i, _> <- range(cn.size)) { cn.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm3 = sum(<mc_off, _> <- range(mc.size))
 	let x0 = mc.company_type_id(mc_off) in
 	if (x0 ∈ ct_trie0) then
@@ -65,11 +65,11 @@ let interm3 = sum(<mc_off, _> <- range(mc.size))
 				let cn_trie1 = cn_trie0(x2) in
 				sum(<cn_off, _> <- cn_trie1)
 					sum(<interm2_tuple, _> <- interm2_trie1)
-						@smallvecdict(0) { <col0=mc.company_id(mc_off), col1=mc.company_type_id(mc_off), col2=mc.movie_id(mc_off), col3=cn.name(cn_off), col5=interm2_tuple.col2, col7=interm2_tuple.col4> -> 1 }
+						@smallvecdict(4) { <col0=mc.company_id(mc_off), col1=mc.company_type_id(mc_off), col2=mc.movie_id(mc_off), col3=cn.name(cn_off), col5=interm2_tuple.col2, col7=interm2_tuple.col4> -> 1 }
 in
 
 let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> 1 } in
-let interm3_trie0 = sum(<interm3_tuple, _> <- interm3) { interm3_tuple.col2 -> @smallvecdict(0) { interm3_tuple -> 1 } } in
+let interm3_trie0 = sum(<interm3_tuple, _> <- interm3) { interm3_tuple.col2 -> @smallvecdict(4) { interm3_tuple -> 1 } } in
 let interm4 = sum(<mk_off, _> <- range(mk.size))
 	let x0 = mk.keyword_id(mk_off) in
 	if (x0 ∈ k_trie0) then
@@ -78,11 +78,11 @@ let interm4 = sum(<mk_off, _> <- range(mk.size))
 		if (x1 ∈ interm3_trie0) then
 			let interm3_trie1 = interm3_trie0(x1) in
 			sum(<interm3_tuple, _> <- interm3_trie1)
-				@smallvecdict(0) { <col0=mk.keyword_id(mk_off), col1=mk.movie_id(mk_off), col4=interm3_tuple.col3, col6=interm3_tuple.col5, col8=interm3_tuple.col7> -> 1 }
+				@smallvecdict(4) { <col0=mk.keyword_id(mk_off), col1=mk.movie_id(mk_off), col4=interm3_tuple.col3, col6=interm3_tuple.col5, col8=interm3_tuple.col7> -> 1 }
 in
 
 let it1_trie0 = sum(<i, _> <- range(it1.size)) { it1.id(i) -> 1 } in
-let interm4_trie0 = sum(<interm4_tuple, _> <- interm4) { interm4_tuple.col1 -> @smallvecdict(0) { interm4_tuple -> 1 } } in
+let interm4_trie0 = sum(<interm4_tuple, _> <- interm4) { interm4_tuple.col1 -> @smallvecdict(4) { interm4_tuple -> 1 } } in
 sum(<mi_off, _> <- range(mi.size))
 	let x0 = mi.info_type_id(mi_off) in
 	if (x0 ∈ it1_trie0) then

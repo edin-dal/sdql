@@ -4,8 +4,8 @@ let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_cod
 let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @vec {int -> int}, person_role_id: @vec {int -> int}, note: @vec {int -> string}, nr_order: @vec {int -> int}, role_id: @vec {int -> int}, size: int>]("datasets/job/cast_info.csv")
 let n = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> string}, gender: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/6a/n.csv")
 
-let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> @smallvecdict(0) { i -> 1 } } in
-let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(0) { i -> 1 } } in
+let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> @smallvecdict(4) { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm0 = sum(<mk_off, _> <- range(mk.size))
 	let x0 = mk.keyword_id(mk_off) in
 	if (x0 ∈ k_trie0) then
@@ -15,11 +15,11 @@ let interm0 = sum(<mk_off, _> <- range(mk.size))
 			let t_trie1 = t_trie0(x1) in
 			sum(<t_off, _> <- t_trie1)
 				sum(<k_off, _> <- k_trie1)
-					@smallvecdict(0) { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.title(t_off), col3=k.keyword(k_off)> -> 1 }
+					@smallvecdict(4) { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.title(t_off), col3=k.keyword(k_off)> -> 1 }
 in
 
-let n_trie0 = sum(<i, _> <- range(n.size)) { n.id(i) -> @smallvecdict(0) { i -> 1 } } in
-let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) { interm0_tuple.col0 -> @smallvecdict(0) { interm0_tuple -> 1 } } in
+let n_trie0 = sum(<i, _> <- range(n.size)) { n.id(i) -> @smallvecdict(4) { i -> 1 } } in
+let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) { interm0_tuple.col0 -> @smallvecdict(4) { interm0_tuple -> 1 } } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.person_id(ci_off) in
 	if (x0 ∈ n_trie0) then

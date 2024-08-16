@@ -6,16 +6,16 @@ let it1 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("
 let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @vec {int -> int}, person_role_id: @vec {int -> int}, note: @vec {int -> string}, nr_order: @vec {int -> int}, role_id: @vec {int -> int}, size: int>]("datasets/job/18c/ci.csv")
 let n = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> string}, gender: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/18c/n.csv")
 
-let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) { mi_idx.movie_id(i) -> @smallvecdict(0) { i -> 1 } } in
+let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) { mi_idx.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm0 = sum(<t_off, _> <- range(t.size))
 	let x0 = t.id(t_off) in
 	if (x0 ∈ mi_idx_trie0) then
 		let mi_idx_trie1 = mi_idx_trie0(x0) in
 		sum(<mi_idx_off, _> <- mi_idx_trie1)
-			@smallvecdict(0) { <col0=t.id(t_off), col1=t.title(t_off), col2=mi_idx.info_type_id(mi_idx_off), col3=mi_idx.info(mi_idx_off)> -> 1 }
+			@smallvecdict(4) { <col0=t.id(t_off), col1=t.title(t_off), col2=mi_idx.info_type_id(mi_idx_off), col3=mi_idx.info(mi_idx_off)> -> 1 }
 in
 
-let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) { interm0_tuple.col0 -> @smallvecdict(0) { interm0_tuple -> 1 } } in
+let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) { interm0_tuple.col0 -> @smallvecdict(4) { interm0_tuple -> 1 } } in
 let it2_trie0 = sum(<i, _> <- range(it2.size)) { it2.id(i) -> 1 } in
 let it1_trie0 = sum(<i, _> <- range(it1.size)) { it1.id(i) -> 1 } in
 let interm1 = sum(<mi_off, _> <- range(mi.size))
@@ -29,10 +29,10 @@ let interm1 = sum(<mi_off, _> <- range(mi.size))
 				let x2 = mi.info_type_id(mi_off) in
 				if (x2 ∈ it1_trie0) then
 					let it1_trie1 = it1_trie0(x2) in
-					@smallvecdict(0) { <col0=mi.movie_id(mi_off), col1=mi.info_type_id(mi_off), col2=mi.info(mi_off), col3=interm0_tuple.col2, col4=interm0_tuple.col1, col5=interm0_tuple.col3> -> 1 }
+					@smallvecdict(4) { <col0=mi.movie_id(mi_off), col1=mi.info_type_id(mi_off), col2=mi.info(mi_off), col3=interm0_tuple.col2, col4=interm0_tuple.col1, col5=interm0_tuple.col3> -> 1 }
 in
 
-let interm1_trie0 = sum(<interm1_tuple, _> <- interm1) { interm1_tuple.col0 -> @smallvecdict(0) { interm1_tuple -> 1 } } in
+let interm1_trie0 = sum(<interm1_tuple, _> <- interm1) { interm1_tuple.col0 -> @smallvecdict(4) { interm1_tuple -> 1 } } in
 let n_trie0 = sum(<i, _> <- range(n.size)) { n.id(i) -> 1 } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.movie_id(ci_off) in

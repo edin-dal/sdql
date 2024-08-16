@@ -5,8 +5,8 @@ let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_cod
 let it = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/4a/it.csv")
 
 let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> 1 } in
-let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) { mi_idx.movie_id(i) -> @smallvecdict(0) { i -> 1 } } in
-let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(0) { i -> 1 } } in
+let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) { mi_idx.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let it_trie0 = sum(<i, _> <- range(it.size)) { it.id(i) -> 1 } in
 sum(<mk_off, _> <- range(mk.size))
 	let x0 = mk.keyword_id(mk_off) in

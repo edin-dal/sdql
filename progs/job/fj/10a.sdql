@@ -8,7 +8,7 @@ let chn = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @
 
 let ct_trie0 = sum(<i, _> <- range(ct.size)) { ct.id(i) -> 1 } in
 let cn_trie0 = sum(<i, _> <- range(cn.size)) { cn.id(i) -> 1 } in
-let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(0) { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm0 = sum(<mc_off, _> <- range(mc.size))
 	let x0 = mc.company_type_id(mc_off) in
 	if (x0 ∈ ct_trie0) then
@@ -20,12 +20,12 @@ let interm0 = sum(<mc_off, _> <- range(mc.size))
 			if (x2 ∈ t_trie0) then
 				let t_trie1 = t_trie0(x2) in
 				sum(<t_off, _> <- t_trie1)
-					@smallvecdict(0) { <col0=mc.movie_id(mc_off), col1=mc.company_type_id(mc_off), col2=mc.company_id(mc_off), col3=t.title(t_off)> -> 1 }
+					@smallvecdict(4) { <col0=mc.movie_id(mc_off), col1=mc.company_type_id(mc_off), col2=mc.company_id(mc_off), col3=t.title(t_off)> -> 1 }
 in
 
 let rt_trie0 = sum(<i, _> <- range(rt.size)) { rt.id(i) -> 1 } in
-let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) { interm0_tuple.col0 -> @smallvecdict(0) { interm0_tuple -> 1 } } in
-let chn_trie0 = sum(<i, _> <- range(chn.size)) { chn.id(i) -> @smallvecdict(0) { i -> 1 } } in
+let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) { interm0_tuple.col0 -> @smallvecdict(4) { interm0_tuple -> 1 } } in
+let chn_trie0 = sum(<i, _> <- range(chn.size)) { chn.id(i) -> @smallvecdict(4) { i -> 1 } } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.role_id(ci_off) in
 	if (x0 ∈ rt_trie0) then
