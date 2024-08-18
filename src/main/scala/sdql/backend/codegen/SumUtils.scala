@@ -31,14 +31,14 @@ object SumUtils {
              |for (${cppType(IntType)} ${k.name} = 0; ${k.name} < $n; ${k.name}++) {
              |$body
              |}
-             |
              |""".stripMargin
         case _ =>
           val iterable = CppCodegen.run(e1)(typesLocal, Seq(SumEnd) ++ callsLocal)
           val head = TypeInference.run(e1)(typesLocal) match {
             case DictType(_, _, _: PHmap)         => s"&[${k.name}, ${v.name}]"
+            case DictType(_, _, _: SmallVecDict)  => s"&${k.name}"
             case DictType(_, _, _: SmallVecDicts) => s"${k.name}"
-            case _                                => s"&${k.name}"
+            case t                                => raise(s"unexpected: ${t.prettyPrint}")
           }
           s"""$init
              |for (auto $head : $iterable) {
@@ -65,15 +65,12 @@ object SumUtils {
     val bracketed          = cppAccessors(accessors)(typesCtx, callsLocal)
     val lhs                = s"$aggregationName$bracketed"
     val rhs                = CppCodegen.run(inner)(typesCtx, callsLocal)
-
     getAggregation(e) match {
       case SumAgg =>
         sumHint(e) match {
-          case None | Some(_: PHmap | _: SmallVecDict | _: SmallVecDicts) if !cond(e) {
-                case dict: DictNode => isUnique(dict)
-              } =>
-            s"$lhs += $rhs;"
-          case _ => s"$lhs = $rhs;"
+          case Some(_: PHmap) if cond(e) { case dict: DictNode => isUnique(dict) } => s"$lhs = $rhs;"
+          case None | Some(_: PHmap | _: SmallVecDict | _: SmallVecDicts) => s"$lhs += $rhs;"
+          case Some(_: Vec)                                               => s"$lhs = $rhs;"
         }
       case MinAgg => s"min_inplace($lhs, $rhs);"
       case agg    => raise(s"$agg not supported")
