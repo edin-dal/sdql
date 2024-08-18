@@ -79,18 +79,13 @@ object TypeInference {
   def run(e: FieldNode)(implicit ctx: Ctx): Type = e match {
     case FieldNode(e1: Exp, field) =>
       run(e1) match {
-        case tpe: RecordType                       => inferRecordField(tpe, field)
-        case DictType(tpe: RecordType, IntType, _) => inferRecordField(tpe, field)
-        case tpe                                   => raise(s"unexpected type: ${tpe.prettyPrint} in\n${e.prettyPrint}")
+        case rt @ RecordType(attrs) =>
+          rt.indexOf(field) match {
+            case Some(idx) => attrs(idx).tpe
+            case None      => raise(attrs.map(_.name).mkString(s"$field not in: ", ", ", "."))
+          }
+        case tpe => raise(s"unexpected type: ${tpe.prettyPrint} in\n${e.prettyPrint}")
       }
-  }
-
-  private def inferRecordField(tpe: RecordType, field: Field) = {
-    val attrs = tpe match { case RecordType(attrs) => attrs }
-    tpe.indexOf(field) match {
-      case Some(idx) => attrs(idx).tpe
-      case None      => raise(attrs.map(_.name).mkString(s"$field not in: ", ", ", "."))
-    }
   }
 
   def run(e: Const): Type = e match {
