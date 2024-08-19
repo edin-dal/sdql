@@ -8,12 +8,6 @@ import sdql.raise
 import scala.PartialFunction.cond
 import scala.annotation.tailrec
 
-private sealed trait Aggregation
-private case object SumAgg  extends Aggregation
-private case object ProdAgg extends Aggregation
-private case object MinAgg  extends Aggregation
-private case object MaxAgg  extends Aggregation
-
 object SumUtils {
   def run(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case Sum(k, v, e1, e2) =>
@@ -21,7 +15,7 @@ object SumUtils {
       val callsLocal        = Seq(SumStart) ++ callsCtx
       val isLetSum          = cond(callsCtx.head) { case _: LetCtx => true }
       val agg               = getAggregation(getSumBody(e2))
-      val init              = if (isLetSum) s"${cppType(tpe)} (${cppInit(tpe)(agg, typesCtx, callsCtx)});" else ""
+      val init              = if (isLetSum) s"${cppType(tpe)} (${LLQLUtils.run(Initialise(agg, tpe))});" else ""
       val body              = CppCodegen.run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal)
       val forBody = e1 match {
         case _: RangeNode => s"${cppType(IntType)} ${k.name} = 0; ${k.name} < ${CppCodegen.run(e1)}; ${k.name}++"
@@ -53,18 +47,10 @@ object SumUtils {
     val callsLocal         = Seq(SumEnd, IsTernary) ++ callsCtx
     val (accessors, inner) = splitNested(e)
     val bracketed          = cppAccessors(accessors)(typesCtx, callsLocal)
+    val isUnique           = cond(e) { case dict: DictNode => checkIsUnique(dict) }
     val lhs                = s"$aggregationName$bracketed"
     val rhs                = CppCodegen.run(inner)(typesCtx, callsLocal)
-    getAggregation(e) match {
-      case SumAgg =>
-        sumHint(e) match {
-          case Some(_: PHmap) if cond(e) { case dict: DictNode => isUnique(dict) } => s"$lhs = $rhs;"
-          case None | Some(_: PHmap | _: SmallVecDict | _: SmallVecDicts) => s"$lhs += $rhs;"
-          case Some(_: Vec)                                               => s"$lhs = $rhs;"
-        }
-      case MinAgg => s"min_inplace($lhs, $rhs);"
-      case agg    => raise(s"$agg not supported")
-    }
+    LLQLUtils.run(Update(getAggregation(e), sumHint(e), isUnique, lhs, rhs))
   }
 
   private def getAggregation(e: Exp) = e match {
@@ -79,7 +65,7 @@ object SumUtils {
     case _              => None
   }
 
-  private def isUnique(dict: DictNode) = cond(dict.getInnerDict) {
+  private def checkIsUnique(dict: DictNode) = cond(dict.getInnerDict) {
     case DictNode(Seq((_: Unique, _)), _: PHmap) => true
   }
 
@@ -92,45 +78,7 @@ object SumUtils {
       (Seq(k) ++ lhs, rhs)
     case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _) => (Seq(k), rhs)
     case DictNode(Seq((k, rhs)), _)                                    => (Seq(k), rhs)
-    case DictNode(map, _) if map.length != 1                           => raise(s"unsupported: $this")
+    case DictNode(map, _) if map.length != 1                           => raise(s"unsupported: $e")
     case _                                                             => (Seq(), e)
   }
-
-  private def cppInit(tpe: Type)(implicit agg: Aggregation, typesCtx: TypesCtx, callsCtx: CallsCtx): String =
-    tpe match {
-      case DictType(_, _, PHmap(Some(e)))                => CppCodegen.run(e)
-      case DictType(_, _, PHmap(None) | _: SmallVecDict) => "{}"
-      case DictType(_, _, Vec(size)) =>
-        size match {
-          case None       => ""
-          case Some(size) => (size + 1).toString
-        }
-      case DictType(_, _, _: SmallVecDicts) => ""
-      case RecordType(attrs)                => attrs.map(_.tpe).map(cppInit).mkString(", ")
-      case BoolType =>
-        agg match {
-          case SumAgg | MaxAgg  => "false"
-          case ProdAgg | MinAgg => "true"
-        }
-      case RealType =>
-        agg match {
-          case SumAgg | MaxAgg => "0.0"
-          case ProdAgg         => "1.0"
-          case MinAgg          => s"std::numeric_limits<${cppType(RealType)}>::max()"
-        }
-      case IntType | DateType =>
-        agg match {
-          case SumAgg | MaxAgg => "0"
-          case ProdAgg         => "1"
-          case MinAgg          => s"std::numeric_limits<${cppType(IntType)}>::max()"
-        }
-      case StringType(None) =>
-        agg match {
-          case SumAgg | MaxAgg => "\"\""
-          case ProdAgg         => raise("undefined")
-          case MinAgg          => s"MAX_STRING"
-        }
-      case StringType(Some(_)) => raise("initialising VarChars shouldn't be needed")
-      case tpe                 => raise(s"unimplemented type: $tpe")
-    }
 }

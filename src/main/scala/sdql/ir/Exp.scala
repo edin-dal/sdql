@@ -10,7 +10,8 @@ import scala.annotation.tailrec
  * computing them. It can be used to generate an abstract syntax tree of a
  * given program.
  */
-sealed trait Exp {
+// TODO sealed trait for exhaustiveness checks
+trait Exp {
   def prettyPrint: String = munitPrint(this)
 
   def simpleName: String = {
@@ -323,3 +324,19 @@ object SingleDict {
     case _                        => None
   }
 }
+
+// TODO LLQL trait is just a tag, we can do runtime checks before after lowering
+//  all expression are of Exp type before/after lowering, but only after are some of them allowed to have the LLQL trait
+sealed trait LLQL
+case class Initialise(agg: Aggregation, tpe: Type) extends Exp with LLQL // TODO infer aggregation from type?
+case class Update(agg: Aggregation, hint: Option[DictHint], isUnique: Boolean, lhs: String, rhs: String)
+    extends Exp
+    with LLQL
+// TODO Update is += case, Modify is = case (note: aggregation type for Modify is always Sum)
+//case class Modify(...) extends Exp with LLQL
+
+sealed trait Aggregation
+case object SumAgg  extends Aggregation
+case object ProdAgg extends Aggregation
+case object MinAgg  extends Aggregation
+case object MaxAgg  extends Aggregation
