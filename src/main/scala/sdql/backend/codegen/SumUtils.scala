@@ -23,15 +23,8 @@ object SumUtils {
       val agg               = getAggregation(getSumBody(e2))
       val init              = if (isLetSum) s"${cppType(tpe)} (${cppInit(tpe)(agg, typesCtx, callsCtx)});" else ""
       val body              = CppCodegen.run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal)
-      e1 match {
-        case _: RangeNode =>
-          assert(v.name == "_")
-          val n = CppCodegen.run(e1)
-          s"""$init
-             |for (${cppType(IntType)} ${k.name} = 0; ${k.name} < $n; ${k.name}++) {
-             |$body
-             |}
-             |""".stripMargin
+      val forBody = e1 match {
+        case _: RangeNode => s"${cppType(IntType)} ${k.name} = 0; ${k.name} < ${CppCodegen.run(e1)}; ${k.name}++"
         case _ =>
           val iterable = CppCodegen.run(e1)(typesLocal, Seq(SumEnd) ++ callsLocal)
           val head = TypeInference.run(e1)(typesLocal) match {
@@ -40,12 +33,9 @@ object SumUtils {
             case DictType(_, _, _: SmallVecDicts) => s"${k.name}"
             case t                                => raise(s"unexpected: ${t.prettyPrint}")
           }
-          s"""$init
-             |for (auto $head : $iterable) {
-             |$body
-             |}
-             |""".stripMargin
+          s"auto $head : $iterable"
       }
+      s"$init for ($forBody) { $body }"
   }
 
   @tailrec
