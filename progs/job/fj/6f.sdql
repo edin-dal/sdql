@@ -6,7 +6,7 @@ let n = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @ve
 
 let k_trie0 = sum(<i, _> <- range(k.size)) @phmap(k.size) { k.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
-let interm0 = sum(<mk_off, _> <- range(mk.size))
+let interm0_trie0 = sum(<mk_off, _> <- range(mk.size))
 	let x0 = mk.keyword_id(mk_off) in
 	if (x0 ∈ k_trie0) then
 		let k_trie1 = k_trie0(x0) in
@@ -15,10 +15,9 @@ let interm0 = sum(<mk_off, _> <- range(mk.size))
 			let t_trie1 = t_trie0(x1) in
 			sum(<t_off, _> <- t_trie1)
 				sum(<k_off, _> <- k_trie1)
-					@smallvecdict(4) { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.title(t_off), col3=k.keyword(k_off)> -> 1 }
+					@phmap(mk.size) { mk.movie_id(mk_off) -> @smallvecdict(4) { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.title(t_off), col3=k.keyword(k_off)> -> 1 } }
 in
 
-let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) @phmap(ext(`Size`, interm0)) { interm0_tuple.col0 -> @smallvecdict(4) { interm0_tuple -> 1 } } in
 let n_trie0 = sum(<i, _> <- range(n.size)) @phmap(n.size) { n.id(i) -> @smallvecdict(4) { i -> 1 } } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.movie_id(ci_off) in

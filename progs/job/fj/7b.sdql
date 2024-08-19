@@ -9,7 +9,7 @@ let an = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, name: @vec {
 
 let pi_trie0 = sum(<i, _> <- range(pi.size)) @phmap(pi.size) { pi.person_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let it_trie0 = sum(<i, _> <- range(it.size)) @phmap(it.size) { it.id(i) -> 1 } in
-let interm0 = sum(<n_off, _> <- range(n.size))
+let interm0_trie0 = sum(<n_off, _> <- range(n.size))
 	let x0 = n.id(n_off) in
 	if (x0 ∈ pi_trie0) then
 		let pi_trie1 = pi_trie0(x0) in
@@ -17,12 +17,12 @@ let interm0 = sum(<n_off, _> <- range(n.size))
 			let x1 = pi.info_type_id(pi_off) in
 			if (x1 ∈ it_trie0) then
 				let it_trie1 = it_trie0(x1) in
-				@smallvecdict(4) { <col0=n.id(n_off), col1=n.name(n_off), col2=pi.info_type_id(pi_off)> -> 1 }
+				@phmap(n.size) { n.id(n_off) -> @smallvecdict(4) { <col0=n.id(n_off), col1=n.name(n_off), col2=pi.info_type_id(pi_off)> -> 1 } }
 in
 
 let ml_trie0 = sum(<i, _> <- range(ml.size)) @phmap(ml.size) { ml.linked_movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let lt_trie0 = sum(<i, _> <- range(lt.size)) @phmap(lt.size) { lt.id(i) -> 1 } in
-let interm1 = sum(<t_off, _> <- range(t.size))
+let interm1_trie0 = sum(<t_off, _> <- range(t.size))
 	let x0 = t.id(t_off) in
 	if (x0 ∈ ml_trie0) then
 		let ml_trie1 = ml_trie0(x0) in
@@ -30,11 +30,9 @@ let interm1 = sum(<t_off, _> <- range(t.size))
 			let x1 = ml.link_type_id(ml_off) in
 			if (x1 ∈ lt_trie0) then
 				let lt_trie1 = lt_trie0(x1) in
-				@smallvecdict(4) { <col0=t.id(t_off), col1=t.title(t_off), col2=ml.link_type_id(ml_off)> -> 1 }
+				@phmap(t.size) { t.id(t_off) -> @smallvecdict(4) { <col0=t.id(t_off), col1=t.title(t_off), col2=ml.link_type_id(ml_off)> -> 1 } }
 in
 
-let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) @phmap(ext(`Size`, interm0)) { interm0_tuple.col0 -> @smallvecdict(4) { interm0_tuple -> 1 } } in
-let interm1_trie0 = sum(<interm1_tuple, _> <- interm1) @phmap(ext(`Size`, interm1)) { interm1_tuple.col0 -> @smallvecdict(4) { interm1_tuple -> 1 } } in
 let an_trie0 = sum(<i, _> <- range(an.size)) @phmap(an.size) { an.person_id(i) -> 1 } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.person_id(ci_off) in

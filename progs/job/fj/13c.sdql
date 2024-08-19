@@ -9,15 +9,14 @@ let ct = load[<id: @vec {int -> int}, kind: @vec {int -> string}, size: int>]("d
 let cn = load[<id: @vec {int -> int}, name: @vec {int -> string}, country_code: @vec {int -> string}, imdb_id: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, name_pcode_sf: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/13c/cn.csv")
 
 let miidx_trie0 = sum(<i, _> <- range(miidx.size)) @phmap(miidx.size) { miidx.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
-let interm0 = sum(<t_off, _> <- range(t.size))
+let interm0_trie0 = sum(<t_off, _> <- range(t.size))
 	let x0 = t.id(t_off) in
 	if (x0 ∈ miidx_trie0) then
 		let miidx_trie1 = miidx_trie0(x0) in
 		sum(<miidx_off, _> <- miidx_trie1)
-			@smallvecdict(4) { <col0=t.id(t_off), col1=t.title(t_off), col2=t.kind_id(t_off), col3=miidx.info(miidx_off), col4=miidx.info_type_id(miidx_off)> -> 1 }
+			@phmap(t.size) { t.id(t_off) -> @smallvecdict(4) { <col0=t.id(t_off), col1=t.title(t_off), col2=t.kind_id(t_off), col3=miidx.info(miidx_off), col4=miidx.info_type_id(miidx_off)> -> 1 } }
 in
 
-let interm0_trie0 = sum(<interm0_tuple, _> <- interm0) @phmap(ext(`Size`, interm0)) { interm0_tuple.col0 -> @smallvecdict(4) { interm0_tuple -> 1 } } in
 let mc_trie0 = sum(<i, _> <- range(mc.size)) @phmap(mc.size) { mc.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let kt_trie0 = sum(<i, _> <- range(kt.size)) @phmap(kt.size) { kt.id(i) -> 1 } in
 let it2_trie0 = sum(<i, _> <- range(it2.size)) @phmap(it2.size) { it2.id(i) -> 1 } in
