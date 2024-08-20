@@ -17,9 +17,9 @@ in
 
 let rt_trie0 = sum(<i, _> <- range(rt.size)) @phmap(rt.size) { unique(rt.id(i)) -> 1 } in
 let n_trie0 = sum(<i, _> <- range(n.size)) @phmap(n.size) { unique(n.id(i)) -> 1 } in
-let an_trie0 = sum(<i, _> <- range(an.size)) @phmap(an.size) { unique(an.person_id(i)) -> @smallvecdict(4) { i -> 1 } } in
-let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { unique(t.id(i)) -> @smallvecdict(4) { i -> 1 } } in
-let chn_trie0 = sum(<i, _> <- range(chn.size)) @phmap(chn.size) { unique(chn.id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let an_trie0 = sum(<i, _> <- range(an.size)) @phmap(an.size) { an.person_id(i) -> @smallvecdict(4) { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
+let chn_trie0 = sum(<i, _> <- range(chn.size)) @phmap(chn.size) { chn.id(i) -> @smallvecdict(4) { i -> 1 } } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.role_id(ci_off) in
 	if (x0 ∈ rt_trie0) then

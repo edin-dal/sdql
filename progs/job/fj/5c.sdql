@@ -5,8 +5,8 @@ let it = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("d
 let ct = load[<id: @vec {int -> int}, kind: @vec {int -> string}, size: int>]("datasets/job/5c/ct.csv")
 
 let it_trie0 = sum(<i, _> <- range(it.size)) @phmap(it.size) { unique(it.id(i)) -> 1 } in
-let mc_trie0 = sum(<i, _> <- range(mc.size)) @phmap(mc.size) { unique(mc.movie_id(i)) -> @smallvecdict(4) { i -> 1 } } in
-let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { unique(t.id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let mc_trie0 = sum(<i, _> <- range(mc.size)) @phmap(mc.size) { mc.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let ct_trie0 = sum(<i, _> <- range(ct.size)) @phmap(ct.size) { unique(ct.id(i)) -> 1 } in
 sum(<mi_off, _> <- range(mi.size))
 	let x0 = mi.info_type_id(mi_off) in

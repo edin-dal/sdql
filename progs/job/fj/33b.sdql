@@ -69,7 +69,7 @@ let interm4_trie0 = sum(<t2_off, _> <- range(t2.size))
 				@phmap(1000) { interm3_tuple.col1 -> @smallvecdict(4) { <col0=t2.kind_id(t2_off), col1=t2.id(t2_off), col2=t2.title(t2_off), col5=interm3_tuple.col2, col7=interm3_tuple.col5, col9=interm3_tuple.col7> -> 1 } }
 in
 
-let cn1_trie0 = sum(<i, _> <- range(cn1.size)) @phmap(cn1.size) { unique(cn1.id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let cn1_trie0 = sum(<i, _> <- range(cn1.size)) @phmap(cn1.size) { cn1.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm5_trie0 = sum(<mc1_off, _> <- range(mc1.size))
 	let x0 = mc1.movie_id(mc1_off) in
 	if (x0 ∈ interm4_trie0) then
@@ -82,7 +82,7 @@ let interm5_trie0 = sum(<mc1_off, _> <- range(mc1.size))
 					@phmap(1000) { interm4_tuple.col1 -> @smallvecdict(4) { <col0=mc1.company_id(mc1_off), col1=mc1.movie_id(mc1_off), col2=cn1.name(cn1_off), col5=interm4_tuple.col2, col7=interm4_tuple.col5, col9=interm4_tuple.col7, col11=interm4_tuple.col9> -> 1 } }
 in
 
-let cn2_trie0 = sum(<i, _> <- range(cn2.size)) @phmap(cn2.size) { unique(cn2.id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let cn2_trie0 = sum(<i, _> <- range(cn2.size)) @phmap(cn2.size) { cn2.id(i) -> @smallvecdict(4) { i -> 1 } } in
 sum(<mc2_off, _> <- range(mc2.size))
 	let x0 = mc2.movie_id(mc2_off) in
 	if (x0 ∈ interm5_trie0) then

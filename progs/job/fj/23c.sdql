@@ -18,7 +18,7 @@ let interm0_trie0 = sum(<cc_off, _> <- range(cc.size))
 		@phmap(sum(<k, _> <- {1000000, cc.size}) promote[min_sum](k)) { cc.movie_id(cc_off) -> @smallvecdict(4) { <col0=cc.status_id(cc_off)> -> 1 } }
 in
 
-let kt_trie0 = sum(<i, _> <- range(kt.size)) @phmap(kt.size) { unique(kt.id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let kt_trie0 = sum(<i, _> <- range(kt.size)) @phmap(kt.size) { kt.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm1_trie0 = sum(<t_off, _> <- range(t.size))
 	let x0 = t.kind_id(t_off) in
 	if (x0 ∈ kt_trie0) then

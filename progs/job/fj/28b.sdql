@@ -49,7 +49,7 @@ let interm2_trie0 = sum(<t_off, _> <- range(t.size))
 in
 
 let ct_trie0 = sum(<i, _> <- range(ct.size)) @phmap(ct.size) { unique(ct.id(i)) -> 1 } in
-let cn_trie0 = sum(<i, _> <- range(cn.size)) @phmap(cn.size) { unique(cn.id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let cn_trie0 = sum(<i, _> <- range(cn.size)) @phmap(cn.size) { cn.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm3_trie0 = sum(<mc_off, _> <- range(mc.size))
 	let x0 = mc.company_type_id(mc_off) in
 	if (x0 ∈ ct_trie0) then

@@ -4,8 +4,8 @@ let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_cod
 let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @vec {int -> int}, person_role_id: @vec {int -> int}, note: @vec {int -> string}, nr_order: @vec {int -> int}, role_id: @vec {int -> int}, size: int>]("datasets/job/cast_info.csv")
 let n = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> string}, gender: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/6d/n.csv")
 
-let k_trie0 = sum(<i, _> <- range(k.size)) @phmap(k.size) { unique(k.id(i)) -> @smallvecdict(4) { i -> 1 } } in
-let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { unique(t.id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let k_trie0 = sum(<i, _> <- range(k.size)) @phmap(k.size) { k.id(i) -> @smallvecdict(4) { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm0_trie0 = sum(<mk_off, _> <- range(mk.size))
 	let x0 = mk.keyword_id(mk_off) in
 	if (x0 ∈ k_trie0) then
@@ -18,7 +18,7 @@ let interm0_trie0 = sum(<mk_off, _> <- range(mk.size))
 					@phmap(sum(<k, _> <- {1000000, mk.size}) promote[min_sum](k)) { mk.movie_id(mk_off) -> @smallvecdict(4) { <col1=mk.keyword_id(mk_off), col2=t.title(t_off), col3=k.keyword(k_off)> -> 1 } }
 in
 
-let n_trie0 = sum(<i, _> <- range(n.size)) @phmap(n.size) { unique(n.id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let n_trie0 = sum(<i, _> <- range(n.size)) @phmap(n.size) { n.id(i) -> @smallvecdict(4) { i -> 1 } } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.person_id(ci_off) in
 	if (x0 ∈ n_trie0) then

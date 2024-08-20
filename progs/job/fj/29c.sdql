@@ -91,7 +91,7 @@ let interm6_trie0 = sum(<n_off, _> <- range(n.size))
 in
 
 let rt_trie0 = sum(<i, _> <- range(rt.size)) @phmap(rt.size) { unique(rt.id(i)) -> 1 } in
-let chn_trie0 = sum(<i, _> <- range(chn.size)) @phmap(chn.size) { unique(chn.id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let chn_trie0 = sum(<i, _> <- range(chn.size)) @phmap(chn.size) { chn.id(i) -> @smallvecdict(4) { i -> 1 } } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.role_id(ci_off) in
 	if (x0 ∈ rt_trie0) then

@@ -11,7 +11,7 @@ let mi = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type_id:
 let it1 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/22d/it1.csv")
 
 let kt_trie0 = sum(<i, _> <- range(kt.size)) @phmap(kt.size) { unique(kt.id(i)) -> 1 } in
-let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) @phmap(mi_idx.size) { unique(mi_idx.movie_id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) @phmap(mi_idx.size) { mi_idx.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let it2_trie0 = sum(<i, _> <- range(it2.size)) @phmap(it2.size) { unique(it2.id(i)) -> 1 } in
 let interm0_trie0 = sum(<t_off, _> <- range(t.size))
 	let x0 = t.kind_id(t_off) in
@@ -28,7 +28,7 @@ let interm0_trie0 = sum(<t_off, _> <- range(t.size))
 in
 
 let ct_trie0 = sum(<i, _> <- range(ct.size)) @phmap(ct.size) { unique(ct.id(i)) -> 1 } in
-let cn_trie0 = sum(<i, _> <- range(cn.size)) @phmap(cn.size) { unique(cn.id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let cn_trie0 = sum(<i, _> <- range(cn.size)) @phmap(cn.size) { cn.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm1_trie0 = sum(<mc_off, _> <- range(mc.size))
 	let x0 = mc.company_type_id(mc_off) in
 	if (x0 ∈ ct_trie0) then

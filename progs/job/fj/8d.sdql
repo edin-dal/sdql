@@ -15,8 +15,8 @@ let interm0_trie0 = sum(<mc_off, _> <- range(mc.size))
 in
 
 let rt_trie0 = sum(<i, _> <- range(rt.size)) @phmap(rt.size) { unique(rt.id(i)) -> 1 } in
-let an1_trie0 = sum(<i, _> <- range(an1.size)) @phmap(an1.size) { unique(an1.person_id(i)) -> @smallvecdict(4) { i -> 1 } } in
-let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { unique(t.id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let an1_trie0 = sum(<i, _> <- range(an1.size)) @phmap(an1.size) { an1.person_id(i) -> @smallvecdict(4) { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let n1_trie0 = sum(<i, _> <- range(n1.size)) @phmap(n1.size) { unique(n1.id(i)) -> 1 } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.role_id(ci_off) in

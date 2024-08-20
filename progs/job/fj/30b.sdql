@@ -66,7 +66,7 @@ let interm4_trie0 = sum(<mi_off, _> <- range(mi.size))
 				@phmap(sum(<k, _> <- {1000000, mi.size}) promote[min_sum](k)) { mi.movie_id(mi_off) -> @smallvecdict(4) { <col0=mi.info_type_id(mi_off), col2=mi.info(mi_off), col4=interm3_tuple.col2, col6=interm3_tuple.col4> -> 1 } }
 in
 
-let n_trie0 = sum(<i, _> <- range(n.size)) @phmap(n.size) { unique(n.id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let n_trie0 = sum(<i, _> <- range(n.size)) @phmap(n.size) { n.id(i) -> @smallvecdict(4) { i -> 1 } } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.movie_id(ci_off) in
 	if (x0 ∈ interm4_trie0) then

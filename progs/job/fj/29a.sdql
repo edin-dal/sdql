@@ -90,7 +90,7 @@ let interm6_trie0 = sum(<n_off, _> <- range(n.size))
 		@phmap(sum(<k, _> <- {1000000, n.size}) promote[min_sum](k)) { n.id(n_off) -> @smallvecdict(4) { <col1=n.name(n_off)> -> 1 } }
 in
 
-let chn_trie0 = sum(<i, _> <- range(chn.size)) @phmap(chn.size) { unique(chn.id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let chn_trie0 = sum(<i, _> <- range(chn.size)) @phmap(chn.size) { chn.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let rt_trie0 = sum(<i, _> <- range(rt.size)) @phmap(rt.size) { unique(rt.id(i)) -> 1 } in
 sum(<ci_off, _> <- range(ci.size))
 	let x0 = ci.person_role_id(ci_off) in

@@ -7,7 +7,7 @@ let it1 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("
 let ct = load[<id: @vec {int -> int}, kind: @vec {int -> string}, size: int>]("datasets/job/12b/ct.csv")
 let cn = load[<id: @vec {int -> int}, name: @vec {int -> string}, country_code: @vec {int -> string}, imdb_id: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, name_pcode_sf: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/12b/cn.csv")
 
-let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) @phmap(mi_idx.size) { unique(mi_idx.movie_id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) @phmap(mi_idx.size) { mi_idx.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm0_trie0 = sum(<t_off, _> <- range(t.size))
 	let x0 = t.id(t_off) in
 	if (x0 ∈ mi_idx_trie0) then
@@ -16,7 +16,7 @@ let interm0_trie0 = sum(<t_off, _> <- range(t.size))
 			@phmap(sum(<k, _> <- {1000000, t.size}) promote[min_sum](k)) { t.id(t_off) -> @smallvecdict(4) { <col1=t.title(t_off), col2=mi_idx.info_type_id(mi_idx_off)> -> 1 } }
 in
 
-let mc_trie0 = sum(<i, _> <- range(mc.size)) @phmap(mc.size) { unique(mc.movie_id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let mc_trie0 = sum(<i, _> <- range(mc.size)) @phmap(mc.size) { mc.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let it2_trie0 = sum(<i, _> <- range(it2.size)) @phmap(it2.size) { unique(it2.id(i)) -> 1 } in
 let it1_trie0 = sum(<i, _> <- range(it1.size)) @phmap(it1.size) { unique(it1.id(i)) -> 1 } in
 let ct_trie0 = sum(<i, _> <- range(ct.size)) @phmap(ct.size) { unique(ct.id(i)) -> 1 } in

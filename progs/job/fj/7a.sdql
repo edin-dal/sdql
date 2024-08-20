@@ -7,7 +7,7 @@ let lt = load[<id: @vec {int -> int}, link: @vec {int -> string}, size: int>]("d
 let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @vec {int -> int}, person_role_id: @vec {int -> int}, note: @vec {int -> string}, nr_order: @vec {int -> int}, role_id: @vec {int -> int}, size: int>]("datasets/job/cast_info.csv")
 let an = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/7a/an.csv")
 
-let pi_trie0 = sum(<i, _> <- range(pi.size)) @phmap(pi.size) { unique(pi.person_id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let pi_trie0 = sum(<i, _> <- range(pi.size)) @phmap(pi.size) { pi.person_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let it_trie0 = sum(<i, _> <- range(it.size)) @phmap(it.size) { unique(it.id(i)) -> 1 } in
 let interm0_trie0 = sum(<n_off, _> <- range(n.size))
 	let x0 = n.id(n_off) in
@@ -20,7 +20,7 @@ let interm0_trie0 = sum(<n_off, _> <- range(n.size))
 				@phmap(sum(<k, _> <- {1000000, n.size}) promote[min_sum](k)) { n.id(n_off) -> @smallvecdict(4) { <col0=n.id(n_off), col1=n.name(n_off), col2=pi.info_type_id(pi_off)> -> 1 } }
 in
 
-let ml_trie0 = sum(<i, _> <- range(ml.size)) @phmap(ml.size) { unique(ml.linked_movie_id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let ml_trie0 = sum(<i, _> <- range(ml.size)) @phmap(ml.size) { ml.linked_movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let lt_trie0 = sum(<i, _> <- range(lt.size)) @phmap(lt.size) { unique(lt.id(i)) -> 1 } in
 let interm1_trie0 = sum(<t_off, _> <- range(t.size))
 	let x0 = t.id(t_off) in
