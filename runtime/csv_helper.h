@@ -8,12 +8,12 @@ const auto SEPARATOR = rapidcsv::SeparatorParams('|');
 
 const std::regex RE_DATE("-");
 
-inline long date_to_numeric(std::string str) {
-    return std::stol(std::regex_replace(str, RE_DATE, ""));
+inline int date_to_numeric(std::string str) {
+    return std::stoi(std::regex_replace(str, RE_DATE, ""));
 }
 
-inline vector<long> dates_to_numerics(vector<std::string> strings) {
-    auto numerics = vector<long>(strings.size());
+inline vector<int> dates_to_numerics(vector<std::string> strings) {
+    auto numerics = vector<int>(strings.size());
     std::transform(strings.begin(), strings.end(), numerics.begin(), date_to_numeric);
     return numerics;
 }
@@ -30,7 +30,7 @@ vector<VarChar<maxLen>> strings_to_varchars(vector<std::string> strings) {
     return varchars;
 }
 
-inline std::string print_date(const long yyyymmdd) {
+inline std::string print_date(const int yyyymmdd) {
   const auto yyyy = yyyymmdd / 10000;
   const auto mmdd = yyyymmdd - yyyy * 10000;
   const auto mm = mmdd / 100;

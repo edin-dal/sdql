@@ -14,7 +14,7 @@ public:
     public:
         Proxy(smallvecdicts &smallvecdicts, std::tuple<Ts...> key) : smallvecdicts_(smallvecdicts), key_(std::move(key)) {}
 
-        Proxy &operator+=(long) {
+        Proxy &operator+=(int) {
             add_to_smallvecdicts(std::make_index_sequence<sizeof...(Ts)>{});
             return *this;
         }
@@ -27,7 +27,7 @@ public:
     };
 
     explicit smallvecdicts(): smallvecdicts_(smallvecdict<Ts, N>()...) {}
-    explicit smallvecdicts(long n) : smallvecdicts_(smallvecdict<Ts, N>(n)...) {}
+    explicit smallvecdicts(int n) : smallvecdicts_(smallvecdict<Ts, N>(n)...) {}
     explicit smallvecdicts(std::vector<Ts>... vecs) : smallvecdicts_(smallvecdict<Ts, N>(vecs)...) {}
 
     auto size() { if constexpr (sizeof...(Ts) > 0) { return std::get<0>(smallvecdicts_).size(); } else { return 0; } }
