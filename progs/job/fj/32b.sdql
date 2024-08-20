@@ -5,8 +5,8 @@ let mk = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @
 let lt = load[<id: @vec {int -> int}, link: @vec {int -> string}, size: int>]("datasets/job/link_type.csv")
 let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/32b/k.csv")
 
-let ml_trie0 = sum(<i, _> <- range(ml.size)) @phmap(ml.size) { ml.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
-let t2_trie0 = sum(<i, _> <- range(t2.size)) @phmap(t2.size) { t2.id(i) -> @smallvecdict(4) { i -> 1 } } in
+let ml_trie0 = sum(<i, _> <- range(ml.size)) @phmap(ml.size) { unique(ml.movie_id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let t2_trie0 = sum(<i, _> <- range(t2.size)) @phmap(t2.size) { unique(t2.id(i)) -> @smallvecdict(4) { i -> 1 } } in
 let interm0_trie0 = sum(<t1_off, _> <- range(t1.size))
 	let x0 = t1.id(t1_off) in
 	if (x0 ∈ ml_trie0) then
@@ -19,8 +19,8 @@ let interm0_trie0 = sum(<t1_off, _> <- range(t1.size))
 					@phmap(sum(<k, _> <- {1000000, t1.size}) promote[min_sum](k)) { t1.id(t1_off) -> @smallvecdict(4) { <col1=t1.title(t1_off), col2=ml.linked_movie_id(ml_off), col3=ml.link_type_id(ml_off), col4=t2.title(t2_off)> -> 1 } }
 in
 
-let lt_trie0 = sum(<i, _> <- range(lt.size)) @phmap(lt.size) { lt.id(i) -> @smallvecdict(4) { i -> 1 } } in
-let k_trie0 = sum(<i, _> <- range(k.size)) @phmap(k.size) { k.id(i) -> 1 } in
+let lt_trie0 = sum(<i, _> <- range(lt.size)) @phmap(lt.size) { unique(lt.id(i)) -> @smallvecdict(4) { i -> 1 } } in
+let k_trie0 = sum(<i, _> <- range(k.size)) @phmap(k.size) { unique(k.id(i)) -> 1 } in
 sum(<mk_off, _> <- range(mk.size))
 	let x0 = mk.movie_id(mk_off) in
 	if (x0 ∈ interm0_trie0) then
