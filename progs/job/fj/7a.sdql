@@ -30,7 +30,7 @@ let interm1_trie0 = sum(<t_off, _> <- range(t.size))
 			let x1 = ml.link_type_id(ml_off) in
 			if (x1 ∈ lt_trie0) then
 				let lt_trie1 = lt_trie0(x1) in
-				@phmap(sum(<k, _> <- {1000000, t.size}) promote[min_sum](k)) { t.id(t_off) -> @smallvecdict(4) { <col0=t.id(t_off), col1=t.title(t_off), col2=ml.link_type_id(ml_off)> -> 1 } }
+				@phmap(sum(<k, _> <- {1000000, t.size}) promote[min_sum](k)) { t.id(t_off) -> @smallvecdict(4) { <col1=t.title(t_off), col2=ml.link_type_id(ml_off)> -> 1 } }
 in
 
 let an_trie0 = sum(<i, _> <- range(an.size)) @phmap(an.size) { an.person_id(i) -> 1 } in

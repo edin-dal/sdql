@@ -13,7 +13,7 @@ let interm0_trie0 = sum(<t_off, _> <- range(t.size))
 	if (x0 ∈ mi_idx_trie0) then
 		let mi_idx_trie1 = mi_idx_trie0(x0) in
 		sum(<mi_idx_off, _> <- mi_idx_trie1)
-			@phmap(sum(<k, _> <- {1000000, t.size}) promote[min_sum](k)) { t.id(t_off) -> @smallvecdict(4) { <col0=t.id(t_off), col1=t.title(t_off), col2=mi_idx.info_type_id(mi_idx_off), col3=mi_idx.info(mi_idx_off)> -> 1 } }
+			@phmap(sum(<k, _> <- {1000000, t.size}) promote[min_sum](k)) { t.id(t_off) -> @smallvecdict(4) { <col1=t.title(t_off), col2=mi_idx.info_type_id(mi_idx_off), col3=mi_idx.info(mi_idx_off)> -> 1 } }
 in
 
 let mc_trie0 = sum(<i, _> <- range(mc.size)) @phmap(mc.size) { mc.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
