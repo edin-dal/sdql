@@ -53,7 +53,7 @@ object SumUtils {
     LLQLUtils.run(Update(getAggregation(e), sumHint(e), isUnique, lhs, rhs))
   }
 
-  private def getAggregation(e: Exp) = e match {
+  def getAggregation(e: Exp): Aggregation = e match {
     case Promote(TropicalSemiRingType(false, false, _), _) => MinAgg
     case Promote(TropicalSemiRingType(true, false, _), _)  => MaxAgg
     case Promote(TropicalSemiRingType(_, true, _), _)      => ProdAgg

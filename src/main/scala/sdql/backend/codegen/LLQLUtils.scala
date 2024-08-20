@@ -9,7 +9,7 @@ object LLQLUtils {
   }
   private def initialise(tpe: Type)(implicit agg: Aggregation, typesCtx: TypesCtx, callsCtx: CallsCtx): String =
     tpe match {
-      case DictType(_, _, PHmap(Some(e)))                => CppCodegen.run(e)
+      case DictType(_, _, PHmap(Some(e)))                => initialisePHMap(e)(typesCtx, callsCtx)
       case DictType(_, _, PHmap(None) | _: SmallVecDict) => "{}"
       case DictType(_, _, Vec(size)) =>
         size match {
@@ -44,6 +44,16 @@ object LLQLUtils {
       case StringType(Some(_)) => raise("initialising VarChars shouldn't be needed")
       case tpe                 => raise(s"unimplemented type: $tpe")
     }
+  private def initialisePHMap(e: Exp)(typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+    // we can't generally handle sums inline - this is special handling for handy use cases
+    case Sum(Sym(k), _, e1: DictNode, e2)
+        if CppCodegen.run(e2)(typesCtx, callsCtx) == k && SumUtils.getAggregation(e2) == MinAgg =>
+      s"min_key(${CppCodegen.run(e1)(typesCtx, callsCtx)})"
+    case Sum(Sym(k), _, e1: DictNode, e2)
+        if CppCodegen.run(e2)(typesCtx, callsCtx) == k && SumUtils.getAggregation(e2) == MaxAgg =>
+      s"max_key(${CppCodegen.run(e1)(typesCtx, callsCtx)})"
+    case _ => CppCodegen.run(e)(typesCtx, callsCtx)
+  }
 
   def run(e: Update): String = e match {
     case Update(agg, hint, isUnique, lhs, rhs) =>

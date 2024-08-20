@@ -21,6 +21,15 @@ void min_inplace (std::tuple<T...>& lhs, const std::tuple<T...>& rhs)
   internal::min(lhs, rhs, std::index_sequence_for<T...>{});
 }
 
+template <typename Container>
+auto min_key(const Container& container) {
+  return std::min_element(
+             container.begin(),
+             container.end(),
+             [](const auto &p1, const auto &p2) { return p1.first < p2.first; }
+             )->first;
+}
+
 template <typename T>
 void max_inplace(T& a, const T& b) { a = std::max(a, b); }
 
@@ -38,4 +47,13 @@ template <typename...T>
 void max_inplace (std::tuple<T...>& lhs, const std::tuple<T...>& rhs)
 {
   internal::max(lhs, rhs, std::index_sequence_for<T...>{});
+}
+
+template <typename Container>
+auto max_key(const Container& container) {
+  return std::max_element(
+             container.begin(),
+             container.end(),
+             [](const auto &p1, const auto &p2) { return p1.first < p2.first; }
+             )->first;
 }

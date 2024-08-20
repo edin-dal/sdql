@@ -166,6 +166,13 @@ sum(<x_s, x_s_v> <- S)
       sum(<record, _> <- c) <a = record.a, b = record.b>
       """)
   }
+
+  it should "codegen max sum in phmap hint" in {
+    CodegenHelpers.compilesExp(sdql"""
+      let mk = <size = 100>
+      sum(<i, _> <- range(10)) @phmap(sum(<k, _> <- {0, mk.size / 10}) promote[max_sum](k)) { i -> 1 }
+      """)
+  }
 }
 
 class CppCodegenTestTPCH extends AnyFlatSpec with ParallelTestExecution {
