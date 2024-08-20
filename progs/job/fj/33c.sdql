@@ -18,7 +18,7 @@ let interm0_trie0 = sum(<ml_off, _> <- range(ml.size))
 	let x0 = ml.link_type_id(ml_off) in
 	if (x0 ∈ lt_trie0) then
 		let lt_trie1 = lt_trie0(x0) in
-		@phmap(ml.size) { ml.movie_id(ml_off) -> @smallvecdict(4) { <col0=ml.link_type_id(ml_off), col1=ml.movie_id(ml_off), col2=ml.linked_movie_id(ml_off)> -> 1 } }
+		@phmap(sum(<k, _> <- {1000000, ml.size}) promote[min_sum](k)) { ml.movie_id(ml_off) -> @smallvecdict(4) { <col0=ml.link_type_id(ml_off), col1=ml.movie_id(ml_off), col2=ml.linked_movie_id(ml_off)> -> 1 } }
 in
 
 let it1_trie0 = sum(<i, _> <- range(it1.size)) @phmap(it1.size) { it1.id(i) -> 1 } in

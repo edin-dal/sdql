@@ -18,7 +18,7 @@ let interm0_trie0 = sum(<cc_off, _> <- range(cc.size))
 		let x1 = cc.status_id(cc_off) in
 		if (x1 ∈ cct2_trie0) then
 			let cct2_trie1 = cct2_trie0(x1) in
-			@phmap(cc.size) { cc.movie_id(cc_off) -> @smallvecdict(4) { <col0=cc.subject_id(cc_off), col1=cc.status_id(cc_off), col2=cc.movie_id(cc_off)> -> 1 } }
+			@phmap(sum(<k, _> <- {1000000, cc.size}) promote[min_sum](k)) { cc.movie_id(cc_off) -> @smallvecdict(4) { <col0=cc.subject_id(cc_off), col1=cc.status_id(cc_off), col2=cc.movie_id(cc_off)> -> 1 } }
 in
 
 let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
@@ -35,7 +35,7 @@ let interm1_trie0 = sum(<mk_off, _> <- range(mk.size))
 				let x2 = mk.keyword_id(mk_off) in
 				if (x2 ∈ k_trie0) then
 					let k_trie1 = k_trie0(x2) in
-					@phmap(mk.size) { mk.movie_id(mk_off) -> @smallvecdict(4) { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.kind_id(t_off), col3=t.title(t_off)> -> 1 } }
+					@phmap(sum(<k, _> <- {1000000, mk.size}) promote[min_sum](k)) { mk.movie_id(mk_off) -> @smallvecdict(4) { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.kind_id(t_off), col3=t.title(t_off)> -> 1 } }
 in
 
 let chn_trie0 = sum(<i, _> <- range(chn.size)) @phmap(chn.size) { chn.id(i) -> 1 } in

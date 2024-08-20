@@ -17,7 +17,7 @@ let interm0_trie0 = sum(<n_off, _> <- range(n.size))
 			let x1 = pi.info_type_id(pi_off) in
 			if (x1 ∈ it_trie0) then
 				let it_trie1 = it_trie0(x1) in
-				@phmap(n.size) { n.id(n_off) -> @smallvecdict(4) { <col0=n.id(n_off), col1=n.name(n_off), col2=pi.info_type_id(pi_off)> -> 1 } }
+				@phmap(sum(<k, _> <- {1000000, n.size}) promote[min_sum](k)) { n.id(n_off) -> @smallvecdict(4) { <col0=n.id(n_off), col1=n.name(n_off), col2=pi.info_type_id(pi_off)> -> 1 } }
 in
 
 let ml_trie0 = sum(<i, _> <- range(ml.size)) @phmap(ml.size) { ml.linked_movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
@@ -30,7 +30,7 @@ let interm1_trie0 = sum(<t_off, _> <- range(t.size))
 			let x1 = ml.link_type_id(ml_off) in
 			if (x1 ∈ lt_trie0) then
 				let lt_trie1 = lt_trie0(x1) in
-				@phmap(t.size) { t.id(t_off) -> @smallvecdict(4) { <col0=t.id(t_off), col1=t.title(t_off), col2=ml.link_type_id(ml_off)> -> 1 } }
+				@phmap(sum(<k, _> <- {1000000, t.size}) promote[min_sum](k)) { t.id(t_off) -> @smallvecdict(4) { <col0=t.id(t_off), col1=t.title(t_off), col2=ml.link_type_id(ml_off)> -> 1 } }
 in
 
 let an_trie0 = sum(<i, _> <- range(an.size)) @phmap(an.size) { an.person_id(i) -> 1 } in

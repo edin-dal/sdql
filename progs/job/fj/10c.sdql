@@ -20,7 +20,7 @@ let interm0_trie0 = sum(<mc_off, _> <- range(mc.size))
 			if (x2 ∈ t_trie0) then
 				let t_trie1 = t_trie0(x2) in
 				sum(<t_off, _> <- t_trie1)
-					@phmap(mc.size) { mc.movie_id(mc_off) -> @smallvecdict(4) { <col0=mc.movie_id(mc_off), col1=mc.company_type_id(mc_off), col2=mc.company_id(mc_off), col3=t.title(t_off)> -> 1 } }
+					@phmap(sum(<k, _> <- {1000000, mc.size}) promote[min_sum](k)) { mc.movie_id(mc_off) -> @smallvecdict(4) { <col0=mc.movie_id(mc_off), col1=mc.company_type_id(mc_off), col2=mc.company_id(mc_off), col3=t.title(t_off)> -> 1 } }
 in
 
 let rt_trie0 = sum(<i, _> <- range(rt.size)) @phmap(rt.size) { rt.id(i) -> 1 } in
