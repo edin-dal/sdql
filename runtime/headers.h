@@ -15,8 +15,8 @@
 #include "varchar.h"
 #include "vector_helper.h"
 
+#include "agg_helper.h"
 #include "bench_helper.h"
 #include "csv_helper.h"
-#include "min_helper.h"
 #include "smallvecdict.h"
 #include "smallvecdicts.h"

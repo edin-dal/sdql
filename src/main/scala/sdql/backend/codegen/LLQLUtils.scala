@@ -54,6 +54,7 @@ object LLQLUtils {
             case None | Some(_: PHmap | _: SmallVecDict | _: SmallVecDicts) => s"$lhs += $rhs;"
             case Some(_: Vec)                                               => s"$lhs = $rhs;"
           }
+        case MaxAgg => s"max_inplace($lhs, $rhs);"
         case MinAgg => s"min_inplace($lhs, $rhs);"
         case agg    => raise(s"$agg not supported")
       }
