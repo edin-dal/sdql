@@ -27,7 +27,7 @@ let suppkey_to_revenue =
     else
       { }
 
-let max_revenue = ext(`MaxValue`, suppkey_to_revenue)
+let max_revenue = sum(<_,v> <- suppkey_to_revenue) promote[max_sum](v)
 
 let suppkey_to_supp =
   sum(<i,_> <- range(supplier.size))

@@ -48,14 +48,6 @@ object ExternalUtils {
       s"${CppCodegen.run(on)}.lastIndex(${CppCodegen.run(patt)})"
     case External(name @ Inv.SYMBOL, _) =>
       raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
-    case External(MaxValue.SYMBOL, Seq(arg)) =>
-      val name = (arg: @unchecked) match {
-        case Sym(name) => name
-      }
-      s"""std::max_element($name.begin(), $name.end(), [](const auto &p1, const auto &p2) {
-         |return p1.second < p2.second;
-         |})->second;
-         |""".stripMargin
     case External(Size.SYMBOL, Seq(arg)) =>
       TypeInference.run(arg) match {
         case _: DictType => s"${CppCodegen.run(arg)}.size()"

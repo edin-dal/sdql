@@ -155,24 +155,19 @@ object TypeInference {
     case External(Inv.SYMBOL, args) =>
       val arg = args match { case Seq(e) => e }
       run(arg)
-    case External(MaxValue.SYMBOL | Size.SYMBOL, args) =>
+    case External(name @ Size.SYMBOL, args) =>
       val arg = args match { case Seq(e) => e }
       run(arg) match {
         case DictType(_, vt, _) => vt
         case tpe =>
-          raise(
-            s"${MaxValue.SYMBOL} or ${Size.SYMBOL} expect arg " +
-              s"${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
-          )
+          raise(s"$name expect arg ${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}")
       }
     case External(name @ Limit.SYMBOL, args) =>
       val arg = args match { case Seq(e, _, _) => e }
       run(arg) match {
         case tpe: DictType => tpe
         case tpe =>
-          raise(
-            s"$name expects arg ${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
-          )
+          raise(s"$name expects arg ${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}")
       }
     case External(TopN.SYMBOL, _) =>
       raise(s"unimplemented function name: ${TopN.SYMBOL}")

@@ -27,7 +27,6 @@ object ExternalFunctions {
   object ParseDate      extends ExternalFactory("ParseDate")
   object Inv            extends ExternalFactory("inv")
   object Log            extends ExternalFactory("log")
-  object MaxValue       extends ExternalFactory("MaxValue")
   object Size           extends ExternalFactory("Size")
   object Limit          extends ExternalFactory("Limit")
 }
