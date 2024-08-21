@@ -27,7 +27,7 @@ object CppCodegen {
       else
         s"""timer.StoreElapsedTime(0);
            |doNotOptimiseAway($resultName);
-           |cerr << "*" << " " << flush;
+           |std::cerr << "*" << " " << std::flush;
            |}
            |std::cout << std::endl << timer.GetMean(0) << " ms";
            |""".stripMargin
