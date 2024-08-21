@@ -23,25 +23,20 @@ object CppCodegen {
            |timer.Reset();
            |""".stripMargin
     val benchStop =
-      if (benchmarkRuns == 0) ""
+      if (benchmarkRuns == 0) PrintUtils.cppPrintResult(TypeInference(rewrite))
       else
-        s"""
+        s"""timer.StoreElapsedTime(0);
            |doNotOptimiseAway($resultName);
-           |timer.StoreElapsedTime(0);
            |cerr << "*" << " " << flush;
-           |if (iter == $benchmarkRuns) {
-           |cerr << endl;
-           |std::cout << timer.GetMean(0) << " ms" << std::endl;
-           |${PrintUtils.cppPrintResult(TypeInference(rewrite))}
            |}
-           |}""".stripMargin
+           |std::cout << std::endl << timer.GetMean(0) << " ms";
+           |""".stripMargin
     s"""#include "../runtime/headers.h"
        |$csvBody
        |int main() {
        |$benchStart
        |$queryBody
        |$benchStop
-       |${if (benchmarkRuns == 0) PrintUtils.cppPrintResult(TypeInference(rewrite)) else ""}
        |}""".stripMargin
   }
 
