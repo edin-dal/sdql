@@ -54,10 +54,15 @@ object SumUtils {
   }
 
   def getAggregation(e: Exp): Aggregation = e match {
-    case Promote(TropicalSemiRingType(false, false, _), _) => MinAgg
-    case Promote(TropicalSemiRingType(true, false, _), _)  => MaxAgg
-    case Promote(TropicalSemiRingType(_, true, _), _)      => ProdAgg
-    case _                                                 => SumAgg
+    case Promote(tp, _) => getAggregation(tp)
+    case _              => SumAgg
+  }
+
+  def getAggregation(tp: Type): Aggregation = tp match {
+    case TropicalSemiRingType(false, false, _) => MinAgg
+    case TropicalSemiRingType(true, false, _)  => MaxAgg
+    case TropicalSemiRingType(_, true, _)      => ProdAgg
+    case _                                     => raise(s"unexpected: ${tp.prettyPrint}")
   }
 
   private def sumHint(e: Exp)(implicit typesCtx: TypesCtx) = e match {

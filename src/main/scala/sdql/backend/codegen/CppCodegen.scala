@@ -153,11 +153,22 @@ object CppCodegen {
   }
 
   private def run(e: Add)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
-    case Add(e1, Neg(e2)) => s"(${run(e1)} - ${run(e2)})"
-    case Add(e1, e2)      => s"(${run(e1)} + ${run(e2)})"
+    case Add(Promote(tp1, e1), Promote(tp2, e2)) =>
+      assert(tp1 == tp2)
+      SumUtils.getAggregation(tp1) match {
+        case MinAgg  => s"std::min(${run(e1)}, ${run(e2)})"
+        case MaxAgg  => s"std::max(${run(e1)}, ${run(e2)})"
+        case ProdAgg => s"${run(e1)} * ${run(e2)}"
+        case SumAgg  => s"${run(e1)} + ${run(e2)}"
+      }
+    case Add(_: Promote, _) | Add(_, _: Promote) => raise(s"binary expression $e promoted on one side only")
+    case Add(e1, Neg(e2))                        => s"(${run(e1)} - ${run(e2)})"
+    case Add(e1, e2)                             => s"(${run(e1)} + ${run(e2)})"
   }
 
   private def run(e: Mult)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+    case Mult(_: Promote, _) | Mult(_, _: Promote) =>
+      raise(s"promotion not supported for ${Mult.getClass.getSimpleName.init}")
     case Mult(e1, External(Inv.SYMBOL, Seq(e2))) => s"(${run(e1)} / ${run(e2)})"
     case Mult(e1, e2)                            => s"(${run(e1)} * ${run(e2)})"
   }

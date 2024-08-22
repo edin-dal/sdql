@@ -18,7 +18,7 @@ let interm0_trie0 = sum(<mk_off, _> <- range(mk.size))
 			let mi_idx_trie1 = mi_idx_trie0(x0) in
 			sum(<t_off, _> <- t_trie1)
 				sum(<mi_idx_off, _> <- mi_idx_trie1)
-					@phmap(sum(<k, _> <- {1000000, mk.size}) promote[min_sum](k)) { mk.movie_id(mk_off) -> @smallvecdict(4) { <col1=mk.keyword_id(mk_off), col2=t.title(t_off), col3=mi_idx.info_type_id(mi_idx_off), col4=mi_idx.info(mi_idx_off)> -> 1 } }
+					@phmap(promote[min_sum](1000000) + promote[min_sum](mk.size)) { mk.movie_id(mk_off) -> @smallvecdict(4) { <col1=mk.keyword_id(mk_off), col2=t.title(t_off), col3=mi_idx.info_type_id(mi_idx_off), col4=mi_idx.info(mi_idx_off)> -> 1 } }
 in
 
 let k_trie0 = sum(<i, _> <- range(k.size)) @phmap(k.size) { unique(k.id(i)) -> 1 } in
@@ -38,7 +38,7 @@ let interm1_trie0 = sum(<mi_off, _> <- range(mi.size))
 					let x3 = mi.info_type_id(mi_off) in
 					if (x3 ∈ it1_trie0) then
 						let it1_trie1 = it1_trie0(x3) in
-						@phmap(sum(<k, _> <- {1000000, mi.size}) promote[min_sum](k)) { mi.movie_id(mi_off) -> @smallvecdict(4) { <col1=mi.info_type_id(mi_off), col2=mi.info(mi_off), col3=interm0_tuple.col1, col4=interm0_tuple.col3, col5=interm0_tuple.col2, col6=interm0_tuple.col4> -> 1 } }
+						@phmap(promote[min_sum](1000000) + promote[min_sum](mi.size)) { mi.movie_id(mi_off) -> @smallvecdict(4) { <col1=mi.info_type_id(mi_off), col2=mi.info(mi_off), col3=interm0_tuple.col1, col4=interm0_tuple.col3, col5=interm0_tuple.col2, col6=interm0_tuple.col4> -> 1 } }
 in
 
 let n_trie0 = sum(<i, _> <- range(n.size)) @phmap(n.size) { n.id(i) -> @smallvecdict(4) { i -> 1 } } in
