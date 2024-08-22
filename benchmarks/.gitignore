@@ -1,6 +1,11 @@
 *.csv
+!fj_results.csv
+!gj_results.csv
 !wcoj_fj_results.csv
 !wcoj_gj_results.csv
+*.json
+!fj.json
+!gj.json
 *.hyper
 
 .python-version
