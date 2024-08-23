@@ -45,7 +45,8 @@ object SumUtils {
 
   def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
     val (lhs, rhs) = splitNested(e)
-    if (isUpdate(e)) LLQLUtils.run(Update(lhs, rhs, getAggregation(e))) else LLQLUtils.run(Modify(lhs, rhs))
+    if (isUpdate(e)) LLQLUtils.run(Update(lhs, rhs, getAggregation(e), aggregationName))
+    else LLQLUtils.run(Modify(lhs, rhs, aggregationName))
   }
 
   private def isUpdate(e: Exp)(implicit typesCtx: TypesCtx) = sumHint(e) match {

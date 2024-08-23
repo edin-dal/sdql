@@ -1,6 +1,5 @@
 package sdql.backend.codegen
 
-import sdql.backend.codegen.ChecksUtils.aggregationName
 import sdql.ir.*
 import sdql.raise
 
@@ -47,8 +46,8 @@ object LLQLUtils {
     }
 
   def run(e: Update)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
-    case Update(accessors, inner, agg) =>
-      val (lhs, rhs) = getLhsRhs(accessors, inner)
+    case Update(accessors, inner, agg, destination) =>
+      val (lhs, rhs) = getLhsRhs(accessors, inner, destination)
       agg match {
         case SumAgg => s"$lhs += $rhs;"
         case MaxAgg => s"max_inplace($lhs, $rhs);"
@@ -58,15 +57,16 @@ object LLQLUtils {
   }
 
   def run(e: Modify)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
-    case Modify(accessors, inner) =>
-      val (lhs, rhs) = getLhsRhs(accessors, inner)
+    case Modify(accessors, inner, destination) =>
+      val (lhs, rhs) = getLhsRhs(accessors, inner, destination)
       s"$lhs = $rhs;"
   }
 
-  private def getLhsRhs(accessors: Seq[Exp], inner: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = {
+  private def getLhsRhs(accessors: Seq[Exp], inner: Exp, destination: String)(implicit typesCtx: TypesCtx,
+                                                                              callsCtx: CallsCtx) = {
     val callsLocal = Seq(SumEnd, IsTernary) ++ callsCtx
     val bracketed  = cppAccessors(accessors)(typesCtx, callsLocal)
-    val lhs        = s"$aggregationName$bracketed"
+    val lhs        = s"$destination$bracketed"
     val rhs        = CppCodegen.run(inner)(typesCtx, callsLocal)
     (lhs, rhs)
   }
