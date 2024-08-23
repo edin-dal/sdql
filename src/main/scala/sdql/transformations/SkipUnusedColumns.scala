@@ -1,7 +1,7 @@
 package sdql.transformations
 
-import sdql.Field
 import sdql.ir.*
+import sdql.{ raise, Field }
 
 import scala.annotation.tailrec
 
@@ -41,6 +41,7 @@ private object SkipUnusedColumns extends TermRewriter {
     case RecNode(values)      => RecNode(values.map(v => (v._1, run(v._2))))
     case DictNode(map, hint)  => DictNode(map.map(x => (run(x._1), run(x._2))), hint)
     case External(name, args) => External(name, args.map(run(_)))
+    case _                    => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
 
   @tailrec
@@ -72,6 +73,7 @@ private object SkipUnusedColumns extends TermRewriter {
     case RecNode(values)   => sumColumns(values.map(_._2).map(find))
     case DictNode(map, _)  => sumColumns((map.map(_._1) ++ map.map(_._2)).map(find))
     case External(_, args) => sumColumns(args.map(find))
+    case _                 => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
   private def sumColumns(cols: Iterable[Columns]): Columns = cols.foldLeft[Columns](Map()) { (acc, cols) =>
     sumColumns(acc, cols)

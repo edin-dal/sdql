@@ -10,8 +10,7 @@ import scala.annotation.tailrec
  * computing them. It can be used to generate an abstract syntax tree of a
  * given program.
  */
-// TODO sealed trait for exhaustiveness checks
-trait Exp {
+sealed trait Exp {
   def prettyPrint: String = munitPrint(this)
 
   def simpleName: String = {

@@ -67,8 +67,9 @@ object SumUtils {
   }
 
   private def sumHint(e: Exp)(implicit typesCtx: TypesCtx) = e match {
-    case dict: DictNode => TypeInference.run(dict.getInnerDict) match { case DictType(_, _, hint) => Some(hint) }
-    case _              => None
+    case dict: DictNode =>
+      (TypeInference.run(dict.getInnerDict): @unchecked) match { case DictType(_, _, hint) => Some(hint) }
+    case _ => None
   }
 
   private def checkIsUnique(dict: DictNode) = cond(dict.getInnerDict) {

@@ -5,7 +5,6 @@ import sdql.ir.ExternalFunctions.*
 import sdql.ir.*
 
 import scala.PartialFunction.cond
-import scala.annotation.tailrec
 
 object TypeInference {
   type Type = ir.Type
@@ -14,7 +13,6 @@ object TypeInference {
 
   def apply(e: Exp): Type = run(e)(Map())
 
-  @tailrec
   def run(e: Exp)(implicit ctx: Ctx): Type = e match {
     case e: Sum        => run(e)
     case e: IfThenElse => run(e)
@@ -32,14 +30,12 @@ object TypeInference {
     case e: LetBinding => run(e)
     case e: Load       => run(e)
     case e: Concat     => run(e)
-
-    case Unique(e: Exp)     => run(e)
-    case Promote(_, e: Exp) => run(e)
-
-    case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
+    case e: Promote    => run(e)
+    case e: Unique     => run(e)
+    case _             => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
 
-  def run(e: IfThenElse)(implicit ctx: Ctx): Type = e match {
+  private def run(e: IfThenElse)(implicit ctx: Ctx): Type = e match {
     case IfThenElse(a, Const(false), Const(true))          => run(a)
     case IfThenElse(_, DictNode(Nil, _), DictNode(Nil, _)) => raise("both branches empty")
     case IfThenElse(_, DictNode(Nil, _), e2)               => run(e2)
@@ -47,15 +43,17 @@ object TypeInference {
     case _: IfThenElse                                     => branching(e)
   }
 
-  def run(e: Sum)(implicit ctx: Ctx): Type = e match { case Sum(k, v, e1, e2) => sumInferTypeAndCtx(k, v, e1, e2)._1 }
+  private def run(e: Sum)(implicit ctx: Ctx): Type = e match {
+    case Sum(k, v, e1, e2) => sumInferTypeAndCtx(k, v, e1, e2)._1
+  }
 
-  def run(e: Add)(implicit ctx: Ctx): Type = branching(e)
+  private def run(e: Add)(implicit ctx: Ctx): Type = branching(e)
 
-  def run(e: Mult)(implicit ctx: Ctx): Type = branching(e)
+  private def run(e: Mult)(implicit ctx: Ctx): Type = branching(e)
 
-  def run(e: Neg)(implicit ctx: Ctx): Type = e match { case Neg(e) => run(e) }
+  private def run(e: Neg)(implicit ctx: Ctx): Type = e match { case Neg(e) => run(e) }
 
-  def run(e: Sym)(implicit ctx: Ctx): Type = e match {
+  private def run(e: Sym)(implicit ctx: Ctx): Type = e match {
     case sym @ Sym(name) =>
       ctx.get(sym) match {
         case Some(tpe) => tpe
@@ -63,20 +61,20 @@ object TypeInference {
       }
   }
 
-  def run(e: DictNode)(implicit ctx: Ctx): DictType = e match {
+  private def run(e: DictNode)(implicit ctx: Ctx): DictType = e match {
     case DictNode(Nil, _) =>
       raise("Type inference needs backtracking to infer empty type { }")
     case DictNode(seq, hint) =>
       DictType(seq.map(_._1).map(run).reduce(promote), seq.map(_._2).map(run).reduce(promote), hint)
   }
 
-  def run(e: RecNode)(implicit ctx: Ctx): RecordType = e match {
+  private def run(e: RecNode)(implicit ctx: Ctx): RecordType = e match {
     case RecNode(values) => RecordType(values.map(v => Attribute(name = v._1, tpe = run(v._2))))
   }
 
-  def run(e: Cmp): Type = BoolType
+  private def run(e: Cmp): Type = BoolType
 
-  def run(e: FieldNode)(implicit ctx: Ctx): Type = e match {
+  private def run(e: FieldNode)(implicit ctx: Ctx): Type = e match {
     case FieldNode(e1: Exp, field) =>
       run(e1) match {
         case rt @ RecordType(attrs) =>
@@ -88,7 +86,7 @@ object TypeInference {
       }
   }
 
-  def run(e: Const): Type = e match {
+  private def run(e: Const): Type = e match {
     case Const(v) =>
       v match {
         case _: DateValue => DateType
@@ -100,7 +98,7 @@ object TypeInference {
       }
   }
 
-  def run(e: Get)(implicit ctx: Ctx): Type = e match {
+  private def run(e: Get)(implicit ctx: Ctx): Type = e match {
     case Get(e1, e2) =>
       run(e1) match {
         case RecordType(attrs) =>
@@ -134,7 +132,7 @@ object TypeInference {
       }
   }
 
-  def run(e: External)(implicit ctx: Ctx): Type = e match {
+  private def run(e: External)(implicit ctx: Ctx): Type = e match {
     case External(ConstantString.SYMBOL, args) =>
       val (str, maxLen) = args match { case Seq(Const(str: String), Const(maxLen: Int)) => (str, maxLen) }
       assert(maxLen == str.length + 1)
@@ -179,7 +177,7 @@ object TypeInference {
       raise(s"unknown function name: $name")
   }
 
-  def run(e: Load): Type = e match {
+  private def run(e: Load): Type = e match {
     case Load(_, rt: RecordType, skipCols) if isColumnStore(rt) && skipCols.isSetNode =>
       val set = skipCols.toSkipColsSet
       RecordType(rt.attrs.filter(attr => !set.contains(attr.name)))
@@ -197,13 +195,13 @@ object TypeInference {
     }
   }
 
-  def run(e: LetBinding)(implicit ctx: Ctx): Type = e match {
+  private def run(e: LetBinding)(implicit ctx: Ctx): Type = e match {
     case LetBinding(x, e1, e2) =>
       val t1 = TypeInference.run(e1)
       TypeInference.run(e2)(ctx ++ Map(x -> t1))
   }
 
-  def run(e: Concat)(implicit ctx: Ctx): Type = e match {
+  private def run(e: Concat)(implicit ctx: Ctx): Type = e match {
     case Concat(e1, e2) =>
       (run(e1), run(e2)) match {
         case (t1: RecordType, t2: RecordType) => t1.concat(t2)
@@ -267,4 +265,11 @@ object TypeInference {
     val tpe = run(e2)(localCtx)
     (tpe, localCtx)
   }
+
+  private def run(e: Promote)(implicit ctx: Ctx): Type = e match {
+    case Promote(_: TropicalSemiRingType, e) => run(e) // handled in sum
+    case Promote(tp, _)                      => tp
+  }
+
+  private def run(e: Unique)(implicit ctx: Ctx): Type = e match { case Unique(e: Exp) => run(e) }
 }

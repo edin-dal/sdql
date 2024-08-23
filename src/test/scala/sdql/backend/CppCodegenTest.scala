@@ -166,6 +166,8 @@ sum(<x_s, x_s_v> <- S)
       sum(<record, _> <- c) <a = record.a, b = record.b>
       """)
   }
+
+  it should "codegen simple promotion" in { CodegenHelpers.compilesExp(sdql"promote[double](1)") }
 }
 
 class CppCodegenTestTPCH extends AnyFlatSpec with ParallelTestExecution {

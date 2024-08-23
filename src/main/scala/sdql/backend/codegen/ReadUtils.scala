@@ -2,6 +2,7 @@ package sdql.backend.codegen
 
 import sdql.analysis.TypeInference
 import sdql.ir.*
+import sdql.raise
 
 import scala.PartialFunction.condOpt
 
@@ -91,6 +92,7 @@ object ReadUtils {
         case RecNode(values)   => values.map(_._2).flatMap(iterExps)
         case DictNode(dict, _) => dict.flatMap(x => iterExps(x._1) ++ iterExps(x._2))
         case External(_, args) => args.flatMap(iterExps)
+        case _                 => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
       }
     )
 }

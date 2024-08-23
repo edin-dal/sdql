@@ -1,6 +1,7 @@
 package sdql.transformations
 
 import sdql.ir.*
+import sdql.raise
 
 import scala.annotation.tailrec
 
@@ -38,6 +39,7 @@ private object RemoveRecordGet extends TermRewriter {
     case RecNode(values)      => RecNode(values.map(v => (v._1, run(v._2))))
     case DictNode(map, hint)  => DictNode(map.map(x => (run(x._1), run(x._2))), hint)
     case External(name, args) => External(name, args.map(run(_)))
+    case _                    => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
 
   @tailrec
@@ -69,6 +71,7 @@ private object RemoveRecordGet extends TermRewriter {
     case RecNode(values)   => concat(values.map(_._2).map(find))
     case DictNode(map, _)  => concat((map.map(_._1) ++ map.map(_._2)).map(find))
     case External(_, args) => concat(args.map(find))
+    case _                 => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
   private def concat(cols: Iterable[Names]): Names = cols.flatten.toMap
 }

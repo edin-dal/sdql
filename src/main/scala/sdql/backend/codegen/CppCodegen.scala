@@ -8,7 +8,6 @@ import sdql.raise
 import sdql.transformations.Rewriter
 
 import scala.PartialFunction.cond
-import scala.annotation.tailrec
 
 object CppCodegen {
   def apply(e: Exp, benchmarkRuns: Int = 0): String = {
@@ -40,7 +39,6 @@ object CppCodegen {
        |}""".stripMargin
   }
 
-  @tailrec
   def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
     if (checkNoLetBindings(e)) { return run(LetBinding(Sym(resultName), e, DictNode(Nil))) }
     if (checkIsSumBody(e)) { return SumUtils.sumBody(e) }
@@ -61,13 +59,10 @@ object CppCodegen {
       case e: Get        => run(e)
       case e: External   => run(e)
       case e: Concat     => run(e)
-
-      // ignore - handled separately in sum
-      case Unique(e: Exp)     => run(e)
-      case Promote(_, e: Exp) => run(e)
-      case RangeNode(e: Exp)  => run(e)
-
-      case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
+      case e: Promote    => run(e)
+      case e: Unique     => run(e)
+      case e: RangeNode  => run(e)
+      case _             => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
     }
   }
 
@@ -223,5 +218,18 @@ object CppCodegen {
       s"${yyyymmdd.group(1)}${yyyymmdd.group(2)}${yyyymmdd.group(3)}"
     case Const(v: String) => s""""$v""""
     case Const(v)         => v.toString
+  }
+
+  private def run(e: Promote)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+    case Promote(_: TropicalSemiRingType, e) => run(e) // handled in sum
+    case Promote(tp, e)                      => s"(${cppType(tp)})${run(e)}"
+  }
+
+  private def run(e: Unique)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+    case Unique(e) => run(e) // handled in sum
+  }
+
+  private def run(e: RangeNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+    case RangeNode(e) => run(e) // handled in sum
   }
 }
