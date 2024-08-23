@@ -9,18 +9,18 @@ import scala.PartialFunction.cond
 import scala.annotation.tailrec
 
 object SumUtils {
-  def run(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+  def run(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = e match {
     case Sum(k, v, e1, e2) =>
       val (tpe, typesLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
       val callsLocal        = Seq(SumStart) ++ callsCtx
       val isLetSum          = cond(callsCtx.head) { case _: LetCtx => true }
       val agg               = getAggregation(getSumBody(e2))
       val init              = if (isLetSum) s"${cppType(tpe)} (${LLQLUtils.run(Initialise(tpe, agg))});" else ""
-      val body              = CppCodegen.run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal)
+      val body              = CppCodegen.run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal, isTernary)
       val forBody = e1 match {
         case _: RangeNode => s"${cppType(IntType)} ${k.name} = 0; ${k.name} < ${CppCodegen.run(e1)}; ${k.name}++"
         case _ =>
-          val iterable = CppCodegen.run(e1)(typesLocal, Seq(SumEnd) ++ callsLocal)
+          val iterable = CppCodegen.run(e1)(typesLocal, Seq(SumEnd) ++ callsLocal, isTernary)
           val head = TypeInference.run(e1)(typesLocal) match {
             case DictType(_, _, _: PHmap)         => s"&[${k.name}, ${v.name}]"
             case DictType(_, _, _: SmallVecDict)  => s"&${k.name}"

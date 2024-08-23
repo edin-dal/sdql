@@ -8,7 +8,6 @@ sealed trait CallCtx
 case class LetCtx(name: String) extends CallCtx
 case object SumStart            extends CallCtx
 case object SumEnd              extends CallCtx
-case object IsTernary           extends CallCtx
 
 object ChecksUtils {
   def checkIsSumBody(e: Exp)(implicit callsCtx: CallsCtx): Boolean =
@@ -23,9 +22,6 @@ object ChecksUtils {
           case end => start < end
         }
     }
-
-  def checkIsTernary(implicit callsCtx: CallsCtx): Boolean =
-    callsCtx.exists(cond(_) { case IsTernary => true })
 
   def aggregationName(implicit callsCtx: CallsCtx): String =
     callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head

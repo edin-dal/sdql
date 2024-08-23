@@ -4,12 +4,14 @@ import sdql.ir.*
 import sdql.raise
 
 object LLQLUtils {
-  def run(e: Initialise)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
-    case Initialise(tpe, agg) => initialise(tpe)(agg, typesCtx, callsCtx)
+  def run(e: Initialise)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = e match {
+    case Initialise(tpe, agg) => initialise(tpe)(agg, typesCtx, callsCtx, isTernary)
   }
-  private def initialise(tpe: Type)(implicit agg: Aggregation, typesCtx: TypesCtx, callsCtx: CallsCtx): String =
+  private def initialise(
+    tpe: Type
+  )(implicit agg: Aggregation, typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String =
     tpe match {
-      case DictType(_, _, PHmap(Some(e)))                => CppCodegen.run(e)(typesCtx, callsCtx)
+      case DictType(_, _, PHmap(Some(e)))                => CppCodegen.run(e)
       case DictType(_, _, PHmap(None) | _: SmallVecDict) => "{}"
       case DictType(_, _, Vec(size)) =>
         size match {
@@ -64,13 +66,13 @@ object LLQLUtils {
 
   private def getLhsRhs(accessors: Seq[Exp], inner: Exp, destination: String)(implicit typesCtx: TypesCtx,
                                                                               callsCtx: CallsCtx) = {
-    val callsLocal = Seq(SumEnd, IsTernary) ++ callsCtx
-    val bracketed  = cppAccessors(accessors)(typesCtx, callsLocal)
+    val callsLocal = Seq(SumEnd) ++ callsCtx
+    val bracketed  = cppAccessors(accessors)(typesCtx, callsLocal, isTernary = true)
     val lhs        = s"$destination$bracketed"
-    val rhs        = CppCodegen.run(inner)(typesCtx, callsLocal)
+    val rhs        = CppCodegen.run(inner)(typesCtx, callsLocal, isTernary = true)
     (lhs, rhs)
   }
 
-  private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
-    exps.map(e => { s"[${CppCodegen.run(e)(typesCtx, callsCtx)}]" }).mkString("")
+  private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean) =
+    exps.map(e => { s"[${CppCodegen.run(e)}]" }).mkString("")
 }

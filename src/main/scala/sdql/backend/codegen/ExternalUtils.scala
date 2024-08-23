@@ -9,7 +9,7 @@ import java.util.UUID
 import scala.PartialFunction.{ cond, condOpt }
 
 object ExternalUtils {
-  def run(e: External)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+  def run(e: External)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = e match {
     case External(ConstantString.SYMBOL, Seq(Const(str: String), Const(maxLen: Int))) =>
       assert(maxLen == str.length + 1)
       s"""ConstantString("$str", $maxLen)"""
