@@ -47,13 +47,18 @@ object SumUtils {
     val callsLocal         = Seq(SumEnd, IsTernary) ++ callsCtx
     val (accessors, inner) = splitNested(e)
     val bracketed          = cppAccessors(accessors)(typesCtx, callsLocal)
-    val isUnique           = cond(e) { case dict: DictNode => checkIsUnique(dict) }
     val lhs                = s"$aggregationName$bracketed"
     val rhs                = CppCodegen.run(inner)(typesCtx, callsLocal)
-    LLQLUtils.run(Update(getAggregation(e), sumHint(e), isUnique, lhs, rhs))
+    if (isUpdate(e)) LLQLUtils.run(Update(getAggregation(e), lhs, rhs)) else LLQLUtils.run(Modify(lhs, rhs))
   }
 
-  def getAggregation(e: Exp): Aggregation = e match {
+  private def isUpdate(e: Exp)(implicit typesCtx: TypesCtx) = sumHint(e) match {
+    case Some(_: PHmap) if cond(e) { case dict: DictNode => checkIsUnique(dict) } => false
+    case Some(_: Vec)                                               => false
+    case Some(_: PHmap | _: SmallVecDict | _: SmallVecDicts) | None => true
+  }
+
+  private def getAggregation(e: Exp): Aggregation = e match {
     case Promote(tp, _) => getAggregation(tp)
     case _              => SumAgg
   }

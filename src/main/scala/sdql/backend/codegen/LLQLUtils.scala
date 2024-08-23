@@ -46,17 +46,14 @@ object LLQLUtils {
     }
 
   def run(e: Update): String = e match {
-    case Update(agg, hint, isUnique, lhs, rhs) =>
+    case Update(agg, lhs, rhs) =>
       agg match {
-        case SumAgg =>
-          hint match {
-            case Some(_: PHmap) if isUnique                                 => s"$lhs = $rhs;"
-            case None | Some(_: PHmap | _: SmallVecDict | _: SmallVecDicts) => s"$lhs += $rhs;"
-            case Some(_: Vec)                                               => s"$lhs = $rhs;"
-          }
+        case SumAgg => s"$lhs += $rhs;"
         case MaxAgg => s"max_inplace($lhs, $rhs);"
         case MinAgg => s"min_inplace($lhs, $rhs);"
         case agg    => raise(s"$agg not supported")
       }
   }
+
+  def run(e: Modify): String = e match { case Modify(lhs, rhs) => s"$lhs = $rhs;" }
 }
