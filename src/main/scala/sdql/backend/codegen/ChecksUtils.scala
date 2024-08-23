@@ -11,10 +11,7 @@ case object SumEnd              extends CallCtx
 case object IsTernary           extends CallCtx
 
 object ChecksUtils {
-  def checkNoLetBindings(e: Exp)(implicit callsCtx: CallsCtx) =
-    !cond(e) { case _: LetBinding => true } && !callsCtx.exists(cond(_) { case _: LetCtx => true })
-
-  def checkIsSumBody(e: Exp)(implicit callsCtx: CallsCtx) =
+  def checkIsSumBody(e: Exp)(implicit callsCtx: CallsCtx): Boolean =
     !cond(e) { case _: LetBinding | _: IfThenElse | _: Sum => true } && checkActiveSumCtx
 
   private def checkActiveSumCtx(implicit callsCtx: CallsCtx) =
@@ -27,9 +24,9 @@ object ChecksUtils {
         }
     }
 
-  def checkIsTernary(implicit callsCtx: CallsCtx) =
+  def checkIsTernary(implicit callsCtx: CallsCtx): Boolean =
     callsCtx.exists(cond(_) { case IsTernary => true })
 
-  def aggregationName(implicit callsCtx: CallsCtx) =
+  def aggregationName(implicit callsCtx: CallsCtx): String =
     callsCtx.flatMap(x => condOpt(x) { case LetCtx(name) => name }).head
 }

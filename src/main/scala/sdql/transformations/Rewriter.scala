@@ -9,7 +9,8 @@ object Rewriter {
     RemoveAliases,
     RemoveRecordGet,
     SkipUnusedColumns,
-    RemoveIntermediateTuples
+    RemoveIntermediateTuples,
+    BindFreeExpression
   )
 
   def apply(e: Exp): Exp = rewriters.foldLeft(e) { (acc, f) =>

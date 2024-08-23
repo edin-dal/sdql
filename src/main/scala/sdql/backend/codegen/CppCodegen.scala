@@ -40,7 +40,6 @@ object CppCodegen {
   }
 
   def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
-    if (checkNoLetBindings(e)) { return run(LetBinding(Sym(resultName), e, DictNode(Nil))) }
     if (checkIsSumBody(e)) { return SumUtils.sumBody(e) }
 
     e match {

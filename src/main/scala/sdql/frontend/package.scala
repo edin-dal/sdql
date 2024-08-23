@@ -3,7 +3,6 @@ import sdql.ir.*
 
 package object frontend {
   implicit class Interpolator(val sc: StringContext) {
-    // val sdqlCG = new BaseDocument {}
     def valueToString(v: Any): String = Value.toString(v)
     def sdql(args: Any*): Exp = {
       val strings     = sc.parts.iterator
@@ -17,14 +16,8 @@ package object frontend {
           case i: Int         => valueToString(i)
           case m: Map[?, ?]   => valueToString(m)
           case r: RecordValue => valueToString(r)
-          // case t: Exp =>
-          //   val snippet = sdqlCG(t)
-          //   t match {
-          //     case s: Sym => snippet
-          //     case _ => s"($snippet)"
-          //   }
-          case x =>
-            raise(s"doesn't know how to splice `$x`")
+          case Sym(name)      => name
+          case x              => raise(s"doesn't know how to splice `$x`")
         }
         buf.append(nextExpression)
         buf.append(strings.next())

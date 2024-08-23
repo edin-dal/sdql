@@ -1,8 +1,9 @@
 package sdql
 package analysis
 
-import sdql.ir.ExternalFunctions.*
+import sdql.backend.codegen.resultName
 import sdql.ir.*
+import sdql.ir.ExternalFunctions.*
 
 import scala.PartialFunction.cond
 
@@ -196,6 +197,7 @@ object TypeInference {
   }
 
   private def run(e: LetBinding)(implicit ctx: Ctx): Type = e match {
+    case LetBinding(Sym(name), e1, DictNode(Nil, _)) if name == resultName => run(e1)
     case LetBinding(x, e1, e2) =>
       val t1 = TypeInference.run(e1)
       TypeInference.run(e2)(ctx ++ Map(x -> t1))
