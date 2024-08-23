@@ -1,11 +1,12 @@
 package sdql.backend.codegen
 
+import sdql.backend.codegen.ChecksUtils.aggregationName
 import sdql.ir.*
 import sdql.raise
 
 object LLQLUtils {
   def run(e: Initialise)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
-    case Initialise(agg, tpe) => initialise(tpe)(agg, typesCtx, callsCtx)
+    case Initialise(tpe, agg) => initialise(tpe)(agg, typesCtx, callsCtx)
   }
   private def initialise(tpe: Type)(implicit agg: Aggregation, typesCtx: TypesCtx, callsCtx: CallsCtx): String =
     tpe match {
@@ -45,8 +46,9 @@ object LLQLUtils {
       case tpe                 => raise(s"unimplemented type: $tpe")
     }
 
-  def run(e: Update): String = e match {
-    case Update(agg, lhs, rhs) =>
+  def run(e: Update)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+    case Update(accessors, inner, agg) =>
+      val (lhs, rhs) = getLhsRhs(accessors, inner)
       agg match {
         case SumAgg => s"$lhs += $rhs;"
         case MaxAgg => s"max_inplace($lhs, $rhs);"
@@ -55,5 +57,20 @@ object LLQLUtils {
       }
   }
 
-  def run(e: Modify): String = e match { case Modify(lhs, rhs) => s"$lhs = $rhs;" }
+  def run(e: Modify)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+    case Modify(accessors, inner) =>
+      val (lhs, rhs) = getLhsRhs(accessors, inner)
+      s"$lhs = $rhs;"
+  }
+
+  private def getLhsRhs(accessors: Seq[Exp], inner: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = {
+    val callsLocal = Seq(SumEnd, IsTernary) ++ callsCtx
+    val bracketed  = cppAccessors(accessors)(typesCtx, callsLocal)
+    val lhs        = s"$aggregationName$bracketed"
+    val rhs        = CppCodegen.run(inner)(typesCtx, callsLocal)
+    (lhs, rhs)
+  }
+
+  private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
+    exps.map(e => { s"[${CppCodegen.run(e)(typesCtx, callsCtx)}]" }).mkString("")
 }

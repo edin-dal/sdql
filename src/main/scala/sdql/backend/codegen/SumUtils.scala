@@ -1,7 +1,7 @@
 package sdql.backend.codegen
 
 import sdql.analysis.TypeInference
-import sdql.backend.codegen.ChecksUtils.*
+import sdql.backend.codegen.ChecksUtils.aggregationName
 import sdql.ir.*
 import sdql.raise
 
@@ -15,7 +15,7 @@ object SumUtils {
       val callsLocal        = Seq(SumStart) ++ callsCtx
       val isLetSum          = cond(callsCtx.head) { case _: LetCtx => true }
       val agg               = getAggregation(getSumBody(e2))
-      val init              = if (isLetSum) s"${cppType(tpe)} (${LLQLUtils.run(Initialise(agg, tpe))});" else ""
+      val init              = if (isLetSum) s"${cppType(tpe)} (${LLQLUtils.run(Initialise(tpe, agg))});" else ""
       val body              = CppCodegen.run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal)
       val forBody = e1 match {
         case _: RangeNode => s"${cppType(IntType)} ${k.name} = 0; ${k.name} < ${CppCodegen.run(e1)}; ${k.name}++"
@@ -44,18 +44,14 @@ object SumUtils {
   }
 
   def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
-    val callsLocal         = Seq(SumEnd, IsTernary) ++ callsCtx
-    val (accessors, inner) = splitNested(e)
-    val bracketed          = cppAccessors(accessors)(typesCtx, callsLocal)
-    val lhs                = s"$aggregationName$bracketed"
-    val rhs                = CppCodegen.run(inner)(typesCtx, callsLocal)
-    if (isUpdate(e)) LLQLUtils.run(Update(getAggregation(e), lhs, rhs)) else LLQLUtils.run(Modify(lhs, rhs))
+    val (lhs, rhs) = splitNested(e)
+    if (isUpdate(e)) LLQLUtils.run(Update(lhs, rhs, getAggregation(e))) else LLQLUtils.run(Modify(lhs, rhs))
   }
 
   private def isUpdate(e: Exp)(implicit typesCtx: TypesCtx) = sumHint(e) match {
     case Some(_: PHmap) if cond(e) { case dict: DictNode => checkIsUnique(dict) } => false
+    case None | Some(_: PHmap | _: SmallVecDict | _: SmallVecDicts) => true
     case Some(_: Vec)                                               => false
-    case Some(_: PHmap | _: SmallVecDict | _: SmallVecDicts) | None => true
   }
 
   private def getAggregation(e: Exp): Aggregation = e match {
@@ -78,9 +74,6 @@ object SumUtils {
   private def checkIsUnique(dict: DictNode) = cond(dict.getInnerDict) {
     case DictNode(Seq((_: Unique, _)), _: PHmap) => true
   }
-
-  private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) =
-    exps.map(e => { s"[${CppCodegen.run(e)(typesCtx, callsCtx)}]" }).mkString("")
 
   private def splitNested(e: Exp): (Seq[Exp], Exp) = e match {
     case DictNode(Seq((k, v @ DictNode(_, _: PHmap | _: SmallVecDict | _: SmallVecDicts))), _) =>
