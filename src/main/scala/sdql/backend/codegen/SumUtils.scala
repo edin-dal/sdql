@@ -43,11 +43,9 @@ object SumUtils {
     case _                                                 => e
   }
 
-  def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = {
-    val (lhs, rhs) = splitNested(e)
-    if (isUpdate(e)) LLQLUtils.run(Update(lhs, rhs, getAggregation(e), aggregationName))
-    else LLQLUtils.run(Modify(lhs, rhs, aggregationName))
-  }
+  def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String =
+    if (isUpdate(e)) LLQLUtils.run(Update(e, getAggregation(e), aggregationName))
+    else LLQLUtils.run(Modify(e, aggregationName))
 
   private def isUpdate(e: Exp)(implicit typesCtx: TypesCtx) = sumHint(e) match {
     case Some(_: PHmap) if cond(e) { case dict: DictNode => checkIsUnique(dict) } => false
@@ -75,15 +73,5 @@ object SumUtils {
 
   private def checkIsUnique(dict: DictNode) = cond(dict.getInnerDict) {
     case DictNode(Seq((_: Unique, _)), _: PHmap) => true
-  }
-
-  private def splitNested(e: Exp): (Seq[Exp], Exp) = e match {
-    case DictNode(Seq((k, v @ DictNode(_, _: PHmap | _: SmallVecDict | _: SmallVecDicts))), _) =>
-      val (lhs, rhs) = splitNested(v)
-      (Seq(k) ++ lhs, rhs)
-    case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _) => (Seq(k), rhs)
-    case DictNode(Seq((k, rhs)), _)                                    => (Seq(k), rhs)
-    case DictNode(map, _) if map.length != 1                           => raise(s"unsupported: $e")
-    case _                                                             => (Seq(), e)
   }
 }

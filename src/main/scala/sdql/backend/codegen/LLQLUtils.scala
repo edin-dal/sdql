@@ -48,8 +48,8 @@ object LLQLUtils {
     }
 
   def run(e: Update)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
-    case Update(accessors, inner, agg, destination) =>
-      val (lhs, rhs) = getLhsRhs(accessors, inner, destination)
+    case Update(e, agg, destination) =>
+      val (lhs, rhs) = cppLhsRhs(e, destination)
       agg match {
         case SumAgg => s"$lhs += $rhs;"
         case MaxAgg => s"max_inplace($lhs, $rhs);"
@@ -59,20 +59,30 @@ object LLQLUtils {
   }
 
   def run(e: Modify)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
-    case Modify(accessors, inner, destination) =>
-      val (lhs, rhs) = getLhsRhs(accessors, inner, destination)
+    case Modify(e, destination) =>
+      val (lhs, rhs) = cppLhsRhs(e, destination)
       s"$lhs = $rhs;"
   }
 
-  private def getLhsRhs(accessors: Seq[Exp], inner: Exp, destination: String)(implicit typesCtx: TypesCtx,
-                                                                              callsCtx: CallsCtx) = {
-    val callsLocal = Seq(SumEnd) ++ callsCtx
-    val bracketed  = cppAccessors(accessors)(typesCtx, callsLocal, isTernary = true)
-    val lhs        = s"$destination$bracketed"
-    val rhs        = CppCodegen.run(inner)(typesCtx, callsLocal, isTernary = true)
+  private def cppLhsRhs(e: Exp, destination: String)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = {
+    val (accessors, inner) = splitNested(e)
+    val callsLocal         = Seq(SumEnd) ++ callsCtx
+    val bracketed          = cppAccessors(accessors)(typesCtx, callsLocal, isTernary = true)
+    val lhs                = s"$destination$bracketed"
+    val rhs                = CppCodegen.run(inner)(typesCtx, callsLocal, isTernary = true)
     (lhs, rhs)
   }
 
   private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean) =
     exps.map(e => { s"[${CppCodegen.run(e)}]" }).mkString("")
+
+  private def splitNested(e: Exp): (Seq[Exp], Exp) = e match {
+    case DictNode(Seq((k, v @ DictNode(_, _: PHmap | _: SmallVecDict | _: SmallVecDicts))), _) =>
+      val (lhs, rhs) = splitNested(v)
+      (Seq(k) ++ lhs, rhs)
+    case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _) => (Seq(k), rhs)
+    case DictNode(Seq((k, rhs)), _)                                    => (Seq(k), rhs)
+    case DictNode(map, _) if map.length != 1                           => raise(s"unsupported: $e")
+    case _                                                             => (Seq(), e)
+  }
 }
