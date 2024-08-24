@@ -15,7 +15,7 @@ object SumUtils {
       val callsLocal        = Seq(SumStart) ++ callsCtx
       val isLetSum          = cond(callsCtx.head) { case _: LetCtx => true }
       val agg               = getAggregation(getSumBody(e2))
-      val init              = if (isLetSum) s"${cppType(tpe)} (${LLQLUtils.run(Initialise(tpe, agg))});" else ""
+      val init              = if (isLetSum) s"${cppType(tpe)} (${LLQLUtils.run(Initialise(tpe, agg, DictNode(Nil)))});" else ""
       val body              = CppCodegen.run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal, isTernary)
       val forBody = e1 match {
         case _: RangeNode => s"${cppType(IntType)} ${k.name} = 0; ${k.name} < ${CppCodegen.run(e1)}; ${k.name}++"
