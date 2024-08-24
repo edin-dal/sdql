@@ -327,7 +327,7 @@ object SingleDict {
 // TODO LLQL trait is just a tag, we can do runtime checks before after lowering
 //  all expression are of Exp type before/after lowering, but only after are some of them allowed to have the LLQL trait
 sealed trait LLQL
-case class Initialise(tpe: Type, agg: Aggregation, e: Exp) extends Exp with LLQL // TODO infer aggregation from type?
+case class Initialise(tpe: Type, agg: Aggregation, e: Sum) extends Exp with LLQL // TODO infer aggregation from type?
 case class Update(e: Exp, agg: Aggregation, dest: String)  extends Exp with LLQL
 case class Modify(e: Exp, dest: String)                    extends Exp with LLQL
 

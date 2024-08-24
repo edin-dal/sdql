@@ -5,7 +5,9 @@ import sdql.raise
 
 object LLQLUtils {
   def run(e: Initialise)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = e match {
-    case Initialise(tpe, agg, e) => initialise(tpe)(agg, typesCtx, callsCtx, isTernary) ++ CppCodegen.run(e)
+    case Initialise(tpe, agg, e) =>
+      val initialiseCpp = initialise(tpe)(agg, typesCtx, callsCtx, isTernary)
+      s"${cppType(tpe)}($initialiseCpp); ${CppCodegen.run(e)}"
   }
   private def initialise(
     tpe: Type

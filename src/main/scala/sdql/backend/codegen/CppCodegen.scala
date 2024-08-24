@@ -11,8 +11,9 @@ import scala.PartialFunction.cond
 
 object CppCodegen {
   def apply(e: Exp, benchmarkRuns: Int = 0): String = {
-    val rewrite   = Rewriter(e)
-    val csvBody   = ReadUtils.cppCsvs(Seq(rewrite))
+    val noLLQL    = Rewriter(e)
+    val csvBody   = ReadUtils.cppCsvs(Seq(noLLQL))
+    val rewrite   = Rewriter.toLLQL(noLLQL)
     val queryBody = run(rewrite)(Map(), Seq(), isTernary = false)
     val benchStart =
       if (benchmarkRuns == 0) ""
@@ -43,6 +44,7 @@ object CppCodegen {
     if (checkIsSumBody(e)) { return SumUtils.sumBody(e) }
 
     e match {
+      case e: Initialise => LLQLUtils.run(e)
       case e: LetBinding => run(e)
       case e: Sum        => run(e)
       case e: IfThenElse => run(e)
@@ -67,7 +69,7 @@ object CppCodegen {
 
   private def run(e: LetBinding)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
     case LetBinding(x @ Sym(name), e1, e2) =>
-      val isTernary = !cond(e1) { case _: Sum => true }
+      val isTernary = !cond(e1) { case _: Sum | _: Initialise => true }
       val e1Cpp = e1 match {
         // codegen for loads was handled in a separate tree traversal
         case _: Load                   => ""

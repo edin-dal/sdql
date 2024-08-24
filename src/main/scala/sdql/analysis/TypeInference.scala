@@ -33,6 +33,8 @@ object TypeInference {
     case e: Concat     => run(e)
     case e: Promote    => run(e)
     case e: Unique     => run(e)
+    // LLQL
+    case e: Initialise => run(e)
     case _             => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
 
@@ -274,4 +276,6 @@ object TypeInference {
   }
 
   private def run(e: Unique)(implicit ctx: Ctx): Type = e match { case Unique(e: Exp) => run(e) }
+
+  private def run(e: Initialise): Type = e match { case Initialise(tpe, _, _) => tpe }
 }

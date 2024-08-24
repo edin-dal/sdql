@@ -6,15 +6,12 @@ import sdql.ir.*
 import sdql.raise
 
 import scala.PartialFunction.cond
-import scala.annotation.tailrec
 
 object SumUtils {
   def run(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = e match {
     case Sum(k, v, e1, e2) =>
       val (tpe, typesLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
       val callsLocal        = Seq(SumStart) ++ callsCtx
-      val isLetSum          = cond(callsCtx.head) { case _: LetCtx => true }
-      val init              = if (isLetSum) s"${cppType(tpe)} (${LLQLUtils.run(sumToInitialise(e)(typesCtx))});" else ""
       val body              = CppCodegen.run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal, isTernary)
       val forBody = e1 match {
         case _: RangeNode => s"${cppType(IntType)} ${k.name} = 0; ${k.name} < ${CppCodegen.run(e1)}; ${k.name}++"
@@ -28,26 +25,7 @@ object SumUtils {
           }
           s"auto $head : $iterable"
       }
-      s"$init for ($forBody) { $body }"
-  }
-
-  private def sumToInitialise(e: Sum)(implicit typesCtx: TypesCtx) =
-    e match {
-      case Sum(k, v, e1, e2) =>
-        val (tpe, _) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
-        val agg      = getAggregation(getSumBody(e2))
-        Initialise(tpe, agg, DictNode(Nil))
-    }
-
-  @tailrec
-  private def getSumBody(e: Exp): Exp = e match {
-    case Sum(_, _, _, e2)                                  => getSumBody(e2)
-    case LetBinding(_, _, e2)                              => getSumBody(e2)
-    case IfThenElse(_, DictNode(Nil, _), DictNode(Nil, _)) => raise("both branches empty")
-    case IfThenElse(_, DictNode(Nil, _), e2)               => getSumBody(e2)
-    case IfThenElse(_, e1, DictNode(Nil, _))               => getSumBody(e1)
-    case IfThenElse(_, e1, _)                              => getSumBody(e1) // pick arbitrary branch
-    case _                                                 => e
+      s"for ($forBody) { $body }"
   }
 
   def sumBody(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String =
@@ -60,7 +38,7 @@ object SumUtils {
     case Some(_: Vec)                                               => false
   }
 
-  private def getAggregation(e: Exp): Aggregation = e match {
+  def getAggregation(e: Exp): Aggregation = e match {
     case Promote(tp, _) => getAggregation(tp)
     case _              => SumAgg
   }
