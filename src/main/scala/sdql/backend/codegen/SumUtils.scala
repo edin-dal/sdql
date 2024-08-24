@@ -14,8 +14,7 @@ object SumUtils {
       val (tpe, typesLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
       val callsLocal        = Seq(SumStart) ++ callsCtx
       val isLetSum          = cond(callsCtx.head) { case _: LetCtx => true }
-      val agg               = getAggregation(getSumBody(e2))
-      val init              = if (isLetSum) s"${cppType(tpe)} (${LLQLUtils.run(Initialise(tpe, agg, DictNode(Nil)))});" else ""
+      val init              = if (isLetSum) s"${cppType(tpe)} (${LLQLUtils.run(sumToInitialise(e)(typesCtx))});" else ""
       val body              = CppCodegen.run(e2)(typesLocal ++ Map(Sym(aggregationName) -> tpe), callsLocal, isTernary)
       val forBody = e1 match {
         case _: RangeNode => s"${cppType(IntType)} ${k.name} = 0; ${k.name} < ${CppCodegen.run(e1)}; ${k.name}++"
@@ -31,6 +30,14 @@ object SumUtils {
       }
       s"$init for ($forBody) { $body }"
   }
+
+  private def sumToInitialise(e: Sum)(implicit typesCtx: TypesCtx) =
+    e match {
+      case Sum(k, v, e1, e2) =>
+        val (tpe, _) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
+        val agg      = getAggregation(getSumBody(e2))
+        Initialise(tpe, agg, DictNode(Nil))
+    }
 
   @tailrec
   private def getSumBody(e: Exp): Exp = e match {
