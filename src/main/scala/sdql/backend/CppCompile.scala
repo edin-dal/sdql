@@ -27,13 +27,9 @@ object CppCompile {
 
   private def write(path: Path, contents: String) = Files.write(path, contents.getBytes(StandardCharsets.UTF_8))
 
-  private def clangFormat(noExtension: String) = Seq(
-    "clang-format",
-    "-i",
-    s"$noExtension.cpp",
-    "-style",
-    s"{ColumnLimit: $clangColumnLimit}"
-  )
+  private def clangFormat(noExtension: String) =
+    Seq("clang-format", "-i", s"$noExtension.cpp", "-style", s"{ColumnLimit: $clangColumnLimit}")
+
   private val clangColumnLimit                     = 120
   private def clang(noExtension: String)           = clangCmd ++ Seq(s"$noExtension.cpp", "-o", s"$noExtension.out")
   private def run(noExtension: String)             = Seq(s"./$noExtension.out")

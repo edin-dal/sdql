@@ -10,14 +10,10 @@ import java.nio.file.Path
 object Main {
 
   def main(args: Array[String]): Unit = {
-    if (args.length < 1) {
-      raise("usage: `run <cmd> <args>*`")
-    }
+    if (args.length < 1) { raise("usage: `run <cmd> <args>*`") }
     args(0) match {
       case "interpret" =>
-        if (args.length < 3) {
-          raise("usage: `run interpret <path> <sdql_files>*`")
-        }
+        if (args.length < 3) { raise("usage: `run interpret <path> <sdql_files>*`") }
         val dirPath   = Path.of(args(1))
         val fileNames = args.drop(2)
         for (fileName <- fileNames) {
@@ -29,9 +25,7 @@ object Main {
           println()
         }
       case "compile" =>
-        if (args.length < 3) {
-          raise("usage: `run compile <path> <sdql_files>*`")
-        }
+        if (args.length < 3) { raise("usage: `run compile <path> <sdql_files>*`") }
         val dirPath   = Path.of(args(1))
         val fileNames = args.drop(2)
         CppCompile.cmake(dirPath, fileNames)
@@ -44,9 +38,7 @@ object Main {
           println()
         }
       case "benchmark" =>
-        if (args.length < 4) {
-          raise("usage: `run benchmark n <path> <sdql_files>*`")
-        }
+        if (args.length < 4) { raise("usage: `run benchmark n <path> <sdql_files>*`") }
         val n         = args(1).toInt
         val dirPath   = Path.of(args(2))
         val fileNames = args.drop(3)
@@ -56,8 +48,7 @@ object Main {
           val res      = CppCodegen(prog, benchmarkRuns = n)
           CppCompile.writeFormat(filePath.toString, res)
         }
-      case arg =>
-        raise(s"`run $arg` not supported")
+      case arg => raise(s"`run $arg` not supported")
     }
   }
 }
