@@ -98,7 +98,6 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 }
 
 // run these tests on dbgen TPCH datasets with scaling factor 1
-// also run this test separately from the SF=0.01 ones above - there's a concurrency bug when patching paths
 // note: DON'T run them all in parallel - unless you have ~64GB of ram
 class CppCompileTestTPCH1 extends AnyFlatSpec with ParallelTestExecution {
 
