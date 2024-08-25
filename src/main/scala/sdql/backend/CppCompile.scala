@@ -16,13 +16,13 @@ object CppCompile {
     val _ = inGeneratedDir(clangFormat(noExtension)).!!
   }
 
-  private def compileRun(sdqlFilePath: String): String = {
+  private def compileRun(sdqlFilePath: String) = {
     val noExtension = getNoExtension(sdqlFilePath)
     inGeneratedDir(clang(noExtension)).!!
     prettyPrint(inGeneratedDir(run(noExtension)).!!)
   }
 
-  private def prettyPrint(s: String): String =
+  private def prettyPrint(s: String) =
     s.replace("\u0000", "").split("\n").sorted.mkString("\n")
 
   private def write(path: Path, contents: String) = Files.write(path, contents.getBytes(StandardCharsets.UTF_8))
@@ -30,19 +30,19 @@ object CppCompile {
   private def clangFormat(noExtension: String) =
     Seq("clang-format", "-i", s"$noExtension.cpp", "-style", s"{ColumnLimit: $clangColumnLimit}")
 
-  private val clangColumnLimit                     = 120
-  private def clang(noExtension: String)           = clangCmd ++ Seq(s"$noExtension.cpp", "-o", s"$noExtension.out")
-  private def run(noExtension: String)             = Seq(s"./$noExtension.out")
-  private def cppPath(noExtension: String)         = Paths.get(generatedDir.toString, s"$noExtension.cpp")
-  private def getNoExtension(path: String): String = reFilename.findAllIn(path).matchData.next().group(2)
-  private val reFilename                           = "^(.+/)*(.+)\\.(.+)$".r
+  private val clangColumnLimit             = 120
+  private def clang(noExtension: String)   = clangCmd ++ Seq(s"$noExtension.cpp", "-o", s"$noExtension.out")
+  private def run(noExtension: String)     = Seq(s"./$noExtension.out")
+  private def cppPath(noExtension: String) = Paths.get(generatedDir.toString, s"$noExtension.cpp")
+  private def getNoExtension(path: String) = reFilename.findAllIn(path).matchData.next().group(2)
+  private val reFilename                   = "^(.+/)*(.+)\\.(.+)$".r
 
   def cmake(dirPath: Path, fileNames: Array[String]): Unit = {
     val contents = cmakeContents(fileNames.map(dirPath.resolve).map(_.toString).map(getNoExtension).toSeq)
     val path     = Paths.get(generatedDir.toString, cmakeFileName)
     val _        = write(path, contents)
   }
-  private def cmakeContents(noExtensions: Seq[String]): String = {
+  private def cmakeContents(noExtensions: Seq[String]) = {
     val init = s"""# auto-generated config - handy for Clion
                   |cmake_minimum_required(VERSION $cmakeVersion)
                   |project(generated)
