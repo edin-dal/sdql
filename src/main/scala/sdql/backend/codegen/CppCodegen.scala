@@ -11,7 +11,7 @@ import scala.PartialFunction.cond
 object CppCodegen {
   def apply(e: Exp, benchmarkRuns: Int = 0): String = {
     val rewrite   = Rewriter(e)
-    val csvBody   = ReadUtils.cppCsvs(Seq(rewrite))
+    val csvBody   = ReadUtils.cppCsvs(rewrite)
     val queryBody = run(rewrite)(Map(), isTernary = false)
     val benchStart =
       if (benchmarkRuns == 0) ""

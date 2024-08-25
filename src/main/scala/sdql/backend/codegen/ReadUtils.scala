@@ -7,25 +7,8 @@ import sdql.raise
 import scala.PartialFunction.condOpt
 
 object ReadUtils {
-  def cppCsvs(exps: Seq[Exp]): String = {
-    val pathNameTypeSkip = exps
-      .flatMap(
-        e =>
-          iterExps(e)
-            .flatMap(
-              e =>
-                condOpt(e) {
-                  case LetBinding(Sym(name), load @ Load(path, tp: RecordType, _), _)
-                      if TypeInference.isColumnStore(tp) =>
-                    val recordType = (load: @unchecked) match { case Load(_, recordType: RecordType, _) => recordType }
-                    val skipCols: Set[String] =
-                      (load: @unchecked) match { case Load(_, _, skipCols) => skipCols.toSkipColsSet }
-                    (path, name, recordType, skipCols)
-              }
-          )
-      )
-      .distinct
-      .sortBy(_._2)
+  def cppCsvs(e: Exp): String = {
+    val pathNameTypeSkip = iterExps(e).flatMap(extract).toSeq.distinct.sortBy(_._2)
 
     val csvConsts =
       pathNameTypeSkip.map({ case (path, name, _, _) => makeCsvConst(name, path) }).mkString("\n", "\n", "\n")
@@ -38,6 +21,14 @@ object ReadUtils {
       .mkString("\n")
 
     Seq(csvConsts, tuples).mkString("\n")
+  }
+
+  private def extract(e: Exp) = condOpt(e) {
+    case LetBinding(Sym(name), load @ Load(path, tp: RecordType, _), _) if TypeInference.isColumnStore(tp) =>
+      val recordType = (load: @unchecked) match { case Load(_, recordType: RecordType, _) => recordType }
+      val skipCols: Set[String] =
+        (load: @unchecked) match { case Load(_, _, skipCols) => skipCols.toSkipColsSet }
+      (path, name, recordType, skipCols)
   }
 
   private def makeCsvConst(name: String, path: String) =
