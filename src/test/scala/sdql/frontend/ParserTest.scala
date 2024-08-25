@@ -14,8 +14,6 @@ class ParserTest extends AnyFlatSpec with Matchers {
     sdql"-52" should be(Const(-52))
     sdql"52.1" should be(Const(52.1))
     sdql""" "foo" """ should be(Const("foo"))
-    sdql"dense_int(999, -1)" should be(Const(DenseInt(999, -1)))
-    sdql"dense_int(12, 255)" should be(Const(DenseInt(12, 255)))
     sdql"date(19890713)" should be(Const(DateValue(19890713)))
     assertThrows[Exception] {
       sdql"`foo`"
@@ -128,7 +126,6 @@ class ParserTest extends AnyFlatSpec with Matchers {
     sdql"x.name" should be(FieldNode(Sym("x"), "name"))
     sdql"x.name * 2" should be(Mult(FieldNode(Sym("x"), "name"), Const(2.0)))
     sdql"x.name * y.foo" should be(Mult(FieldNode(Sym("x"), "name"), FieldNode(Sym("y"), "foo")))
-    sdql"x._1" should be(Fst(Sym("x")))
     sdql"concat(x, y)" should be(Concat(Sym("x"), Sym("y")))
   }
 
@@ -137,9 +134,6 @@ class ParserTest extends AnyFlatSpec with Matchers {
     sdql"""load[{string -> bool}]("foo.csv")""" should be(Load("foo.csv", DictType(StringType(), BoolType)))
     sdql"""load[{string -> bool}]("foo.csv", { 0, 1 })""" should be(
       Load("foo.csv", DictType(StringType(), BoolType), SetNode(Seq(Const(0), Const(1))))
-    )
-    sdql"""load[{<a:dense_int,b:double> -> int}]("foo.csv")""" should be(
-      Load("foo.csv", DictType(RecordType(Seq(Attribute("a", DenseIntType(-1)), Attribute("b", RealType))), IntType))
     )
   }
 

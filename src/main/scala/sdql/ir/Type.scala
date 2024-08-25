@@ -17,20 +17,15 @@ sealed trait Type {
     if (name.endsWith("$")) name.dropRight(1) else name
   }
 }
-case object BottomType                            extends Type
-case class StringType(maxLen: Option[Int] = None) extends Type
-case object RealType                              extends Type
-// Used as the underlying type of a RangeNode, and keys for DictNodes that will generate arrays
-case class DenseIntType(n: Int)                                       extends Type
+case class StringType(maxLen: Option[Int] = None)                     extends Type
+case object RealType                                                  extends Type
 case object BoolType                                                  extends Type
 case object IntType                                                   extends Type
-case object CharType                                                  extends Type
 case object DateType                                                  extends Type
 case class DictType(key: Type, value: Type, hint: DictHint = PHmap()) extends Type
 case class RecordType(attrs: Seq[Attribute]) extends Type {
   override def equals(o: Any): Boolean = o match {
     case RecordType(attrs2) if attrs.size == attrs2.size =>
-      // attrs.zip(attrs2).forall(x => x._1.name == x._2.name)
       attrs.zip(attrs2).forall(x => x._1.name == x._2.name && x._1.tpe == x._2.tpe)
     case _ => false
   }
@@ -61,41 +56,13 @@ case class RecordType(attrs: Seq[Attribute]) extends Type {
   }
 }
 
-object TupleType {
-  def index(idx: Int): String = s"__$idx"
-  // FIXME
-  def isIndex(s: String): Boolean       = s.startsWith("__")
-  def apply(tps: Seq[Type]): RecordType = RecordType(tps.zipWithIndex.map(ti => Attribute(index(ti._2), ti._1)))
-  def unapply(tp: Type): Option[Seq[Type]] = tp match {
-    case RecordType(attrs) if attrs.forall(a => isIndex(a.name)) =>
-      Some(attrs.map(_.tpe))
-    case _ => None
-  }
-}
-
-// corresponds to std::pair of C++
-object PairType {
-  val FST                                   = "_1"
-  val SND                                   = "_2"
-  def apply(_1: Type, _2: Type): RecordType = RecordType(Seq(Attribute(FST, _1), Attribute(SND, _2)))
-  def unapply(tp: Type): Option[(Type, Type)] = tp match {
-    case RecordType(Seq(a1, a2)) if a1.name == FST && a2.name == SND => Some(a1.tpe -> a2.tpe)
-    case _                                                           => None
-  }
-}
-
-object VarCharType {
-  def apply(maxLen: Int): Type = StringType(Some(maxLen))
-}
-object DecimalType {
-  def apply(i: Int): Type = RealType
-}
+object VarCharType { def apply(maxLen: Int): Type = StringType(Some(maxLen)) }
 
 object ScalarType {
-  def unapply(tp: Type): Option[Type] = if (isScalar(tp)) Some(tp) else None
-  def isScalar(tp: Type) = tp match {
-    case _: DenseIntType | RealType | IntType | _: StringType | DateType | CharType | BoolType => true
-    case _                                                                                     => false
+  def unapply(tp: Type): Option[Type] = Some(tp).filter(isScalar)
+  def isScalar(tp: Type): Boolean = tp match {
+    case RealType | IntType | _: StringType | DateType | BoolType => true
+    case _                                                        => false
   }
 }
 

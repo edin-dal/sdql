@@ -1,9 +1,9 @@
 package sdql
 package frontend
 
+import fastparse.*
 import fastparse.CharPredicates.*
 import fastparse.NoWhitespace.*
-import fastparse.*
 import sdql.ir.*
 
 object Parser {
@@ -41,7 +41,6 @@ object Parser {
       "max_sum",
       "enum",
       "nullable",
-      "dense_int"
     ) ~
       !idRest
   )
@@ -68,11 +67,6 @@ object Parser {
     x => Const(x.toDouble)
   )
 
-  private def denseInt(implicit ctx: P[?]) =
-    P("dense_int" ~ "(" ~ (integral.!.map(_.toInt)) ~ space ~ "," ~ space ~/ (("-1" | integral).!.map(_.toInt)) ~ ")")
-      .map(
-        x => Const(DenseInt(x._1, x._2))
-      )
   private def dateValue(implicit ctx: P[?]) = P("date" ~ "(" ~ (integral.!.map(_.toInt)) ~ space ~ ")").map(
     x => Const(DateValue(x))
   )
@@ -99,10 +93,7 @@ object Parser {
   private def tpeString(implicit ctx: P[?]) = P("string").map(_ => StringType())
   private def tpeVarChar(implicit ctx: P[?]) =
     P("varchar" ~ "(" ~ integral.!.map(_.toInt) ~ space ~ ")").map(VarCharType.apply)
-  private def tpeDate(implicit ctx: P[?]) = P("date").map(_ => DateType)
-  private def tpeIndex(implicit ctx: P[?]) =
-    P("dense_int" ~ ("[" ~ space ~/ ("-1" | integral).!.map(_.toInt) ~/ space ~/ "]").?)
-      .map(x => DenseIntType(x.getOrElse(-1)))
+  private def tpeDate(implicit ctx: P[?])  = P("date").map(_ => DateType)
   private def fieldTpe(implicit ctx: P[?]) = P(variable ~/ ":" ~ space ~/ tpe).map(x => Attribute(x._1.name, x._2))
   private def tpeRec(implicit ctx: P[?]) =
     P("<" ~/ fieldTpe.rep(sep = ","./) ~ space ~/ ">").map(l => RecordType(l))
@@ -113,7 +104,8 @@ object Parser {
   private def tpeDictNoHint(implicit ctx: P[?]) =
     P("{" ~/ tpe ~ space ~ "->" ~ space ~/ tpe ~ "}").map(x => DictType(x._1, x._2))
   private def tpe(implicit ctx: P[?]): P[Type] =
-    tpeBool | tpeInt | tpeReal | tpeString | tpeVarChar | tpeDate | tpeRec | tpeDict | tpeIndex | tpeTropSR | tpeEnum | tpeNullable
+    tpeBool | tpeInt | tpeReal | tpeString | tpeVarChar |
+      tpeDate | tpeRec | tpeDict | tpeTropSR | tpeEnum | tpeNullable
 
   private def strChars(implicit ctx: P[?]) = P(CharsWhile(stringChars))
 
@@ -122,7 +114,7 @@ object Parser {
   private def fieldChars(implicit ctx: P[?]) = P(CharsWhile(_ != '`'))
   private def fieldConst(implicit ctx: P[?]) =
     P(space ~ "`" ~/ (fieldChars | escape).rep.! ~ "`").map(x => Const(Symbol(x)))
-  private def const(implicit ctx: P[?])  = `true` | `false` | unit | number | int | string | denseInt | dateValue
+  private def const(implicit ctx: P[?])  = `true` | `false` | unit | number | int | string | dateValue
   private def idRest(implicit ctx: P[?]) = P(CharPred(c => isLetter(c) | isDigit(c) | c == '_').!).map(_(0))
   private def variable(implicit ctx: P[?]) =
     P(space ~ !keywords ~ ((alpha | "_" | "$") ~ idRest.rep).! ~ space).map(Sym.apply)
@@ -220,18 +212,6 @@ object Parser {
           }
       )
     )
-//  private def addSubCmp(implicit ctx: P[?]) =
-//    P(divMul ~ (StringIn("+", "-", "<", "==", "<=", ">=", ">", "!=").! ~ !(">") ~/ divMul).rep).map(
-//      x =>
-//        x._2.foldLeft(x._1)(
-//          (acc, cur) =>
-//            cur._1 match {
-//              case "+" => Add(acc, cur._2)
-//              case "-" => Add(acc, Neg(cur._2))
-//              case op  => Cmp(acc, cur._2, op)
-//          }
-//      )
-//    )
   private def addSub(implicit ctx: P[?]) =
     P(divMul ~ (StringIn("+", "-").! ~ !(">") ~/ divMul).rep).map(
       x =>

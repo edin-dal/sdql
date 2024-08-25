@@ -17,7 +17,7 @@ class FastScanner(filename: String) {
   private var delimiter: Char    = '|'
   private val br: BufferedReader = new BufferedReader(new FileReader(filename))
 
-  def next_int() = {
+  def next_int(): Int = {
     var number = 0
     var signed = false
 
@@ -41,7 +41,7 @@ class FastScanner(filename: String) {
     if (signed) -1 * number else number
   }
 
-  def next_double() = {
+  def next_double(): Double = {
     val numeral = next_int().toDouble
     var fractal = 0.0
     // Has fractal part
@@ -56,7 +56,7 @@ class FastScanner(filename: String) {
     else numeral - fractal
   }
 
-  def next_char() = {
+  def next_char(): Char = {
     byteRead = br.read()
     val del = br.read() //delimiter
     if ((del != delimiter) && (del != '\n'))
@@ -67,7 +67,7 @@ class FastScanner(filename: String) {
   def next(buf: Array[Byte]): Int =
     next(buf, 0)
 
-  def next(buf: Array[Byte], offset: Int) = {
+  def next(buf: Array[Byte], offset: Int): Int = {
     byteRead = br.read()
     var cnt = offset
     while (br.ready() && (byteRead != delimiter) && (byteRead != '\n')) {
@@ -103,12 +103,12 @@ class FastScanner(filename: String) {
     year * 10000 + month * 100 + day
   }
 
-  def hasNext() = {
+  def hasNext(): Boolean = {
     val f = br.ready()
     if (!f) br.close
     f
   }
 
-  def close() =
+  def close(): Unit =
     br.close()
 }

@@ -27,13 +27,12 @@ sealed trait Exp {
 case class Sym(name: String) extends Exp
 object Sym {
   private val DEFAULT_NAME = "x"
-  val START_ID             = 1
+  private val START_ID     = 1
   private var lastId       = START_ID.toLong
 
   /** Get a fresh symbol, i.e. xi, where i is the smallest number not used. */
-  def fresh: Sym =
-    fresh(DEFAULT_NAME)
-  def fresh(name: String): Sym = {
+  def fresh: Sym = fresh(DEFAULT_NAME)
+  private def fresh(name: String): Sym = {
     val cur = freshId
     Sym(s"$name$cur")
   }
@@ -153,98 +152,9 @@ case class Promote(tp: Type, e: Exp)              extends Exp
 case class External(name: String, args: Seq[Exp]) extends Exp
 case class Unique(e: Exp)                         extends Exp
 
-/**
- * This object models the multiplication of a sequence of expressions. It can
- * either apply the multiplication operation to the sequence, or extract the
- * sequence of expressions (unapply) from a multiplication expression.
- */
-object MultN {
-  def apply(seq: Seq[Exp]): Exp = seq match {
-    case Seq(e)            => e
-    case Seq(e1, e2)       => Mult(e1, e2)
-    case _ if seq.size > 2 => Mult(seq.head, MultN(seq.tail))
-    case _                 => raise(s"MultN with size ${seq.size}")
-  }
-  def unapply(exp: Exp): Option[Seq[Exp]] = exp match {
-    case Mult(e1, e2) =>
-      (MultN.unapply(e1), MultN.unapply(e2)) match {
-        case (Some(s1), Some(s2)) => Some(s1 ++ s2)
-        case (None, Some(s2))     => Some(e1 +: s2)
-        case (Some(s1), None)     => Some(s1 :+ e2)
-        case _                    => Some(Seq(e1, e2))
-      }
-    case _ => None
-  }
-}
-
-object MultNStriped {
-  def unapply(exp: Exp): Option[Seq[Exp]] = exp match {
-    case MultN(seq) => Some(seq)
-    case _          => Some(Seq(exp))
-  }
-}
-
 object SetNode {
   def apply(es: Seq[Exp]): DictNode               = DictNode(es.map(x => x -> Const(1)))
   def fromSkipColsSet(set: Set[String]): DictNode = SetNode(set.map(Const.apply).toSeq)
-}
-
-object PairNode {
-  import PairType.*
-  def apply(_1: Exp, _2: Exp): Exp = RecNode(Seq((FST -> _1), (SND -> _2)))
-  def unapply(e: Exp): Option[(Exp, Exp)] = e match {
-    case RecNode(Seq(a1, a2)) if a1._1 == FST && a2._1 == SND => Some(a1._2 -> a2._2)
-    case _                                                    => None
-  }
-}
-
-object Fst {
-  def apply(e: Exp): Exp = FieldNode(e, PairType.FST)
-  def unapply(e: Exp): Option[Exp] = e match {
-    case FieldNode(e1, PairType.FST) => Some(e1)
-    case _                           => None
-  }
-}
-
-object Snd {
-  def apply(e: Exp): Exp = FieldNode(e, PairType.SND)
-  def unapply(e: Exp): Option[Exp] = e match {
-    case FieldNode(e1, PairType.SND) => Some(e1)
-    case _                           => None
-  }
-}
-
-object ProjectionNode {
-  import PairType.*
-  def unapply(e: Exp): Option[(Exp, Int)] = e match {
-    case FieldNode(e1, FST) => Some(e1 -> 1)
-    case FieldNode(e1, SND) => Some(e1 -> 2)
-    case _                  => None
-  }
-}
-
-/**
- * This object models the addition of a sequence of expressions. It can either
- * apply the addition operation to the sequence, or extract the sequence of
- * expressions (unapply) from an addition expression.
- */
-object AddN {
-  def apply(seq: Seq[Exp]): Exp = seq match {
-    case Seq(e)            => e
-    case Seq(e1, e2)       => Add(e1, e2)
-    case _ if seq.size > 2 => Add(seq.head, AddN(seq.tail))
-    case _                 => ???
-  }
-  def unapply(exp: Exp): Option[Seq[Exp]] = exp match {
-    case Add(e1, e2) =>
-      (AddN.unapply(e1), AddN.unapply(e2)) match {
-        case (Some(s1), Some(s2)) => Some(s1 ++ s2)
-        case (None, Some(s2))     => Some(e1 +: s2)
-        case (Some(s1), None)     => Some(s1 :+ e2)
-        case _                    => Some(Seq(e1, e2))
-      }
-    case _ => None
-  }
 }
 
 /**
@@ -256,9 +166,7 @@ object LetBindingN {
   def apply(bindings: Seq[(Sym, Exp)], body: Exp): Exp =
     bindings.foldRight(body)((cur, acc) => LetBinding(cur._1, cur._2, acc))
   private type Res = Option[(Seq[(Sym, Exp)], Exp)]
-  def unapply(exp: Exp): Res =
-    rec(exp, None)
-  //   unapplyOpt(exp)
+  def unapply(exp: Exp): Res = rec(exp, None)
 
   @tailrec def rec(exp: Exp, res: Res): Res = exp match {
     case LetBinding(x, e1, e2) =>
@@ -268,41 +176,7 @@ object LetBindingN {
       })
     case _ => res
   }
-
-  // def unapplyOpt(exp: Exp): Res = {
-  //   val seq = scala.collection.mutable.ListBuffer[(Sym, Exp)]()
-  //   var current = exp
-  //   var stop = false
-  //   while(!stop) {
-  //     current match {
-  //       case LetBinding(x, e1, e2) =>
-  //         seq += x -> e1
-  //         current = e2
-  //       case _ =>
-  //         stop = true
-  //     }
-  //   }
-  //   if(seq.isEmpty)
-  //     None
-  //   else
-  //     Some(seq.toSeq -> current)
-  // }
 }
-
-object LetBindingNStriped {
-  def unapply(t: Exp): Option[(Seq[(Sym, Exp)], Exp)] = t match {
-    case LetBindingN(xs, body) => Some(xs    -> body)
-    case _                     => Some(Seq() -> t)
-  }
-}
-
-// object Contains {
-//   def apply(dict: Exp, k: Exp, vtp: Type): Exp = Cmp(Get(dict, k), Zero(vtp), "==")
-//   def unapply(e: Exp): Option[(Exp, Exp, Type)] = e match {
-//     case Cmp(Get(dict, k), Zero(vtp), "==") => Some((dict, k, vtp))
-//     case _ => None
-//   }
-// }
 
 object And { def apply(a: Exp, b: Exp): Exp = IfThenElse(a, b, Const(false)) }
 
