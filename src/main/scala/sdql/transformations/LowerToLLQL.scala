@@ -1,30 +1,62 @@
 package sdql.transformations
 
 import sdql.analysis.TypeInference
+
 import sdql.backend.codegen.SumUtils
 import sdql.ir.*
 import sdql.raise
 
+import scala.PartialFunction.cond
 import scala.annotation.tailrec
 
 private object LowerToLLQL extends TermRewriter {
   private type TypesCtx = TypeInference.Ctx
 
-  def apply(e: Exp): Exp = run(e)(Map())
+  def apply(e: Exp): Exp = run(e)(Map(), dest = None)
 
-  private def run(e: Exp)(implicit ctx: TypesCtx): Exp = (e: @unchecked) match {
-    case LetBinding(x, e1: Sum, e2) => run(LetBinding(x, sumToInitialise(e1), e2))
-    case LetBinding(x, e1, e2)      => LetBinding(x, e1, run(e2)(ctx ++ Map(x -> TypeInference.run(e1))))
-    case _                          => runInner(e)
+  private def run(e: Exp)(implicit ctx: TypesCtx, dest: Option[Sym]): Exp = e match {
+    case LetBinding(x, e1: Sum, e2) => run(LetBinding(x, sumToInitialise(e1)(ctx, Some(x)), e2))
+    case LetBinding(x, e1, e2)      => LetBinding(x, e1, run(e2)(ctx ++ Map(x -> TypeInference.run(e1)), dest))
+    case Sum(key, value, e1, e2) =>
+      val (_, ctxLocal) = TypeInference.sumInferTypeAndCtx(key, value, e1, e2)
+      Sum(key, value, run(e1)(ctx, None), run(e2)(ctxLocal, dest))
+    case IfThenElse(cond, e1, e2) => IfThenElse(cond, run(e1), run(e2))
+    case _ if dest.isDefined      => (dest: @unchecked) match { case Some(dest) => sumBodyToLLQL(e, dest)(ctx) }
+    case _                        => runInner(e)
   }
 
-  private def sumToInitialise(e: Sum)(implicit typesCtx: TypesCtx): Initialise =
+  private def sumBodyToLLQL(e: Exp, dest: Sym)(implicit ctx: TypesCtx) =
+    if (isUpdate(e)) Update(e, getAggregation(e), dest) else Modify(e, dest)
+
+  private def isUpdate(e: Exp)(implicit ctx: TypesCtx) = sumHint(e) match {
+    case Some(_: PHmap) if cond(e) { case dict: DictNode => checkIsUnique(dict) } => false
+    case None | Some(_: PHmap | _: SmallVecDict | _: SmallVecDicts) => true
+    case Some(_: Vec)                                               => false
+  }
+
+  private def sumHint(e: Exp)(implicit ctx: TypesCtx) = e match {
+    case DictNode(Nil, _) => None
+    case dict: DictNode =>
+      (TypeInference.run(dict.getInnerDict): @unchecked) match { case DictType(_, _, hint) => Some(hint) }
+    case _ => None
+  }
+
+  private def checkIsUnique(dict: DictNode) = cond(dict.getInnerDict) {
+    case DictNode(Seq((_: Unique, _)), _: PHmap) => true
+  }
+
+  private def sumToInitialise(e: Sum)(implicit ctx: TypesCtx, dest: Option[Sym]) =
     e match {
       case Sum(k, v, e1, e2) =>
         val (tpe, ctxLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
-        val agg             = SumUtils.getAggregation(getSumBody(e2))
-        Initialise(tpe, agg, Sum(k, v, e1, run(e2)(ctxLocal)))
+        val agg             = getAggregation(getSumBody(e2))
+        Initialise(tpe, agg, Sum(k, v, e1, run(e2)(ctxLocal, dest)))
     }
+
+  private def getAggregation(e: Exp): Aggregation = e match {
+    case Promote(tp, _) => SumUtils.getAggregation(tp)
+    case _              => SumAgg
+  }
 
   @tailrec
   private def getSumBody(e: Exp): Exp = e match {
@@ -37,7 +69,7 @@ private object LowerToLLQL extends TermRewriter {
     case _                                                 => e
   }
 
-  private def runInner(e: Exp)(implicit ctx: TypesCtx) = e match {
+  private def runInner(e: Exp)(implicit ctx: TypesCtx, dest: Option[Sym]) = e match {
     // 0-ary
     case _: Sym | _: Const | _: Load => e
     // 1-ary
@@ -47,17 +79,13 @@ private object LowerToLLQL extends TermRewriter {
     case RangeNode(e)    => RangeNode(run(e))
     case Unique(e)       => Unique(run(e))
     // 2-ary
-    case Add(e1, e2)      => Add(run(e1), run(e2))
-    case Mult(e1, e2)     => Mult(run(e1), run(e2))
-    case Cmp(e1, e2, cmp) => Cmp(run(e1), run(e2), cmp)
-    case Sum(key, value, e1, e2) =>
-      val (_, ctxLocal) = TypeInference.sumInferTypeAndCtx(key, value, e1, e2)
-      Sum(key, value, run(e1), run(e2)(ctxLocal))
-    case Get(e1, e2)    => Get(run(e1), run(e2))
-    case Concat(e1, e2) => Concat(run(e1), run(e2))
-    case LetBinding(x, e1, e2) =>
-      val localCtx = ctx ++ Map(x -> TypeInference.run(e1))
-      LetBinding(x, run(e1), run(e2)(localCtx))
+    case Add(e1, e2)             => Add(run(e1), run(e2))
+    case Mult(e1, e2)            => Mult(run(e1), run(e2))
+    case Cmp(e1, e2, cmp)        => Cmp(run(e1), run(e2), cmp)
+    case Sum(key, value, e1, e2) => Sum(key, value, run(e1), run(e2))
+    case Get(e1, e2)             => Get(run(e1), run(e2))
+    case Concat(e1, e2)          => Concat(run(e1), run(e2))
+    case LetBinding(x, e1, e2)   => LetBinding(x, run(e1), run(e2))
     // 3-ary
     case IfThenElse(e1, e2, e3) => IfThenElse(run(e1), run(e2), run(e3))
     // n-ary

@@ -328,8 +328,8 @@ object SingleDict {
 //  all expression are of Exp type before/after lowering, but only after are some of them allowed to have the LLQL trait
 sealed trait LLQL
 case class Initialise(tpe: Type, agg: Aggregation, e: Sum) extends Exp with LLQL // TODO infer aggregation from type?
-case class Update(e: Exp, agg: Aggregation, dest: String)  extends Exp with LLQL
-case class Modify(e: Exp, dest: String)                    extends Exp with LLQL
+case class Update(e: Exp, agg: Aggregation, dest: Sym)     extends Exp with LLQL
+case class Modify(e: Exp, dest: Sym)                       extends Exp with LLQL
 
 sealed trait Aggregation
 case object SumAgg  extends Aggregation

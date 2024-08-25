@@ -1,9 +1,8 @@
 package sdql.backend.codegen
 
 import sdql.analysis.TypeInference
-import sdql.backend.codegen.ChecksUtils.*
 import sdql.ir.*
-import sdql.ir.ExternalFunctions.{ ConstantString, Inv, Limit }
+import sdql.ir.ExternalFunctions.{ ConstantString, Inv }
 import sdql.raise
 import sdql.transformations.Rewriter
 
@@ -14,7 +13,7 @@ object CppCodegen {
     val noLLQL    = Rewriter(e)
     val csvBody   = ReadUtils.cppCsvs(Seq(noLLQL))
     val rewrite   = Rewriter.toLLQL(noLLQL)
-    val queryBody = run(rewrite)(Map(), Seq(), isTernary = false)
+    val queryBody = run(rewrite)(Map(), isTernary = false)
     val benchStart =
       if (benchmarkRuns == 0) ""
       else
@@ -40,11 +39,8 @@ object CppCodegen {
        |}""".stripMargin
   }
 
-  def run(e: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = {
-    if (checkIsSumBody(e)) { return SumUtils.sumBody(e) }
-
+  def run(e: Exp)(implicit typesCtx: TypesCtx, isTernary: Boolean): String =
     e match {
-      case e: Initialise => LLQLUtils.run(e)
       case e: LetBinding => run(e)
       case e: Sum        => run(e)
       case e: IfThenElse => run(e)
@@ -63,36 +59,38 @@ object CppCodegen {
       case e: Promote    => run(e)
       case e: Unique     => run(e)
       case e: RangeNode  => run(e)
+      // LLQL
+      case e: Initialise => LLQLUtils.run(e)
+      case e: Update     => LLQLUtils.run(e)
+      case e: Modify     => LLQLUtils.run(e)
       case _             => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
     }
-  }
 
-  private def run(e: LetBinding)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+  private def run(e: LetBinding)(implicit typesCtx: TypesCtx): String = e match {
     case LetBinding(x @ Sym(name), e1, e2) =>
       val isTernary = !cond(e1) { case _: Sum | _: Initialise => true }
       val e1Cpp = e1 match {
         // codegen for loads was handled in a separate tree traversal
-        case _: Load                   => ""
-        case External(Limit.SYMBOL, _) => s"${run(e1)(typesCtx, Seq(LetCtx(name)) ++ callsCtx, isTernary)}\n"
+        case _: Load => ""
         case e1 @ External(ConstantString.SYMBOL, _) =>
-          s"const auto $name = ${run(e1)(typesCtx, Seq(LetCtx(name)) ++ callsCtx, isTernary)};"
+          s"const auto $name = ${run(e1)(typesCtx, isTernary)};"
         case e1: Const => s"constexpr auto $name = ${run(e1)};"
         case _ =>
           val isRetrieval = cond(e1) { case _: FieldNode | _: Get => true }
           def isDict      = cond(TypeInference.run(e1)) { case _: DictType => true }
           val cppName     = if (isRetrieval && isDict) s"&$name" else name
-          s"auto $cppName = ${run(e1)(typesCtx, Seq(LetCtx(name)) ++ callsCtx, isTernary)};"
+          s"auto $cppName = ${run(e1)(typesCtx, isTernary)};"
       }
       val e2Cpp = e2 match {
         case DictNode(Nil, _) => ""
-        case _                => run(e2)(typesCtx ++ Map(x -> TypeInference.run(e1)), callsCtx, isTernary = false)
+        case _                => run(e2)(typesCtx ++ Map(x -> TypeInference.run(e1)), isTernary = false)
       }
       e1Cpp + e2Cpp
   }
 
-  def run(e: Sum)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = SumUtils.run(e)
+  def run(e: Sum)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = SumUtils.run(e)
 
-  private def run(e: IfThenElse)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String =
+  private def run(e: IfThenElse)(implicit typesCtx: TypesCtx, isTernary: Boolean): String =
     e match {
       case IfThenElse(a, Const(false), Const(true)) => s"!(${run(a)})"
       case IfThenElse(a, b, Const(false))           => s"(${run(a)} && ${run(b)})"
@@ -100,26 +98,25 @@ object CppCodegen {
       case _ if isTernary                           => ternary(e)
       case _                                        => default(e)
     }
-  private def ternary(e: IfThenElse)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = e match {
+  private def ternary(e: IfThenElse)(implicit typesCtx: TypesCtx) = e match {
     case IfThenElse(cond, e1, e2) =>
-      val callsLocal = Seq(SumEnd) ++ callsCtx
-      val condBody   = run(cond)(typesCtx, callsLocal, isTernary = true)
-      val ifBody     = run(e1)(typesCtx, callsLocal, isTernary = true)
-      val elseBody   = run(e2)(typesCtx, callsLocal, isTernary = true)
+      val condBody = run(cond)(typesCtx, isTernary = true)
+      val ifBody   = run(e1)(typesCtx, isTernary = true)
+      val elseBody = run(e2)(typesCtx, isTernary = true)
       s"($condBody) ? $ifBody : $elseBody"
   }
-  private def default(e: IfThenElse)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean) = e match {
+  private def default(e: IfThenElse)(implicit typesCtx: TypesCtx, isTernary: Boolean) = e match {
     case IfThenElse(cond, e1, e2) =>
-      val condBody = run(cond)(typesCtx, Seq(SumEnd) ++ callsCtx, isTernary)
+      val condBody = run(cond)(typesCtx, isTernary)
       val ifBody   = run(e1)
       val elseBody = e2 match {
-        case DictNode(Nil, _) | Const(0) | Const(0.0) => ""
-        case _                                        => s" else {\n${run(e2)}\n}"
+        case DictNode(Nil, _) | Update(DictNode(Nil, _), _, _) | Const(0) | Const(0.0) => ""
+        case _                                                                         => s" else {\n${run(e2)}\n}"
       }
       s"if ($condBody) {$ifBody\n}$elseBody"
   }
 
-  private def run(e: Cmp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = e match {
+  private def run(e: Cmp)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
     case Cmp(e1, e2: Sym, "∈") =>
       TypeInference.run(e2) match {
         case _: DictType => dictCmpNil(e2, e1)
@@ -136,20 +133,20 @@ object CppCodegen {
   private def getArgsMatch(e: Get)(implicit typesCtx: TypesCtx) = e match {
     case Get(e1, e2) => cond(TypeInference.run(e1)) { case DictType(kt, _, _) => TypeInference.run(e2) == kt }
   }
-  private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean) =
+  private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, isTernary: Boolean) =
     TypeInference.run(e1) match {
       case DictType(IntType, _, _: Vec) => s"${run(e1)}[${run(e2)}] != 0"
       case _                            => s"${run(e1)}.contains(${run(e2)})"
     }
 
-  private def run(e: FieldNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = e match {
+  private def run(e: FieldNode)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
     case FieldNode(e1, field) =>
       val tpe = (TypeInference.run(e1): @unchecked) match { case rt: RecordType => rt }
       val idx = (tpe.indexOf(field): @unchecked) match { case Some(idx)         => idx }
       s" /* $field */ std::get<$idx>(${run(e1)})"
   }
 
-  private def run(e: Add)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = e match {
+  private def run(e: Add)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
     case Add(Promote(tp1, e1), Promote(tp2, e2)) =>
       assert(tp1 == tp2)
       SumUtils.getAggregation(tp1) match {
@@ -163,37 +160,37 @@ object CppCodegen {
     case Add(e1, e2)                             => s"(${run(e1)} + ${run(e2)})"
   }
 
-  private def run(e: Mult)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = e match {
+  private def run(e: Mult)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
     case Mult(_: Promote, _) | Mult(_, _: Promote) =>
       raise(s"promotion not supported for ${Mult.getClass.getSimpleName.init}")
     case Mult(e1, External(Inv.SYMBOL, Seq(e2))) => s"(${run(e1)} / ${run(e2)})"
     case Mult(e1, e2)                            => s"(${run(e1)} * ${run(e2)})"
   }
 
-  private def run(e: Neg)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = s"-${run(e)}"
+  private def run(e: Neg)(implicit typesCtx: TypesCtx): String = s"-${run(e)}"
 
   private def run(e: Sym): String = e match { case Sym(name) => name }
 
-  private def run(e: DictNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+  private def run(e: DictNode)(implicit typesCtx: TypesCtx): String = e match {
     case DictNode(Nil, _) => ""
     case DictNode(seq, _) =>
       seq
         .map({
           case (e1, e2) =>
-            val e1Cpp = run(e1)(typesCtx, callsCtx, isTernary = true)
-            val e2Cpp = run(e2)(typesCtx, callsCtx, isTernary = true)
+            val e1Cpp = run(e1)(typesCtx, isTernary = true)
+            val e2Cpp = run(e2)(typesCtx, isTernary = true)
             s"{$e1Cpp, $e2Cpp}"
         })
         .mkString(s"${cppType(TypeInference.run(e))}({", ", ", "})")
   }
 
-  private def run(e: RecNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+  private def run(e: RecNode)(implicit typesCtx: TypesCtx): String = e match {
     case RecNode(values) =>
       val tpe = TypeInference.run(e)
-      values.map(e => run(e._2)(typesCtx, callsCtx, isTernary = true)).mkString(s"${cppType(tpe)}(", ", ", ")")
+      values.map(e => run(e._2)(typesCtx, isTernary = true)).mkString(s"${cppType(tpe)}(", ", ", ")")
   }
 
-  private def run(e: Get)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = e match {
+  private def run(e: Get)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
     case Get(e1, e2) =>
       (TypeInference.run(e1): @unchecked) match {
         case _: RecordType => s"std::get<${run(e2)}>(${run(e1)})"
@@ -201,10 +198,10 @@ object CppCodegen {
       }
   }
 
-  private def run(e: External)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String =
+  private def run(e: External)(implicit typesCtx: TypesCtx, isTernary: Boolean): String =
     ExternalUtils.run(e)
 
-  private def run(e: Concat)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+  private def run(e: Concat)(implicit typesCtx: TypesCtx): String = e match {
     case Concat(e1: RecNode, e2: RecNode) => run(e1.concat(e2))
     case Concat(e1: Sym, e2: Sym)         => s"std::tuple_cat(${run(e1)}, ${run(e2)})"
     case Concat(e1: Sym, e2: RecNode)     => s"std::tuple_cat(${run(e1)}, ${run(e2)})"
@@ -226,16 +223,16 @@ object CppCodegen {
     case Const(v)         => v.toString
   }
 
-  private def run(e: Promote)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = e match {
+  private def run(e: Promote)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
     case Promote(_: TropicalSemiRingType, e) => run(e) // handled in sum
     case Promote(tp, e)                      => s"(${cppType(tp)})${run(e)}"
   }
 
-  private def run(e: Unique)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = e match {
+  private def run(e: Unique)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
     case Unique(e) => run(e) // handled in sum
   }
 
-  private def run(e: RangeNode)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = e match {
+  private def run(e: RangeNode)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
     case RangeNode(e) => run(e) // handled in sum
   }
 }

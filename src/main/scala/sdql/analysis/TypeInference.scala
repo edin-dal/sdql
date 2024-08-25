@@ -35,15 +35,20 @@ object TypeInference {
     case e: Unique     => run(e)
     // LLQL
     case e: Initialise => run(e)
+    case e: Update     => run(e)
+    case e: Modify     => run(e)
     case _             => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
 
   private def run(e: IfThenElse)(implicit ctx: Ctx): Type = e match {
-    case IfThenElse(a, Const(false), Const(true))          => run(a)
-    case IfThenElse(_, DictNode(Nil, _), DictNode(Nil, _)) => raise("both branches empty")
-    case IfThenElse(_, DictNode(Nil, _), e2)               => run(e2)
-    case IfThenElse(_, e1, DictNode(Nil, _))               => run(e1)
-    case _: IfThenElse                                     => branching(e)
+    case IfThenElse(a, Const(false), Const(true)) => run(a)
+    case IfThenElse(_,
+                    DictNode(Nil, _) | Update(DictNode(Nil, _), _, _),
+                    DictNode(Nil, _) | Update(DictNode(Nil, _), _, _)) =>
+      raise("both branches empty")
+    case IfThenElse(_, DictNode(Nil, _) | Update(DictNode(Nil, _), _, _), e2) => run(e2)
+    case IfThenElse(_, e1, DictNode(Nil, _) | Update(DictNode(Nil, _), _, _)) => run(e1)
+    case _: IfThenElse                                                        => branching(e)
   }
 
   private def run(e: Sum)(implicit ctx: Ctx): Type = e match {
@@ -163,13 +168,6 @@ object TypeInference {
         case tpe =>
           raise(s"$name expect arg ${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}")
       }
-    case External(name @ Limit.SYMBOL, args) =>
-      val arg = args match { case Seq(e, _, _) => e }
-      run(arg) match {
-        case tpe: DictType => tpe
-        case tpe =>
-          raise(s"$name expects arg ${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}")
-      }
     case External(TopN.SYMBOL, _) =>
       raise(s"unimplemented function name: ${TopN.SYMBOL}")
     case External(CStore.SYMBOL, _) =>
@@ -277,5 +275,8 @@ object TypeInference {
 
   private def run(e: Unique)(implicit ctx: Ctx): Type = e match { case Unique(e: Exp) => run(e) }
 
-  private def run(e: Initialise): Type = e match { case Initialise(tpe, _, _) => tpe }
+  // LLQL
+  private def run(e: Initialise): Type                = e match { case Initialise(tpe, _, _) => tpe }
+  private def run(e: Update)(implicit ctx: Ctx): Type = e match { case Update(e, _, _)       => run(e) }
+  private def run(e: Modify)(implicit ctx: Ctx): Type = e match { case Modify(e, _)          => run(e) }
 }

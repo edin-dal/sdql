@@ -4,14 +4,14 @@ import sdql.ir.*
 import sdql.raise
 
 object LLQLUtils {
-  def run(e: Initialise)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String = e match {
+  def run(e: Initialise)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
     case Initialise(tpe, agg, e) =>
-      val initialiseCpp = initialise(tpe)(agg, typesCtx, callsCtx, isTernary)
+      val initialiseCpp = initialise(tpe)(agg, typesCtx, isTernary)
       s"${cppType(tpe)}($initialiseCpp); ${CppCodegen.run(e)}"
   }
   private def initialise(
     tpe: Type
-  )(implicit agg: Aggregation, typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean): String =
+  )(implicit agg: Aggregation, typesCtx: TypesCtx, isTernary: Boolean): String =
     tpe match {
       case DictType(_, _, PHmap(Some(e)))                => CppCodegen.run(e)
       case DictType(_, _, PHmap(None) | _: SmallVecDict) => "{}"
@@ -49,7 +49,7 @@ object LLQLUtils {
       case tpe                 => raise(s"unimplemented type: $tpe")
     }
 
-  def run(e: Update)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+  def run(e: Update)(implicit typesCtx: TypesCtx): String = e match {
     case Update(e, agg, destination) =>
       val (lhs, rhs) = cppLhsRhs(e, destination)
       agg match {
@@ -60,22 +60,21 @@ object LLQLUtils {
       }
   }
 
-  def run(e: Modify)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx): String = e match {
+  def run(e: Modify)(implicit typesCtx: TypesCtx): String = e match {
     case Modify(e, destination) =>
       val (lhs, rhs) = cppLhsRhs(e, destination)
       s"$lhs = $rhs;"
   }
 
-  private def cppLhsRhs(e: Exp, destination: String)(implicit typesCtx: TypesCtx, callsCtx: CallsCtx) = {
+  private def cppLhsRhs(e: Exp, destination: Sym)(implicit typesCtx: TypesCtx) = {
     val (accessors, inner) = splitNested(e)
-    val callsLocal         = Seq(SumEnd) ++ callsCtx
-    val bracketed          = cppAccessors(accessors)(typesCtx, callsLocal, isTernary = true)
-    val lhs                = s"$destination$bracketed"
-    val rhs                = CppCodegen.run(inner)(typesCtx, callsLocal, isTernary = true)
+    val bracketed          = cppAccessors(accessors)(typesCtx, isTernary = true)
+    val lhs                = s"${destination.name}$bracketed"
+    val rhs                = CppCodegen.run(inner)(typesCtx, isTernary = true)
     (lhs, rhs)
   }
 
-  private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, callsCtx: CallsCtx, isTernary: Boolean) =
+  private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, isTernary: Boolean) =
     exps.map(e => { s"[${CppCodegen.run(e)}]" }).mkString("")
 
   private def splitNested(e: Exp): (Seq[Exp], Exp) = e match {

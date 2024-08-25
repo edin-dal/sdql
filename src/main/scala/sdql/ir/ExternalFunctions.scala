@@ -5,10 +5,8 @@ abstract class ExternalFactory(symbol: String) {
   val SYMBOL: String       = symbol
   def apply(es: Exp*): Exp = External(symbol, es.toSeq)
   def unapplySeq(e: Exp): Option[Seq[Exp]] = e match {
-    case External(sym, seq) if sym == symbol =>
-      Some(seq)
-    case _ =>
-      None
+    case External(sym, seq) if sym == symbol => Some(seq)
+    case _                                   => None
   }
 }
 object ExternalFunctions {
@@ -28,5 +26,4 @@ object ExternalFunctions {
   object Inv            extends ExternalFactory("inv")
   object Log            extends ExternalFactory("log")
   object Size           extends ExternalFactory("Size")
-  object Limit          extends ExternalFactory("Limit")
 }

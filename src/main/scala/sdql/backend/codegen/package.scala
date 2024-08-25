@@ -4,11 +4,8 @@ import sdql.analysis.TypeInference
 import sdql.ir.*
 import sdql.raise
 
-import scala.collection.Seq
-
 package object codegen {
   type TypesCtx = TypeInference.Ctx
-  type CallsCtx = Seq[CallCtx]
 
   val resultName = "result"
 
