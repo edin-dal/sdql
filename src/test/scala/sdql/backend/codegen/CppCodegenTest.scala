@@ -8,7 +8,7 @@ import sdql.frontend.{ Interpolator, SourceCode }
 import sdql.ir.{ Exp, RecordValue }
 import sdql.transformations.Rewriter
 
-// comprehensive subset of tests from the parser useful for TPCH
+// comprehensive subset of tests from the interpreter useful for TPCH
 class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
 
   it should "codegen constant true" in { CodegenHelpers.compilesExp(sdql"true") }
