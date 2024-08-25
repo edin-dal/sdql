@@ -81,10 +81,10 @@ object LoweringLoad {
         // 3-ary
         case IfThenElse(e1, e2, e3) => iterExps(e1) ++ iterExps(e2) ++ iterExps(e3)
         // n-ary
-        case RecNode(values)                => values.map(_._2).flatMap(iterExps)
-        case DictNode(dict, PHmap(Some(e))) => dict.flatMap(x => iterExps(x._1) ++ iterExps(x._2)) ++ iterExps(e)
-        case DictNode(dict, _)              => dict.flatMap(x => iterExps(x._1) ++ iterExps(x._2))
-        case External(_, args)              => args.flatMap(iterExps)
+        case RecNode(values)               => values.map(_._2).flatMap(iterExps)
+        case DictNode(map, PHmap(Some(e))) => map.flatMap(x => iterExps(x._1) ++ iterExps(x._2)) ++ iterExps(e)
+        case DictNode(map, _)              => map.flatMap(x => iterExps(x._1) ++ iterExps(x._2))
+        case External(_, args)             => args.flatMap(iterExps)
         // LLQL
         case Initialise(_, _, e) => iterExps(e)
         case Update(e, _, _)     => iterExps(e)

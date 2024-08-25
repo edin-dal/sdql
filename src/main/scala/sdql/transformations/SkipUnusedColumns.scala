@@ -38,10 +38,11 @@ private object SkipUnusedColumns extends TermRewriter {
     // 3-ary
     case IfThenElse(e1, e2, e3) => IfThenElse(run(e1), run(e2), run(e3))
     // n-ary
-    case RecNode(values)      => RecNode(values.map(v => (v._1, run(v._2))))
-    case DictNode(map, hint)  => DictNode(map.map(x => (run(x._1), run(x._2))), hint)
-    case External(name, args) => External(name, args.map(run(_)))
-    case _                    => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
+    case RecNode(values)               => RecNode(values.map(v => (v._1, run(v._2))))
+    case DictNode(map, PHmap(Some(e))) => DictNode(map.map(x => (run(x._1), run(x._2))), PHmap(Some(run(e))))
+    case DictNode(map, hint)           => DictNode(map.map(x => (run(x._1), run(x._2))), hint)
+    case External(name, args)          => External(name, args.map(run(_)))
+    case _                             => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
 
   @tailrec
@@ -70,10 +71,11 @@ private object SkipUnusedColumns extends TermRewriter {
     // 3-ary
     case IfThenElse(e1, e2, e3) => sumColumns(sumColumns(find(e1), find(e2)), find(e3))
     // n-ary
-    case RecNode(values)   => sumColumns(values.map(_._2).map(find))
-    case DictNode(map, _)  => sumColumns((map.map(_._1) ++ map.map(_._2)).map(find))
-    case External(_, args) => sumColumns(args.map(find))
-    case _                 => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
+    case RecNode(values)               => sumColumns(values.map(_._2).map(find))
+    case DictNode(map, PHmap(Some(e))) => sumColumns((map.map(_._1) ++ map.map(_._2)).map(find) ++ Seq(find(e)))
+    case DictNode(map, _)              => sumColumns((map.map(_._1) ++ map.map(_._2)).map(find))
+    case External(_, args)             => sumColumns(args.map(find))
+    case _                             => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
   private def sumColumns(cols: Iterable[Columns]): Columns = cols.foldLeft[Columns](Map()) { (acc, cols) =>
     sumColumns(acc, cols)

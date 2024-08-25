@@ -84,9 +84,10 @@ private object LowerToLLQL extends TermRewriter {
     // 3-ary
     case IfThenElse(e1, e2, e3) => IfThenElse(run(e1), run(e2), run(e3))
     // n-ary
-    case RecNode(values)      => RecNode(values.map(v => (v._1, run(v._2))))
-    case DictNode(map, hint)  => DictNode(map.map(x => (run(x._1), run(x._2))), hint)
-    case External(name, args) => External(name, args.map(run))
-    case _                    => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
+    case RecNode(values)               => RecNode(values.map(v => (v._1, run(v._2))))
+    case DictNode(map, PHmap(Some(e))) => DictNode(map.map(x => (run(x._1), run(x._2))), PHmap(Some(run(e))))
+    case DictNode(map, hint)           => DictNode(map.map(x => (run(x._1), run(x._2))), hint)
+    case External(name, args)          => External(name, args.map(run))
+    case _                             => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
 }
