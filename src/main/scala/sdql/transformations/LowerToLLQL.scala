@@ -1,8 +1,6 @@
 package sdql.transformations
 
 import sdql.analysis.TypeInference
-
-import sdql.backend.codegen.SumUtils
 import sdql.ir.*
 import sdql.raise
 
@@ -29,7 +27,7 @@ private object LowerToLLQL extends TermRewriter {
   }
 
   private def sumBodyToLLQL(e: Exp, dest: Sym)(implicit ctx: TypesCtx) =
-    if (isUpdate(e)) Update(e, getAggregation(e), dest) else Modify(e, dest)
+    if (isUpdate(e)) Update(e, Aggregation.fromExpression(e), dest) else Modify(e, dest)
 
   private def isUpdate(e: Exp)(implicit ctx: TypesCtx) = sumHint(e) match {
     case Some(_: PHmap) if cond(e) { case dict: DictNode => checkIsUnique(dict) } => false
@@ -51,14 +49,9 @@ private object LowerToLLQL extends TermRewriter {
     e match {
       case Sum(k, v, e1, e2) =>
         val (tpe, ctxLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
-        val agg             = getAggregation(getSumBody(e2))
+        val agg             = Aggregation.fromExpression(getSumBody(e2))
         Initialise(tpe, agg, Sum(k, v, e1, run(e2)(ctxLocal, dest)))
     }
-
-  private def getAggregation(e: Exp): Aggregation = e match {
-    case Promote(tp, _) => SumUtils.getAggregation(tp)
-    case _              => SumAgg
-  }
 
   @tailrec
   private def getSumBody(e: Exp): Exp = e match {

@@ -102,3 +102,23 @@ object ScalarType {
 case class Attribute(name: Field, tpe: Type)
 
 abstract class CustomSemiRingType(val name: String, val params: Seq[Any]) extends Type
+
+sealed trait Aggregation
+case object SumAgg  extends Aggregation
+case object ProdAgg extends Aggregation
+case object MinAgg  extends Aggregation
+case object MaxAgg  extends Aggregation
+
+object Aggregation {
+  def fromType(tp: Type): Aggregation = tp match {
+    case TropicalSemiRingType(false, false, _) => MinAgg
+    case TropicalSemiRingType(true, false, _)  => MaxAgg
+    case TropicalSemiRingType(_, true, _)      => ProdAgg
+    case _                                     => raise(s"unexpected: ${tp.prettyPrint}")
+  }
+
+  def fromExpression(e: Exp): Aggregation = e match {
+    case Promote(tp, _) => Aggregation.fromType(tp)
+    case _              => SumAgg
+  }
+}

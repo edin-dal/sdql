@@ -59,7 +59,6 @@ object CppCodegen {
       case e: Promote    => run(e)
       case e: Unique     => run(e)
       case e: RangeNode  => run(e)
-      // LLQL
       case e: Initialise => LLQLUtils.run(e)
       case e: Update     => LLQLUtils.run(e)
       case e: Modify     => LLQLUtils.run(e)
@@ -88,7 +87,24 @@ object CppCodegen {
       e1Cpp + e2Cpp
   }
 
-  def run(e: Sum)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = SumUtils.run(e)
+  def run(e: Sum)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
+    case Sum(k, v, e1, e2) =>
+      val (_, typesLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
+      val body            = CppCodegen.run(e2)(typesLocal, isTernary)
+      val head = e1 match {
+        case _: RangeNode => s"${cppType(IntType)} ${k.name} = 0; ${k.name} < ${CppCodegen.run(e1)}; ${k.name}++"
+        case _ =>
+          val lhs = TypeInference.run(e1)(typesLocal) match {
+            case DictType(_, _, _: PHmap)         => s"&[${k.name}, ${v.name}]"
+            case DictType(_, _, _: SmallVecDict)  => s"&${k.name}"
+            case DictType(_, _, _: SmallVecDicts) => s"${k.name}"
+            case t                                => raise(s"unexpected: ${t.prettyPrint}")
+          }
+          val rhs = CppCodegen.run(e1)(typesLocal, isTernary)
+          s"auto $lhs : $rhs"
+      }
+      s"for ($head) { $body }"
+  }
 
   private def run(e: IfThenElse)(implicit typesCtx: TypesCtx, isTernary: Boolean): String =
     e match {
@@ -149,7 +165,7 @@ object CppCodegen {
   private def run(e: Add)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
     case Add(Promote(tp1, e1), Promote(tp2, e2)) =>
       assert(tp1 == tp2)
-      SumUtils.getAggregation(tp1) match {
+      Aggregation.fromType(tp1) match {
         case MinAgg  => s"std::min(${run(e1)}, ${run(e2)})"
         case MaxAgg  => s"std::max(${run(e1)}, ${run(e2)})"
         case ProdAgg => s"${run(e1)} * ${run(e2)}"
@@ -229,10 +245,10 @@ object CppCodegen {
   }
 
   private def run(e: Unique)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
-    case Unique(e) => run(e) // handled in sum
+    case Unique(e) => run(e)
   }
 
   private def run(e: RangeNode)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
-    case RangeNode(e) => run(e) // handled in sum
+    case RangeNode(e) => run(e)
   }
 }
