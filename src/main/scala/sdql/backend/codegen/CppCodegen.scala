@@ -7,15 +7,13 @@ import sdql.backend.codegen.LoweringType.cppType
 import sdql.ir.*
 import sdql.ir.ExternalFunctions.{ ConstantString, Inv }
 import sdql.raise
-import sdql.transformations.Rewriter
 
 import scala.PartialFunction.cond
 
 object CppCodegen {
   def apply(e: Exp, benchmarkRuns: Int = 0): String = {
-    val rewrite   = Rewriter(e)
-    val csvBody   = cppCsvs(rewrite)
-    val queryBody = run(rewrite)(Map(), isTernary = false)
+    val csvBody   = cppCsvs(e)
+    val queryBody = run(e)(Map(), isTernary = false)
     val benchStart =
       if (benchmarkRuns == 0) ""
       else
@@ -24,7 +22,7 @@ object CppCodegen {
            |timer.Reset();
            |""".stripMargin
     val benchStop =
-      if (benchmarkRuns == 0) cppPrintResult(TypeInference(rewrite))
+      if (benchmarkRuns == 0) cppPrintResult(TypeInference(e))
       else
         s"""timer.StoreElapsedTime(0);
            |doNotOptimiseAway($resultName);

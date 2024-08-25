@@ -6,6 +6,7 @@ import sdql.backend.CppCodegen
 import sdql.backend.CppCompile.{ clangCmd, inGeneratedDir }
 import sdql.frontend.{ Interpolator, SourceCode }
 import sdql.ir.{ Exp, RecordValue }
+import sdql.transformations.Rewriter
 
 // comprehensive subset of tests from the parser useful for TPCH
 class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
@@ -521,7 +522,7 @@ class CppCodegenTestFJ extends AnyFlatSpec with ParallelTestExecution {
 
 object CodegenHelpers {
   def compilesFile(path: String): Unit = compilesExp(SourceCode.fromFile(path).exp)
-  def compilesExp(e: Exp): Unit        = assert(fromCpp(CppCodegen(e)) == 0)
+  def compilesExp(e: Exp): Unit        = assert(fromCpp(CppCodegen(Rewriter(e))) == 0)
   private def fromCpp(cpp: String)     = inGeneratedDir(Seq("bash", "-c", cmd(escape(cpp)))).run().exitValue()
   private def cmd(cpp: String)         = s"${clangCmd.mkString(" ")} -xc++ -fsyntax-only - <<< '$cpp'"
   // silly hack - escape single quotes in C++ source code so we can pass it to bash

@@ -4,11 +4,11 @@ package driver
 import sdql.backend.*
 import sdql.frontend.*
 import sdql.ir.*
+import sdql.transformations.Rewriter
 
 import java.nio.file.Path
 
 object Main {
-
   def main(args: Array[String]): Unit = {
     if (args.length < 1) { raise("usage: `run <cmd> <args>*`") }
     args(0) match {
@@ -32,7 +32,8 @@ object Main {
         for (fileName <- fileNames) {
           val filePath = dirPath.resolve(fileName)
           val prog     = SourceCode.fromFile(filePath.toString).exp
-          val res      = CppCodegen(prog)
+          val llql     = Rewriter.apply(prog)
+          val res      = CppCodegen(llql)
           println(fileName)
           println(CppCompile.compile(filePath.toString, res))
           println()
@@ -45,7 +46,8 @@ object Main {
         for (fileName <- fileNames) {
           val filePath = dirPath.resolve(fileName)
           val prog     = SourceCode.fromFile(filePath.toString).exp
-          val res      = CppCodegen(prog, benchmarkRuns = n)
+          val llql     = Rewriter.apply(prog)
+          val res      = CppCodegen(llql, benchmarkRuns = n)
           CppCompile.writeFormat(filePath.toString, res)
         }
       case arg => raise(s"`run $arg` not supported")

@@ -5,6 +5,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.{ ParallelTestExecution, Tag }
 import sdql.backend.CppCompile.compile
 import sdql.frontend.SourceCode
+import sdql.transformations.Rewriter
 
 class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 
@@ -489,7 +490,8 @@ class CppCompileTestFJ extends AnyFlatSpec with ParallelTestExecution {
 object CompileHelpers {
   def assertOutputs(sdqlPath: String, outPath: String, tpchPatch: Boolean = false): Unit = {
     val code   = SourceCode.fromFile(sdqlPath, if (tpchPatch) patch else identity)
-    val cpp    = CppCodegen(code.exp)
+    val llql   = Rewriter(code.exp)
+    val cpp    = CppCodegen(llql)
     val actual = compile(sdqlPath, cpp)
     val source = scala.io.Source.fromFile(outPath)
     val expected = try source.mkString
