@@ -207,7 +207,8 @@ object TypeInference {
     case Concat(e1, e2) =>
       (run(e1), run(e2)) match {
         case (t1: RecordType, t2: RecordType) => t1.concat(t2)
-        case (v1, v2)                         => raise(s"`concat($v1,$v2)` needs records, but given `${v1.prettyPrint}`, `${v2.prettyPrint}`")
+        case (v1, v2) =>
+          raise(s"`concat($v1,$v2)` needs records, but given `${v1.prettyPrint}`, `${v2.prettyPrint}`")
       }
   }
 
