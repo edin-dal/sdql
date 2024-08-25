@@ -17,12 +17,15 @@ private object LowerToLLQL extends TermRewriter {
   private def run(e: Exp)(implicit ctx: TypesCtx, dest: Option[Sym]): Exp = e match {
     case LetBinding(x, e1: Sum, e2) => run(LetBinding(x, sumToInitialise(e1)(ctx, Some(x)), e2))
     case LetBinding(x, e1, e2)      => LetBinding(x, e1, run(e2)(ctx ++ Map(x -> TypeInference.run(e1)), dest))
+    case IfThenElse(cond, e1, e2)   => IfThenElse(cond, run(e1), run(e2))
     case Sum(key, value, e1, e2) =>
       val (_, ctxLocal) = TypeInference.sumInferTypeAndCtx(key, value, e1, e2)
       Sum(key, value, run(e1)(ctx, None), run(e2)(ctxLocal, dest))
-    case IfThenElse(cond, e1, e2) => IfThenElse(cond, run(e1), run(e2))
-    case _ if dest.isDefined      => (dest: @unchecked) match { case Some(dest) => sumBodyToLLQL(e, dest)(ctx) }
-    case _                        => runInner(e)
+    case _ =>
+      dest match {
+        case Some(dest) => sumBodyToLLQL(e, dest)(ctx)
+        case None       => runInner(e)
+      }
   }
 
   private def sumBodyToLLQL(e: Exp, dest: Sym)(implicit ctx: TypesCtx) =
@@ -35,8 +38,7 @@ private object LowerToLLQL extends TermRewriter {
   }
 
   private def sumHint(e: Exp)(implicit ctx: TypesCtx) = e match {
-    case DictNode(Nil, _) => None
-    case dict: DictNode =>
+    case dict @ DictNode(map, _) if map.nonEmpty =>
       (TypeInference.run(dict.getInnerDict): @unchecked) match { case DictType(_, _, hint) => Some(hint) }
     case _ => None
   }

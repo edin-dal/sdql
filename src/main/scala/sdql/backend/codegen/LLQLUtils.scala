@@ -9,9 +9,8 @@ object LLQLUtils {
       val initialiseCpp = initialise(tpe)(agg, typesCtx, isTernary)
       s"${cppType(tpe)}($initialiseCpp); ${CppCodegen.run(e)}"
   }
-  private def initialise(
-    tpe: Type
-  )(implicit agg: Aggregation, typesCtx: TypesCtx, isTernary: Boolean): String =
+
+  private def initialise(tpe: Type)(implicit agg: Aggregation, typesCtx: TypesCtx, isTernary: Boolean): String =
     tpe match {
       case DictType(_, _, PHmap(Some(e)))                => CppCodegen.run(e)
       case DictType(_, _, PHmap(None) | _: SmallVecDict) => "{}"
