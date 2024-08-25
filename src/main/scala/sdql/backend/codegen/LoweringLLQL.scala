@@ -1,9 +1,10 @@
 package sdql.backend.codegen
 
+import sdql.backend.codegen.LoweringType.cppType
 import sdql.ir.*
 import sdql.raise
 
-object LLQLUtils {
+object LoweringLLQL {
   def run(e: Initialise)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
     case Initialise(tpe, agg, e) =>
       val initialiseCpp = initialise(tpe)(agg, typesCtx, isTernary)

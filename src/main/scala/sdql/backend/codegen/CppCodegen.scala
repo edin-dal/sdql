@@ -1,6 +1,9 @@
 package sdql.backend.codegen
 
 import sdql.analysis.TypeInference
+import sdql.backend.codegen.CppPrinting.cppPrintResult
+import sdql.backend.codegen.LoweringLoad.cppCsvs
+import sdql.backend.codegen.LoweringType.cppType
 import sdql.ir.*
 import sdql.ir.ExternalFunctions.{ ConstantString, Inv }
 import sdql.raise
@@ -11,7 +14,7 @@ import scala.PartialFunction.cond
 object CppCodegen {
   def apply(e: Exp, benchmarkRuns: Int = 0): String = {
     val rewrite   = Rewriter(e)
-    val csvBody   = ReadUtils.cppCsvs(rewrite)
+    val csvBody   = cppCsvs(rewrite)
     val queryBody = run(rewrite)(Map(), isTernary = false)
     val benchStart =
       if (benchmarkRuns == 0) ""
@@ -21,7 +24,7 @@ object CppCodegen {
            |timer.Reset();
            |""".stripMargin
     val benchStop =
-      if (benchmarkRuns == 0) PrintUtils.cppPrintResult(TypeInference(rewrite))
+      if (benchmarkRuns == 0) cppPrintResult(TypeInference(rewrite))
       else
         s"""timer.StoreElapsedTime(0);
            |doNotOptimiseAway($resultName);
@@ -58,9 +61,9 @@ object CppCodegen {
       case e: Promote    => run(e)
       case e: Unique     => run(e)
       case e: RangeNode  => run(e)
-      case e: Initialise => LLQLUtils.run(e)
-      case e: Update     => LLQLUtils.run(e)
-      case e: Modify     => LLQLUtils.run(e)
+      case e: Initialise => LoweringLLQL.run(e)
+      case e: Update     => LoweringLLQL.run(e)
+      case e: Modify     => LoweringLLQL.run(e)
       case _             => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
     }
 
@@ -214,7 +217,7 @@ object CppCodegen {
   }
 
   private def run(e: External)(implicit typesCtx: TypesCtx, isTernary: Boolean): String =
-    ExternalUtils.run(e)
+    LoweringExternal.run(e)
 
   private def run(e: Concat)(implicit typesCtx: TypesCtx): String = e match {
     case Concat(e1: RecNode, e2: RecNode) => run(e1.concat(e2))

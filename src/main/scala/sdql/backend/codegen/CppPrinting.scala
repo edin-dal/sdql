@@ -3,7 +3,7 @@ package sdql.backend.codegen
 import sdql.ir.*
 import sdql.raise
 
-object PrintUtils {
+object CppPrinting {
   def cppPrintResult(tpe: Type): String = tpe match {
     case DictType(kt, vt, _: PHmap) =>
       s"""for (const auto &[key, val] : $resultName) {

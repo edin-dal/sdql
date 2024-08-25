@@ -1,12 +1,13 @@
 package sdql.backend.codegen
 
 import sdql.analysis.TypeInference
+import sdql.backend.codegen.LoweringType.cppType
 import sdql.ir.*
 import sdql.raise
 
 import scala.PartialFunction.condOpt
 
-object ReadUtils {
+object LoweringLoad {
   def cppCsvs(e: Exp): String = {
     val pathNameTypeSkip = iterExps(e).flatMap(extract).toSeq.distinct.sortBy(_._2)
 
