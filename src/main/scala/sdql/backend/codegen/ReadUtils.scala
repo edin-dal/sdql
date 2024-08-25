@@ -92,7 +92,11 @@ object ReadUtils {
         case RecNode(values)   => values.map(_._2).flatMap(iterExps)
         case DictNode(dict, _) => dict.flatMap(x => iterExps(x._1) ++ iterExps(x._2))
         case External(_, args) => args.flatMap(iterExps)
-        case _                 => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
+        // LLQL
+        case Initialise(_, _, e) => iterExps(e)
+        case Update(e, _, _)     => iterExps(e)
+        case Modify(e, _)        => iterExps(e)
+        case _                   => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
       }
     )
 }

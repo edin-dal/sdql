@@ -11,11 +11,10 @@ object Rewriter {
     SkipUnusedColumns,
     RemoveIntermediateTuples,
     BindFreeExpression,
+    LowerToLLQL,
   )
 
   def apply(e: Exp): Exp = rewriters.foldLeft(e) { (acc, f) =>
     f(acc)
   }
-
-  def toLLQL: Exp => Exp = LowerToLLQL.apply
 }
