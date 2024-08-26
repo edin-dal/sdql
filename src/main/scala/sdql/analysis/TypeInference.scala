@@ -15,32 +15,8 @@ object TypeInference {
   def apply(e: Exp): Type = run(e)(Map())
 
   def run(e: Exp)(implicit ctx: Ctx): Type = e match {
-    case e: Sum        => run(e)
-    case e: IfThenElse => run(e)
-    case e: Add        => run(e)
-    case e: Mult       => run(e)
-    case e: Neg        => run(e)
-    case e: Sym        => run(e)
-    case e: DictNode   => run(e)
-    case e: RecNode    => run(e)
-    case e: Cmp        => run(e)
-    case e: FieldNode  => run(e)
-    case e: Const      => run(e)
-    case e: Get        => run(e)
-    case e: External   => run(e)
-    case e: LetBinding => run(e)
-    case e: Load       => run(e)
-    case e: Concat     => run(e)
-    case e: Promote    => run(e)
-    case e: Unique     => run(e)
-    // LLQL
-    case e: Initialise => run(e)
-    case e: Update     => run(e)
-    case e: Modify     => run(e)
-    case _             => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
-  }
+    case Sum(k, v, e1, e2) => sumInferTypeAndCtx(k, v, e1, e2)._1
 
-  private def run(e: IfThenElse)(implicit ctx: Ctx): Type = e match {
     case IfThenElse(a, Const(false), Const(true)) => run(a)
     case IfThenElse(_,
                     DictNode(Nil, _) | Update(DictNode(Nil, _), _, _),
@@ -49,40 +25,27 @@ object TypeInference {
     case IfThenElse(_, DictNode(Nil, _) | Update(DictNode(Nil, _), _, _), e2) => run(e2)
     case IfThenElse(_, e1, DictNode(Nil, _) | Update(DictNode(Nil, _), _, _)) => run(e1)
     case _: IfThenElse                                                        => branching(e)
-  }
 
-  private def run(e: Sum)(implicit ctx: Ctx): Type = e match {
-    case Sum(k, v, e1, e2) => sumInferTypeAndCtx(k, v, e1, e2)._1
-  }
+    case _: Add => branching(e)
 
-  private def run(e: Add)(implicit ctx: Ctx): Type = branching(e)
+    case _: Mult => branching(e)
 
-  private def run(e: Mult)(implicit ctx: Ctx): Type = branching(e)
+    case Neg(e) => run(e)
 
-  private def run(e: Neg)(implicit ctx: Ctx): Type = e match { case Neg(e) => run(e) }
-
-  private def run(e: Sym)(implicit ctx: Ctx): Type = e match {
     case sym @ Sym(name) =>
       ctx.get(sym) match {
         case Some(tpe) => tpe
         case None      => raise(s"unknown name: $name")
       }
-  }
 
-  private def run(e: DictNode)(implicit ctx: Ctx): DictType = e match {
-    case DictNode(Nil, _) =>
-      raise("Type inference needs backtracking to infer empty type { }")
+    case DictNode(Nil, _) => raise("Type inference needs backtracking to infer empty type { }")
     case DictNode(seq, hint) =>
       DictType(seq.map(_._1).map(run).reduce(promote), seq.map(_._2).map(run).reduce(promote), hint)
-  }
 
-  private def run(e: RecNode)(implicit ctx: Ctx): RecordType = e match {
     case RecNode(values) => RecordType(values.map(v => Attribute(name = v._1, tpe = run(v._2))))
-  }
 
-  private def run(e: Cmp): Type = BoolType
+    case _: Cmp => BoolType
 
-  private def run(e: FieldNode)(implicit ctx: Ctx): Type = e match {
     case FieldNode(e1: Exp, field) =>
       run(e1) match {
         case rt @ RecordType(attrs) =>
@@ -92,9 +55,7 @@ object TypeInference {
           }
         case tpe => raise(s"unexpected type: ${tpe.prettyPrint} in\n${e.prettyPrint}")
       }
-  }
 
-  private def run(e: Const): Type = e match {
     case Const(v) =>
       v match {
         case _: DateValue => DateType
@@ -104,9 +65,7 @@ object TypeInference {
         case _: String    => StringType()
         case v            => raise(s"unhandled class: ${v.getClass.getSimpleName}")
       }
-  }
 
-  private def run(e: Get)(implicit ctx: Ctx): Type = e match {
     case Get(e1, e2) =>
       run(e1) match {
         case RecordType(attrs) =>
@@ -115,22 +74,15 @@ object TypeInference {
               e2 match {
                 case Const(v: Int) => attrs(v).tpe
                 case tpe =>
-                  raise(
-                    s"expected ${Const.getClass.getSimpleName.init}, not ${tpe.simpleName}"
-                  )
+                  raise(s"expected ${Const.getClass.getSimpleName.init}, not ${tpe.simpleName}")
               }
-            case tpe =>
-              raise(
-                s"expected ${IntType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
-              )
+            case tpe => raise(s"expected ${IntType.getClass.getSimpleName.init}, not ${tpe.simpleName}")
           }
         case DictType(kType, vType, _) =>
           run(e2) match {
             case tpe if tpe == kType => vType
             case tpe =>
-              raise(
-                s"can't index with ${tpe.simpleName} from ${DictType.getClass.getSimpleName.init}"
-              )
+              raise(s"can't index with ${tpe.simpleName} from ${DictType.getClass.getSimpleName.init}")
           }
         case tpe =>
           raise(
@@ -138,15 +90,12 @@ object TypeInference {
               s"${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}"
           )
       }
-  }
 
-  private def run(e: External)(implicit ctx: Ctx): Type = e match {
     case External(ConstantString.SYMBOL, args) =>
       val (str, maxLen) = args match { case Seq(Const(str: String), Const(maxLen: Int)) => (str, maxLen) }
       assert(maxLen == str.length + 1)
       StringType(Some(str.length))
-    case External(StrContains.SYMBOL | StrStartsWith.SYMBOL | StrEndsWith.SYMBOL | StrContainsN.SYMBOL, _) =>
-      BoolType
+    case External(StrContains.SYMBOL | StrStartsWith.SYMBOL | StrEndsWith.SYMBOL | StrContainsN.SYMBOL, _) => BoolType
     case External(SubString.SYMBOL, args) =>
       val (str, start, end) = args match { case Seq(str, Const(start: Int), Const(end: Int)) => (str, start, end) }
       TypeInference.run(str) match {
@@ -154,10 +103,8 @@ object TypeInference {
         case StringType(Some(_)) => StringType(Some(end - start))
         case t                   => raise(s"unexpected: ${t.prettyPrint}")
       }
-    case External(StrIndexOf.SYMBOL | FirstIndex.SYMBOL | LastIndex.SYMBOL | Year.SYMBOL, _) =>
-      IntType
-    case External(ParseDate.SYMBOL, _) =>
-      DateType
+    case External(StrIndexOf.SYMBOL | FirstIndex.SYMBOL | LastIndex.SYMBOL | Year.SYMBOL, _) => IntType
+    case External(ParseDate.SYMBOL, _)                                                       => DateType
     case External(Inv.SYMBOL, args) =>
       val arg = args match { case Seq(e) => e }
       run(arg)
@@ -168,88 +115,43 @@ object TypeInference {
         case tpe =>
           raise(s"$name expect arg ${DictType.getClass.getSimpleName.init}, not ${tpe.simpleName}")
       }
-    case External(TopN.SYMBOL, _) =>
-      raise(s"unimplemented function name: ${TopN.SYMBOL}")
-    case External(CStore.SYMBOL, _) =>
-      raise(s"unimplemented function name: ${CStore.SYMBOL}")
-    case External(Log.SYMBOL, _) =>
-      raise(s"unimplemented function name: ${Log.SYMBOL}")
-    case External(name, _) =>
-      raise(s"unknown function name: $name")
-  }
+    case External(TopN.SYMBOL, _)   => raise(s"unimplemented function name: ${TopN.SYMBOL}")
+    case External(CStore.SYMBOL, _) => raise(s"unimplemented function name: ${CStore.SYMBOL}")
+    case External(Log.SYMBOL, _)    => raise(s"unimplemented function name: ${Log.SYMBOL}")
+    case External(name, _)          => raise(s"unknown function name: $name")
 
-  private def run(e: Load): Type = e match {
-    case Load(_, rt: RecordType, skipCols) if isColumnStore(rt) && skipCols.isSetNode =>
-      val set = skipCols.toSkipColsSet
-      RecordType(rt.attrs.filter(attr => !set.contains(attr.name)))
-    case Load(_, tp, _) => raise(s"unexpected: ${tp.prettyPrint}")
-  }
-
-  def isColumnStore(rt: RecordType): Boolean = {
-    rt("size") match {
-      case Some(IntType) =>
-      case _             => return false
-    }
-    rt match {
-      case RecordType(attrs) =>
-        attrs.filter(_.name != "size").map(_.tpe).forall(cond(_) { case DictType(IntType, _, _) => true })
-    }
-  }
-
-  private def run(e: LetBinding)(implicit ctx: Ctx): Type = e match {
     case LetBinding(Sym(name), e1, DictNode(Nil, _)) if name == resultName => run(e1)
     case LetBinding(x, e1, e2) =>
       val t1 = TypeInference.run(e1)
       TypeInference.run(e2)(ctx ++ Map(x -> t1))
-  }
 
-  private def run(e: Concat)(implicit ctx: Ctx): Type = e match {
+    case e: Load =>
+      e match {
+        case Load(_, rt: RecordType, skipCols) if isColumnStore(rt) && skipCols.isSetNode =>
+          val set = skipCols.toSkipColsSet
+          RecordType(rt.attrs.filter(attr => !set.contains(attr.name)))
+        case Load(_, tp, _) => raise(s"unexpected: ${tp.prettyPrint}")
+      }
+
     case Concat(e1, e2) =>
       (run(e1), run(e2)) match {
         case (t1: RecordType, t2: RecordType) => t1.concat(t2)
         case (v1, v2) =>
           raise(s"`concat($v1,$v2)` needs records, but given `${v1.prettyPrint}`, `${v2.prettyPrint}`")
       }
-  }
 
-  private def branching(e: Exp)(implicit ctx: Ctx): Type = {
-    val (e1, e2) = e match {
-      // and case
-      case IfThenElse(a, b, Const(false)) =>
-        (a, b)
-      // or case
-      case IfThenElse(a, Const(true), b) =>
-        (a, b)
-      case IfThenElse(cond, e1, e2) =>
-        assert(run(cond) == BoolType)
-        (e1, e2)
-      case Add(e1, e2)  => (e1, e2)
-      case Mult(e1, e2) => (e1, e2)
-      case _            => raise(s"unhandled class: ${e.simpleName}")
-    }
-    val t1 = run(e1)
-    val t2 = run(e2)
-    promote(t1, t2)
-  }
+    case Promote(_: TropicalSemiRingType, e) => run(e)
+    case Promote(tp, _)                      => tp
 
-  private def promote(t1: Type, t2: Type): Type =
-    (t1, t2) match {
-      case (IntType, DateType) | (DateType, IntType) =>
-        IntType
-      case (IntType, RealType) | (RealType, IntType) =>
-        RealType
-      case (DictType(kt1, vt1, hint1), DictType(kt2, vt2, hint2)) =>
-        assert(hint1 == hint2)
-        DictType(promote(kt1, kt2), promote(vt1, vt2))
-      case (DictType(kt, vt, hint), t) if t.isScalar =>
-        DictType(kt, promote(vt, t), hint)
-      case (t, DictType(kt, vt, hint)) if t.isScalar =>
-        DictType(kt, promote(vt, t), hint)
-      case (t1, t2) if t1 == t2 =>
-        t1
-      case (t1, t2) =>
-        raise(s"can't promote types: ${t1.simpleName} ≠ ${t2.simpleName}")
-    }
+    case Unique(e: Exp) => run(e)
+
+    // LLQL
+    case Initialise(tpe, _, _) => tpe
+    case Update(e, _, _)       => run(e)
+    case Modify(e, _)          => run(e)
+
+    case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
+  }
 
   def sumInferTypeAndCtx(k: Sym, v: Sym, e1: Exp, e2: Exp)(implicit ctx: Ctx): (Type, Ctx) = {
     val localCtx = ctx ++ (e1 match {
@@ -269,15 +171,44 @@ object TypeInference {
     (tpe, localCtx)
   }
 
-  private def run(e: Promote)(implicit ctx: Ctx): Type = e match {
-    case Promote(_: TropicalSemiRingType, e) => run(e) // handled in sum
-    case Promote(tp, _)                      => tp
+  def isColumnStore(rt: RecordType): Boolean = {
+    rt("size") match {
+      case Some(IntType) =>
+      case _             => return false
+    }
+    rt match {
+      case RecordType(attrs) =>
+        attrs.filter(_.name != "size").map(_.tpe).forall(cond(_) { case DictType(IntType, _, _) => true })
+    }
   }
 
-  private def run(e: Unique)(implicit ctx: Ctx): Type = e match { case Unique(e: Exp) => run(e) }
+  private def branching(e: Exp)(implicit ctx: Ctx): Type = {
+    val (e1, e2) = e match {
+      case IfThenElse(a, b, Const(false)) => (a, b) // and case
+      case IfThenElse(a, Const(true), b)  => (a, b) // or case
+      case IfThenElse(cond, e1, e2) =>
+        assert(run(cond) == BoolType)
+        (e1, e2)
+      case Add(e1, e2)  => (e1, e2)
+      case Mult(e1, e2) => (e1, e2)
+      case _            => raise(s"unhandled class: ${e.simpleName}")
+    }
+    val t1 = run(e1)
+    val t2 = run(e2)
+    promote(t1, t2)
+  }
 
-  // LLQL
-  private def run(e: Initialise): Type                = e match { case Initialise(tpe, _, _) => tpe }
-  private def run(e: Update)(implicit ctx: Ctx): Type = e match { case Update(e, _, _)       => run(e) }
-  private def run(e: Modify)(implicit ctx: Ctx): Type = e match { case Modify(e, _)          => run(e) }
+  private def promote(t1: Type, t2: Type): Type =
+    (t1, t2) match {
+      case (IntType, DateType) | (DateType, IntType) => IntType
+      case (IntType, RealType) | (RealType, IntType) => RealType
+      case (DictType(kt1, vt1, hint1), DictType(kt2, vt2, hint2)) =>
+        assert(hint1 == hint2)
+        DictType(promote(kt1, kt2), promote(vt1, vt2))
+      case (DictType(kt, vt, hint), t) if t.isScalar => DictType(kt, promote(vt, t), hint)
+      case (t, DictType(kt, vt, hint)) if t.isScalar => DictType(kt, promote(vt, t), hint)
+      case (t1, t2) if t1 == t2                      => t1
+      case (t1, t2) =>
+        raise(s"can't promote types: ${t1.simpleName} ≠ ${t2.simpleName}")
+    }
 }
