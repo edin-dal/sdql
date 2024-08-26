@@ -1,7 +1,8 @@
 package sdql
 package driver
 
-import sdql.backend.*
+import sdql.backend.codegen.CppCodegen
+import sdql.backend.{ CppCompile, Interpreter }
 import sdql.frontend.*
 import sdql.ir.*
 import sdql.transformations.Rewriter

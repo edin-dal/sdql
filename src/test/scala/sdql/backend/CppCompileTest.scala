@@ -4,6 +4,7 @@ package backend
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.{ ParallelTestExecution, Tag }
 import sdql.backend.CppCompile.compile
+import sdql.backend.codegen.CppCodegen
 import sdql.frontend.SourceCode
 import sdql.transformations.Rewriter
 
