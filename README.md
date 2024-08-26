@@ -88,7 +88,3 @@ run interpret progs/tpch-interpreter q6.sdql
 ```
 
 Or as a one-liner: `sbt "run interpret progs/tpch-interpreter q6.sdql"`
-
-# Running benchmarks
-
-See README in the `benchmarks` directory.
