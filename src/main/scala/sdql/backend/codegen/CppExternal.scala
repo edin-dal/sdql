@@ -7,7 +7,7 @@ import sdql.raise
 
 import scala.PartialFunction.cond
 
-object LoweringExternal {
+object CppExternal {
   def run(e: External)(implicit typesCtx: TypesCtx, isTernary: Boolean): String = e match {
     case External(ConstantString.SYMBOL, Seq(Const(str: String), Const(maxLen: Int))) =>
       assert(maxLen == str.length + 1)

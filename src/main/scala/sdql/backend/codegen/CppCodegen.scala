@@ -2,8 +2,8 @@ package sdql.backend.codegen
 
 import sdql.analysis.TypeInference
 import sdql.backend.codegen.CppPrinting.cppPrintResult
-import sdql.backend.codegen.LoweringLoad.cppCsvs
-import sdql.backend.codegen.LoweringType.cppType
+import sdql.backend.codegen.CppLoad.cppCsvs
+import sdql.backend.codegen.CppType.cppType
 import sdql.ir.*
 import sdql.ir.ExternalFunctions.{ ConstantString, Inv }
 import sdql.raise
@@ -150,7 +150,7 @@ object CppCodegen {
           case _: DictType   => s"${run(e1)}[${run(e2)}]"
         }
 
-      case e: External => LoweringExternal.run(e)
+      case e: External => CppExternal.run(e)
 
       case Concat(e1: RecNode, e2: RecNode) => run(e1.concat(e2))
       case Concat(e1: Sym, e2: Sym)         => s"std::tuple_cat(${run(e1)}, ${run(e2)})"
@@ -171,9 +171,9 @@ object CppCodegen {
 
       case RangeNode(e) => run(e)
 
-      case e: Initialise => LoweringLLQL.run(e)
-      case e: Update     => LoweringLLQL.run(e)
-      case e: Modify     => LoweringLLQL.run(e)
+      case e: Initialise => CppLLQL.run(e)
+      case e: Update     => CppLLQL.run(e)
+      case e: Modify     => CppLLQL.run(e)
 
       case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
     }

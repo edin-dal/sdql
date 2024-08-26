@@ -3,7 +3,7 @@ package sdql.backend.codegen
 import sdql.ir.*
 import sdql.raise
 
-object LoweringType {
+object CppType {
   def cppType(tpe: Type, noTemplate: Boolean = false): String = tpe match {
     case DictType(kt, vt, _: PHmap) =>
       val template = if (noTemplate) "" else s"<${cppType(kt)}, ${cppType(vt)}>"
