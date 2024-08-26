@@ -53,7 +53,8 @@ object CppCodegen {
             val isRetrieval = cond(e1) { case _: FieldNode | _: Get => true }
             def isDict      = cond(TypeInference.run(e1)) { case _: DictType => true }
             val cppName     = if (isRetrieval && isDict) s"&$name" else name
-            s"auto $cppName = ${run(e1)(typesCtx, isTernary)};"
+            val semicolon   = if (cond(e1) { case _: Initialise => true }) "" else ";"
+            s"auto $cppName = ${run(e1)(typesCtx, isTernary)}$semicolon"
         }
         val e2Cpp = e2 match {
           case DictNode(Nil, _) => ""
