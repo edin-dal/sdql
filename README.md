@@ -68,7 +68,7 @@ sbt
 run compile progs/tpch q1.sdql q6.sdql
 ```
 
-Note: compilation requires `clang++` and `clang-format` to be installed.
+_Note: compilation requires `clang++` and `clang-format` to be installed._
 
 # Running the Interpreter
 
