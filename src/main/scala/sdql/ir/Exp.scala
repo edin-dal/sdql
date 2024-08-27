@@ -45,9 +45,9 @@ sealed trait Exp {
     case _                             => raise(f"unhandled ${this.simpleName} in\n${this.prettyPrint}")
   }
 
-  def mapReduce[T](f: Exp => T, g: (T, T) => T, default: () => T): T = this match {
+  def mapReduce[T](f: Exp => T, g: (T, T) => T, default: T): T = this match {
     // 0-ary
-    case _: Sym | _: Const | _: Load => default()
+    case _: Sym | _: Const | _: Load => default
     // 1-ary
     case Neg(e)          => f(e)
     case FieldNode(e, _) => f(e)
@@ -66,11 +66,11 @@ sealed trait Exp {
     case IfThenElse(e1, e2, e3) =>
       g(g(f(e1), f(e2)), f(e3))
     // n-ary
-    case RecNode(values) => values.map(_._2).map(f).foldLeft(default())(g)
+    case RecNode(values) => values.map(_._2).map(f).foldLeft(default)(g)
     case DictNode(map, PHmap(Some(e))) =>
-      g(g(map.map(_._1).map(f).foldLeft(default())(g), map.map(_._2).map(f).foldLeft(default())(g)), f(e))
-    case DictNode(map, _)  => g(map.map(_._1).map(f).foldLeft(default())(g), map.map(_._2).map(f).foldLeft(default())(g))
-    case External(_, args) => args.map(f).foldLeft(default())(g)
+      g(g(map.map(_._1).map(f).foldLeft(default)(g), map.map(_._2).map(f).foldLeft(default)(g)), f(e))
+    case DictNode(map, _)  => g(map.map(_._1).map(f).foldLeft(default)(g), map.map(_._2).map(f).foldLeft(default)(g))
+    case External(_, args) => args.map(f).foldLeft(default)(g)
     // LLQL
     case Initialise(_, _, e) => f(e)
     case Update(e, _, _)     => f(e)

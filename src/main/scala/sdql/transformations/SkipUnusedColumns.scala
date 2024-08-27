@@ -20,7 +20,7 @@ private object SkipUnusedColumns extends TermRewriter {
   private def find(e: Exp)(implicit columnsCtx: Columns = Map()): Columns = e match {
     case LetBinding(x, _: Load, e2)                     => find(e2)(sumColumns(columnsCtx, Map(x -> Set())))
     case FieldNode(e: Sym, f) if columnsCtx.contains(e) => sumColumns(columnsCtx, Map(e -> Set(f)))
-    case _                                              => e.mapReduce[Columns](find, sumColumns, () => Map())
+    case _                                              => e.mapReduce[Columns](find, sumColumns, Map())
   }
 
   private def sumColumns(a: Columns, b: Columns) = a ++ b.map { case (k, v) => k -> (v ++ a.getOrElse(k, Set())) }
