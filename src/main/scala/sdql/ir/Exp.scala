@@ -38,11 +38,14 @@ sealed trait Exp {
     // 3-ary
     case IfThenElse(e1, e2, e3) => IfThenElse(f(e1), f(e2), f(e3))
     // n-ary
-    case RecNode(values)               => RecNode(values.map(v => (v._1, f(v._2))))
-    case DictNode(map, PHmap(Some(e))) => DictNode(map.map(x => (f(x._1), f(x._2))), PHmap(Some(f(e))))
-    case DictNode(map, hint)           => DictNode(map.map(x => (f(x._1), f(x._2))), hint)
-    case External(name, args)          => External(name, args.map(f))
-    case _                             => raise(f"unhandled ${this.simpleName} in\n${this.prettyPrint}")
+    case RecNode(values) => RecNode(values.map(v => (v._1, f(v._2))))
+    case DictNode(map, hint) =>
+      DictNode(map.map(x => (f(x._1), f(x._2))), hint match {
+        case PHmap(Some(e)) => PHmap(Some(f(e)))
+        case _              => hint
+      })
+    case External(name, args) => External(name, args.map(f))
+    case _                    => raise(f"unhandled ${this.simpleName} in\n${this.prettyPrint}")
   }
 
   def mapReduce[T](f: Exp => T, g: (T, T) => T, default: T): T = this match {
@@ -67,9 +70,11 @@ sealed trait Exp {
       g(g(f(e1), f(e2)), f(e3))
     // n-ary
     case RecNode(values) => values.map(_._2).map(f).foldLeft(default)(g)
-    case DictNode(map, PHmap(Some(e))) =>
-      g(g(map.map(_._1).map(f).foldLeft(default)(g), map.map(_._2).map(f).foldLeft(default)(g)), f(e))
-    case DictNode(map, _)  => g(map.map(_._1).map(f).foldLeft(default)(g), map.map(_._2).map(f).foldLeft(default)(g))
+    case DictNode(map, hint) =>
+      g(g(map.map(_._1).map(f).foldLeft(default)(g), map.map(_._2).map(f).foldLeft(default)(g)), hint match {
+        case PHmap(Some(e)) => f(e)
+        case _              => default
+      })
     case External(_, args) => args.map(f).foldLeft(default)(g)
     // LLQL
     case Initialise(_, _, e) => f(e)
