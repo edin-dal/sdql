@@ -17,6 +17,33 @@ sealed trait Exp {
     val name = this.getClass.getSimpleName
     if (name.endsWith("$")) name.dropRight(1) else name
   }
+
+  def mapInner(f: Exp => Exp): Exp = this match {
+    // 0-ary
+    case _: Sym | _: Const | _: Load => this
+    // 1-ary
+    case Neg(e)              => Neg(f(e))
+    case FieldNode(e, field) => FieldNode(f(e), field)
+    case Promote(tp, e)      => Promote(tp, f(e))
+    case RangeNode(e)        => RangeNode(f(e))
+    case Unique(e)           => Unique(f(e))
+    // 2-ary
+    case Add(e1, e2)             => Add(f(e1), f(e2))
+    case Mult(e1, e2)            => Mult(f(e1), f(e2))
+    case Cmp(e1, e2, cmp)        => Cmp(f(e1), f(e2), cmp)
+    case Sum(key, value, e1, e2) => Sum(key, value, f(e1), f(e2))
+    case Get(e1, e2)             => Get(f(e1), f(e2))
+    case Concat(e1, e2)          => Concat(f(e1), f(e2))
+    case LetBinding(x, e1, e2)   => LetBinding(x, f(e1), f(e2))
+    // 3-ary
+    case IfThenElse(e1, e2, e3) => IfThenElse(f(e1), f(e2), f(e3))
+    // n-ary
+    case RecNode(values)               => RecNode(values.map(v => (v._1, f(v._2))))
+    case DictNode(map, PHmap(Some(e))) => DictNode(map.map(x => (f(x._1), f(x._2))), PHmap(Some(f(e))))
+    case DictNode(map, hint)           => DictNode(map.map(x => (f(x._1), f(x._2))), hint)
+    case External(name, args)          => External(name, args.map(f))
+    case _                             => raise(f"unhandled ${this.simpleName} in\n${this.prettyPrint}")
+  }
 }
 
 /**
