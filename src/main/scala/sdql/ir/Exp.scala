@@ -76,11 +76,7 @@ sealed trait Exp {
         case _              => default
       })
     case External(_, args) => args.map(f).foldLeft(default)(g)
-    // LLQL
-    case Initialise(_, _, e) => f(e)
-    case Update(e, _, _)     => f(e)
-    case Modify(e, _)        => f(e)
-    case _                   => raise(f"unhandled ${this.simpleName} in\n${this.prettyPrint}")
+    case _                 => raise(f"unhandled ${this.simpleName} in\n${this.prettyPrint}")
   }
 }
 
