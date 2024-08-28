@@ -198,6 +198,11 @@ object SingleDict {
   }
 }
 
+/**
+ * An extension to the SDQL language which introduces control-flow nodes to model "sum".
+ *
+ * The expressions below bridge the gap between functional and imperative styles, simplifying code generation in C++.
+ */
 sealed trait LLQL
 case class Initialise(tpe: Type, agg: Aggregation, e: Sum) extends Exp with LLQL // TODO infer aggregation from type
 case class Update(e: Exp, agg: Aggregation, dest: Sym)     extends Exp with LLQL
