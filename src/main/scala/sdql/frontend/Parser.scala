@@ -192,8 +192,10 @@ object Parser {
               case ("(", e)         => Get(acc, e)
               case ("^", _) =>
                 cur._2 match {
-                  case Const(2) => Mult(acc, acc)
-                  case _        => raise("Parsing for power failed")
+                  case Const(0)      => Const(1)
+                  case Const(1)      => acc
+                  case Const(n: Int) => (1 to n).map(_ => acc).reduceLeft(Mult.apply)
+                  case _             => raise("Parsing for power failed")
                 }
               case _ => raise("Parsing for factorMult failed")
           }
