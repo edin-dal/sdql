@@ -85,6 +85,7 @@ object Rewriter {
   }
 }
 
+/** Removes variable aliases, to enable further optimisations – see tests for examples. */
 private object RemoveAliases extends TermRewriter {
   private type AliasCtx = Map[Sym, Sym]
 
@@ -108,6 +109,7 @@ private object RemoveAliases extends TermRewriter {
   }
 }
 
+/** Accesses record fields by name rather than by index, to enable further optimisations – see tests for examples. */
 private object RemoveRecordGet extends TermRewriter {
   private type Names = Map[Sym, Seq[String]]
 
@@ -127,6 +129,7 @@ private object RemoveRecordGet extends TermRewriter {
   }
 }
 
+/** Speeds up CSV loads by skipping columns that aren't used anywhere in the program – see tests for examples. */
 private object SkipUnusedColumns extends TermRewriter {
   private type Columns = Map[Sym, Set[Field]]
 
@@ -151,6 +154,7 @@ private object SkipUnusedColumns extends TermRewriter {
     a ++ b.map { case (k, v) => k -> (v ++ a.getOrElse(k, Set())) }
 }
 
+/** Removes intermediate tuples, usually created after iterating on a range – see tests for examples. */
 private object RemoveIntermediateTuples extends TermRewriter {
   private type ReplaceCtx = Map[Sym, RecNode]
 
@@ -173,6 +177,7 @@ private object RemoveIntermediateTuples extends TermRewriter {
   private def isSimpleField(e: Exp) = cond(e) { case Get(FieldNode(_: Sym, _), _: Sym) => true }
 }
 
+/** Binds to a variable the free expression at the end of a program, to aid code generation – see tests for examples. */
 private object BindFreeExpression extends TermRewriter {
   def apply(e: Exp): Exp = e match {
     case DictNode(Nil, _)      => e // just in case of repeated applications
@@ -181,6 +186,7 @@ private object BindFreeExpression extends TermRewriter {
   }
 }
 
+/** Lowers a SDQL expression to LLQL by introducing control-flow nodes to model "sum" – see tests for examples. */
 private object LowerToLLQL extends TermRewriter {
   private type TypesCtx = TypeInference.Ctx
 
