@@ -14,10 +14,13 @@ An implementation of SDQL (Semi-ring Dictionary Query Language) in Scala.
 Generate datasets as follows:
 
 ```sh
+# or clone it elsewhere
 git clone https://github.com/edin-dal/tpch-dbgen
 cd tpch-dbgen  
 make
 ./dbgen -s 1 -vf
+# or move them elsewhere and create a symlink
+# (careful: macOS aliases are not symlinks!)
 mv *.tbl ../datasets/tpch
 cd ..
 ```
@@ -53,6 +56,37 @@ To automatically run `sbt test` before each push, configure the local git hooks 
 ```sh
 git config core.hooksPath hooks
 ```
+
+## Optional tests
+
+These are slower end-to-end tests: they generate, compile/interpret, and check the results of full queries.
+
+First, comment out the global `-l` options in `build.sbt`.
+
+You can then run the optional tests using these commands:
+
+```sh
+sbt "testOnly * -- -n TestTPCH0_01" # fast test (< 1 min)
+```
+
+```sh
+sbt "testOnly * -- -n TestTPCH1" # slower test (> 1 min)
+```
+
+### Result files
+
+These tests will compare their results against a ground truth we provide.
+
+Set it up as follows:
+
+```sh
+# or clone it elsewhere
+git clone https://github.com/edin-dal/sdql-benchmark
+# create a symlink from the path expected by the tests
+ln -s sdql-benchmark/results results  
+```
+
+_Note: make sure you also have the required files in your `datasets` folder._
 
 # Running the Compiler
 

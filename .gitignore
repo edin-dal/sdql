@@ -18,5 +18,16 @@ project/plugins/project/
 
 .bsp/*
 
-test.csv
+# ignores directories and symbolic links
 datasets/
+datasets
+results/
+results
+
+# in case user follows instructions literally
+# and clones these repository inside the root
+tpch-dbgen/
+sdql-benchmark/
+
+# created by an interpreter test
+test.csv

@@ -1,6 +1,7 @@
 package sdql
 package backend
 
+import org.scalatest.Tag
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.*
 import sdql.frontend.*
@@ -272,91 +273,91 @@ sum(<x_s, x_s_v> <- S)
       sum(<x, v> <- R) if(x.startId == 933) then 10 else 1""") should be(55)
   }
 
-//  FIXME
-//  it should "interpret TPCH Q1" in {
-//    val actual = interpreter(SourceCode.fromFile("progs/tpch-interpreter/q1.sdql", patch).exp)
-//    val expected: Value = Map(
-//      RecordValue(List(("returnflag", "N"), ("linestatus", "F"))) -> RecordValue(
-//        Seq(("l_quantity_sum", 8971.0),
-//            ("l_extendedprice_sum", 1.2384801370000005E7),
-//            ("agg1", 1.1798257208000008E7),
-//            ("agg2", 1.2282485056933004E7),
-//            ("mult", 348))
-//      ),
-//      RecordValue(Seq(("returnflag", "R"), ("linestatus", "F"))) -> RecordValue(
-//        Seq(("l_quantity_sum", 381449.0),
-//            ("l_extendedprice_sum", 5.345944453499981E8),
-//            ("agg1", 5.0799645440670097E8),
-//            ("agg2", 5.285242193589031E8),
-//            ("mult", 14902))
-//      ),
-//      RecordValue(Seq(("returnflag", "N"), ("linestatus", "O"))) -> RecordValue(
-//        Seq(("l_quantity_sum", 742802.0),
-//            ("l_extendedprice_sum", 1.0415028414499991E9),
-//            ("agg1", 9.897375186346017E8),
-//            ("agg2", 1.0294185315233542E9),
-//            ("mult", 29181))
-//      ),
-//      RecordValue(Seq(("returnflag", "A"), ("linestatus", "F"))) -> RecordValue(
-//        Seq(("l_quantity_sum", 380456.0),
-//            ("l_extendedprice_sum", 5.3234821165000045E8),
-//            ("agg1", 5.0582244148609936E8),
-//            ("agg2", 5.261659340008371E8),
-//            ("mult", 14876))
-//      )
-//    )
-//    assert(actual == expected)
-//  }
-//
-//  it should "interpret TPCH Q6" in {
-//    val actual          = interpreter(SourceCode.fromFile("progs/tpch-interpreter/q6.sdql", patch).exp)
-//    val expected: Value = 1193053.225300001
-//    assert(actual == expected)
-//  }
-//
-//  val expectedQ13: Value = Map(
-//    0  -> 500,
-//    1  -> 1,
-//    10 -> 64,
-//    11 -> 68,
-//    12 -> 62,
-//    13 -> 52,
-//    14 -> 54,
-//    15 -> 45,
-//    16 -> 46,
-//    17 -> 41,
-//    18 -> 38,
-//    19 -> 44,
-//    2  -> 1,
-//    20 -> 48,
-//    21 -> 47,
-//    22 -> 33,
-//    23 -> 27,
-//    24 -> 30,
-//    25 -> 21,
-//    26 -> 15,
-//    27 -> 17,
-//    28 -> 6,
-//    29 -> 5,
-//    3  -> 2,
-//    30 -> 2,
-//    31 -> 1,
-//    32 -> 5,
-//    4  -> 6,
-//    5  -> 14,
-//    6  -> 33,
-//    7  -> 49,
-//    8  -> 61,
-//    9  -> 62,
-//  )
-//
-//  it should "interpret TPCH Q13" in {
-//    assert(interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13.sdql", patch).exp) == expectedQ13)
-//    assert(interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13_promote.sdql", patch).exp) == expectedQ13)
-//    assert(
-//      interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13_promote_unfused.sdql", patch).exp) == expectedQ13
-//    )
-//  }
-//
-//  private def patch(s: String) = s.replace("datasets/tpch/", s"src/test/tpch/data/")
+  // note: these tests expect TPCH files with scaling factor 0.01 to be present in your datasets folder
+  private object TestTPCH0_01 extends Tag("TestTPCH0_01")
+
+  it should "interpret TPCH Q1" taggedAs TestTPCH0_01 in {
+    val actual = interpreter(SourceCode.fromFile("progs/tpch-interpreter/q1.sdql").exp)
+    val expected: Value = Map(
+      RecordValue(List(("returnflag", "N"), ("linestatus", "F"))) -> RecordValue(
+        Seq(("l_quantity_sum", 8971.0),
+            ("l_extendedprice_sum", 1.2384801370000005E7),
+            ("agg1", 1.1798257208000008E7),
+            ("agg2", 1.2282485056933004E7),
+            ("mult", 348))
+      ),
+      RecordValue(Seq(("returnflag", "R"), ("linestatus", "F"))) -> RecordValue(
+        Seq(("l_quantity_sum", 381449.0),
+            ("l_extendedprice_sum", 5.345944453499981E8),
+            ("agg1", 5.0799645440670097E8),
+            ("agg2", 5.285242193589031E8),
+            ("mult", 14902))
+      ),
+      RecordValue(Seq(("returnflag", "N"), ("linestatus", "O"))) -> RecordValue(
+        Seq(("l_quantity_sum", 742802.0),
+            ("l_extendedprice_sum", 1.0415028414499991E9),
+            ("agg1", 9.897375186346017E8),
+            ("agg2", 1.0294185315233542E9),
+            ("mult", 29181))
+      ),
+      RecordValue(Seq(("returnflag", "A"), ("linestatus", "F"))) -> RecordValue(
+        Seq(("l_quantity_sum", 380456.0),
+            ("l_extendedprice_sum", 5.3234821165000045E8),
+            ("agg1", 5.0582244148609936E8),
+            ("agg2", 5.261659340008371E8),
+            ("mult", 14876))
+      )
+    )
+    assert(actual == expected)
+  }
+
+  it should "interpret TPCH Q6" taggedAs TestTPCH0_01 in {
+    val actual          = interpreter(SourceCode.fromFile("progs/tpch-interpreter/q6.sdql").exp)
+    val expected: Value = 1193053.225300001
+    assert(actual == expected)
+  }
+
+  private val expectedQ13: Value = Map(
+    0  -> 500,
+    1  -> 1,
+    2  -> 1,
+    3  -> 2,
+    4  -> 6,
+    5  -> 14,
+    6  -> 33,
+    7  -> 49,
+    8  -> 61,
+    9  -> 62,
+    10 -> 64,
+    11 -> 68,
+    12 -> 62,
+    13 -> 52,
+    14 -> 54,
+    15 -> 45,
+    16 -> 46,
+    17 -> 41,
+    18 -> 38,
+    19 -> 44,
+    20 -> 48,
+    21 -> 47,
+    22 -> 33,
+    23 -> 27,
+    24 -> 30,
+    25 -> 21,
+    26 -> 15,
+    27 -> 17,
+    28 -> 6,
+    29 -> 5,
+    30 -> 2,
+    31 -> 1,
+    32 -> 5,
+  )
+
+  it should "interpret TPCH Q13" taggedAs TestTPCH0_01 in {
+    assert(interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13.sdql").exp) == expectedQ13)
+    assert(interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13_promote.sdql").exp) == expectedQ13)
+    assert(
+      interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13_promote_unfused.sdql").exp) == expectedQ13
+    )
+  }
 }

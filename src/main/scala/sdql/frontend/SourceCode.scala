@@ -6,12 +6,10 @@ import sdql.ir.*
 class SourceCode(val fileName: String, val exp: Exp)
 
 object SourceCode {
-  def fromFile(fileName: String, patch: String => String = identity): SourceCode = {
+  def fromFile(fileName: String): SourceCode = {
     val source = scala.io.Source.fromFile(fileName)
     val content = try source.mkString
     finally source.close()
-    // patching is for tests which change the datasets directory
-    val patched = patch(content)
-    new SourceCode(fileName, Parser(patched))
+    new SourceCode(fileName, Parser(content))
   }
 }
