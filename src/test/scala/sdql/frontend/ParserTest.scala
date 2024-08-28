@@ -127,6 +127,8 @@ class ParserTest extends AnyFlatSpec with Matchers {
     sdql"x.name" should be(FieldNode(Sym("x"), "name"))
     sdql"x.name * 2" should be(Mult(FieldNode(Sym("x"), "name"), Const(2.0)))
     sdql"x.name * y.foo" should be(Mult(FieldNode(Sym("x"), "name"), FieldNode(Sym("y"), "foo")))
+    sdql"x(1)" should be(Get(Sym("x"), Const(1)))
+    sdql"< foo = 1  >(1)" should be(Get(RecNode(Seq("foo" -> Const(1.0))), Const(1)))
     sdql"concat(x, y)" should be(Concat(Sym("x"), Sym("y")))
   }
 

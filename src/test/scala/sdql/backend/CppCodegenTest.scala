@@ -2,9 +2,9 @@ package sdql.backend
 
 import org.scalatest.ParallelTestExecution
 import org.scalatest.flatspec.AnyFlatSpec
-import sdql.backend.CppCompile.{clangCmd, inGeneratedDir}
-import sdql.frontend.{Interpolator, SourceCode}
-import sdql.ir.{Exp, RecordValue}
+import sdql.backend.CppCompile.{ clangCmd, inGeneratedDir }
+import sdql.frontend.{ Interpolator, SourceCode }
+import sdql.ir.{ Exp, RecordValue }
 import sdql.transformations.Rewriter
 
 // comprehensive subset of tests from the interpreter useful for TPCH
@@ -21,7 +21,7 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
   it should "codegen constant map requiring type promotion" in {
     val e = sdql"""{ "a" -> 1, "b" -> 2.5 }"""
     import sdql.analysis.TypeInference
-    import sdql.ir.{DictType, RealType, StringType}
+    import sdql.ir.{ DictType, RealType, StringType }
     assert(TypeInference(e) == DictType(StringType(), RealType))
     CodegenHelpers.compilesExp(e)
   }
@@ -142,6 +142,8 @@ sum(<x_s, x_s_v> <- S)
   }
 
   it should "codegen simple promotion" in { CodegenHelpers.compilesExp(sdql"promote[double](1)") }
+
+  it should "codegen record get" in { CodegenHelpers.compilesExp(sdql"let record=<_=2.5> in record(1)") }
 }
 
 class CppCodegenTestTPCH extends AnyFlatSpec with ParallelTestExecution {
