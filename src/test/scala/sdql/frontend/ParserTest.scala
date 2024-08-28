@@ -151,7 +151,10 @@ class ParserTest extends AnyFlatSpec with Matchers {
   }
 
   it should "perform desugaring" in {
+    sdql"x ^ 0" should be(sdql"1")
+    sdql"x ^ 1" should be(sdql"x")
     sdql"x ^ 2" should be(sdql"x * x")
+    sdql"x ^ 3" should be(sdql"x * x * x")
     sdql"y * x ^ 2" should be(sdql"y * (x * x)")
   }
 
