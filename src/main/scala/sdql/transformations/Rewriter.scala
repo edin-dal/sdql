@@ -9,6 +9,7 @@ import scala.annotation.tailrec
 
 private trait TermRewriter { def apply(e: Exp): Exp }
 
+/** Applies all transformations and lowers an expression to LLQL */
 object Rewriter {
   private val rewriters = Seq(
     RemoveAliases,
