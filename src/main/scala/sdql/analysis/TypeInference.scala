@@ -1,7 +1,6 @@
 package sdql
 package analysis
 
-import sdql.backend.codegen.resultName
 import sdql.ir.*
 import sdql.ir.ExternalFunctions.*
 

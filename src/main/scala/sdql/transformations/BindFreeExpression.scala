@@ -1,6 +1,5 @@
 package sdql.transformations
 
-import sdql.backend.codegen.resultName
 import sdql.ir.*
 
 private object BindFreeExpression extends TermRewriter {

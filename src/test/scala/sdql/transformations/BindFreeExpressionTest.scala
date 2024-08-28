@@ -1,9 +1,8 @@
 package sdql.transformations
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import sdql.backend.codegen.resultName
 import sdql.frontend.*
-import sdql.ir.Sym
+import sdql.ir.{ resultName, Sym }
 
 class BindFreeExpressionTest extends AnyFlatSpec with Matchers {
   it should "bind free expression" in {
