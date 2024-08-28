@@ -66,8 +66,7 @@ sealed trait Exp {
     case Concat(e1, e2)        => g(f(e1), f(e2))
     case LetBinding(_, e1, e2) => g(f(e1), f(e2))
     // 3-ary
-    case IfThenElse(e1, e2, e3) =>
-      g(g(f(e1), f(e2)), f(e3))
+    case IfThenElse(e1, e2, e3) => g(g(f(e1), f(e2)), f(e3))
     // n-ary
     case RecNode(values) => values.map(_._2).map(f).foldLeft(default)(g)
     case DictNode(map, hint) =>
