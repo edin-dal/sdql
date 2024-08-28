@@ -22,7 +22,7 @@ private object LowerToLLQL extends TermRewriter {
     case _ =>
       dest match {
         case Some(dest) => sumBodyToLLQL(e, dest)(ctx)
-        case None       => e.mapInner(run)
+        case None       => Rewriter.mapInner(run)(e)
       }
   }
 

@@ -14,13 +14,13 @@ private object SkipUnusedColumns extends TermRewriter {
       val new_ = tp.attrs.map(_.name: String).filter(!columnsCtx.getOrElse(x, Set()).contains(_)).toSet
       val skip = SetNode.fromSkipColsSet(old | new_)
       LetBinding(x, Load(path, tp, skip), run(e2))
-    case _ => e.mapInner(run)
+    case _ => Rewriter.mapInner(run)(e)
   }
 
   private def find(e: Exp)(implicit columnsCtx: Columns = Map()): Columns = e match {
     case LetBinding(x, _: Load, e2)                     => find(e2)(sumColumns(columnsCtx, Map(x -> Set())))
     case FieldNode(e: Sym, f) if columnsCtx.contains(e) => sumColumns(columnsCtx, Map(e -> Set(f)))
-    case _                                              => e.mapReduce[Columns](find, sumColumns, Map())
+    case _                                              => Rewriter.mapInnerReduce[Columns](find, sumColumns, Map())(e)
   }
 
   private def sumColumns(a: Columns, b: Columns) = a ++ b.map { case (k, v) => k -> (v ++ a.getOrElse(k, Set())) }

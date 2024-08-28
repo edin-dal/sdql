@@ -17,7 +17,7 @@ private object RemoveIntermediateTuples extends TermRewriter {
 
     case e1: Sym if replaceCtx.contains(e1) => replaceCtx(e1)
 
-    case _ => e.mapInner(run)
+    case _ => Rewriter.mapInner(run)(e)
   }
 
   private def isSimpleRecord(record: RecNode) =

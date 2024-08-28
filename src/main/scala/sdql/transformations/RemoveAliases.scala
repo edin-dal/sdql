@@ -21,6 +21,6 @@ private object RemoveAliases extends TermRewriter {
         case None    => e
       }
 
-    case _ => e.mapInner(run)
+    case _ => Rewriter.mapInner(run)(e)
   }
 }
