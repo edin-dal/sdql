@@ -493,7 +493,7 @@ class CppCompileTestFJ extends AnyFlatSpec with ParallelTestExecution {
 object CompileHelpers {
   def assertOutputs(sdqlPath: String, outPath: String): Unit = {
     val code   = SourceCode.fromFile(sdqlPath)
-    val llql   = Rewriter(code.exp)
+    val llql   = Rewriter.rewrite(code.exp)
     val cpp    = CppCodegen(llql)
     val actual = compile(sdqlPath, cpp)
     val source = scala.io.Source.fromFile(outPath)

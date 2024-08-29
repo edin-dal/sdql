@@ -1,7 +1,7 @@
 package sdql
 package driver
 
-import sdql.backend.{CppCodegen, CppCompile, Interpreter}
+import sdql.backend.{ CppCodegen, CppCompile, Interpreter }
 import sdql.frontend.*
 import sdql.ir.*
 import sdql.transformations.Rewriter
@@ -32,7 +32,7 @@ object Main {
         for (fileName <- fileNames) {
           val filePath = dirPath.resolve(fileName)
           val prog     = SourceCode.fromFile(filePath.toString).exp
-          val llql     = Rewriter.apply(prog)
+          val llql     = Rewriter.rewrite(prog)
           val res      = CppCodegen(llql)
           println(fileName)
           println(CppCompile.compile(filePath.toString, res))
@@ -46,7 +46,7 @@ object Main {
         for (fileName <- fileNames) {
           val filePath = dirPath.resolve(fileName)
           val prog     = SourceCode.fromFile(filePath.toString).exp
-          val llql     = Rewriter.apply(prog)
+          val llql     = Rewriter.rewrite(prog)
           val res      = CppCodegen(llql, benchmarkRuns = n)
           CppCompile.writeFormat(filePath.toString, res)
         }

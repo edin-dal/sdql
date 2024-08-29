@@ -7,11 +7,17 @@ import sdql.{ raise, Field }
 import scala.PartialFunction.cond
 import scala.annotation.tailrec
 
-private trait TermRewriter { def apply(e: Exp): Exp }
+trait Transformation { def apply(e: Exp): Exp }
+
+class TermRewriter(transformations: Transformation*) extends Transformation {
+  def apply(e: Exp): Exp = transformations.foldLeft(e)((acc, f) => f.apply(acc))
+}
+
+object TermRewriter { def apply(transformations: Transformation*): TermRewriter = new TermRewriter(transformations *) }
 
 /** Applies all transformations and lowers an expression to LLQL */
 object Rewriter {
-  private val rewriters = Seq(
+  val rewrite: TermRewriter = TermRewriter(
     RemoveAliases,
     RemoveRecordGet,
     SkipUnusedColumns,
@@ -19,10 +25,6 @@ object Rewriter {
     BindFreeExpression,
     LowerToLLQL,
   )
-
-  def apply(e: Exp): Exp = rewriters.foldLeft(e) { (acc, f) =>
-    f(acc)
-  }
 
   def mapInner(f: Exp => Exp)(e: Exp): Exp = e match {
     // 0-ary
@@ -86,7 +88,7 @@ object Rewriter {
 }
 
 /** Removes variable aliases, to enable further optimisations – see tests for examples. */
-private object RemoveAliases extends TermRewriter {
+private object RemoveAliases extends Transformation {
   private type AliasCtx = Map[Sym, Sym]
 
   def apply(e: Exp): Exp = run(e)
@@ -110,7 +112,7 @@ private object RemoveAliases extends TermRewriter {
 }
 
 /** Accesses record fields by name rather than by index, to enable further optimisations – see tests for examples. */
-private object RemoveRecordGet extends TermRewriter {
+private object RemoveRecordGet extends Transformation {
   private type Names = Map[Sym, Seq[String]]
 
   def apply(e: Exp): Exp = run(e)(find(e))
@@ -130,7 +132,7 @@ private object RemoveRecordGet extends TermRewriter {
 }
 
 /** Speeds up CSV loads by skipping columns that aren't used anywhere in the program – see tests for examples. */
-private object SkipUnusedColumns extends TermRewriter {
+private object SkipUnusedColumns extends Transformation {
   private type Columns = Map[Sym, Set[Field]]
 
   def apply(e: Exp): Exp = run(e)(find(e))
@@ -155,7 +157,7 @@ private object SkipUnusedColumns extends TermRewriter {
 }
 
 /** Removes intermediate tuples, usually created after iterating on a range – see tests for examples. */
-private object RemoveIntermediateTuples extends TermRewriter {
+private object RemoveIntermediateTuples extends Transformation {
   private type ReplaceCtx = Map[Sym, RecNode]
 
   def apply(e: Exp): Exp = run(e)
@@ -178,7 +180,7 @@ private object RemoveIntermediateTuples extends TermRewriter {
 }
 
 /** Binds to a variable the free expression at the end of a program, to aid code generation – see tests for examples. */
-private object BindFreeExpression extends TermRewriter {
+private object BindFreeExpression extends Transformation {
   def apply(e: Exp): Exp = e match {
     case DictNode(Nil, _)      => e // just in case of repeated applications
     case LetBinding(x, e1, e2) => LetBinding(x, e1, apply(e2))
@@ -187,7 +189,7 @@ private object BindFreeExpression extends TermRewriter {
 }
 
 /** Lowers a SDQL expression to LLQL by introducing control-flow nodes to model "sum" – see tests for examples. */
-private object LowerToLLQL extends TermRewriter {
+private object LowerToLLQL extends Transformation {
   private type TypesCtx = TypeInference.Ctx
 
   def apply(e: Exp): Exp = run(e)(Map(), dest = None)

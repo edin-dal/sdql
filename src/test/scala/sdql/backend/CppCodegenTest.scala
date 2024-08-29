@@ -523,7 +523,7 @@ class CppCodegenTestFJ extends AnyFlatSpec with ParallelTestExecution {
 
 object CodegenHelpers {
   def compilesFile(path: String): Unit = compilesExp(SourceCode.fromFile(path).exp)
-  def compilesExp(e: Exp): Unit        = assert(fromCpp(CppCodegen(Rewriter(e))) == 0)
+  def compilesExp(e: Exp): Unit        = assert(fromCpp(CppCodegen(Rewriter.rewrite(e))) == 0)
   private def fromCpp(cpp: String)     = inGeneratedDir(Seq("bash", "-c", cmd(escape(cpp)))).run().exitValue()
   private def cmd(cpp: String)         = s"${clangCmd.mkString(" ")} -xc++ -fsyntax-only - <<< '$cpp'"
   // silly hack - escape single quotes in C++ source code so we can pass it to bash

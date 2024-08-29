@@ -89,6 +89,22 @@ class SkipUnusedColumnsTest extends AnyFlatSpec with Matchers {
                """
     SkipUnusedColumns(e) should be(rewrite)
   }
+
+  it should "skip only unused columns when alias and record get" in {
+    val e       = sdql"""
+               let lineitem = load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl")
+               let alias = lineitem
+               sum(<i,_> <- range(alias(2)))
+                   1
+               """
+    val rewrite = sdql"""
+               let lineitem =
+                   load[<l_extendedprice: @vec {int -> double}, size: int>]("foo/bar.tbl", {"l_extendedprice"})
+               sum(<i,_> <- range(lineitem.size))
+                   1
+               """
+    TermRewriter(RemoveAliases, RemoveRecordGet, SkipUnusedColumns)(e) should be(rewrite)
+  }
 }
 
 class RemoveIntermediateTupleTest extends AnyFlatSpec with Matchers {
