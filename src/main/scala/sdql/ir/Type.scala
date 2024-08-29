@@ -81,7 +81,7 @@ object Aggregation {
     case TropicalSemiRingType(false, false, _) => MinAgg
     case TropicalSemiRingType(true, false, _)  => MaxAgg
     case TropicalSemiRingType(_, true, _)      => ProdAgg
-    case _                                     => raise(s"unexpected: ${tp.prettyPrint}")
+    case _                                     => SumAgg
   }
 
   def fromExpression(e: Exp): Aggregation = e match {

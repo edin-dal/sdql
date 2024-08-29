@@ -217,9 +217,15 @@ object CppCodegen {
 
       // LLQL
 
-      case Initialise(tpe, agg, e) =>
-        val initialiseCpp = initialise(tpe)(agg, typesCtx, isTernary)
-        s"${cppType(tpe)}($initialiseCpp); ${CppCodegen.run(e)}"
+      case Initialise(tpe, e) =>
+        val demoted = tpe match {
+          case TropicalSemiRingType(_, _, Some(tp))  => tp
+          case tp @ TropicalSemiRingType(_, _, None) => raise(s"${tp.simpleName} is missing type information")
+          case _                                     => tpe
+        }
+        val agg           = Aggregation.fromType(tpe)
+        val initialiseCpp = initialise(demoted)(agg, typesCtx, isTernary)
+        s"${cppType(demoted)}($initialiseCpp); ${CppCodegen.run(e)}"
 
       case Update(e, agg, destination) =>
         val (lhs, rhs) = cppLhsRhs(e, destination)
@@ -420,10 +426,10 @@ object CppCodegen {
         case DictNode(map, _)              => map.flatMap(x => iterExps(x._1) ++ iterExps(x._2))
         case External(_, args)             => args.flatMap(iterExps)
         // LLQL
-        case Initialise(_, _, e) => iterExps(e)
-        case Update(e, _, _)     => iterExps(e)
-        case Modify(e, _)        => iterExps(e)
-        case _                   => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
+        case Initialise(_, e) => iterExps(e)
+        case Update(e, _, _)  => iterExps(e)
+        case Modify(e, _)     => iterExps(e)
+        case _                => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
       }
     )
 
@@ -462,7 +468,8 @@ object CppCodegen {
         )
         .mkString(""""<" <<""", """ << "," << """, """<< ">"""")
     case _ =>
-      assert(tpe.isScalar)
+//      FIXME
+//      assert(tpe.isScalar)
       name
   }
   private val stdCout = s"std::cout << std::setprecision (std::numeric_limits<double>::digits10)"

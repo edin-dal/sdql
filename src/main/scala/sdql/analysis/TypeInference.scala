@@ -145,9 +145,15 @@ object TypeInference {
     case Unique(e: Exp) => run(e)
 
     // LLQL
-    case Initialise(tpe, _, _) => tpe
-    case Update(e, _, _)       => run(e)
-    case Modify(e, _)          => run(e)
+    case Initialise(tpe, _) =>
+      // FIXME refactor duplicate code
+      tpe match {
+        case TropicalSemiRingType(_, _, Some(tp))  => tp
+        case tp @ TropicalSemiRingType(_, _, None) => raise(s"${tp.simpleName} is missing type information")
+        case _                                     => tpe
+      }
+    case Update(e, _, _) => run(e)
+    case Modify(e, _)    => run(e)
 
     case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }

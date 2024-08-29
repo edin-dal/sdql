@@ -82,7 +82,7 @@ object Parser {
 
   private def tpeTropSR(implicit ctx: P[?]) =
     P(("mnpr" | "mxpr" | "mnsm" | "mxsm" | "min_prod" | "max_prod" | "min_sum" | "max_sum").!)
-      .map(TropicalSemiRingType(_))
+      .map(TropicalSemiRingType.apply)
   private def tpeEnum(implicit ctx: P[?]) =
     P("enum" ~ ("[" ~ space ~/ tpe ~/ space ~/ "]")).map(EnumSemiRingType.apply)
   private def tpeNullable(implicit ctx: P[?]) =
