@@ -142,6 +142,8 @@ object TypeInference {
     case Promote(_: TropicalSemiRingType, e) => run(e)
     case Promote(tp, _)                      => tp
 
+    case _: RangeNode => SetType(IntType)
+
     case Unique(e: Exp) => run(e)
 
     // LLQL
@@ -153,17 +155,11 @@ object TypeInference {
   }
 
   def sumInferTypeAndCtx(k: Sym, v: Sym, e1: Exp, e2: Exp)(implicit ctx: Ctx): (Type, Ctx) = {
-    val localCtx = ctx ++ (e1 match {
-      case _: RangeNode => Map(k -> IntType)
-      // from e1 infer types of k, v
-      case _ =>
-        run(e1) match {
-          case DictType(kType, vType, _) => Map(k -> kType, v -> vType)
-          case tpe =>
-            raise(
-              s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}"
-            )
-        }
+    // from e1 infer types of k, v
+    val localCtx = ctx ++ (run(e1) match {
+      case DictType(kType, vType, _) => Map(k -> kType, v -> vType)
+      case tpe =>
+        raise(s"assignment should be from ${DictType.getClass.getSimpleName.init} not ${tpe.simpleName}")
     })
     // from types of k, v infer type of e2
     val tpe = run(e2)(localCtx)

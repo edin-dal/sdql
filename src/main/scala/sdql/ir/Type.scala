@@ -23,6 +23,7 @@ case object BoolType                                                  extends Ty
 case object IntType                                                   extends Type
 case object DateType                                                  extends Type
 case class DictType(key: Type, value: Type, hint: DictHint = PHmap()) extends Type
+object SetType { def apply(key: Type): DictType = DictType(key, IntType) }
 case class RecordType(attrs: Seq[Attribute]) extends Type {
   override def equals(o: Any): Boolean = o match {
     case RecordType(attrs2) if attrs.size == attrs2.size =>
