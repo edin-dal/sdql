@@ -43,9 +43,6 @@ object TropicalSemiRingType {
     case "max_prod" | "mxpr" => TropicalSemiRingType(isMax = true, isProd = true, RealType)
   }
 }
-case class SemiRingCovarType(startIndex: Int, size: Int)
-    extends CustomSemiRingType("SemiRingCovar", Seq(startIndex, RealType, size))
-case class SemiRingFusedCovarType(size: Int) extends CustomSemiRingType("SemiRingFusedCovar", Seq(RealType, size))
 
 case class EnumSemiRing[T](kind: EnumSemiRingType, value: EnumSemiRingValue[T])
 sealed trait EnumSemiRingValue[+T] {
