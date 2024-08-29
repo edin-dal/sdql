@@ -66,11 +66,13 @@ First, comment out the global `-l` options in `build.sbt`.
 You can then run the optional tests using these commands:
 
 ```sh
-sbt "testOnly * -- -n TestTPCH0_01" # fast test (< 1 min)
+# fast test (< 1 min)
+sbt "testOnly * -- -n TestTPCH0_01"
 ```
 
 ```sh
-sbt "testOnly * -- -n TestTPCH1" # slower test (> 1 min)
+# slower test (> 1 min)
+sbt "testOnly * -- -n TestTPCH1"
 ```
 
 ### Result files
