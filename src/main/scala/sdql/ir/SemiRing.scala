@@ -52,7 +52,7 @@ sealed trait EnumSemiRingValue[+T] {
   }
   def get: T = this match {
     case SingletonEnumSemiRing(v) => v
-    case _                        => ???
+    case _                        => raise("not implemented")
   }
 }
 case object TopEnumSemiRing                    extends EnumSemiRingValue[Nothing]

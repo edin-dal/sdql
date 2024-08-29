@@ -276,7 +276,7 @@ import scala.annotation.{ nowarn, tailrec }
                     vv1
                   case (None, Some(vv2)) =>
                     vv2
-                  case _ => ???
+                  case _ => raise("not implemented")
                 }
             }
           )
