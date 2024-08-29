@@ -351,6 +351,14 @@ object CppCodegen {
     case RecordType(attrs) => attrs.map(_.tpe).map(cppType(_)).mkString(", ")
   }
 
+  // In the generated C++ program, CSVs are loaded into const variables outside the main function.
+  // This is convenient so we can just time everything inside main for benchmarks (which shouldn't include load times).
+  // Though it assumes loads expressions are bound to global variables (always holds for all of our queries).
+  // E.g. we currently don't support cases like this one:
+  //     if (...) then
+  //         let same_varname = load[...]("foo.csv")
+  //     else
+  //         let same_varname = load[...]("bar.csv")
   private def cppCsvs(e: Exp): String = {
     val pathNameTypeSkip = iterExps(e).flatMap(extract).toSeq.distinct.sortBy(_._2)
     val csvConsts =
