@@ -7,7 +7,10 @@ import sdql.{ raise, Field }
 import scala.PartialFunction.cond
 import scala.annotation.tailrec
 
-trait Transformation { def apply(e: Exp): Exp }
+trait Transformation {
+  def apply(e: Exp): Exp
+  def ++(transformation: Transformation): TermRewriter = TermRewriter(this, transformation)
+}
 
 class TermRewriter(transformations: Transformation*) extends Transformation {
   def apply(e: Exp): Exp = transformations.foldLeft(e)((acc, f) => f.apply(acc))
@@ -17,14 +20,13 @@ object TermRewriter { def apply(transformations: Transformation*): TermRewriter 
 
 /** Applies all transformations and lowers an expression to LLQL */
 object Rewriter {
-  val rewrite: TermRewriter = TermRewriter(
-    RemoveAliases,
-    RemoveRecordGet,
-    SkipUnusedColumns,
-    RemoveIntermediateTuples,
-    BindFreeExpression,
-    LowerToLLQL,
-  )
+  val rewrite: TermRewriter =
+    RemoveAliases ++
+      RemoveRecordGet ++
+      SkipUnusedColumns ++
+      RemoveIntermediateTuples ++
+      BindFreeExpression ++
+      LowerToLLQL
 
   def mapInner(f: Exp => Exp)(e: Exp): Exp = e match {
     // 0-ary

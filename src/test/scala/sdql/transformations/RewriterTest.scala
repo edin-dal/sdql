@@ -103,7 +103,7 @@ class SkipUnusedColumnsTest extends AnyFlatSpec with Matchers {
                sum(<i,_> <- range(lineitem.size))
                    1
                """
-    TermRewriter(RemoveAliases, RemoveRecordGet, SkipUnusedColumns)(e) should be(rewrite)
+    (RemoveAliases ++ RemoveRecordGet ++ SkipUnusedColumns)(e) should be(rewrite)
   }
 }
 
