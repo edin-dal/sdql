@@ -19,6 +19,28 @@ class RemoveAliasesTest extends AnyFlatSpec with Matchers {
                """
     RemoveAliases(e) should be(rewrite)
   }
+
+  it should "remove aliases handling local scopes" in {
+    val e       = sdql"""
+               let x = 0
+               let y = 1
+               if (true) then
+                   let alias = x
+                   alias + y
+               else
+                   let alias = y
+                   x + alias
+               """
+    val rewrite = sdql"""
+               let x = 0
+               let y = 1
+               if (true) then
+                   x + y
+               else
+                   x + y
+               """
+    RemoveAliases(e) should be(rewrite)
+  }
 }
 
 class RemoveRecordGetTest extends AnyFlatSpec with Matchers {
