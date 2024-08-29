@@ -218,14 +218,10 @@ object CppCodegen {
       // LLQL
 
       case Initialise(tpe, e) =>
-        val demoted = tpe match {
-          case TropicalSemiRingType(_, _, Some(tp))  => tp
-          case tp @ TropicalSemiRingType(_, _, None) => raise(s"${tp.simpleName} is missing type information")
-          case _                                     => tpe
-        }
+        val unpacked      = TropicalSemiRingType.unpack(tpe)
         val agg           = Aggregation.fromType(tpe)
-        val initialiseCpp = initialise(demoted)(agg, typesCtx, isTernary)
-        s"${cppType(demoted)}($initialiseCpp); ${CppCodegen.run(e)}"
+        val initialiseCpp = initialise(unpacked)(agg, typesCtx, isTernary)
+        s"${cppType(unpacked)}($initialiseCpp); ${CppCodegen.run(e)}"
 
       case Update(e, agg, destination) =>
         val (lhs, rhs) = cppLhsRhs(e, destination)
@@ -468,8 +464,7 @@ object CppCodegen {
         )
         .mkString(""""<" <<""", """ << "," << """, """<< ">"""")
     case _ =>
-//      FIXME
-//      assert(tpe.isScalar)
+      assert(tpe.isScalar)
       name
   }
   private val stdCout = s"std::cout << std::setprecision (std::numeric_limits<double>::digits10)"

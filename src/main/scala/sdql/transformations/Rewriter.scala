@@ -229,13 +229,11 @@ private object LowerToLLQL extends TermRewriter {
     e match {
       case Sum(k, v, e1, e2) =>
         val (tpe, ctxLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
-        val promoted = getSumBody(e2) match {
-          case Promote(TropicalSemiRingType(isMax, isProd, None), _)           => TropicalSemiRingType(isMax, isProd, Some(tpe))
-          case Promote(TropicalSemiRingType(_, _, tp), _) if !tp.contains(tpe) => raise(s"$tp ≠ ${Some(tpe)}")
-          case Promote(tp: TropicalSemiRingType, _)                            => tp
-          case _                                                               => tpe
+        val packed = getSumBody(e2) match {
+          case Promote(tsrt: TropicalSemiRingType, _) => TropicalSemiRingType.pack(tsrt, tpe)
+          case _                                      => tpe
         }
-        Initialise(promoted, Sum(k, v, e1, run(e2)(ctxLocal, dest)))
+        Initialise(packed, Sum(k, v, e1, run(e2)(ctxLocal, dest)))
     }
 
   @tailrec

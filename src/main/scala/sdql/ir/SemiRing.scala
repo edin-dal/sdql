@@ -43,6 +43,17 @@ object TropicalSemiRingType {
     case "min_prod" | "mnpr" => TropicalSemiRingType(isMax = false, isProd = true)
     case "max_prod" | "mxpr" => TropicalSemiRingType(isMax = true, isProd = true)
   }
+  def apply(name: String, tp: Type): TropicalSemiRingType = this.pack(this.apply(name), tp)
+  def pack(tsrt: TropicalSemiRingType, tp: Type): TropicalSemiRingType = tsrt match {
+    case TropicalSemiRingType(isMax, isProd, None)          => TropicalSemiRingType(isMax, isProd, Some(tp))
+    case TropicalSemiRingType(_, _, Some(tpe)) if tpe != tp => raise(s"$tpe ≠ $tp")
+    case _                                                  => tsrt
+  }
+  def unpack(tp: Type): Type = tp match {
+    case TropicalSemiRingType(_, _, Some(tp))    => tp
+    case tsrt @ TropicalSemiRingType(_, _, None) => raise(s"${tsrt.simpleName} is missing type information")
+    case _                                       => tp
+  }
 }
 
 case class EnumSemiRing[T](kind: EnumSemiRingType, value: EnumSemiRingValue[T])
