@@ -1,0 +1,50 @@
+let mk = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @vec {int -> int}, size: int>]("datasets/job/movie_keyword.csv")
+let t = load[<id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, imdb_id: @vec {int -> string}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, series_years: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/15b/t.csv")
+let mi = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type_id: @vec {int -> int}, info: @vec {int -> string}, note: @vec {int -> string}, size: int>]("datasets/job/15b/mi.csv")
+let mc = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, company_id: @vec {int -> int}, company_type_id: @vec {int -> int}, note: @vec {int -> string}, size: int>]("datasets/job/15b/mc.csv")
+let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/keyword.csv")
+let it1 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/15b/it1.csv")
+let ct = load[<id: @vec {int -> int}, kind: @vec {int -> string}, size: int>]("datasets/job/company_type.csv")
+let cn = load[<id: @vec {int -> int}, name: @vec {int -> string}, country_code: @vec {int -> string}, imdb_id: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, name_pcode_sf: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/15b/cn.csv")
+let at = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, note: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/aka_title.csv")
+
+let mk_trie0 = sum(<i, _> <- range(mk.size)) { mk.movie_id(i) -> @smallvecdict(0) { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(0) { i -> 1 } } in
+let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
+	if (x0 ∈ t_trie0) then
+		let t_trie1 = t_trie0(x0) in
+		sum(<mk_off, _> <- mk_trie1)
+			sum(<t_off, _> <- t_trie1)
+				{ mk.movie_id(mk_off) -> { mk.keyword_id(mk_off) -> @smallvecdict(0) { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.title(t_off)> -> 1 } } }
+in
+
+let mi_trie0 = sum(<i, _> <- range(mi.size)) { mi.movie_id(i) -> { mi.info_type_id(i) -> @smallvecdict(0) { i -> 1 } } } in
+let mc_trie0 = sum(<i, _> <- range(mc.size)) { mc.movie_id(i) -> { mc.company_type_id(i) -> { mc.company_id(i) -> 1 } } } in
+let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> 1 } in
+let it1_trie0 = sum(<i, _> <- range(it1.size)) { it1.id(i) -> 1 } in
+let ct_trie0 = sum(<i, _> <- range(ct.size)) { ct.id(i) -> 1 } in
+let cn_trie0 = sum(<i, _> <- range(cn.size)) { cn.id(i) -> 1 } in
+let at_trie0 = sum(<i, _> <- range(at.size)) { at.movie_id(i) -> 1 } in
+sum(<x0, mi_trie1> <- mi_trie0)
+	if (x0 ∈ interm0_trie0) then
+		if (x0 ∈ mc_trie0) then
+			let interm0_trie1 = interm0_trie0(x0) in
+			let mc_trie1 = mc_trie0(x0) in
+			sum(<x1, interm0_trie2> <- interm0_trie1)
+				if (x1 ∈ k_trie0) then
+					let k_trie1 = k_trie0(x1) in
+					sum(<x2, mi_trie2> <- mi_trie1)
+						if (x2 ∈ it1_trie0) then
+							let it1_trie1 = it1_trie0(x2) in
+							sum(<x3, mc_trie2> <- mc_trie1)
+								if (x3 ∈ ct_trie0) then
+									let ct_trie1 = ct_trie0(x3) in
+									sum(<x4, mc_trie3> <- mc_trie2)
+										if (x4 ∈ cn_trie0) then
+											let cn_trie1 = cn_trie0(x4) in
+											if (x0 ∈ at_trie0) then
+												let at_trie1 = at_trie0(x0) in
+												let mn_mi = sum(<mi_off, _> <- mi_trie2) promote[min_sum](<info=mi.info(mi_off)>) in
+												let mn_interm0 = sum(<interm0_tuple, _> <- interm0_trie2) promote[min_sum](<col2=interm0_tuple.col2>) in
+												promote[min_sum](<col2=mn_mi.info, col4=mn_interm0.col2>)
+

@@ -1,30 +1,23 @@
 package sdql
 package storage
 
-import java.io.FileReader
-import java.io.BufferedReader
-import java.text.SimpleDateFormat
-import scala.reflect._
-import scala.reflect.runtime.universe._
-import scala.reflect.runtime.currentMirror
+import java.io.{ BufferedReader, FileReader }
 
 /**
-  * Code from: https://github.com/epfldata/dblab/blob/develop/components/
-  *             src/main/scala/ch/epfl/data/dblab/storagemanager/
-  *
-  * An efficient Scanner defined for reading from files.
-  *
-  */
-
+ * Code from: https://github.com/epfldata/dblab/blob/develop/components/
+ *             src/main/scala/ch/epfl/data/dblab/storagemanager/
+ *
+ * An efficient Scanner defined for reading from files.
+ *
+ */
 class FastScanner(filename: String) {
-  
-  private var byteRead: Int = 0
-  private var intDigits: Int = 0
-  private var delimiter: Char = '|'
+
+  private var byteRead: Int      = 0
+  private var intDigits: Int     = 0
+  private var delimiter: Char    = '|'
   private val br: BufferedReader = new BufferedReader(new FileReader(filename))
-  private val sdf = new SimpleDateFormat("yyyy-MM-dd");
-    
-  def next_int() = {
+
+  def next_int(): Int = {
     var number = 0
     var signed = false
 
@@ -41,17 +34,19 @@ class FastScanner(filename: String) {
       intDigits = intDigits + 1
     }
     if ((byteRead != delimiter) && (byteRead != '.') && (byteRead != '\n'))
-      throw new RuntimeException("Tried to read Integer, but found neither delimiter nor . after number (found " +
-        byteRead.asInstanceOf[Char] + ", previous token = " + intDigits + "/" + number + ")")
+      throw new RuntimeException(
+        "Tried to read Integer, but found neither delimiter nor . after number (found " +
+          byteRead.asInstanceOf[Char] + ", previous token = " + intDigits + "/" + number + ")"
+      )
     if (signed) -1 * number else number
   }
 
-  def next_double() = {
-    val numeral: Double = next_int()
-    var fractal: Double = 0.0
+  def next_double(): Double = {
+    val numeral = next_int().toDouble
+    var fractal = 0.0
     // Has fractal part
     if (byteRead == '.') {
-      fractal = next_int()
+      fractal = next_int().toDouble
       while (intDigits > 0) {
         fractal = fractal * 0.1
         intDigits = intDigits - 1
@@ -61,7 +56,7 @@ class FastScanner(filename: String) {
     else numeral - fractal
   }
 
-  def next_char() = {
+  def next_char(): Char = {
     byteRead = br.read()
     val del = br.read() //delimiter
     if ((del != delimiter) && (del != '\n'))
@@ -69,11 +64,10 @@ class FastScanner(filename: String) {
     byteRead.asInstanceOf[Char]
   }
 
-  def next(buf: Array[Byte]): Int = {
+  def next(buf: Array[Byte]): Int =
     next(buf, 0)
-  }
 
-  def next(buf: Array[Byte], offset: Int) = {
+  def next(buf: Array[Byte], offset: Int): Int = {
     byteRead = br.read()
     var cnt = offset
     while (br.ready() && (byteRead != delimiter) && (byteRead != '\n')) {
@@ -101,21 +95,20 @@ class FastScanner(filename: String) {
 
   def next_date: Int = {
     delimiter = '-'
-    val year = next_int
-    val month = next_int
+    val year  = next_int()
+    val month = next_int()
     delimiter = '|'
-    val day = next_int
+    val day = next_int()
     //val date_str = year + "-" + month + "-" + day
     year * 10000 + month * 100 + day
   }
 
-  def hasNext() = {
+  def hasNext(): Boolean = {
     val f = br.ready()
     if (!f) br.close
     f
   }
 
-  def close() = {
+  def close(): Unit =
     br.close()
-  }
 }

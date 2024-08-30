@@ -1,0 +1,86 @@
+let customer = load[<c_custkey: @vec {int -> int}, c_name: @vec {int -> varchar(25)}, c_address: @vec {int -> varchar(40)}, c_nationkey: @vec {int -> int}, c_phone: @vec {int -> varchar(15)}, c_acctbal: @vec {int -> double}, c_mktsegment: @vec {int -> varchar(10)}, c_comment: @vec {int -> varchar(117)}, size: int>]("datasets/tpch/customer.tbl")
+
+let orders = load[<o_orderkey: @vec {int -> int}, o_custkey: @vec {int -> int}, o_orderstatus: @vec {int -> varchar(1)}, o_totalprice: @vec {int -> double}, o_orderdate: @vec {int -> date}, o_orderpriority: @vec {int -> varchar(15)}, o_clerk: @vec {int -> varchar(15)}, o_shippriority: @vec {int -> int}, o_comment: @vec {int -> varchar(79)}, size: int>]("datasets/tpch/orders.tbl")
+
+let _13 = ext(`ConstantString`, "13", 3)
+let _31 = ext(`ConstantString`, "31", 3)
+let _23 = ext(`ConstantString`, "23", 3)
+let _29 = ext(`ConstantString`, "29", 3)
+let _30 = ext(`ConstantString`, "30", 3)
+let _18 = ext(`ConstantString`, "18", 3)
+let _17 = ext(`ConstantString`, "17", 3)
+
+let o_h =
+  sum(<i,_> <- range(orders.size))
+    let o = <
+      o_orderkey=orders.o_orderkey(i),
+      o_custkey=orders.o_custkey(i),
+      o_orderstatus=orders.o_orderstatus(i),
+      o_totalprice=orders.o_totalprice(i),
+      o_orderdate=orders.o_orderdate(i),
+      o_orderpriority=orders.o_orderpriority(i),
+      o_clerk=orders.o_clerk(i),
+      o_shippriority=orders.o_shippriority(i),
+      o_comment=orders.o_comment(i)
+    >
+    @vec(150000) { o.o_custkey -> 1 }
+
+let fused =
+  sum(<i,_> <- range(customer.size))
+    let c = <
+      c_custkey=customer.c_custkey(i),
+      c_name=customer.c_name(i),
+      c_address=customer.c_address(i),
+      c_nationkey=customer.c_nationkey(i),
+      c_phone=customer.c_phone(i),
+      c_acctbal=customer.c_acctbal(i),
+      c_mktsegment=customer.c_mktsegment(i),
+      c_comment=customer.c_comment(i)
+    >
+    let cond = (
+                 (0.0 < c.c_acctbal) &&
+                 (
+                   ext(`StrStartsWith`, c.c_phone, _13) ||
+                   ext(`StrStartsWith`, c.c_phone, _31) ||
+                   ext(`StrStartsWith`, c.c_phone, _23) ||
+                   ext(`StrStartsWith`, c.c_phone, _29) ||
+                   ext(`StrStartsWith`, c.c_phone, _30) ||
+                   ext(`StrStartsWith`, c.c_phone, _18) ||
+                   ext(`StrStartsWith`, c.c_phone, _17)
+                 )
+               ) in
+    < total = if(cond) then c.c_acctbal else 0.0, count = if(cond) then 1.0 else 0.0 >
+
+let avg = fused.total / fused.count
+
+let res =
+  sum(<i,_> <- range(customer.size))
+    let c = <
+      c_custkey=customer.c_custkey(i),
+      c_name=customer.c_name(i),
+      c_address=customer.c_address(i),
+      c_nationkey=customer.c_nationkey(i),
+      c_phone=customer.c_phone(i),
+      c_acctbal=customer.c_acctbal(i),
+      c_mktsegment=customer.c_mktsegment(i),
+      c_comment=customer.c_comment(i)
+    >
+    if(
+      (avg < c.c_acctbal) &&
+      (!o_h(c.c_custkey)) &&
+      (
+        ext(`StrStartsWith`, c.c_phone, _13) ||
+        ext(`StrStartsWith`, c.c_phone, _31) ||
+        ext(`StrStartsWith`, c.c_phone, _23) ||
+        ext(`StrStartsWith`, c.c_phone, _29) ||
+        ext(`StrStartsWith`, c.c_phone, _30) ||
+        ext(`StrStartsWith`, c.c_phone, _18) ||
+        ext(`StrStartsWith`, c.c_phone, _17)
+      )
+    ) then
+      { < cntrycode = ext(`SubString`, c.c_phone, 0, 2) > -> < numcust = 1, totacctbal = c.c_acctbal > }
+    else
+      { }
+
+sum(<k,v> <- res)
+  { unique(concat(k,v)) -> 1 }

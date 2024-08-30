@@ -1,0 +1,51 @@
+let mk = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @vec {int -> int}, size: int>]("datasets/job/movie_keyword.csv")
+let t = load[<id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, imdb_id: @vec {int -> string}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, series_years: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/15a/t.csv")
+let mi = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type_id: @vec {int -> int}, info: @vec {int -> string}, note: @vec {int -> string}, size: int>]("datasets/job/15a/mi.csv")
+let mc = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, company_id: @vec {int -> int}, company_type_id: @vec {int -> int}, note: @vec {int -> string}, size: int>]("datasets/job/15a/mc.csv")
+let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/keyword.csv")
+let it1 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/15a/it1.csv")
+let ct = load[<id: @vec {int -> int}, kind: @vec {int -> string}, size: int>]("datasets/job/company_type.csv")
+let cn = load[<id: @vec {int -> int}, name: @vec {int -> string}, country_code: @vec {int -> string}, imdb_id: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, name_pcode_sf: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/15a/cn.csv")
+let at = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, note: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/aka_title.csv")
+
+let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
+let interm0_trie0 = sum(<mk_off, _> <- range(mk.size))
+	let x0 = mk.movie_id(mk_off) in
+	if (x0 ∈ t_trie0) then
+		let t_trie1 = t_trie0(x0) in
+		sum(<t_off, _> <- t_trie1)
+			@phmap(promote[min_sum](1000000) + promote[min_sum](mk.size)) { mk.movie_id(mk_off) -> @smallvecdict(4) { <col1=mk.keyword_id(mk_off), col2=t.title(t_off)> -> 1 } }
+in
+
+let mc_trie0 = sum(<i, _> <- range(mc.size)) @phmap(mc.size) { mc.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
+let k_trie0 = sum(<i, _> <- range(k.size)) @phmap(k.size) { unique(k.id(i)) -> 1 } in
+let it1_trie0 = sum(<i, _> <- range(it1.size)) @phmap(it1.size) { unique(it1.id(i)) -> 1 } in
+let ct_trie0 = sum(<i, _> <- range(ct.size)) @phmap(ct.size) { unique(ct.id(i)) -> 1 } in
+let cn_trie0 = sum(<i, _> <- range(cn.size)) @phmap(cn.size) { unique(cn.id(i)) -> 1 } in
+let at_trie0 = sum(<i, _> <- range(at.size)) @phmap(at.size) { unique(at.movie_id(i)) -> 1 } in
+sum(<mi_off, _> <- range(mi.size))
+	let x0 = mi.movie_id(mi_off) in
+	if (x0 ∈ mc_trie0) then
+		if (x0 ∈ interm0_trie0) then
+			let mc_trie1 = mc_trie0(x0) in
+			let interm0_trie1 = interm0_trie0(x0) in
+			sum(<interm0_tuple, _> <- interm0_trie1)
+				let x1 = interm0_tuple.col1 in
+				if (x1 ∈ k_trie0) then
+					let k_trie1 = k_trie0(x1) in
+					let x2 = mi.info_type_id(mi_off) in
+					if (x2 ∈ it1_trie0) then
+						let it1_trie1 = it1_trie0(x2) in
+						sum(<mc_off, _> <- mc_trie1)
+							let x3 = mc.company_type_id(mc_off) in
+							if (x3 ∈ ct_trie0) then
+								let ct_trie1 = ct_trie0(x3) in
+								let x4 = mc.company_id(mc_off) in
+								if (x4 ∈ cn_trie0) then
+									let cn_trie1 = cn_trie0(x4) in
+									if (x0 ∈ at_trie0) then
+										let at_trie1 = at_trie0(x0) in
+										let mn_mi = <info=mi.info(mi_off)> in
+										let mn_interm0 = <col2=interm0_tuple.col2> in
+										promote[min_sum](<col2=mn_mi.info, col4=mn_interm0.col2>)
+

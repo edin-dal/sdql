@@ -1,0 +1,57 @@
+let supplier = load[<s_suppkey: @vec {int -> int}, s_name: @vec {int -> varchar(25)}, s_address: @vec {int -> varchar(40)}, s_nationkey: @vec {int -> int}, s_phone: @vec {int -> varchar(15)}, s_acctbal: @vec {int -> double}, s_comment: @vec {int -> varchar(101)}, size: int>]("datasets/tpch/supplier.tbl")
+
+let partsupp = load[<ps_partkey: @vec {int -> int}, ps_suppkey: @vec {int -> int}, ps_availqty: @vec {int -> double}, ps_supplycost: @vec {int -> double}, ps_comment: @vec {int -> varchar(199)}, size: int>]("datasets/tpch/partsupp.tbl")
+
+let nation = load[<n_nationkey: @vec {int -> int}, n_name: @vec {int -> varchar(25)}, n_regionkey: @vec {int -> int}, n_comment: @vec {int -> varchar(152)}, size: int>]("datasets/tpch/nation.tbl")
+
+let germany = ext(`ConstantString`,"GERMANY", 8)
+
+let n_h =
+  sum(<i,_> <- range(nation.size))
+    let n = <
+      n_nationkey=nation.n_nationkey(i),
+      n_name=nation.n_name(i),
+      n_regionkey=nation.n_regionkey(i),
+      n_comment=nation.n_comment(i)
+    >
+    if(n.n_name == germany) then
+      { unique(n.n_nationkey) -> < _ = n.n_nationkey > }
+    else
+      { }
+
+let s_h =
+  sum(<i,_> <- range(supplier.size))
+    let s = <
+      s_suppkey=supplier.s_suppkey(i),
+      s_name=supplier.s_name(i),
+      s_address=supplier.s_address(i),
+      s_nationkey=supplier.s_nationkey(i),
+      s_phone=supplier.s_phone(i),
+      s_acctbal=supplier.s_acctbal(i),
+      s_comment=supplier.s_comment(i)
+    >
+    if(n_h(s.s_nationkey) != {}) then
+      { unique(s.s_suppkey) -> 1 }
+    else
+      { }
+
+let ps_t =
+  sum(<i,_> <- range(partsupp.size))
+    let ps = <
+      ps_partkey=partsupp.ps_partkey(i),
+      ps_suppkey=partsupp.ps_suppkey(i),
+      ps_availqty=partsupp.ps_availqty(i),
+      ps_supplycost=partsupp.ps_supplycost(i),
+      ps_comment=partsupp.ps_comment(i)
+    >
+    if(s_h(ps.ps_suppkey) != {}) then
+      <
+        _ = ps.ps_supplycost * ps.ps_availqty * 0.0001,
+        _ = { ps.ps_partkey -> ps.ps_supplycost * ps.ps_availqty }
+      >
+
+sum(<ps_partkey,ps_supplycost> in ps_t(1))
+  if(ps_t(0) < ps_supplycost) then
+    { < _ = ps_partkey, _ = ps_supplycost > -> 1 }
+  else
+    { }

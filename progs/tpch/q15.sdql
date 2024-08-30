@@ -1,0 +1,64 @@
+let lineitem = load[<l_orderkey: @vec {int -> int}, l_partkey: @vec {int -> int}, l_suppkey: @vec {int -> int}, l_linenumber: @vec {int -> int}, l_quantity: @vec {int -> double}, l_extendedprice: @vec {int -> double}, l_discount: @vec {int -> double}, l_tax: @vec {int -> double}, l_returnflag: @vec {int -> varchar(1)}, l_linestatus: @vec {int -> varchar(1)}, l_shipdate: @vec {int -> date}, l_commitdate: @vec {int -> date}, l_receiptdate: @vec {int -> date}, l_shipinstruct: @vec {int -> varchar(25)}, l_shipmode: @vec {int -> varchar(10)}, l_comment: @vec {int -> varchar(44)}, size: int>]("datasets/tpch/lineitem.tbl")
+
+let supplier = load[<s_suppkey: @vec {int -> int}, s_name: @vec {int -> varchar(25)}, s_address: @vec {int -> varchar(40)}, s_nationkey: @vec {int -> int}, s_phone: @vec {int -> varchar(15)}, s_acctbal: @vec {int -> double}, s_comment: @vec {int -> varchar(101)}, size: int>]("datasets/tpch/supplier.tbl")
+
+let suppkey_to_revenue =
+  sum(<i,_> <- range(lineitem.size))
+    let l = <
+      l_orderkey=lineitem.l_orderkey(i),
+      l_partkey=lineitem.l_partkey(i),
+      l_suppkey=lineitem.l_suppkey(i),
+      l_linenumber=lineitem.l_linenumber(i),
+      l_quantity=lineitem.l_quantity(i),
+      l_extendedprice=lineitem.l_extendedprice(i),
+      l_discount=lineitem.l_discount(i),
+      l_tax=lineitem.l_tax(i),
+      l_returnflag=lineitem.l_returnflag(i),
+      l_linestatus=lineitem.l_linestatus(i),
+      l_shipdate=lineitem.l_shipdate(i),
+      l_commitdate=lineitem.l_commitdate(i),
+      l_receiptdate=lineitem.l_receiptdate(i),
+      l_shipinstruct=lineitem.l_shipinstruct(i),
+      l_shipmode=lineitem.l_shipmode(i),
+      l_comment=lineitem.l_comment(i)
+    >
+    if((date(19960101) <= l.l_shipdate) && (l.l_shipdate < date(19960401))) then
+      { l.l_suppkey -> l.l_extendedprice * (1.0 - l.l_discount) }
+    else
+      { }
+
+let max_revenue = sum(<_,v> <- suppkey_to_revenue) promote[max_sum](v)
+
+let suppkey_to_supp =
+  sum(<i,_> <- range(supplier.size))
+    let s = <
+      s_suppkey=supplier.s_suppkey(i),
+      s_name=supplier.s_name(i),
+      s_address=supplier.s_address(i),
+      s_nationkey=supplier.s_nationkey(i),
+      s_phone=supplier.s_phone(i),
+      s_acctbal=supplier.s_acctbal(i),
+      s_comment=supplier.s_comment(i)
+    >
+    {
+      unique(s.s_suppkey) ->
+      <
+        name = s.s_name,
+        address = s.s_address,
+        phone = s.s_phone
+      >
+    }
+
+sum(<suppkey,revenue> in suppkey_to_revenue)
+  if(revenue == max_revenue) then
+    {
+      <
+        suppkey = suppkey,
+        name = suppkey_to_supp(suppkey).name,
+        address = suppkey_to_supp(suppkey).address,
+        phone = suppkey_to_supp(suppkey).phone,
+        total_revenue = revenue
+      > -> 1
+    }
+  else
+    { }

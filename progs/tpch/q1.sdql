@@ -1,14 +1,37 @@
-let lineitem = load[{<l_orderkey: int, l_partkey: int, l_suppkey: int, l_linenumber: int, l_quantity: double, l_extendedprice: double, l_discount: double, l_tax: double, l_returnflag: string, l_linestatus: string, l_shipdate: date, l_commitdate: date, l_receiptdate: date, l_shipinstruct: string, l_shipmode: string, l_comment: string> -> int}]("datasets/tpch/lineitem.tbl")
-sum(<li, li_v> <- lineitem)
-  if(li.l_shipdate <= date(19980902)) then 
-    { < returnflag = li.l_returnflag, linestatus = li.l_linestatus > ->
-       < 
-         l_quantity_sum = li.l_quantity,
-         l_extendedprice_sum = li.l_extendedprice,
-         agg1 = li_v * li.l_extendedprice * (1 - li.l_discount),
-         agg2 = li_v * li.l_extendedprice * (1 - li.l_discount) * (1 + li.l_tax),
-         mult = 1
-       >
-    }
-  else
-    { }
+let lineitem = load[<l_orderkey: @vec {int -> int}, l_partkey: @vec {int -> int}, l_suppkey: @vec {int -> int}, l_linenumber: @vec {int -> int}, l_quantity: @vec {int -> double}, l_extendedprice: @vec {int -> double}, l_discount: @vec {int -> double}, l_tax: @vec {int -> double}, l_returnflag: @vec {int -> varchar(1)}, l_linestatus: @vec {int -> varchar(1)}, l_shipdate: @vec {int -> date}, l_commitdate: @vec {int -> date}, l_receiptdate: @vec {int -> date}, l_shipinstruct: @vec {int -> varchar(25)}, l_shipmode: @vec {int -> varchar(10)}, l_comment: @vec {int -> varchar(44)}, size: int>]("datasets/tpch/lineitem.tbl")
+
+let l_h =
+  sum(<i,_> <- range(lineitem.size))
+    let l = <
+      l_orderkey=lineitem.l_orderkey(i),
+      l_partkey=lineitem.l_partkey(i),
+      l_suppkey=lineitem.l_suppkey(i),
+      l_linenumber=lineitem.l_linenumber(i),
+      l_quantity=lineitem.l_quantity(i),
+      l_extendedprice=lineitem.l_extendedprice(i),
+      l_discount=lineitem.l_discount(i),
+      l_tax=lineitem.l_tax(i),
+      l_returnflag=lineitem.l_returnflag(i),
+      l_linestatus=lineitem.l_linestatus(i),
+      l_shipdate=lineitem.l_shipdate(i),
+      l_commitdate=lineitem.l_commitdate(i),
+      l_receiptdate=lineitem.l_receiptdate(i),
+      l_shipinstruct=lineitem.l_shipinstruct(i),
+      l_shipmode=lineitem.l_shipmode(i),
+      l_comment=lineitem.l_comment(i)
+    >
+    if(l.l_shipdate <= date(19980902)) then
+      { < returnflag = l.l_returnflag, linestatus = l.l_linestatus > ->
+         <
+           l_quantity_sum = l.l_quantity,
+           l_extendedprice_sum = l.l_extendedprice,
+           agg1 = l.l_extendedprice * (1 - l.l_discount),
+           agg2 = l.l_extendedprice * (1 - l.l_discount) * (1 + l.l_tax),
+           mult = 1
+         >
+      }
+    else
+      { }
+
+sum(<k,v> <- l_h)
+  { concat(k,v) -> 1 }

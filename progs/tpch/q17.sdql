@@ -1,0 +1,77 @@
+let lineitem = load[<l_orderkey: @vec {int -> int}, l_partkey: @vec {int -> int}, l_suppkey: @vec {int -> int}, l_linenumber: @vec {int -> int}, l_quantity: @vec {int -> double}, l_extendedprice: @vec {int -> double}, l_discount: @vec {int -> double}, l_tax: @vec {int -> double}, l_returnflag: @vec {int -> varchar(1)}, l_linestatus: @vec {int -> varchar(1)}, l_shipdate: @vec {int -> date}, l_commitdate: @vec {int -> date}, l_receiptdate: @vec {int -> date}, l_shipinstruct: @vec {int -> varchar(25)}, l_shipmode: @vec {int -> varchar(10)}, l_comment: @vec {int -> varchar(44)}, size: int>]("datasets/tpch/lineitem.tbl")
+
+let part = load[<p_partkey: @vec {int -> int}, p_name: @vec {int -> varchar(55)}, p_mfgr: @vec {int -> varchar(25)}, p_brand: @vec {int -> varchar(10)}, p_type: @vec {int -> varchar(25)}, p_size: @vec {int -> int}, p_container: @vec {int -> varchar(10)}, p_retailprice: @vec {int -> double}, p_comment: @vec {int -> varchar(23)}, size: int>]("datasets/tpch/part.tbl")
+
+let brand = ext(`ConstantString`, "Brand#23", 9)
+let medbox = ext(`ConstantString`, "MED BOX", 8)
+
+let p_h =
+  sum(<i,_> <- range(part.size))
+    let p = <
+      p_partkey=part.p_partkey(i),
+      p_name=part.p_name(i),
+      p_mfgr=part.p_mfgr(i),
+      p_brand=part.p_brand(i),
+      p_type=part.p_type(i),
+      p_size=part.p_size(i),
+      p_container=part.p_container(i),
+      p_retailprice=part.p_retailprice(i),
+      p_comment=part.p_comment(i)
+    >
+    if((p.p_brand == brand) && (p.p_container == medbox)) then
+      { unique(p.p_partkey) -> < _ = p.p_partkey > }
+    else
+      { }
+
+let l_h =
+  sum(<i,_> <- range(lineitem.size))
+    let l = <
+      l_orderkey=lineitem.l_orderkey(i),
+      l_partkey=lineitem.l_partkey(i),
+      l_suppkey=lineitem.l_suppkey(i),
+      l_linenumber=lineitem.l_linenumber(i),
+      l_quantity=lineitem.l_quantity(i),
+      l_extendedprice=lineitem.l_extendedprice(i),
+      l_discount=lineitem.l_discount(i),
+      l_tax=lineitem.l_tax(i),
+      l_returnflag=lineitem.l_returnflag(i),
+      l_linestatus=lineitem.l_linestatus(i),
+      l_shipdate=lineitem.l_shipdate(i),
+      l_commitdate=lineitem.l_commitdate(i),
+      l_receiptdate=lineitem.l_receiptdate(i),
+      l_shipinstruct=lineitem.l_shipinstruct(i),
+      l_shipmode=lineitem.l_shipmode(i),
+      l_comment=lineitem.l_comment(i)
+    >
+    if(p_h(l.l_partkey) != {}) then
+      { l.l_partkey -> < _ = l.l_quantity, _ = 1.0 > }
+    else
+      { }
+
+let tot =
+  sum(<i,_> <- range(lineitem.size))
+    let l = <
+      l_orderkey=lineitem.l_orderkey(i),
+      l_partkey=lineitem.l_partkey(i),
+      l_suppkey=lineitem.l_suppkey(i),
+      l_linenumber=lineitem.l_linenumber(i),
+      l_quantity=lineitem.l_quantity(i),
+      l_extendedprice=lineitem.l_extendedprice(i),
+      l_discount=lineitem.l_discount(i),
+      l_tax=lineitem.l_tax(i),
+      l_returnflag=lineitem.l_returnflag(i),
+      l_linestatus=lineitem.l_linestatus(i),
+      l_shipdate=lineitem.l_shipdate(i),
+      l_commitdate=lineitem.l_commitdate(i),
+      l_receiptdate=lineitem.l_receiptdate(i),
+      l_shipinstruct=lineitem.l_shipinstruct(i),
+      l_shipmode=lineitem.l_shipmode(i),
+      l_comment=lineitem.l_comment(i)
+    >
+    let avg = 0.2 * l_h(l.l_partkey)(0) / l_h(l.l_partkey)(1)
+    if((l_h(l.l_partkey) != {}) && (l.l_quantity < avg )) then
+      l.l_extendedprice
+    else
+      0.0
+
+tot / 7.0

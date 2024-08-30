@@ -1,0 +1,48 @@
+let t = load[<id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, imdb_id: @vec {int -> string}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, series_years: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/11d/t.csv")
+let ml = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, linked_movie_id: @vec {int -> int}, link_type_id: @vec {int -> int}, size: int>]("datasets/job/movie_link.csv")
+let mk = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @vec {int -> int}, size: int>]("datasets/job/movie_keyword.csv")
+let mc = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, company_id: @vec {int -> int}, company_type_id: @vec {int -> int}, note: @vec {int -> string}, size: int>]("datasets/job/11d/mc.csv")
+let lt = load[<id: @vec {int -> int}, link: @vec {int -> string}, size: int>]("datasets/job/link_type.csv")
+let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/11d/k.csv")
+let ct = load[<id: @vec {int -> int}, kind: @vec {int -> string}, size: int>]("datasets/job/11d/ct.csv")
+let cn = load[<id: @vec {int -> int}, name: @vec {int -> string}, country_code: @vec {int -> string}, imdb_id: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, name_pcode_sf: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/11d/cn.csv")
+
+let ml_trie0 = sum(<i, _> <- range(ml.size)) @phmap(ml.size) { ml.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
+let interm0_trie0 = sum(<t_off, _> <- range(t.size))
+	let x0 = t.id(t_off) in
+	if (x0 ∈ ml_trie0) then
+		let ml_trie1 = ml_trie0(x0) in
+		sum(<ml_off, _> <- ml_trie1)
+			@phmap(promote[min_sum](1000000) + promote[min_sum](t.size)) { t.id(t_off) -> @smallvecdict(4) { <col1=t.title(t_off), col2=ml.link_type_id(ml_off)> -> 1 } }
+in
+
+let mc_trie0 = sum(<i, _> <- range(mc.size)) @phmap(mc.size) { mc.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
+let lt_trie0 = sum(<i, _> <- range(lt.size)) @phmap(lt.size) { unique(lt.id(i)) -> 1 } in
+let k_trie0 = sum(<i, _> <- range(k.size)) @phmap(k.size) { unique(k.id(i)) -> 1 } in
+let ct_trie0 = sum(<i, _> <- range(ct.size)) @phmap(ct.size) { unique(ct.id(i)) -> 1 } in
+let cn_trie0 = sum(<i, _> <- range(cn.size)) @phmap(cn.size) { cn.id(i) -> @smallvecdict(4) { i -> 1 } } in
+sum(<mk_off, _> <- range(mk.size))
+	let x0 = mk.movie_id(mk_off) in
+	if (x0 ∈ interm0_trie0) then
+		if (x0 ∈ mc_trie0) then
+			let interm0_trie1 = interm0_trie0(x0) in
+			let mc_trie1 = mc_trie0(x0) in
+			sum(<interm0_tuple, _> <- interm0_trie1)
+				let x1 = interm0_tuple.col2 in
+				if (x1 ∈ lt_trie0) then
+					let lt_trie1 = lt_trie0(x1) in
+					let x2 = mk.keyword_id(mk_off) in
+					if (x2 ∈ k_trie0) then
+						let k_trie1 = k_trie0(x2) in
+						sum(<mc_off, _> <- mc_trie1)
+							let x3 = mc.company_type_id(mc_off) in
+							if (x3 ∈ ct_trie0) then
+								let ct_trie1 = ct_trie0(x3) in
+								let x4 = mc.company_id(mc_off) in
+								if (x4 ∈ cn_trie0) then
+									let cn_trie1 = cn_trie0(x4) in
+									let mn_interm0 = <col1=interm0_tuple.col1> in
+									let mn_mc = <note=mc.note(mc_off)> in
+									let mn_cn = sum(<cn_off, _> <- cn_trie1) promote[min_sum](<name=cn.name(cn_off)>) in
+									promote[min_sum](<col3=mn_interm0.col1, col6=mn_mc.note, col7=mn_cn.name>)
+

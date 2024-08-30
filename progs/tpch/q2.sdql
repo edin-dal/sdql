@@ -1,0 +1,123 @@
+let part = load[<p_partkey: @vec {int -> int}, p_name: @vec {int -> varchar(55)}, p_mfgr: @vec {int -> varchar(25)}, p_brand: @vec {int -> varchar(10)}, p_type: @vec {int -> varchar(25)}, p_size: @vec {int -> int}, p_container: @vec {int -> varchar(10)}, p_retailprice: @vec {int -> double}, p_comment: @vec {int -> varchar(23)}, size: int>]("datasets/tpch/part.tbl")
+
+let supplier = load[<s_suppkey: @vec {int -> int}, s_name: @vec {int -> varchar(25)}, s_address: @vec {int -> varchar(40)}, s_nationkey: @vec {int -> int}, s_phone: @vec {int -> varchar(15)}, s_acctbal: @vec {int -> double}, s_comment: @vec {int -> varchar(101)}, size: int>]("datasets/tpch/supplier.tbl")
+
+let partsupp = load[<ps_partkey: @vec {int -> int}, ps_suppkey: @vec {int -> int}, ps_availqty: @vec {int -> double}, ps_supplycost: @vec {int -> double}, ps_comment: @vec {int -> varchar(199)}, size: int>]("datasets/tpch/partsupp.tbl")
+
+let nation = load[<n_nationkey: @vec {int -> int}, n_name: @vec {int -> varchar(25)}, n_regionkey: @vec {int -> int}, n_comment: @vec {int -> varchar(152)}, size: int>]("datasets/tpch/nation.tbl")
+
+let region = load[<r_regionkey: @vec {int -> int}, r_name: @vec {int -> varchar(25)}, r_comment: @vec {int -> varchar(152)}, size: int>]("datasets/tpch/region.tbl")
+
+let brass = ext(`ConstantString`,"BRASS", 6)
+let europe = ext(`ConstantString`,"EUROPE", 7)
+
+let l_h =
+  sum(<i,_> <- range(region.size))
+    let r = <
+      r_regionkey=region.r_regionkey(i),
+      r_name=region.r_name(i),
+      r_comment=region.r_comment(i)
+    >
+    if(r.r_name == europe) then
+      { unique(r.r_regionkey) -> < _ = r.r_regionkey > }
+    else
+      { }
+
+let n_h =
+  sum(<i,_> <- range(nation.size))
+    let n = <
+      n_nationkey=nation.n_nationkey(i),
+      n_name=nation.n_name(i),
+      n_regionkey=nation.n_regionkey(i),
+      n_comment=nation.n_comment(i)
+    >
+    if(l_h(n.n_regionkey) != {}) then
+      { unique(n.n_nationkey) -> n.n_name }
+    else
+      { }
+
+let s_h =
+  sum(<i,_> <- range(supplier.size))
+    let s = <
+      s_suppkey=supplier.s_suppkey(i),
+      s_name=supplier.s_name(i),
+      s_address=supplier.s_address(i),
+      s_nationkey=supplier.s_nationkey(i),
+      s_phone=supplier.s_phone(i),
+      s_acctbal=supplier.s_acctbal(i),
+      s_comment=supplier.s_comment(i)
+    >
+    if(n_h(s.s_nationkey) != {}) then
+      {
+        unique(s.s_suppkey) ->
+        <
+          _ = s.s_acctbal,
+          _ = s.s_name,
+          _ = n_h(s.s_nationkey),
+          _ = s.s_address,
+          _ = s.s_phone,
+          _ = s.s_comment
+        >
+      }
+    else
+      { }
+
+let p_h =
+  sum(<i,_> <- range(part.size))
+    let p = <
+      p_partkey=part.p_partkey(i),
+      p_name=part.p_name(i),
+      p_mfgr=part.p_mfgr(i),
+      p_brand=part.p_brand(i),
+      p_type=part.p_type(i),
+      p_size=part.p_size(i),
+      p_container=part.p_container(i),
+      p_retailprice=part.p_retailprice(i),
+      p_comment=part.p_comment(i)
+    >
+    if((p.p_size == 15) && (ext(`StrEndsWith`, p.p_type, brass))) then
+      { unique(p.p_partkey) -> < _ = p.p_mfgr > }
+    else
+      { }
+
+let ps_h =
+  sum(<i,_> <- range(partsupp.size))
+    let ps = <
+      ps_partkey=partsupp.ps_partkey(i),
+      ps_suppkey=partsupp.ps_suppkey(i),
+      ps_availqty=partsupp.ps_availqty(i),
+      ps_supplycost=partsupp.ps_supplycost(i),
+      ps_comment=partsupp.ps_comment(i)
+    >
+    if ((p_h(ps.ps_partkey) != {}) && (s_h(ps.ps_suppkey) != {})) then
+      { ps.ps_partkey -> ps.ps_supplycost }
+    else
+      { }
+
+sum(<i,_> <- range(partsupp.size))
+  let ps = <
+    ps_partkey=partsupp.ps_partkey(i),
+    ps_suppkey=partsupp.ps_suppkey(i),
+    ps_availqty=partsupp.ps_availqty(i),
+    ps_supplycost=partsupp.ps_supplycost(i),
+    ps_comment=partsupp.ps_comment(i)
+  >
+  if(
+      (ps_h(ps.ps_partkey) != {})
+      && (ps_h(ps.ps_partkey) == ps.ps_supplycost)
+      && (s_h(ps.ps_suppkey) != {})
+    ) then
+    {
+      unique(<
+        _ = s_h(ps.ps_suppkey)(0),
+        _ = s_h(ps.ps_suppkey)(1),
+        _ = s_h(ps.ps_suppkey)(2),
+        _ = ps.ps_partkey,
+        _ = p_h(ps.ps_partkey)(0),
+        _ = s_h(ps.ps_suppkey)(4),
+        _ = s_h(ps.ps_suppkey)(3),
+        _ = s_h(ps.ps_suppkey)(5)
+      >) -> 1
+    }
+  else
+    { }

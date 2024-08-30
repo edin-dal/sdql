@@ -1,0 +1,60 @@
+let cc = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, subject_id: @vec {int -> int}, status_id: @vec {int -> int}, size: int>]("datasets/job/complete_cast.csv")
+let cct1 = load[<id: @vec {int -> int}, kind: @vec {int -> string}, size: int>]("datasets/job/20c/cct1.csv")
+let cct2 = load[<id: @vec {int -> int}, kind: @vec {int -> string}, size: int>]("datasets/job/20c/cct2.csv")
+let mk = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @vec {int -> int}, size: int>]("datasets/job/movie_keyword.csv")
+let t = load[<id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, imdb_id: @vec {int -> string}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, series_years: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/20c/t.csv")
+let kt = load[<id: @vec {int -> int}, kind: @vec {int -> string}, size: int>]("datasets/job/20c/kt.csv")
+let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/20c/k.csv")
+let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @vec {int -> int}, person_role_id: @vec {int -> int}, note: @vec {int -> string}, nr_order: @vec {int -> int}, role_id: @vec {int -> int}, size: int>]("datasets/job/cast_info.csv")
+let n = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> string}, gender: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/name.csv")
+let chn = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> int}, name_pcode_cf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/20c/chn.csv")
+
+let cc_trie0 = sum(<i, _> <- range(cc.size)) { cc.subject_id(i) -> { cc.status_id(i) -> @smallvecdict(0) { i -> 1 } } } in
+let cct1_trie0 = sum(<i, _> <- range(cct1.size)) { cct1.id(i) -> 1 } in
+let cct2_trie0 = sum(<i, _> <- range(cct2.size)) { cct2.id(i) -> 1 } in
+let interm0_trie0 = sum(<x0, cc_trie1> <- cc_trie0)
+	if (x0 ∈ cct1_trie0) then
+		let cct1_trie1 = cct1_trie0(x0) in
+		sum(<x1, cc_trie2> <- cc_trie1)
+			if (x1 ∈ cct2_trie0) then
+				let cct2_trie1 = cct2_trie0(x1) in
+				sum(<cc_off, _> <- cc_trie2)
+					{ cc.movie_id(cc_off) -> @smallvecdict(0) { <col0=cc.subject_id(cc_off), col1=cc.status_id(cc_off), col2=cc.movie_id(cc_off)> -> 1 } }
+in
+
+let mk_trie0 = sum(<i, _> <- range(mk.size)) { mk.movie_id(i) -> { mk.keyword_id(i) -> @smallvecdict(0) { i -> 1 } } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> { t.kind_id(i) -> @smallvecdict(0) { i -> 1 } } } in
+let kt_trie0 = sum(<i, _> <- range(kt.size)) { kt.id(i) -> 1 } in
+let k_trie0 = sum(<i, _> <- range(k.size)) { k.id(i) -> 1 } in
+let interm1_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
+	if (x0 ∈ t_trie0) then
+		let t_trie1 = t_trie0(x0) in
+		sum(<x1, t_trie2> <- t_trie1)
+			if (x1 ∈ kt_trie0) then
+				let kt_trie1 = kt_trie0(x1) in
+				sum(<x2, mk_trie2> <- mk_trie1)
+					if (x2 ∈ k_trie0) then
+						let k_trie1 = k_trie0(x2) in
+						sum(<mk_off, _> <- mk_trie2)
+							sum(<t_off, _> <- t_trie2)
+								{ mk.movie_id(mk_off) -> @smallvecdict(0) { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.kind_id(t_off), col3=t.title(t_off)> -> 1 } }
+in
+
+let ci_trie0 = sum(<i, _> <- range(ci.size)) { ci.person_id(i) -> { ci.movie_id(i) -> { ci.person_role_id(i) -> 1 } } } in
+let n_trie0 = sum(<i, _> <- range(n.size)) { n.id(i) -> @smallvecdict(0) { i -> 1 } } in
+let chn_trie0 = sum(<i, _> <- range(chn.size)) { chn.id(i) -> 1 } in
+sum(<x0, ci_trie1> <- ci_trie0)
+	if (x0 ∈ n_trie0) then
+		let n_trie1 = n_trie0(x0) in
+		sum(<x1, ci_trie2> <- ci_trie1)
+			if (x1 ∈ interm1_trie0) then
+				let interm1_trie1 = interm1_trie0(x1) in
+				sum(<x2, ci_trie3> <- ci_trie2)
+					if (x2 ∈ chn_trie0) then
+						let chn_trie1 = chn_trie0(x2) in
+						if (x1 ∈ interm0_trie0) then
+							let interm0_trie1 = interm0_trie0(x1) in
+							let mn_n = sum(<n_off, _> <- n_trie1) promote[min_sum](<name=n.name(n_off)>) in
+							let mn_interm1 = sum(<interm1_tuple, _> <- interm1_trie1) promote[min_sum](<col3=interm1_tuple.col3>) in
+							promote[min_sum](<col3=mn_n.name, col6=mn_interm1.col3>)
+

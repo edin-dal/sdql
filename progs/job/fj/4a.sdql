@@ -1,0 +1,27 @@
+let mk = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @vec {int -> int}, size: int>]("datasets/job/movie_keyword.csv")
+let t = load[<id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, imdb_id: @vec {int -> string}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, series_years: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/4a/t.csv")
+let mi_idx = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type_id: @vec {int -> int}, info: @vec {int -> string}, note: @vec {int -> string}, size: int>]("datasets/job/4a/mi_idx.csv")
+let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/4a/k.csv")
+let it = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/4a/it.csv")
+
+let k_trie0 = sum(<i, _> <- range(k.size)) @phmap(k.size) { unique(k.id(i)) -> 1 } in
+let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) @phmap(mi_idx.size) { mi_idx.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
+let it_trie0 = sum(<i, _> <- range(it.size)) @phmap(it.size) { unique(it.id(i)) -> 1 } in
+sum(<mk_off, _> <- range(mk.size))
+	let x0 = mk.keyword_id(mk_off) in
+	if (x0 ∈ k_trie0) then
+		let k_trie1 = k_trie0(x0) in
+		let x1 = mk.movie_id(mk_off) in
+		if (x1 ∈ mi_idx_trie0) then
+			if (x1 ∈ t_trie0) then
+				let mi_idx_trie1 = mi_idx_trie0(x1) in
+				let t_trie1 = t_trie0(x1) in
+				sum(<mi_idx_off, _> <- mi_idx_trie1)
+					let x2 = mi_idx.info_type_id(mi_idx_off) in
+					if (x2 ∈ it_trie0) then
+						let it_trie1 = it_trie0(x2) in
+						let mn_t = sum(<t_off, _> <- t_trie1) promote[min_sum](<title=t.title(t_off)>) in
+						let mn_mi_idx = <info=mi_idx.info(mi_idx_off)> in
+						promote[min_sum](<col2=mn_t.title, col4=mn_mi_idx.info>)
+

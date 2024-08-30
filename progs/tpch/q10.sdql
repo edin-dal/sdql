@@ -1,0 +1,128 @@
+let customer = load[<c_custkey: @vec {int -> int}, c_name: @vec {int -> varchar(25)}, c_address: @vec {int -> varchar(40)}, c_nationkey: @vec {int -> int}, c_phone: @vec {int -> varchar(15)}, c_acctbal: @vec {int -> double}, c_mktsegment: @vec {int -> varchar(10)}, c_comment: @vec {int -> varchar(117)}, size: int>]("datasets/tpch/customer.tbl")
+
+let orders = load[<o_orderkey: @vec {int -> int}, o_custkey: @vec {int -> int}, o_orderstatus: @vec {int -> varchar(1)}, o_totalprice: @vec {int -> double}, o_orderdate: @vec {int -> date}, o_orderpriority: @vec {int -> varchar(15)}, o_clerk: @vec {int -> varchar(15)}, o_shippriority: @vec {int -> int}, o_comment: @vec {int -> varchar(79)}, size: int>]("datasets/tpch/orders.tbl")
+
+let lineitem = load[<l_orderkey: @vec {int -> int}, l_partkey: @vec {int -> int}, l_suppkey: @vec {int -> int}, l_linenumber: @vec {int -> int}, l_quantity: @vec {int -> double}, l_extendedprice: @vec {int -> double}, l_discount: @vec {int -> double}, l_tax: @vec {int -> double}, l_returnflag: @vec {int -> varchar(1)}, l_linestatus: @vec {int -> varchar(1)}, l_shipdate: @vec {int -> date}, l_commitdate: @vec {int -> date}, l_receiptdate: @vec {int -> date}, l_shipinstruct: @vec {int -> varchar(25)}, l_shipmode: @vec {int -> varchar(10)}, l_comment: @vec {int -> varchar(44)}, size: int>]("datasets/tpch/lineitem.tbl")
+
+let nation = load[<n_nationkey: @vec {int -> int}, n_name: @vec {int -> varchar(25)}, n_regionkey: @vec {int -> int}, n_comment: @vec {int -> varchar(152)}, size: int>]("datasets/tpch/nation.tbl")
+
+let r = ext(`ConstantString`,"R", 2)
+
+let n_h =
+  sum(<i,_> <- range(nation.size))
+    let n = <
+      n_nationkey=nation.n_nationkey(i),
+      n_name=nation.n_name(i),
+      n_regionkey=nation.n_regionkey(i),
+      n_comment=nation.n_comment(i)
+    >
+    { unique(n.n_nationkey) -> < _ = n.n_name > }
+
+let c_h =
+  sum(<i,_> <- range(customer.size))
+    let c = <
+      c_custkey=customer.c_custkey(i),
+      c_name=customer.c_name(i),
+      c_address=customer.c_address(i),
+      c_nationkey=customer.c_nationkey(i),
+      c_phone=customer.c_phone(i),
+      c_acctbal=customer.c_acctbal(i),
+      c_mktsegment=customer.c_mktsegment(i),
+      c_comment=customer.c_comment(i)
+    >
+    {
+      unique(c.c_custkey) ->
+      <
+        _ = c.c_custkey,
+        _ = c.c_name,
+        _ = c.c_acctbal,
+        _ = c.c_address,
+        _ = c.c_nationkey,
+        _ = c.c_phone,
+        _ = c.c_comment
+      >
+    }
+
+let o_h =
+  sum(<i,_> <- range(orders.size))
+    let o = <
+      o_orderkey=orders.o_orderkey(i),
+      o_custkey=orders.o_custkey(i),
+      o_orderstatus=orders.o_orderstatus(i),
+      o_totalprice=orders.o_totalprice(i),
+      o_orderdate=orders.o_orderdate(i),
+      o_orderpriority=orders.o_orderpriority(i),
+      o_clerk=orders.o_clerk(i),
+      o_shippriority=orders.o_shippriority(i),
+      o_comment=orders.o_comment(i)
+    >
+    if(
+         (date(19931001)  <= o.o_orderdate)
+         && (o.o_orderdate < date(19940101))
+         && (c_h(o.o_custkey) != {})
+       ) then
+      {
+        unique(o.o_orderkey) ->
+        <
+          c_custkey =c_h(o.o_custkey)(0),
+          c_name =c_h(o.o_custkey)(1),
+          c_acctbal =c_h(o.o_custkey)(2),
+          c_address =c_h(o.o_custkey)(3),
+          c_phone =c_h(o.o_custkey)(5),
+          c_comment =c_h(o.o_custkey)(6),
+          n_name = n_h((c_h(o.o_custkey))(4))(0)
+        >
+      }
+      else
+        { }
+
+let l_h =
+  sum(<i,_> <- range(lineitem.size))
+    let l = <
+      l_orderkey=lineitem.l_orderkey(i),
+      l_partkey=lineitem.l_partkey(i),
+      l_suppkey=lineitem.l_suppkey(i),
+      l_linenumber=lineitem.l_linenumber(i),
+      l_quantity=lineitem.l_quantity(i),
+      l_extendedprice=lineitem.l_extendedprice(i),
+      l_discount=lineitem.l_discount(i),
+      l_tax=lineitem.l_tax(i),
+      l_returnflag=lineitem.l_returnflag(i),
+      l_linestatus=lineitem.l_linestatus(i),
+      l_shipdate=lineitem.l_shipdate(i),
+      l_commitdate=lineitem.l_commitdate(i),
+      l_receiptdate=lineitem.l_receiptdate(i),
+      l_shipinstruct=lineitem.l_shipinstruct(i),
+      l_shipmode=lineitem.l_shipmode(i),
+      l_comment=lineitem.l_comment(i)
+    >
+    if((l.l_returnflag == r) && (o_h(l.l_orderkey) != {})) then
+      {
+        <
+          c_custkey = o_h(l.l_orderkey)(0),
+          c_name = o_h(l.l_orderkey)(1),
+          c_acctbal = o_h(l.l_orderkey)(2),
+          n_name = o_h(l.l_orderkey)(6),
+          c_address = o_h(l.l_orderkey)(3),
+          c_phone = o_h(l.l_orderkey)(4),
+          c_comment = o_h(l.l_orderkey)(5)
+        >
+        -> l.l_extendedprice * (1.0 - l.l_discount)
+      }
+      else
+        { }
+
+sum(<k,v> in l_h)
+  {
+    unique(<
+      c_custkey = k.c_custkey,
+      c_name = k.c_name,
+      revenue = v,
+      c_acctbal = k.c_acctbal,
+      n_name = k.n_name,
+      c_phone = k.c_phone,
+      c_address = k.c_address,
+      c_comment = k.c_comment
+    >)
+    -> 1
+  }

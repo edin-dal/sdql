@@ -1,0 +1,117 @@
+let supplier = load[<s_suppkey: @vec {int -> int}, s_name: @vec {int -> varchar(25)}, s_address: @vec {int -> varchar(40)}, s_nationkey: @vec {int -> int}, s_phone: @vec {int -> varchar(15)}, s_acctbal: @vec {int -> double}, s_comment: @vec {int -> varchar(101)}, size: int>]("datasets/tpch/supplier.tbl")
+
+let nation = load[<n_nationkey: @vec {int -> int}, n_name: @vec {int -> varchar(25)}, n_regionkey: @vec {int -> int}, n_comment: @vec {int -> varchar(152)}, size: int>]("datasets/tpch/nation.tbl")
+
+let part = load[<p_partkey: @vec {int -> int}, p_name: @vec {int -> varchar(55)}, p_mfgr: @vec {int -> varchar(25)}, p_brand: @vec {int -> varchar(10)}, p_type: @vec {int -> varchar(25)}, p_size: @vec {int -> int}, p_container: @vec {int -> varchar(10)}, p_retailprice: @vec {int -> double}, p_comment: @vec {int -> varchar(23)}, size: int>]("datasets/tpch/part.tbl")
+
+let partsupp = load[<ps_partkey: @vec {int -> int}, ps_suppkey: @vec {int -> int}, ps_availqty: @vec {int -> double}, ps_supplycost: @vec {int -> double}, ps_comment: @vec {int -> varchar(199)}, size: int>]("datasets/tpch/partsupp.tbl")
+
+let lineitem = load[<l_orderkey: @vec {int -> int}, l_partkey: @vec {int -> int}, l_suppkey: @vec {int -> int}, l_linenumber: @vec {int -> int}, l_quantity: @vec {int -> double}, l_extendedprice: @vec {int -> double}, l_discount: @vec {int -> double}, l_tax: @vec {int -> double}, l_returnflag: @vec {int -> varchar(1)}, l_linestatus: @vec {int -> varchar(1)}, l_shipdate: @vec {int -> date}, l_commitdate: @vec {int -> date}, l_receiptdate: @vec {int -> date}, l_shipinstruct: @vec {int -> varchar(25)}, l_shipmode: @vec {int -> varchar(10)}, l_comment: @vec {int -> varchar(44)}, size: int>]("datasets/tpch/lineitem.tbl")
+
+let forest = ext(`ConstantString`, "forest", 7)
+let canada = ext(`ConstantString`, "CANADA", 7)
+
+let p_h =
+  sum(<i,_> <- range(part.size))
+    let p = <
+      p_partkey=part.p_partkey(i),
+      p_name=part.p_name(i),
+      p_mfgr=part.p_mfgr(i),
+      p_brand=part.p_brand(i),
+      p_type=part.p_type(i),
+      p_size=part.p_size(i),
+      p_container=part.p_container(i),
+      p_retailprice=part.p_retailprice(i),
+      p_comment=part.p_comment(i)
+    >
+    if(ext(`StrStartsWith`, p.p_name, forest)) then
+      { unique(p.p_partkey) -> < _ = p.p_partkey > }
+    else
+      { }
+
+let n_h =
+  sum(<i,_> <- range(nation.size))
+    let n = <
+      n_nationkey=nation.n_nationkey(i),
+      n_name=nation.n_name(i),
+      n_regionkey=nation.n_regionkey(i),
+      n_comment=nation.n_comment(i)
+    >
+    if(n.n_name == canada) then
+      { unique(n.n_nationkey) -> < _ = n.n_nationkey > }
+    else
+      { }
+
+let s_h =
+  sum(<i,_> <- range(supplier.size))
+    let s = <
+      s_suppkey=supplier.s_suppkey(i),
+      s_name=supplier.s_name(i),
+      s_address=supplier.s_address(i),
+      s_nationkey=supplier.s_nationkey(i),
+      s_phone=supplier.s_phone(i),
+      s_acctbal=supplier.s_acctbal(i),
+      s_comment=supplier.s_comment(i)
+    >
+    if(n_h(s.s_nationkey) != {}) then
+      { unique(s.s_suppkey) -> < _ = s.s_suppkey > }
+    else
+      { }
+
+let l_h =
+  sum(<i,_> <- range(lineitem.size))
+    let l = <
+      l_orderkey=lineitem.l_orderkey(i),
+      l_partkey=lineitem.l_partkey(i),
+      l_suppkey=lineitem.l_suppkey(i),
+      l_linenumber=lineitem.l_linenumber(i),
+      l_quantity=lineitem.l_quantity(i),
+      l_extendedprice=lineitem.l_extendedprice(i),
+      l_discount=lineitem.l_discount(i),
+      l_tax=lineitem.l_tax(i),
+      l_returnflag=lineitem.l_returnflag(i),
+      l_linestatus=lineitem.l_linestatus(i),
+      l_shipdate=lineitem.l_shipdate(i),
+      l_commitdate=lineitem.l_commitdate(i),
+      l_receiptdate=lineitem.l_receiptdate(i),
+      l_shipinstruct=lineitem.l_shipinstruct(i),
+      l_shipmode=lineitem.l_shipmode(i),
+      l_comment=lineitem.l_comment(i)
+    >
+    if(
+      (date(19940101) <= l.l_shipdate) && (l.l_shipdate < date(19950101))
+      && (p_h(l.l_partkey) != {}) && (s_h(l.l_suppkey) != {})
+      ) then
+      { unique(< _ = l.l_partkey, _ = l.l_suppkey >) -> 0.5 * l.l_quantity }
+    else
+      { }
+
+let ps_h =
+  sum(<i,_> <- range(partsupp.size))
+    let ps = <
+      ps_partkey=partsupp.ps_partkey(i),
+      ps_suppkey=partsupp.ps_suppkey(i),
+      ps_availqty=partsupp.ps_availqty(i),
+      ps_supplycost=partsupp.ps_supplycost(i),
+      ps_comment=partsupp.ps_comment(i)
+    >
+    let key = <_ = ps.ps_partkey, _ = ps.ps_suppkey >
+    if((l_h(key) != {}) && (l_h(key) < ps.ps_availqty)) then
+      { unique(ps.ps_suppkey) -> < _ = ps.ps_suppkey > }
+    else
+      { }
+
+sum(<i,_> <- range(supplier.size))
+  let s = <
+    s_suppkey=supplier.s_suppkey(i),
+    s_name=supplier.s_name(i),
+    s_address=supplier.s_address(i),
+    s_nationkey=supplier.s_nationkey(i),
+    s_phone=supplier.s_phone(i),
+    s_acctbal=supplier.s_acctbal(i),
+    s_comment=supplier.s_comment(i)
+  >
+  if(ps_h(s.s_suppkey) != {}) then
+    { unique(< _ = s.s_name, _ = s.s_address >) -> 1 }
+  else
+    { }

@@ -1,0 +1,59 @@
+let mi = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type_id: @vec {int -> int}, info: @vec {int -> string}, note: @vec {int -> string}, size: int>]("datasets/job/19b/mi.csv")
+let t = load[<id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, imdb_id: @vec {int -> string}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, series_years: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/19b/t.csv")
+let mc = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, company_id: @vec {int -> int}, company_type_id: @vec {int -> int}, note: @vec {int -> string}, size: int>]("datasets/job/19b/mc.csv")
+let it = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/19b/it.csv")
+let cn = load[<id: @vec {int -> int}, name: @vec {int -> string}, country_code: @vec {int -> string}, imdb_id: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, name_pcode_sf: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/19b/cn.csv")
+let n = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> string}, gender: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/19b/n.csv")
+let an = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/aka_name.csv")
+let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @vec {int -> int}, person_role_id: @vec {int -> int}, note: @vec {int -> string}, nr_order: @vec {int -> int}, role_id: @vec {int -> int}, size: int>]("datasets/job/19b/ci.csv")
+let rt = load[<id: @vec {int -> int}, role: @vec {int -> string}, size: int>]("datasets/job/19b/rt.csv")
+let chn = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> int}, name_pcode_cf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/char_name.csv")
+
+let it_trie0 = sum(<i, _> <- range(it.size)) @phmap(it.size) { unique(it.id(i)) -> 1 } in
+let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
+let mc_trie0 = sum(<i, _> <- range(mc.size)) @phmap(mc.size) { mc.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
+let cn_trie0 = sum(<i, _> <- range(cn.size)) @phmap(cn.size) { unique(cn.id(i)) -> 1 } in
+let interm0_trie0 = sum(<mi_off, _> <- range(mi.size))
+	let x0 = mi.info_type_id(mi_off) in
+	if (x0 ∈ it_trie0) then
+		let it_trie1 = it_trie0(x0) in
+		let x1 = mi.movie_id(mi_off) in
+		if (x1 ∈ t_trie0) then
+			if (x1 ∈ mc_trie0) then
+				let t_trie1 = t_trie0(x1) in
+				let mc_trie1 = mc_trie0(x1) in
+				sum(<mc_off, _> <- mc_trie1)
+					let x2 = mc.company_id(mc_off) in
+					if (x2 ∈ cn_trie0) then
+						let cn_trie1 = cn_trie0(x2) in
+						sum(<t_off, _> <- t_trie1)
+							@phmap(promote[min_sum](1000000) + promote[min_sum](mi.size)) { mi.movie_id(mi_off) -> @smallvecdict(4) { <col0=mi.movie_id(mi_off), col1=mi.info_type_id(mi_off), col2=t.title(t_off), col3=mc.company_id(mc_off)> -> 1 } }
+in
+
+let an_trie0 = sum(<i, _> <- range(an.size)) @phmap(an.size) { unique(an.person_id(i)) -> 1 } in
+let interm1_trie0 = sum(<n_off, _> <- range(n.size))
+	let x0 = n.id(n_off) in
+	if (x0 ∈ an_trie0) then
+		let an_trie1 = an_trie0(x0) in
+		@phmap(promote[min_sum](1000000) + promote[min_sum](n.size)) { n.id(n_off) -> @smallvecdict(4) { <col1=n.name(n_off)> -> 1 } }
+in
+
+let rt_trie0 = sum(<i, _> <- range(rt.size)) @phmap(rt.size) { unique(rt.id(i)) -> 1 } in
+let chn_trie0 = sum(<i, _> <- range(chn.size)) @phmap(chn.size) { unique(chn.id(i)) -> 1 } in
+sum(<ci_off, _> <- range(ci.size))
+	let x0 = ci.role_id(ci_off) in
+	if (x0 ∈ rt_trie0) then
+		let rt_trie1 = rt_trie0(x0) in
+		let x1 = ci.movie_id(ci_off) in
+		if (x1 ∈ interm0_trie0) then
+			let interm0_trie1 = interm0_trie0(x1) in
+			let x2 = ci.person_id(ci_off) in
+			if (x2 ∈ interm1_trie0) then
+				let interm1_trie1 = interm1_trie0(x2) in
+				let x3 = ci.person_role_id(ci_off) in
+				if (x3 ∈ chn_trie0) then
+					let chn_trie1 = chn_trie0(x3) in
+					let mn_interm1 = sum(<interm1_tuple, _> <- interm1_trie1) promote[min_sum](<col1=interm1_tuple.col1>) in
+					let mn_interm0 = sum(<interm0_tuple, _> <- interm0_trie1) promote[min_sum](<col2=interm0_tuple.col2>) in
+					promote[min_sum](<col4=mn_interm1.col1, col6=mn_interm0.col2>)
+

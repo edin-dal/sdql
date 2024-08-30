@@ -1,0 +1,67 @@
+let orders = load[<o_orderkey: @vec {int -> int}, o_custkey: @vec {int -> int}, o_orderstatus: @vec {int -> varchar(1)}, o_totalprice: @vec {int -> double}, o_orderdate: @vec {int -> date}, o_orderpriority: @vec {int -> varchar(15)}, o_clerk: @vec {int -> varchar(15)}, o_shippriority: @vec {int -> int}, o_comment: @vec {int -> varchar(79)}, size: int>]("datasets/tpch/orders.tbl")
+
+let lineitem = load[<l_orderkey: @vec {int -> int}, l_partkey: @vec {int -> int}, l_suppkey: @vec {int -> int}, l_linenumber: @vec {int -> int}, l_quantity: @vec {int -> double}, l_extendedprice: @vec {int -> double}, l_discount: @vec {int -> double}, l_tax: @vec {int -> double}, l_returnflag: @vec {int -> varchar(1)}, l_linestatus: @vec {int -> varchar(1)}, l_shipdate: @vec {int -> date}, l_commitdate: @vec {int -> date}, l_receiptdate: @vec {int -> date}, l_shipinstruct: @vec {int -> varchar(25)}, l_shipmode: @vec {int -> varchar(10)}, l_comment: @vec {int -> varchar(44)}, size: int>]("datasets/tpch/lineitem.tbl")
+
+let mail = ext(`ConstantString`, "MAIL", 5)
+let ship = ext(`ConstantString`, "SHIP", 5)
+let urgent = ext(`ConstantString`, "1-URGENT", 9)
+let high = ext(`ConstantString`, "2-HIGH", 7)
+
+let l_h =
+  sum(<i,_> <- range(lineitem.size))
+    let l = <
+      l_orderkey=lineitem.l_orderkey(i),
+      l_partkey=lineitem.l_partkey(i),
+      l_suppkey=lineitem.l_suppkey(i),
+      l_linenumber=lineitem.l_linenumber(i),
+      l_quantity=lineitem.l_quantity(i),
+      l_extendedprice=lineitem.l_extendedprice(i),
+      l_discount=lineitem.l_discount(i),
+      l_tax=lineitem.l_tax(i),
+      l_returnflag=lineitem.l_returnflag(i),
+      l_linestatus=lineitem.l_linestatus(i),
+      l_shipdate=lineitem.l_shipdate(i),
+      l_commitdate=lineitem.l_commitdate(i),
+      l_receiptdate=lineitem.l_receiptdate(i),
+      l_shipinstruct=lineitem.l_shipinstruct(i),
+      l_shipmode=lineitem.l_shipmode(i),
+      l_comment=lineitem.l_comment(i)
+    >
+    if(
+      ((l.l_shipmode == mail) || (l.l_shipmode == ship))
+      && (date(19940101) <= l.l_receiptdate)
+      && (l.l_receiptdate < date(19950101))
+      && (l.l_shipdate < l.l_commitdate)
+      && (l.l_commitdate < l.l_receiptdate)
+    ) then
+      { l.l_orderkey -> { l.l_shipmode -> 1 } }
+    else
+      { }
+
+let o_h =
+  sum(<i,_> <- range(orders.size))
+    let o = <
+      o_orderkey=orders.o_orderkey(i),
+      o_custkey=orders.o_custkey(i),
+      o_orderstatus=orders.o_orderstatus(i),
+      o_totalprice=orders.o_totalprice(i),
+      o_orderdate=orders.o_orderdate(i),
+      o_orderpriority=orders.o_orderpriority(i),
+      o_clerk=orders.o_clerk(i),
+      o_shippriority=orders.o_shippriority(i),
+      o_comment=orders.o_comment(i)
+    >
+    if(l_h(o.o_orderkey) != {}) then
+      sum(<l_shipmode,c> in l_h(o.o_orderkey))
+        {
+          < _ = l_shipmode >
+          -> <
+          high_line_count = if ((o.o_orderpriority == urgent) || (o.o_orderpriority == high)) then c else 0,
+          low_line_count = if ((o.o_orderpriority != urgent) && (o.o_orderpriority != high)) then c else 0
+          >
+        }
+    else
+      { }
+
+sum(<k,v> <- o_h)
+  { concat(k,v) -> 1 }
