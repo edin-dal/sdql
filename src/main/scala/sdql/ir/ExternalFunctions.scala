@@ -2,14 +2,14 @@ package sdql
 package ir
 
 abstract class ExternalFactory(symbol: String) {
-  val SYMBOL: String       = symbol
-  def apply(es: Exp*): Exp = External(symbol, es.toSeq)
+  val SYMBOL: String                       = symbol
+  def apply(es: Exp*): Exp                 = External(symbol, es.toSeq)
   def unapplySeq(e: Exp): Option[Seq[Exp]] = e match {
     case External(sym, seq) if sym == symbol => Some(seq)
     case _                                   => None
   }
 }
-object ExternalFunctions {
+object ExternalFunctions                       {
   object TopN           extends ExternalFactory("TopN")
   object ConstantString extends ExternalFactory("ConstantString")
   object StrContains    extends ExternalFactory("StrContains")

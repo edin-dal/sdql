@@ -5,10 +5,9 @@ import java.io.{ BufferedReader, FileReader }
 
 /**
  * Code from: https://github.com/epfldata/dblab/blob/develop/components/
- *             src/main/scala/ch/epfl/data/dblab/storagemanager/
+ * src/main/scala/ch/epfl/data/dblab/storagemanager/
  *
  * An efficient Scanner defined for reading from files.
- *
  */
 class FastScanner(filename: String) {
 
@@ -58,7 +57,7 @@ class FastScanner(filename: String) {
 
   def next_char(): Char = {
     byteRead = br.read()
-    val del = br.read() //delimiter
+    val del = br.read() // delimiter
     if ((del != delimiter) && (del != '\n'))
       throw new RuntimeException("Expected delimiter after char. Not found. Sorry!")
     byteRead.asInstanceOf[Char]
@@ -78,11 +77,11 @@ class FastScanner(filename: String) {
     cnt
   }
 
-  private val buffer = new Array[Byte](1 << 10)
+  private val buffer      = new Array[Byte](1 << 10)
   def next_string: String = {
     java.util.Arrays.fill(buffer, 0.toByte)
     byteRead = br.read()
-    var cnt = 0
+    var cnt         = 0
     while (br.ready() && (byteRead != delimiter) && (byteRead != '\n')) {
       buffer(cnt) = byteRead.asInstanceOf[Byte]
       byteRead = br.read()
@@ -98,8 +97,8 @@ class FastScanner(filename: String) {
     val year  = next_int()
     val month = next_int()
     delimiter = '|'
-    val day = next_int()
-    //val date_str = year + "-" + month + "-" + day
+    val day   = next_int()
+    // val date_str = year + "-" + month + "-" + day
     year * 10000 + month * 100 + day
   }
 

@@ -16,7 +16,7 @@ class TermRewriter(transformations: Transformation*) extends Transformation {
   def apply(e: Exp): Exp = transformations.foldLeft(e)((acc, f) => f.apply(acc))
 }
 
-object TermRewriter { def apply(transformations: Transformation*): TermRewriter = new TermRewriter(transformations *) }
+object TermRewriter { def apply(transformations: Transformation*): TermRewriter = new TermRewriter(transformations*) }
 
 /** Applies all transformations and lowers an expression to LLQL */
 object Rewriter {
@@ -32,60 +32,66 @@ object Rewriter {
     // 0-ary
     case _: Sym | _: Const | _: Load => e
     // 1-ary
-    case Neg(e)              => Neg(f(e))
-    case FieldNode(e, field) => FieldNode(f(e), field)
-    case Promote(tp, e)      => Promote(tp, f(e))
-    case RangeNode(e)        => RangeNode(f(e))
-    case Unique(e)           => Unique(f(e))
+    case Neg(e)                      => Neg(f(e))
+    case FieldNode(e, field)         => FieldNode(f(e), field)
+    case Promote(tp, e)              => Promote(tp, f(e))
+    case RangeNode(e)                => RangeNode(f(e))
+    case Unique(e)                   => Unique(f(e))
     // 2-ary
-    case Add(e1, e2)             => Add(f(e1), f(e2))
-    case Mult(e1, e2)            => Mult(f(e1), f(e2))
-    case Cmp(e1, e2, cmp)        => Cmp(f(e1), f(e2), cmp)
-    case Sum(key, value, e1, e2) => Sum(key, value, f(e1), f(e2))
-    case Get(e1, e2)             => Get(f(e1), f(e2))
-    case Concat(e1, e2)          => Concat(f(e1), f(e2))
-    case LetBinding(x, e1, e2)   => LetBinding(x, f(e1), f(e2))
+    case Add(e1, e2)                 => Add(f(e1), f(e2))
+    case Mult(e1, e2)                => Mult(f(e1), f(e2))
+    case Cmp(e1, e2, cmp)            => Cmp(f(e1), f(e2), cmp)
+    case Sum(key, value, e1, e2)     => Sum(key, value, f(e1), f(e2))
+    case Get(e1, e2)                 => Get(f(e1), f(e2))
+    case Concat(e1, e2)              => Concat(f(e1), f(e2))
+    case LetBinding(x, e1, e2)       => LetBinding(x, f(e1), f(e2))
     // 3-ary
-    case IfThenElse(e1, e2, e3) => IfThenElse(f(e1), f(e2), f(e3))
+    case IfThenElse(e1, e2, e3)      => IfThenElse(f(e1), f(e2), f(e3))
     // n-ary
-    case RecNode(values) => RecNode(values.map(v => (v._1, f(v._2))))
-    case DictNode(map, hint) =>
-      DictNode(map.map(x => (f(x._1), f(x._2))), hint match {
-        case PHmap(Some(e)) => PHmap(Some(f(e)))
-        case _              => hint
-      })
-    case External(name, args) => External(name, args.map(f))
-    case _                    => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
+    case RecNode(values)             => RecNode(values.map(v => (v._1, f(v._2))))
+    case DictNode(map, hint)         =>
+      DictNode(
+        map.map(x => (f(x._1), f(x._2))),
+        hint match {
+          case PHmap(Some(e)) => PHmap(Some(f(e)))
+          case _              => hint
+        }
+      )
+    case External(name, args)        => External(name, args.map(f))
+    case _                           => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
 
   def mapInnerReduce[T](f: Exp => T, g: (T, T) => T, default: T)(e: Exp): T = e match {
     // 0-ary
     case _: Sym | _: Const | _: Load => default
     // 1-ary
-    case Neg(e)          => f(e)
-    case FieldNode(e, _) => f(e)
-    case Promote(_, e)   => f(e)
-    case RangeNode(e)    => f(e)
-    case Unique(e)       => f(e)
+    case Neg(e)                      => f(e)
+    case FieldNode(e, _)             => f(e)
+    case Promote(_, e)               => f(e)
+    case RangeNode(e)                => f(e)
+    case Unique(e)                   => f(e)
     // 2-ary
-    case Add(e1, e2)           => g(f(e1), f(e2))
-    case Mult(e1, e2)          => g(f(e1), f(e2))
-    case Cmp(e1, e2, _)        => g(f(e1), f(e2))
-    case Sum(_, _, e1, e2)     => g(f(e1), f(e2))
-    case Get(e1, e2)           => g(f(e1), f(e2))
-    case Concat(e1, e2)        => g(f(e1), f(e2))
-    case LetBinding(_, e1, e2) => g(f(e1), f(e2))
+    case Add(e1, e2)                 => g(f(e1), f(e2))
+    case Mult(e1, e2)                => g(f(e1), f(e2))
+    case Cmp(e1, e2, _)              => g(f(e1), f(e2))
+    case Sum(_, _, e1, e2)           => g(f(e1), f(e2))
+    case Get(e1, e2)                 => g(f(e1), f(e2))
+    case Concat(e1, e2)              => g(f(e1), f(e2))
+    case LetBinding(_, e1, e2)       => g(f(e1), f(e2))
     // 3-ary
-    case IfThenElse(e1, e2, e3) => g(g(f(e1), f(e2)), f(e3))
+    case IfThenElse(e1, e2, e3)      => g(g(f(e1), f(e2)), f(e3))
     // n-ary
-    case RecNode(values) => values.map(_._2).map(f).foldLeft(default)(g)
-    case DictNode(map, hint) =>
-      g(g(map.map(_._1).map(f).foldLeft(default)(g), map.map(_._2).map(f).foldLeft(default)(g)), hint match {
-        case PHmap(Some(e)) => f(e)
-        case _              => default
-      })
-    case External(_, args) => args.map(f).foldLeft(default)(g)
-    case _                 => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
+    case RecNode(values)             => values.map(_._2).map(f).foldLeft(default)(g)
+    case DictNode(map, hint)         =>
+      g(
+        g(map.map(_._1).map(f).foldLeft(default)(g), map.map(_._2).map(f).foldLeft(default)(g)),
+        hint match {
+          case PHmap(Some(e)) => f(e)
+          case _              => default
+        }
+      )
+    case External(_, args)           => args.map(f).foldLeft(default)(g)
+    case _                           => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
 }
 
@@ -145,7 +151,7 @@ private object SkipUnusedColumns extends Transformation {
       val new_ = tp.attrs.map(_.name: String).filter(!columnsCtx.getOrElse(x, Set()).contains(_)).toSet
       val skip = SetNode.fromSkipColsSet(old | new_)
       LetBinding(x, Load(path, tp, skip), run(e2))
-    case _ => Rewriter.mapInner(run)(e)
+    case _                                                       => Rewriter.mapInner(run)(e)
   }
 
   private def find(e: Exp)(implicit columnsCtx: Columns = Map()): Columns = e match {
@@ -200,10 +206,10 @@ private object LowerToLLQL extends Transformation {
     case LetBinding(x, e1: Sum, e2) => run(LetBinding(x, sumToInitialise(e1)(ctx, Some(x)), e2))
     case LetBinding(x, e1, e2)      => LetBinding(x, e1, run(e2)(ctx ++ Map(x -> TypeInference.run(e1)), dest))
     case IfThenElse(cond, e1, e2)   => IfThenElse(cond, run(e1), run(e2))
-    case Sum(key, value, e1, e2) =>
+    case Sum(key, value, e1, e2)    =>
       val (_, ctxLocal) = TypeInference.sumInferTypeAndCtx(key, value, e1, e2)
       Sum(key, value, run(e1)(ctx, None), run(e2)(ctxLocal, dest))
-    case _ =>
+    case _                          =>
       dest match {
         case Some(dest) => sumBodyToLLQL(e, dest)(ctx)
         case None       => Rewriter.mapInner(run)(e)
@@ -215,25 +221,25 @@ private object LowerToLLQL extends Transformation {
 
   private def isUpdate(e: Exp)(implicit ctx: TypesCtx) = sumHint(e) match {
     case Some(_: PHmap) if cond(e) { case dict: DictNode => checkIsUnique(dict) } => false
-    case None | Some(_: PHmap | _: SmallVecDict | _: SmallVecDicts) => true
-    case Some(_: Vec)                                               => false
+    case None | Some(_: PHmap | _: SmallVecDict | _: SmallVecDicts)               => true
+    case Some(_: Vec)                                                             => false
   }
 
   private def sumHint(e: Exp)(implicit ctx: TypesCtx) = e match {
     case dict @ DictNode(map, _) if map.nonEmpty =>
       (TypeInference.run(dict.getInnerDict): @unchecked) match { case DictType(_, _, hint) => Some(hint) }
-    case _ => None
+    case _                                       => None
   }
 
-  private def checkIsUnique(dict: DictNode) = cond(dict.getInnerDict) {
-    case DictNode(Seq((_: Unique, _)), _: PHmap) => true
+  private def checkIsUnique(dict: DictNode) = cond(dict.getInnerDict) { case DictNode(Seq((_: Unique, _)), _: PHmap) =>
+    true
   }
 
   private def sumToInitialise(e: Sum)(implicit ctx: TypesCtx, dest: Option[Sym]) =
     e match {
       case Sum(k, v, e1, e2) =>
         val (tpe, ctxLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
-        val packed = getSumBody(e2) match {
+        val packed          = getSumBody(e2) match {
           case Promote(tsrt: TropicalSemiRingType, _) => TropicalSemiRingType.pack(tsrt, tpe)
           case _                                      => tpe
         }
