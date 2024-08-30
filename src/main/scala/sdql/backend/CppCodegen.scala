@@ -399,38 +399,9 @@ object CppCodegen {
     (readCols ++ readSize).mkString(",\n")
   }
   private def iterExps(e: Exp): Iterator[Exp]                                            =
-    Iterator(e) ++ (
-      e match {
-        // 0-ary
-        case _: Sym | _: Const | _: Load   => Iterator()
-        // 1-ary
-        case Neg(e)                        => iterExps(e)
-        case FieldNode(e, _)               => iterExps(e)
-        case Promote(_, e)                 => iterExps(e)
-        case RangeNode(e)                  => iterExps(e)
-        case Unique(e)                     => iterExps(e)
-        // 2-ary
-        case Add(e1, e2)                   => iterExps(e1) ++ iterExps(e2)
-        case Mult(e1, e2)                  => iterExps(e1) ++ iterExps(e2)
-        case Cmp(e1, e2, _)                => iterExps(e1) ++ iterExps(e2)
-        case Sum(_, _, e1, e2)             => iterExps(e1) ++ iterExps(e2)
-        case Get(e1, e2)                   => iterExps(e1) ++ iterExps(e2)
-        case Concat(e1, e2)                => iterExps(e1) ++ iterExps(e2)
-        case LetBinding(_, e1, e2)         => iterExps(e1) ++ iterExps(e2)
-        // 3-ary
-        case IfThenElse(e1, e2, e3)        => iterExps(e1) ++ iterExps(e2) ++ iterExps(e3)
-        // n-ary
-        case RecNode(values)               => values.map(_._2).flatMap(iterExps)
-        case DictNode(map, PHmap(Some(e))) => map.flatMap(x => iterExps(x._1) ++ iterExps(x._2)) ++ iterExps(e)
-        case DictNode(map, _)              => map.flatMap(x => iterExps(x._1) ++ iterExps(x._2))
-        case External(_, args)             => args.flatMap(iterExps)
-        // LLQL
-        case Initialise(_, e)              => iterExps(e)
-        case Update(e, _, _)               => iterExps(e)
-        case Modify(e, _)                  => iterExps(e)
-        case _                             => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
-      }
-    )
+    Iterator(e) ++ (e match {
+      case Restage(cs, _) => cs.flatMap(iterExps)
+    })
 
   private def cppPrintResult(tpe: Type): String        = tpe match {
     case DictType(kt, vt, _: PHmap)        =>

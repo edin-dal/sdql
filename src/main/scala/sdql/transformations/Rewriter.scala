@@ -33,9 +33,9 @@ object Rewriter {
   }
 
   def mapInnerReduce[T](f: Exp => T, g: (T, T) => T, default: T)(e: Exp): T = e match {
-    case Restage(cs, _) => 
+    case Restage(cs, _) =>
       val fcs = cs.map(f)
-      if(fcs.isEmpty)
+      if (fcs.isEmpty)
         default
       else
         fcs.reduceLeft(g)

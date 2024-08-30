@@ -15,7 +15,6 @@ trait Restage[T] {
 }
 
 object Restage {
-  type Fact[T] = Seq[T] => T
   def unapply[T: Restage](e: T): Some[(Seq[T], Seq[T] => T)] =
     Some(implicitly[Restage[T]].restage(e))
 
@@ -41,8 +40,17 @@ object Restage {
       case IfThenElse(e1, e2, e3)      => Seq(e1, e2, e3)
       // n-ary
       case RecNode(values)             => values.map(_._2)
-      case DictNode(map, _)            => map.flatMap(x => Seq(x._1, x._2))
+      case DictNode(map, hint)         =>
+        val cs  = map.flatMap(x => Seq(x._1, x._2))
+        val hcs = hint match {
+          case PHmap(Some(e0)) => Seq(e0)
+          case _               => Seq()
+        }
+        cs ++ hcs
       case External(_, args)           => args
+      case Initialise(_, e)            => Seq(e)
+      case Update(e, _, _)             => Seq(e)
+      case Modify(e, _)                => Seq(e)
       case _                           => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
     }
     def factory(e: Exp): Seq[Exp] => Exp = e match {
@@ -55,20 +63,28 @@ object Restage {
       case RangeNode(_)                => seq => RangeNode(seq(0))
       case Unique(_)                   => seq => Unique(seq(0))
       // 2-ary
-      case Add(_, _)                 => seq => Add(seq(0), seq(1))
-      case Mult(_, _)                => seq => Mult(seq(0), seq(1))
-      case Cmp(_, _, cmp)            => seq => Cmp(seq(0), seq(1), cmp)
-      case Sum(key, value, _, _)     => seq => Sum(key, value, seq(0), seq(1))
-      case Get(_, _)                 => seq => Get(seq(0), seq(1))
-      case Concat(_, _)              => seq => Concat(seq(0), seq(1))
-      case LetBinding(x, _, _)       => seq => LetBinding(x, seq(0), seq(1))
+      case Add(_, _)                   => seq => Add(seq(0), seq(1))
+      case Mult(_, _)                  => seq => Mult(seq(0), seq(1))
+      case Cmp(_, _, cmp)              => seq => Cmp(seq(0), seq(1), cmp)
+      case Sum(key, value, _, _)       => seq => Sum(key, value, seq(0), seq(1))
+      case Get(_, _)                   => seq => Get(seq(0), seq(1))
+      case Concat(_, _)                => seq => Concat(seq(0), seq(1))
+      case LetBinding(x, _, _)         => seq => LetBinding(x, seq(0), seq(1))
       // 3-ary
-      case IfThenElse(_, _, _)      => seq => IfThenElse(seq(0), seq(1), seq(2))
+      case IfThenElse(_, _, _)         => seq => IfThenElse(seq(0), seq(1), seq(2))
       // n-ary
       case RecNode(values)             => seq => RecNode(values.zip(seq).map(vs => (vs._1._1, vs._2)))
       case DictNode(map, hint)         =>
-        seq => DictNode((0 until map.length).map(i => seq(i * 2) -> seq(i * 2 + 1)).toSeq, hint)
-      case External(name, _)        => seq => External(name, seq)
+        seq =>
+          val nhint = hint match {
+            case PHmap(Some(_)) => PHmap(Some(seq.last))
+            case _              => hint
+          }
+          DictNode(map.indices.map(i => seq(i * 2) -> seq(i * 2 + 1)).toSeq, nhint)
+      case External(name, _)           => seq => External(name, seq)
+      case Initialise(tpe, _)          => seq => Initialise(tpe, seq(0))
+      case Update(_, agg, dest)        => seq => Update(seq(0), agg, dest)
+      case Modify(_, dest)             => seq => Modify(seq(0), dest)
       case _                           => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
     }
   }
