@@ -4,20 +4,20 @@ package ir
 sealed trait Type {
   def =~=(o: Type): Boolean = equals(o)
   def isScalar: Boolean     = ScalarType.isScalar(this)
-  def prettyPrint: String = this match {
+  def prettyPrint: String   = this match {
     case DictType(kt, vt, _) =>
       s"{${kt.prettyPrint} -> ${vt.prettyPrint}}"
-    case RecordType(attrs) =>
+    case RecordType(attrs)   =>
       attrs.map(_.tpe.prettyPrint).mkString("<", ", ", ">")
-    case _ =>
+    case _                   =>
       this.simpleName
   }
-  def simpleName: String = {
+  def simpleName: String    = {
     val name = this.getClass.getSimpleName
     if (name.endsWith("$")) name.dropRight(1) else name
   }
 }
-case class StringType(maxLen: Option[Int] = None)                     extends Type
+case class StringType(maxLen: Option[Int] = None) extends Type
 case object RealType                                                  extends Type
 case object BoolType                                                  extends Type
 case object IntType                                                   extends Type
@@ -25,28 +25,28 @@ case object DateType                                                  extends Ty
 case class DictType(key: Type, value: Type, hint: DictHint = PHmap()) extends Type
 object SetType { def apply(key: Type): DictType = DictType(key, IntType) }
 case class RecordType(attrs: Seq[Attribute]) extends Type {
-  override def equals(o: Any): Boolean = o match {
+  override def equals(o: Any): Boolean      = o match {
     case RecordType(attrs2) if attrs.size == attrs2.size =>
       attrs.zip(attrs2).forall(x => x._1.name == x._2.name && x._1.tpe == x._2.tpe)
-    case _ => false
+    case _                                               => false
   }
-  override def =~=(o: Type): Boolean = o match {
+  override def =~=(o: Type): Boolean        = o match {
     case RecordType(attrs2) if attrs.size == attrs2.size =>
       attrs.zip(attrs2).forall(x => x._1.name == x._2.name && x._1.tpe =~= x._2.tpe)
-    case _ => false
+    case _                                               => false
   }
-  override def hashCode(): Int =
+  override def hashCode(): Int              =
     attrs.map(_.name).hashCode()
-  def indexOf(name: Field): Option[Int] = {
+  def indexOf(name: Field): Option[Int]     = {
     val names = attrs.map(_.name)
     assert(names.diff(names.distinct).isEmpty)
     names.zipWithIndex.find(_._1 == name).map(_._2)
   }
-  def apply(name: Field): Option[Type] = attrs.find(_.name == name).map(_.tpe)
+  def apply(name: Field): Option[Type]      = attrs.find(_.name == name).map(_.tpe)
   def concat(other: RecordType): RecordType = other match {
     case RecordType(attrs2) =>
       val (fs1m, fs2m) = attrs.map(x1 => (x1.name, x1.tpe)).toMap -> attrs2.map(x2 => (x2.name, x2.tpe)).toMap
-      val common =
+      val common       =
         attrs.filter(x1 => fs2m.contains(x1.name)).map(x1 => (x1.name, x1.tpe, fs2m(x1.name)))
       if (common.isEmpty)
         RecordType(attrs ++ attrs2)
@@ -61,7 +61,7 @@ object VarCharType { def apply(maxLen: Int): Type = StringType(Some(maxLen)) }
 
 object ScalarType {
   def unapply(tp: Type): Option[Type] = Some(tp).filter(isScalar)
-  def isScalar(tp: Type): Boolean = tp match {
+  def isScalar(tp: Type): Boolean     = tp match {
     case RealType | IntType | _: StringType | DateType | BoolType => true
     case _                                                        => false
   }

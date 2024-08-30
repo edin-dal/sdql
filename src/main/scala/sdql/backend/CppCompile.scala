@@ -13,7 +13,7 @@ object CppCompile {
   def writeFormat(sdqlFilePath: String, cpp: String): Unit = {
     val noExtension = getNoExtension(sdqlFilePath)
     write(cppPath(noExtension), cpp)
-    val _ = inGeneratedDir(clangFormat(noExtension)).!!
+    val _           = inGeneratedDir(clangFormat(noExtension)).!!
   }
 
   private def compileRun(sdqlFilePath: String) = {
@@ -42,7 +42,7 @@ object CppCompile {
     val path     = Paths.get(generatedDir.toString, cmakeFileName)
     val _        = write(path, contents)
   }
-  private def cmakeContents(noExtensions: Seq[String]) = {
+  private def cmakeContents(noExtensions: Seq[String])     = {
     val init = s"""# auto-generated config - handy for Clion
                   |cmake_minimum_required(VERSION $cmakeVersion)
                   |project(generated)
@@ -58,8 +58,8 @@ object CppCompile {
                   |""".stripMargin
     noExtensions.map(noExtension => s"add_executable($noExtension.out $noExtension.cpp)").mkString(init, "\n", "")
   }
-  private val cmakeVersion  = "3.28"
-  private val cmakeFileName = "CMakeLists.txt"
+  private val cmakeVersion                                 = "3.28"
+  private val cmakeFileName                                = "CMakeLists.txt"
 
   def inGeneratedDir(seq: Seq[String]): ProcessBuilder = Process(seq, generatedDir)
   private val generatedDir                             = new java.io.File("generated")

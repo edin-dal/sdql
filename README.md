@@ -124,3 +124,102 @@ run interpret progs/tpch-interpreter q6.sdql
 ```
 
 Or as a one-liner: `sbt "run interpret progs/tpch-interpreter q6.sdql"`
+
+
+## Citing SDQL
+
+To cite SDQL, use the following BibTex:
+
+```
+@article{DBLP:journals/pacmpl/ShaikhhaHSO22,
+  author       = {Amir Shaikhha and
+                  Mathieu Huot and
+                  Jaclyn Smith and
+                  Dan Olteanu},
+  title        = {Functional collection programming with semi-ring dictionaries},
+  journal      = {Proc. {ACM} Program. Lang.},
+  volume       = {6},
+  number       = {{OOPSLA1}},
+  pages        = {1--33},
+  year         = {2022},
+  url          = {https://doi.org/10.1145/3527333},
+  doi          = {10.1145/3527333},
+  timestamp    = {Tue, 10 Jan 2023 16:19:51 +0100},
+  biburl       = {https://dblp.org/rec/journals/pacmpl/ShaikhhaHSO22.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+```
+
+Depending on your usecase, the following papers are also relevant:
+
+* [SDQLpy](https://github.com/edin-dal/sdqlpy), a python embedding of SDQL for query processing
+
+```
+@inproceedings{DBLP:conf/cc/ShahrokhiS23,
+  author       = {Hesam Shahrokhi and
+                  Amir Shaikhha},
+  editor       = {Clark Verbrugge and
+                  Ondrej Lhot{\'{a}}k and
+                  Xipeng Shen},
+  title        = {Building a Compiled Query Engine in Python},
+  booktitle    = {Proceedings of the 32nd {ACM} {SIGPLAN} International Conference on
+                  Compiler Construction, {CC} 2023, Montr{\'{e}}al, QC, Canada,
+                  February 25-26, 2023},
+  pages        = {180--190},
+  publisher    = {{ACM}},
+  year         = {2023},
+  url          = {https://doi.org/10.1145/3578360.3580264},
+  doi          = {10.1145/3578360.3580264},
+  timestamp    = {Mon, 20 Feb 2023 14:39:08 +0100},
+  biburl       = {https://dblp.org/rec/conf/cc/ShahrokhiS23.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+```
+
+* SDQLite, a subset of SDQL for (sparse) tensor algebra
+
+```
+@article{DBLP:journals/pacmmod/SchleichSS23,
+  author       = {Maximilian Schleich and
+                  Amir Shaikhha and
+                  Dan Suciu},
+  title        = {Optimizing Tensor Programs on Flexible Storage},
+  journal      = {Proc. {ACM} Manag. Data},
+  volume       = {1},
+  number       = {1},
+  pages        = {37:1--37:27},
+  year         = {2023},
+  url          = {https://doi.org/10.1145/3588717},
+  doi          = {10.1145/3588717},
+  timestamp    = {Thu, 15 Jun 2023 21:57:49 +0200},
+  biburl       = {https://dblp.org/rec/journals/pacmmod/SchleichSS23.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+```
+
+* Forward-mode Automatic Differentiation for SDQLite
+
+```
+@inproceedings{DBLP:conf/cgo/ShaikhhaHH24,
+  author       = {Amir Shaikhha and
+                  Mathieu Huot and
+                  Shideh Hashemian},
+  editor       = {Tobias Grosser and
+                  Christophe Dubach and
+                  Michel Steuwer and
+                  Jingling Xue and
+                  Guilherme Ottoni and
+                  ernando Magno Quint{\~{a}}o Pereira},
+  title        = {A Tensor Algebra Compiler for Sparse Differentiation},
+  booktitle    = {{IEEE/ACM} International Symposium on Code Generation and Optimization,
+                  {CGO} 2024, Edinburgh, United Kingdom, March 2-6, 2024},
+  pages        = {1--12},
+  publisher    = {{IEEE}},
+  year         = {2024},
+  url          = {https://doi.org/10.1109/CGO57630.2024.10444787},
+  doi          = {10.1109/CGO57630.2024.10444787},
+  timestamp    = {Mon, 11 Mar 2024 13:45:28 +0100},
+  biburl       = {https://dblp.org/rec/conf/cgo/ShaikhhaHH24.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+```

@@ -24,7 +24,7 @@ object Main {
           println({ Value.toString(res) })
           println()
         }
-      case "compile" =>
+      case "compile"   =>
         if (args.length < 3) { raise("usage: `run compile <path> <sdql_files>*`") }
         val dirPath   = Path.of(args(1))
         val fileNames = args.drop(2)
@@ -50,7 +50,7 @@ object Main {
           val res      = CppCodegen(llql, benchmarkRuns = n)
           CppCompile.writeFormat(filePath.toString, res)
         }
-      case arg => raise(s"`run $arg` not supported")
+      case arg         => raise(s"`run $arg` not supported")
     }
   }
 }

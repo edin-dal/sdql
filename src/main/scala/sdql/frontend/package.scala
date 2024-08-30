@@ -4,7 +4,7 @@ import sdql.ir.*
 package object frontend {
   implicit class Interpolator(val sc: StringContext) {
     def valueToString(v: Any): String = Value.toString(v)
-    def sdql(args: Any*): Exp = {
+    def sdql(args: Any*): Exp         = {
       val strings     = sc.parts.iterator
       val expressions = args.iterator
       val buf         = new StringBuffer(strings.next())
