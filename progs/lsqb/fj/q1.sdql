@@ -1,0 +1,57 @@
+let tag = load[...] in
+let tagclass = load[...] in
+let comment = load[...] in
+let cht = load[...] in
+let post = load[...] in
+let forum = load[...] in
+let fhp = load[...] in
+let person = load[...] in
+let city = load[...] in
+let country = load[...] in
+
+let tagclass_trie0 = sum(<i, _> <- range(tagclass.size)) { tagclass.TagClassId(i) -> 1 } in
+let interm0_trie0 = sum(<tag_off, _> <- range(tag.size))
+	let x0 = tag.hasType_TagClassId(tag_off) in
+	if (x0 ∈ tagclass_trie0) then
+		let tagclass_trie1 = tagclass_trie0(x0) in
+		{ tag.TagId(tag_off) -> tagclass_trie1 }
+
+let comment_trie0 = sum(<i, _> <- range(comment.size)) { comment.CommentId(i) -> { i -> 1 } } in
+let post_trie0 = sum(<i, _> <- range(post.size)) { post.PostId(i) -> { i -> 1 } } in
+let forum_trie0 = sum(<i, _> <- range(forum.size)) { forum.ForumId(i) -> 1 } in
+let interm1_trie0 = sum(<cht_off, _> <- range(cht.size))
+	let x0 = cht.TagId(cht_off) in
+	if (x0 ∈ interm0_trie0) then
+		let interm0_trie1 = interm0_trie0(x0) in
+		let x1 = cht.CommentId(cht_off) in
+		if (x1 ∈ comment_trie0) then
+			let comment_trie1 = comment_trie0(x1) in
+			sum(<comment_off, _> <- comment_trie1)
+				let x2 = comment.replyOf_PostId(comment_off) in
+				if (x2 ∈ post_trie0) then
+					let post_trie1 = post_trie0(x2) in
+					sum(<post_off, _> <- post_trie1)
+						let x3 = post.Forum_containerOfId(post_off) in
+						if (x3 ∈ forum_trie0) then
+							let forum_trie1 = forum_trie0(x3) in
+							{ x3 -> forum_trie1 * interm0_trie1 }
+
+let person_trie0 = sum(<i, _> <- range(person.size)) { person.PersonId(i) -> { i -> 1 } } in
+let city_trie0 = sum(<i, _> <- range(city.size)) { city.CityId(i) -> { i -> 1 } } in
+let country_trie0 = sum(<i, _> <- range(country.size)) { country.CountryId(i) -> 1 } in
+sum(<fhp_off, _> <- range(fhp.size))
+	let x0 = fhp.ForumId(fhp_off) in
+	if (x0 ∈ interm1_trie0) then
+		let interm1_trie1 = interm1_trie0(x0) in
+		let x1 = fhp.PersonId(fhp_off) in
+		if (x1 ∈ person_trie0) then
+			let person_trie1 = person_trie0(x1) in
+			sum(<person_off, _> <- person_trie1)
+				let x2 = person.isLocatedIn_CityId(person_off) in
+				if (x2 ∈ city_trie0) then
+					let city_trie1 = city_trie0(x2) in
+					sum(<city_off, _> <- city_trie1)
+						let x3 = city.isPartOf_CountryId(city_off) in
+						if (x3 ∈ country_trie0) then
+							let country_trie1 = country_trie0(x3) in
+							interm1_trie1 * country_trie1

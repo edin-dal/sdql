@@ -1,0 +1,14 @@
+let comment = load[...] in
+let cht = load[...] in
+let pht = load[...] in
+
+let comment_trie0 = sum(<i, _> <- range(comment.size)) { comment.CommentId(i) -> { comment.replyOf_PostId(i) -> 1 } } in
+let cht_trie0 = sum(<i, _> <- range(cht.size)) { cht.CommentId(i) -> 1 } in
+let pht_trie0 = sum(<i, _> <- range(pht.size)) { pht.PostId(i) -> 1 } in
+sum(<x0, cht_trie1> <- cht_trie0)
+	if (x0 ∈ comment_trie0) then
+		let comment_trie1 = comment_trie0(x0) in
+		sum(<x1, comment_trie2> <- comment_trie1)
+			if (x1 ∈ pht_trie0) then
+				let pht_trie1 = pht_trie0(x1) in
+				comment_trie2 * pht_trie1 * cht_trie1

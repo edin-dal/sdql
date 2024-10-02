@@ -1,0 +1,20 @@
+let comment = load[...] in
+let post = load[...] in
+let pht = load[...] in
+let plp = load[...] in
+
+let pht_trie0 = sum(<i, _> <- range(pht.size)) { pht.PostId(i) -> 1 } in
+let interm0_trie0 = sum(<post_off, _> <- range(post.size))
+	let x0 = post.PostId(post_off) in
+	if (x0 ∈ pht_trie0) then
+		let pht_trie1 = pht_trie0(x0) in
+		{ x0 -> pht_trie1 }
+
+
+let plp_trie0 = sum(<i, _> <- range(plp.size)) { plp.PostId(i) -> 1 } in
+sum(<comment_off, _> <- range(comment.size))
+	let x0 = comment.replyOf_PostId(comment_off) in
+	if (x0 ∈ interm0_trie0 && x0 ∈ plp_trie0) then
+		let interm0_trie1 = interm0_trie0(x0) in
+		let plp_trie1 = plp_trie0(x0) in
+		interm0_trie1 * plp_trie1

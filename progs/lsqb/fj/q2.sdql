@@ -1,0 +1,18 @@
+let comment = load[...] in
+let post = load[...] in
+let pkp = load[...] in
+
+let post_trie0 = sum(<i, _> <- range(post.size)) { post.PostId(i) -> { i -> 1 } } in
+let pkp_trie0 = sum(<i, _> <- range(pkp.size)) { pkp.Person2Id(i) -> { pkp.Person1Id(i) -> 1 } } in
+sum(<comment_off, _> <- range(comment.size))
+	let x0 = comment.replyOf_PostId(comment_off) in
+	if (x0 ∈ post_trie0) then
+		let post_trie1 = post_trie0(x0) in
+		sum(<post_off, _> <- post_trie1)
+			let x1 = post.hasCreator_PersonId(post_off) in
+			if (x1 ∈ pkp_trie0) then
+				let pkp_trie1 = pkp_trie0(x1) in
+				let x2 = comment.hasCreator_PersonId(comment_off) in
+				if (x2 ∈ pkp_trie1)
+					let pkp_trie2 = pkp_trie1(x2) in
+					pkp_trie2
