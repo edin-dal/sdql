@@ -239,10 +239,10 @@ class LowerToLLQLTest extends AnyFlatSpec with Matchers {
 
     val bodyRewrite     = Update(body, SumAgg, Sym("k"))
     val innerSumRewrite = Sum(Sym("j"), Sym("_"), SetNode(Seq(Const(3))), bodyRewrite)
-    val innerRewrite =
+    val innerRewrite    =
       LetBinding(Sym("k"), Initialise(IntType, innerSumRewrite), Update(Sym("k"), SumAgg, Sym("x")))
-    val sumRewrite = Sum(Sym("i"), Sym("_"), SetNode(Seq(Const(2))), innerRewrite)
-    val rewrite    = LetBinding(Sym("x"), Initialise(IntType, sumRewrite), Sym("x"))
+    val sumRewrite      = Sum(Sym("i"), Sym("_"), SetNode(Seq(Const(2))), innerRewrite)
+    val rewrite         = LetBinding(Sym("x"), Initialise(IntType, sumRewrite), Sym("x"))
     LowerToLLQL(e) should be(rewrite)
   }
 
@@ -257,11 +257,7 @@ class LowerToLLQLTest extends AnyFlatSpec with Matchers {
 
     val bodyRewrite = Update(body, MinAgg, Sym("x"))
     val sumRewrite  = Sum(Sym("i"), Sym("_"), SetNode(Seq(Const(2))), bodyRewrite)
-    val rewrite = LetBinding(
-      Sym("x"),
-      Initialise(TropicalSemiRingType("min_sum", IntType), sumRewrite),
-      Sym("x"),
-    )
+    val rewrite     = LetBinding(Sym("x"), Initialise(TropicalSemiRingType("min_sum", IntType), sumRewrite), Sym("x"))
     LowerToLLQL(e) should be(rewrite)
   }
 }

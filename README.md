@@ -5,9 +5,11 @@ An implementation of SDQL (Semi-ring Dictionary Query Language) in Scala.
 
 # Syntax
 
-* For more details, refer to the [OOPSLA'22 paper](https://dl.acm.org/doi/pdf/10.1145/3527333) or the more recent [A semi-ring dictionary query language for data science](https://www.research.ed.ac.uk/en/publications/a-semi-ring-dictionary-query-language-for-data-science).
+* For more details, refer to the [OOPSLA'22 paper](https://dl.acm.org/doi/pdf/10.1145/3527333) or the more
+  recent [A semi-ring dictionary query language for data science](https://www.research.ed.ac.uk/en/publications/a-semi-ring-dictionary-query-language-for-data-science).
 * For comparison, `<` and `<=` are used instead of `>` and `>=`.
-* The following syntactic sugar constructs are not supported: array construction `[| x1, ..., xn |]` and key-set of dictionary `dom`.
+* The following syntactic sugar constructs are not supported: array construction `[| x1, ..., xn |]` and key-set of
+  dictionary `dom`.
 
 # TPCH datasets
 
@@ -124,7 +126,6 @@ run interpret progs/tpch-interpreter q6.sdql
 ```
 
 Or as a one-liner: `sbt "run interpret progs/tpch-interpreter q6.sdql"`
-
 
 ## Citing SDQL
 
