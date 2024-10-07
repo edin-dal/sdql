@@ -179,6 +179,7 @@ class CppCodegenTestGJ extends AnyFlatSpec with ParallelTestExecution {
   it should "codegen GJ 2" in {
     CodegenHelpers.compilesFile("progs/job/gj/2a.sdql")
     CodegenHelpers.compilesFile("progs/job/gj/2b.sdql")
+    CodegenHelpers.compilesFile("progs/job/gj/2c.sdql")
     CodegenHelpers.compilesFile("progs/job/gj/2d.sdql")
   }
   it should "codegen GJ 3" in {
@@ -221,6 +222,7 @@ class CppCodegenTestGJ extends AnyFlatSpec with ParallelTestExecution {
   }
   it should "codegen GJ 10" in {
     CodegenHelpers.compilesFile("progs/job/gj/10a.sdql")
+    CodegenHelpers.compilesFile("progs/job/gj/10b.sdql")
     CodegenHelpers.compilesFile("progs/job/gj/10c.sdql")
   }
   it should "codegen GJ 11" in {
@@ -235,8 +237,10 @@ class CppCodegenTestGJ extends AnyFlatSpec with ParallelTestExecution {
     CodegenHelpers.compilesFile("progs/job/gj/12c.sdql")
   }
   it should "codegen GJ 13" in {
+    CodegenHelpers.compilesFile("progs/job/gj/13a.sdql")
     CodegenHelpers.compilesFile("progs/job/gj/13b.sdql")
     CodegenHelpers.compilesFile("progs/job/gj/13c.sdql")
+    CodegenHelpers.compilesFile("progs/job/gj/13d.sdql")
   }
   it should "codegen GJ 14" in {
     CodegenHelpers.compilesFile("progs/job/gj/14a.sdql")
@@ -335,6 +339,7 @@ class CppCodegenTestGJ extends AnyFlatSpec with ParallelTestExecution {
     CodegenHelpers.compilesFile("progs/job/gj/31c.sdql")
   }
   it should "codegen GJ 32" in {
+    CodegenHelpers.compilesFile("progs/job/gj/32a.sdql")
     CodegenHelpers.compilesFile("progs/job/gj/32b.sdql")
   }
   it should "codegen GJ 33" in {
@@ -354,6 +359,7 @@ class CppCodegenTestFJ extends AnyFlatSpec with ParallelTestExecution {
   it should "codegen FJ 2" in {
     CodegenHelpers.compilesFile("progs/job/fj/2a.sdql")
     CodegenHelpers.compilesFile("progs/job/fj/2b.sdql")
+    CodegenHelpers.compilesFile("progs/job/fj/2c.sdql")
     CodegenHelpers.compilesFile("progs/job/fj/2d.sdql")
   }
   it should "codegen FJ 3" in {
@@ -396,6 +402,7 @@ class CppCodegenTestFJ extends AnyFlatSpec with ParallelTestExecution {
   }
   it should "codegen FJ 10" in {
     CodegenHelpers.compilesFile("progs/job/fj/10a.sdql")
+    CodegenHelpers.compilesFile("progs/job/fj/10b.sdql")
     CodegenHelpers.compilesFile("progs/job/fj/10c.sdql")
   }
   it should "codegen FJ 11" in {
@@ -410,8 +417,10 @@ class CppCodegenTestFJ extends AnyFlatSpec with ParallelTestExecution {
     CodegenHelpers.compilesFile("progs/job/fj/12c.sdql")
   }
   it should "codegen FJ 13" in {
+    CodegenHelpers.compilesFile("progs/job/fj/13a.sdql")
     CodegenHelpers.compilesFile("progs/job/fj/13b.sdql")
     CodegenHelpers.compilesFile("progs/job/fj/13c.sdql")
+    CodegenHelpers.compilesFile("progs/job/fj/13d.sdql")
   }
   it should "codegen FJ 14" in {
     CodegenHelpers.compilesFile("progs/job/fj/14a.sdql")
@@ -510,6 +519,7 @@ class CppCodegenTestFJ extends AnyFlatSpec with ParallelTestExecution {
     CodegenHelpers.compilesFile("progs/job/fj/31c.sdql")
   }
   it should "codegen FJ 32" in {
+    CodegenHelpers.compilesFile("progs/job/fj/32a.sdql")
     CodegenHelpers.compilesFile("progs/job/fj/32b.sdql")
   }
   it should "codegen FJ 33" in {
