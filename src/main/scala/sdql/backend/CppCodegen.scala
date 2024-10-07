@@ -16,9 +16,10 @@ object CppCodegen {
     val queryBody  = run(e)(Map(), isTernary = false)
     val benchStart =
       if (benchmarkRuns == 0) ""
+      // note: first benchmark run is warmup
       else
         s"""HighPrecisionTimer timer;
-           |for (${cppType(IntType)} iter = 1; iter <= $benchmarkRuns; iter++) {
+           |for (${cppType(IntType)} iter = 0; iter <= $benchmarkRuns; iter++) {
            |timer.Reset();
            |""".stripMargin
     val benchStop  =
