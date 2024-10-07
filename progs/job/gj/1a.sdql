@@ -4,8 +4,8 @@ let mc = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, company_id: @
 let it = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/1a/it.csv")
 let ct = load[<id: @vec {int -> int}, kind: @vec {int -> string}, size: int>]("datasets/job/1a/ct.csv")
 
-let t_trie0 = sum(<i, _> <- range(t.size)) { t.id(i) -> @smallvecdict(0) { i -> 1 } } in
-let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) { mi_idx.movie_id(i) -> @smallvecdict(0) { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size)  { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
+let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) @phmap(mi_idx.size)  { mi_idx.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm0_trie0 = sum(<x0, t_trie1> <- t_trie0)
 	if (x0 ∈ mi_idx_trie0) then
 		let mi_idx_trie1 = mi_idx_trie0(x0) in
@@ -14,9 +14,9 @@ let interm0_trie0 = sum(<x0, t_trie1> <- t_trie0)
 				{ t.id(t_off) -> { mi_idx.info_type_id(mi_idx_off) -> @smallvecdict(0) { <col0=t.id(t_off), col1=t.title(t_off), col2=t.production_year(t_off), col3=mi_idx.info_type_id(mi_idx_off)> -> 1 } } }
 in
 
-let mc_trie0 = sum(<i, _> <- range(mc.size)) { mc.movie_id(i) -> { mc.company_type_id(i) -> @smallvecdict(0) { i -> 1 } } } in
-let it_trie0 = sum(<i, _> <- range(it.size)) { it.id(i) -> 1 } in
-let ct_trie0 = sum(<i, _> <- range(ct.size)) { ct.id(i) -> 1 } in
+let mc_trie0 = sum(<i, _> <- range(mc.size))  { mc.movie_id(i) ->  { mc.company_type_id(i) -> @smallvecdict(0) { i -> 1 } } } in
+let it_trie0 = sum(<i, _> <- range(it.size))  { it.id(i) -> 1 } in
+let ct_trie0 = sum(<i, _> <- range(ct.size))  { ct.id(i) -> 1 } in
 sum(<x0, mc_trie1> <- mc_trie0)
 	if (x0 ∈ interm0_trie0) then
 		let interm0_trie1 = interm0_trie0(x0) in
