@@ -19,7 +19,7 @@ class InterpreterTest extends AnyFlatSpec with Matchers {
     interpreter(sdql""" "foo" """) should be("foo")
     interpreter(sdql"date(19700101)") should be(DateValue(19700101))
     interpreter(sdql"< a = 1, b = 2 >") should be(RecordValue(Seq("a" -> 1, "b" -> 2)))
-    interpreter(sdql"""{ "a" -> 1, "b" -> 2 }""") should be(Map("a"   -> 1, "b"   -> 2))
+    interpreter(sdql"""{ "a" -> 1, "b" -> 2 }""") should be(Map("a" -> 1, "b" -> 2))
     interpreter(sdql"""{ "a" -> 1, "b" -> 2.5 }""") should be(Map("a" -> 1.0, "b" -> 2.5))
   }
 
@@ -64,8 +64,8 @@ class InterpreterTest extends AnyFlatSpec with Matchers {
 
   it should "work for records" in {
     interpreter(sdql"< >") should be(RecordValue(Nil))
-    interpreter(sdql"< a=1, b=1.5 >") should be(RecordValue(Seq("a"                    -> 1, "b" -> 1.5)))
-    interpreter(sdql"concat(< a=1 >, < b=1.5 >)") should be(RecordValue(Seq("a"        -> 1, "b" -> 1.5)))
+    interpreter(sdql"< a=1, b=1.5 >") should be(RecordValue(Seq("a" -> 1, "b" -> 1.5)))
+    interpreter(sdql"concat(< a=1 >, < b=1.5 >)") should be(RecordValue(Seq("a" -> 1, "b" -> 1.5)))
     interpreter(sdql"concat(< a=1, b=1.5 >, < b=1.5 >)") should be(RecordValue(Seq("a" -> 1, "b" -> 1.5)))
     assertThrows[Exception] {
       interpreter(sdql"concat(< a=1, b=2.5 >, < b=1.5 >)")
@@ -79,7 +79,7 @@ class InterpreterTest extends AnyFlatSpec with Matchers {
   private val sJoinRRel = sRel.map(e => (e._1, e._2, rRel.toMap.apply(e._2)))
   private val s         = sRel.map(e => RecordValue(Seq("i" -> e._1, "s" -> e._2, "u" -> e._3)) -> 1).toMap
   private val r         = rRel.map(e => RecordValue(Seq("s" -> e._1, "c" -> e._2)) -> 1).toMap
-  private val sJoinR = interpreter(
+  private val sJoinR    = interpreter(
     DictNode(sJoinRRel.map(e => (sdql"< i = ${e._1}, s = ${e._2}, c = ${e._3} >", Const(1))))
   )
 
@@ -242,7 +242,7 @@ sum(<x_s, x_s_v> <- S)
   }
 
   it should "load correctly" in {
-    val file = "test.csv"
+    val file                           = "test.csv"
     def writeToFile(str: String): Unit = {
       val pw = new java.io.PrintWriter(file)
       pw.println(str)
@@ -277,35 +277,43 @@ sum(<x_s, x_s_v> <- S)
   private object TestTPCH0_01 extends Tag("TestTPCH0_01")
 
   it should "interpret TPCH Q1" taggedAs TestTPCH0_01 in {
-    val actual = interpreter(SourceCode.fromFile("progs/tpch-interpreter/q1.sdql").exp)
+    val actual          = interpreter(SourceCode.fromFile("progs/tpch-interpreter/q1.sdql").exp)
     val expected: Value = Map(
       RecordValue(List(("returnflag", "N"), ("linestatus", "F"))) -> RecordValue(
-        Seq(("l_quantity_sum", 8971.0),
-            ("l_extendedprice_sum", 1.2384801370000005E7),
-            ("agg1", 1.1798257208000008E7),
-            ("agg2", 1.2282485056933004E7),
-            ("mult", 348))
+        Seq(
+          ("l_quantity_sum", 8971.0),
+          ("l_extendedprice_sum", 1.2384801370000005e7),
+          ("agg1", 1.1798257208000008e7),
+          ("agg2", 1.2282485056933004e7),
+          ("mult", 348)
+        )
       ),
-      RecordValue(Seq(("returnflag", "R"), ("linestatus", "F"))) -> RecordValue(
-        Seq(("l_quantity_sum", 381449.0),
-            ("l_extendedprice_sum", 5.345944453499981E8),
-            ("agg1", 5.0799645440670097E8),
-            ("agg2", 5.285242193589031E8),
-            ("mult", 14902))
+      RecordValue(Seq(("returnflag", "R"), ("linestatus", "F")))  -> RecordValue(
+        Seq(
+          ("l_quantity_sum", 381449.0),
+          ("l_extendedprice_sum", 5.345944453499981e8),
+          ("agg1", 5.0799645440670097e8),
+          ("agg2", 5.285242193589031e8),
+          ("mult", 14902)
+        )
       ),
-      RecordValue(Seq(("returnflag", "N"), ("linestatus", "O"))) -> RecordValue(
-        Seq(("l_quantity_sum", 742802.0),
-            ("l_extendedprice_sum", 1.0415028414499991E9),
-            ("agg1", 9.897375186346017E8),
-            ("agg2", 1.0294185315233542E9),
-            ("mult", 29181))
+      RecordValue(Seq(("returnflag", "N"), ("linestatus", "O")))  -> RecordValue(
+        Seq(
+          ("l_quantity_sum", 742802.0),
+          ("l_extendedprice_sum", 1.0415028414499991e9),
+          ("agg1", 9.897375186346017e8),
+          ("agg2", 1.0294185315233542e9),
+          ("mult", 29181)
+        )
       ),
-      RecordValue(Seq(("returnflag", "A"), ("linestatus", "F"))) -> RecordValue(
-        Seq(("l_quantity_sum", 380456.0),
-            ("l_extendedprice_sum", 5.3234821165000045E8),
-            ("agg1", 5.0582244148609936E8),
-            ("agg2", 5.261659340008371E8),
-            ("mult", 14876))
+      RecordValue(Seq(("returnflag", "A"), ("linestatus", "F")))  -> RecordValue(
+        Seq(
+          ("l_quantity_sum", 380456.0),
+          ("l_extendedprice_sum", 5.3234821165000045e8),
+          ("agg1", 5.0582244148609936e8),
+          ("agg2", 5.261659340008371e8),
+          ("mult", 14876)
+        )
       )
     )
     assert(actual == expected)
@@ -350,14 +358,12 @@ sum(<x_s, x_s_v> <- S)
     29 -> 5,
     30 -> 2,
     31 -> 1,
-    32 -> 5,
+    32 -> 5
   )
 
   it should "interpret TPCH Q13" taggedAs TestTPCH0_01 in {
     assert(interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13.sdql").exp) == expectedQ13)
     assert(interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13_promote.sdql").exp) == expectedQ13)
-    assert(
-      interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13_promote_unfused.sdql").exp) == expectedQ13
-    )
+    assert(interpreter(SourceCode.fromFile("progs/tpch-interpreter/q13_promote_unfused.sdql").exp) == expectedQ13)
   }
 }

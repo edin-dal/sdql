@@ -1,10 +1,10 @@
 scalaVersion := "2.13.14"
 
 libraryDependencies ++= Seq(
-  "com.lihaoyi"   %% "fastparse"     % "3.1.1",
-  "junit"         % "junit-dep"      % "4.11" % "test",
-  "org.scalatest" % "scalatest_2.13" % "3.2.19" % "test",
-  "org.scalameta" %% "munit"         % "1.0.0" // for pretty printing expressions
+  "com.lihaoyi"   %% "fastparse"      % "3.1.1",
+  "junit"          % "junit-dep"      % "4.11"   % "test",
+  "org.scalatest"  % "scalatest_2.13" % "3.2.19" % "test",
+  "org.scalameta" %% "munit"          % "1.0.0" // for pretty printing expressions
 )
 
 // Note: IntelliJ accepts -P but SBT requires no. of threads
@@ -17,7 +17,7 @@ Test / testOptions ++= Seq(
   // these two tests aren't mentioned in the public README as their setup is more involved
   // they require converting from Parquet to CSV the JOB datasets of https://github.com/SIGMOD23p561/free-join
   Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestGJ"),
-  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestFJ"),
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestFJ")
 )
 
 // Mostly from https://alexn.org/blog/2020/05/26/scala-fatal-warnings/#2-activate-all-linting-options
@@ -64,5 +64,5 @@ scalacOptions := Seq(
   "-Wunused:params",
   "-Wunused:patvars",
   "-Wunused:privates",
-  "-Wvalue-discard",
+  "-Wvalue-discard"
 )

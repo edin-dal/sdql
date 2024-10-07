@@ -10,14 +10,14 @@ import sdql.transformations.Rewriter
 // comprehensive subset of tests from the interpreter useful for TPCH
 class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
 
-  it should "codegen constant true" in { CodegenHelpers.compilesExp(sdql"true") }
-  it should "codegen constant false" in { CodegenHelpers.compilesExp(sdql"false") }
-  it should "codegen constant int" in { CodegenHelpers.compilesExp(sdql"42") }
-  it should "codegen constant real" in { CodegenHelpers.compilesExp(sdql"42.2") }
-  it should "codegen constant string" in { CodegenHelpers.compilesExp(sdql""" "foo" """) }
-  it should "codegen constant date" in { CodegenHelpers.compilesExp(sdql"date(19700101)") }
-  it should "codegen constant tuple" in { CodegenHelpers.compilesExp(sdql"< a = 1, b = 2 >") }
-  it should "codegen constant map" in { CodegenHelpers.compilesExp(sdql"""{ "a" -> 1, "b" -> 2 }""") }
+  it should "codegen constant true" in CodegenHelpers.compilesExp(sdql"true")
+  it should "codegen constant false" in CodegenHelpers.compilesExp(sdql"false")
+  it should "codegen constant int" in CodegenHelpers.compilesExp(sdql"42")
+  it should "codegen constant real" in CodegenHelpers.compilesExp(sdql"42.2")
+  it should "codegen constant string" in CodegenHelpers.compilesExp(sdql""" "foo" """)
+  it should "codegen constant date" in CodegenHelpers.compilesExp(sdql"date(19700101)")
+  it should "codegen constant tuple" in CodegenHelpers.compilesExp(sdql"< a = 1, b = 2 >")
+  it should "codegen constant map" in CodegenHelpers.compilesExp(sdql"""{ "a" -> 1, "b" -> 2 }""")
   it should "codegen constant map requiring type promotion" in {
     val e = sdql"""{ "a" -> 1, "b" -> 2.5 }"""
     import sdql.analysis.TypeInference
@@ -26,11 +26,11 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
     CodegenHelpers.compilesExp(e)
   }
 
-  it should "codegen arith op *" in { CodegenHelpers.compilesExp(sdql"1 * 2") }
-  it should "codegen arith op +" in { CodegenHelpers.compilesExp(sdql"1 + 2") }
-  it should "codegen arith op -" in { CodegenHelpers.compilesExp(sdql"1 - 2") }
-  it should "codegen arith op ^" in { CodegenHelpers.compilesExp(sdql"3 ^ 2") }
-  it should "codegen arith op /" in { CodegenHelpers.compilesExp(sdql"42 / 21") }
+  it should "codegen arith op *" in CodegenHelpers.compilesExp(sdql"1 * 2")
+  it should "codegen arith op +" in CodegenHelpers.compilesExp(sdql"1 + 2")
+  it should "codegen arith op -" in CodegenHelpers.compilesExp(sdql"1 - 2")
+  it should "codegen arith op ^" in CodegenHelpers.compilesExp(sdql"3 ^ 2")
+  it should "codegen arith op /" in CodegenHelpers.compilesExp(sdql"42 / 21")
 
   it should "codegen logical op &&" in {
     CodegenHelpers.compilesExp(sdql"true && true")
@@ -71,12 +71,10 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
   private val sList = 100 until 110
   private val sRel  = for (i <- iList; s <- sList) yield (i, s, i * s + 42)
   private val rRel  = for (s <- sList) yield (s, s - 42)
-  private val s = {
+  private val s     =
     sRel.map(e => RecordValue(Seq("i" -> e._1, "s" -> e._2, "u" -> e._3)) -> 1).toMap
-  }
-  private val r = {
+  private val r     =
     rRel.map(e => RecordValue(Seq("s" -> e._1, "c" -> e._2)) -> 1).toMap
-  }
 
   it should "codegen sums" in {
     CodegenHelpers.compilesExp(sdql"let S = { 1 -> 1.5, 2 -> 2.5 } in sum(<s, s_v> <- S) s_v ")
@@ -141,34 +139,34 @@ sum(<x_s, x_s_v> <- S)
       """)
   }
 
-  it should "codegen simple promotion" in { CodegenHelpers.compilesExp(sdql"promote[double](1)") }
+  it should "codegen simple promotion" in CodegenHelpers.compilesExp(sdql"promote[double](1)")
 
-  it should "codegen record get" in { CodegenHelpers.compilesExp(sdql"let record=<_=2.5> in record(1)") }
+  it should "codegen record get" in CodegenHelpers.compilesExp(sdql"let record=<_=2.5> in record(1)")
 }
 
 class CppCodegenTestTPCH extends AnyFlatSpec with ParallelTestExecution {
-  it should "codegen TPCH Q1" in { CodegenHelpers.compilesFile("progs/tpch/q1.sdql") }
-  it should "codegen TPCH Q2" in { CodegenHelpers.compilesFile("progs/tpch/q2.sdql") }
-  it should "codegen TPCH Q3" in { CodegenHelpers.compilesFile("progs/tpch/q3.sdql") }
-  it should "codegen TPCH Q4" in { CodegenHelpers.compilesFile("progs/tpch/q4.sdql") }
-  it should "codegen TPCH Q5" in { CodegenHelpers.compilesFile("progs/tpch/q5.sdql") }
-  it should "codegen TPCH Q6" in { CodegenHelpers.compilesFile("progs/tpch/q6.sdql") }
-  it should "codegen TPCH Q7" in { CodegenHelpers.compilesFile("progs/tpch/q7.sdql") }
-  it should "codegen TPCH Q8" in { CodegenHelpers.compilesFile("progs/tpch/q8.sdql") }
-  it should "codegen TPCH Q9" in { CodegenHelpers.compilesFile("progs/tpch/q9.sdql") }
-  it should "codegen TPCH Q10" in { CodegenHelpers.compilesFile("progs/tpch/q10.sdql") }
-  it should "codegen TPCH Q11" in { CodegenHelpers.compilesFile("progs/tpch/q11.sdql") }
-  it should "codegen TPCH Q12" in { CodegenHelpers.compilesFile("progs/tpch/q12.sdql") }
-  it should "codegen TPCH Q13" in { CodegenHelpers.compilesFile("progs/tpch/q13.sdql") }
-  it should "codegen TPCH Q14" in { CodegenHelpers.compilesFile("progs/tpch/q14.sdql") }
-  it should "codegen TPCH Q15" in { CodegenHelpers.compilesFile("progs/tpch/q15.sdql") }
-  it should "codegen TPCH Q16" in { CodegenHelpers.compilesFile("progs/tpch/q16.sdql") }
-  it should "codegen TPCH Q17" in { CodegenHelpers.compilesFile("progs/tpch/q17.sdql") }
-  it should "codegen TPCH Q18" in { CodegenHelpers.compilesFile("progs/tpch/q18.sdql") }
-  it should "codegen TPCH Q19" in { CodegenHelpers.compilesFile("progs/tpch/q19.sdql") }
-  it should "codegen TPCH Q20" in { CodegenHelpers.compilesFile("progs/tpch/q20.sdql") }
-  it should "codegen TPCH Q21" in { CodegenHelpers.compilesFile("progs/tpch/q21.sdql") }
-  it should "codegen TPCH Q22" in { CodegenHelpers.compilesFile("progs/tpch/q22.sdql") }
+  it should "codegen TPCH Q1" in CodegenHelpers.compilesFile("progs/tpch/q1.sdql")
+  it should "codegen TPCH Q2" in CodegenHelpers.compilesFile("progs/tpch/q2.sdql")
+  it should "codegen TPCH Q3" in CodegenHelpers.compilesFile("progs/tpch/q3.sdql")
+  it should "codegen TPCH Q4" in CodegenHelpers.compilesFile("progs/tpch/q4.sdql")
+  it should "codegen TPCH Q5" in CodegenHelpers.compilesFile("progs/tpch/q5.sdql")
+  it should "codegen TPCH Q6" in CodegenHelpers.compilesFile("progs/tpch/q6.sdql")
+  it should "codegen TPCH Q7" in CodegenHelpers.compilesFile("progs/tpch/q7.sdql")
+  it should "codegen TPCH Q8" in CodegenHelpers.compilesFile("progs/tpch/q8.sdql")
+  it should "codegen TPCH Q9" in CodegenHelpers.compilesFile("progs/tpch/q9.sdql")
+  it should "codegen TPCH Q10" in CodegenHelpers.compilesFile("progs/tpch/q10.sdql")
+  it should "codegen TPCH Q11" in CodegenHelpers.compilesFile("progs/tpch/q11.sdql")
+  it should "codegen TPCH Q12" in CodegenHelpers.compilesFile("progs/tpch/q12.sdql")
+  it should "codegen TPCH Q13" in CodegenHelpers.compilesFile("progs/tpch/q13.sdql")
+  it should "codegen TPCH Q14" in CodegenHelpers.compilesFile("progs/tpch/q14.sdql")
+  it should "codegen TPCH Q15" in CodegenHelpers.compilesFile("progs/tpch/q15.sdql")
+  it should "codegen TPCH Q16" in CodegenHelpers.compilesFile("progs/tpch/q16.sdql")
+  it should "codegen TPCH Q17" in CodegenHelpers.compilesFile("progs/tpch/q17.sdql")
+  it should "codegen TPCH Q18" in CodegenHelpers.compilesFile("progs/tpch/q18.sdql")
+  it should "codegen TPCH Q19" in CodegenHelpers.compilesFile("progs/tpch/q19.sdql")
+  it should "codegen TPCH Q20" in CodegenHelpers.compilesFile("progs/tpch/q20.sdql")
+  it should "codegen TPCH Q21" in CodegenHelpers.compilesFile("progs/tpch/q21.sdql")
+  it should "codegen TPCH Q22" in CodegenHelpers.compilesFile("progs/tpch/q22.sdql")
 }
 
 class CppCodegenTestGJ extends AnyFlatSpec with ParallelTestExecution {
@@ -527,6 +525,6 @@ object CodegenHelpers {
   private def fromCpp(cpp: String)     = inGeneratedDir(Seq("bash", "-c", cmd(escape(cpp)))).run().exitValue()
   private def cmd(cpp: String)         = s"${clangCmd.mkString(" ")} -xc++ -fsyntax-only - <<< '$cpp'"
   // silly hack - escape single quotes in C++ source code so we can pass it to bash
-  private def escape(cpp: String) = cpp.replace(singleQuote.toString, s"char(${singleQuote.toInt})")
-  private val singleQuote         = '\''
+  private def escape(cpp: String)      = cpp.replace(singleQuote.toString, s"char(${singleQuote.toInt})")
+  private val singleQuote              = '\''
 }

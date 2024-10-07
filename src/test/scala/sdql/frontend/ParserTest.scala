@@ -91,10 +91,10 @@ class ParserTest extends AnyFlatSpec with Matchers {
     sdql"{ x }" should be(SetNode(Seq(Sym("x"))))
     sdql"{  0   , 1   }" should be(SetNode(Seq(Const(0), Const(1))))
     sdql"{  x   , y   }" should be(SetNode(Seq(Sym("x"), Sym("y"))))
-    sdql"{0  ->  1}" should be(DictNode(Seq(Const(0)                   -> Const(1))))
-    sdql"{x  ->  y}" should be(DictNode(Seq(Sym("x")                   -> Sym("y"))))
+    sdql"{0  ->  1}" should be(DictNode(Seq(Const(0) -> Const(1))))
+    sdql"{x  ->  y}" should be(DictNode(Seq(Sym("x") -> Sym("y"))))
     sdql"{x.z  ->  y}" should be(DictNode(Seq(FieldNode(Sym("x"), "z") -> Sym("y"))))
-    sdql"{x  ->  y, z -> 1 }" should be(DictNode(Seq(Sym("x")          -> Sym("y"), Sym("z") -> Const(1.0))))
+    sdql"{x  ->  y, z -> 1 }" should be(DictNode(Seq(Sym("x") -> Sym("y"), Sym("z") -> Const(1.0))))
     sdql"x(y)" should be(Get(Sym("x"), Sym("y")))
     sdql"x(y)(z)" should be(Get(Get(Sym("x"), Sym("y")), Sym("z")))
     sdql"x(   y)" should be(Get(Sym("x"), Sym("y")))
@@ -105,24 +105,24 @@ class ParserTest extends AnyFlatSpec with Matchers {
   }
 
   it should "work for dict hints" in {
-    sdql"@phmap {0 -> 1}" should be(DictNode(Seq(Const(0)           -> Const(1)), PHmap()))
-    sdql"@phmap {x -> y}" should be(DictNode(Seq(Sym("x")           -> Sym("y")), PHmap()))
-    sdql"@phmap(100) {0 -> 1}" should be(DictNode(Seq(Const(0)      -> Const(1)), PHmap(Some(Const(100)))))
-    sdql"@phmap(a) {x -> y}" should be(DictNode(Seq(Sym("x")        -> Sym("y")), PHmap(Some(Sym("a")))))
+    sdql"@phmap {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), PHmap()))
+    sdql"@phmap {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), PHmap()))
+    sdql"@phmap(100) {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), PHmap(Some(Const(100)))))
+    sdql"@phmap(a) {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), PHmap(Some(Sym("a")))))
     sdql"@smallvecdict(4) {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), SmallVecDict(4)))
     sdql"@smallvecdict(4) {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), SmallVecDict(4)))
     sdql"@smallvecdicts(4) {< foo = 1  > -> 1}" should be(
       DictNode(Seq(RecNode(Seq("foo" -> Const(1.0))) -> Const(1)), SmallVecDicts(4))
     )
     sdql"@smallvecdicts(4) {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), SmallVecDicts(4)))
-    sdql"@vec {0 -> 1}" should be(DictNode(Seq(Const(0)              -> Const(1)), Vec()))
-    sdql"@vec {x -> y}" should be(DictNode(Seq(Sym("x")              -> Sym("y")), Vec()))
-    sdql"@vec(1) {0 -> 1}" should be(DictNode(Seq(Const(0)           -> Const(1)), Vec(Some(1))))
-    sdql"@vec(100) {x -> y}" should be(DictNode(Seq(Sym("x")         -> Sym("y")), Vec(Some(100))))
+    sdql"@vec {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), Vec()))
+    sdql"@vec {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), Vec()))
+    sdql"@vec(1) {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), Vec(Some(1))))
+    sdql"@vec(100) {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), Vec(Some(100))))
   }
 
   it should "work for record" in {
-    sdql"< foo = 1  >" should be(RecNode(Seq("foo"              -> Const(1.0))))
+    sdql"< foo = 1  >" should be(RecNode(Seq("foo" -> Const(1.0))))
     sdql"< foo = 1, goo  =  hoo  >" should be(RecNode(Seq("foo" -> Const(1.0), "goo" -> Sym("hoo"))))
     sdql"x.name" should be(FieldNode(Sym("x"), "name"))
     sdql"x.name * 2" should be(Mult(FieldNode(Sym("x"), "name"), Const(2.0)))

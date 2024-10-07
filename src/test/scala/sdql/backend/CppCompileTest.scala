@@ -492,13 +492,14 @@ class CppCompileTestFJ extends AnyFlatSpec with ParallelTestExecution {
 
 object CompileHelpers {
   def assertOutputs(sdqlPath: String, outPath: String): Unit = {
-    val code   = SourceCode.fromFile(sdqlPath)
-    val llql   = Rewriter.rewrite(code.exp)
-    val cpp    = CppCodegen(llql)
-    val actual = compile(sdqlPath, cpp)
-    val source = scala.io.Source.fromFile(outPath)
-    val expected = try source.mkString
-    finally source.close()
+    val code     = SourceCode.fromFile(sdqlPath)
+    val llql     = Rewriter.rewrite(code.exp)
+    val cpp      = CppCodegen(llql)
+    val actual   = compile(sdqlPath, cpp)
+    val source   = scala.io.Source.fromFile(outPath)
+    val expected =
+      try source.mkString
+      finally source.close()
     assert(actual.trim == expected.trim, s"\n${actual.trim}\n!=\n${expected.trim}")
   }
 }
