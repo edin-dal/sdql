@@ -218,6 +218,7 @@ class CppCompileTestGJ extends AnyFlatSpec with ParallelTestExecution {
     CompileHelpers.assertOutputs("progs/job/gj/13a.sdql", "results/job/13a.result")
     CompileHelpers.assertOutputs("progs/job/gj/13b.sdql", "results/job/13b.result")
     CompileHelpers.assertOutputs("progs/job/gj/13c.sdql", "results/job/13c.result")
+    // note: producing_company min here is '68 Productions instead "O" Films due to ordering of ' < "
     CompileHelpers.assertOutputs("progs/job/gj/13d.sdql", "results/job/13d.result")
 
     CompileHelpers.assertOutputs("progs/job/gj/14a.sdql", "results/job/14a.result")
@@ -383,6 +384,7 @@ class CppCompileTestFJ extends AnyFlatSpec with ParallelTestExecution {
     CompileHelpers.assertOutputs("progs/job/fj/13a.sdql", "results/job/13a.result")
     CompileHelpers.assertOutputs("progs/job/fj/13b.sdql", "results/job/13b.result")
     CompileHelpers.assertOutputs("progs/job/fj/13c.sdql", "results/job/13c.result")
+    // note: producing_company min here is '68 Productions instead "O" Films due to ordering of ' < "
     CompileHelpers.assertOutputs("progs/job/fj/13d.sdql", "results/job/13d.result")
 
     CompileHelpers.assertOutputs("progs/job/fj/14a.sdql", "results/job/14a.result")
