@@ -1,13 +1,13 @@
-let tag = load[...] in
-let tagclass = load[...] in
-let comment = load[...] in
-let cht = load[...] in
-let post = load[...] in
-let forum = load[...] in
-let fhp = load[...] in
-let person = load[...] in
-let city = load[...] in
-let country = load[...] in
+let tagclass = load[<TagClassId: @vec {int -> int}, isSubclassOf_TagClassId: @vec {int -> int}, size: int>]("datasets/lsqb/TagClass.csv") in
+let tag = load[<TagId: @vec {int -> int}, hasType_TagClassId: @vec {int -> int}, size: int>]("datasets/lsqb/Tag.csv") in
+let comment = load[<CommentId: @vec {int -> int}, hasCreator_PersonId: @vec {int -> int}, isLocatedIn_CountryId: @vec {int -> int}, replyOf_PostId: @vec {int -> int}, replyOf_CommentId: @vec {int -> int}, size: int>]("datasets/lsqb/Comment.csv") in
+let cht = load[<CommentId: @vec {int -> int}, TagId: @vec {int -> int}, size: int>]("datasets/lsqb/Comment_hasTag_Tag.csv") in
+let post = load[<PostId: @vec {int -> int}, hasCreator_PersonId: @vec {int -> int}, Forum_containerOfId: @vec {int -> int}, isLocatedIn_CountryId: @vec {int -> int}, size: int>]("datasets/lsqb/Post.csv") in
+let forum = load[<ForumId: @vec {int -> int}, hasModerator_PersonId: @vec {int -> int}, size: int>]("datasets/lsqb/Forum.csv") in
+let fhp = load[<ForumId: @vec {int -> int}, PersonId: @vec {int -> int}, size: int>]("datasets/lsqb/Forum_hasMember_Person.csv") in
+let person = load[<PersonId: @vec {int -> int}, isLocatedIn_CityId: @vec {int -> int}, size: int>]("datasets/lsqb/Person.csv") in
+let city = load[<CityId: @vec {int -> int}, isPartOf_CountryId: @vec {int -> int}, size: int>]("datasets/lsqb/City.csv") in
+let country = load[<CountryId: @vec {int -> int}, isPartOf_ContinentId: @vec {int -> int}, size: int>]("datasets/lsqb/Country.csv") in
 
 let tag_trie0 = sum(<i, _> <- range(tag.size)) { tag.hasType_TagClassId(i) -> { i -> 1 } } in
 let tagclass_trie0 = sum(<i, _> <- range(tagclass.size)) { tagclass.TagClassId(i) -> 1 } in

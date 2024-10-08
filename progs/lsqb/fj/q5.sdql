@@ -1,6 +1,6 @@
-let comment = load[...] in
-let cht = load[...] in
-let pht = load[...] in
+let comment = load[<CommentId: @vec {int -> int}, hasCreator_PersonId: @vec {int -> int}, isLocatedIn_CountryId: @vec {int -> int}, replyOf_PostId: @vec {int -> int}, replyOf_CommentId: @vec {int -> int}, size: int>]("datasets/lsqb/Comment.csv") in
+let cht = load[<CommentId: @vec {int -> int}, TagId: @vec {int -> int}, size: int>]("datasets/lsqb/Comment_hasTag_Tag.csv") in
+let pht = load[<PostId: @vec {int -> int}, TagId: @vec {int -> int}, size: int>]("datasets/lsqb/Post_hasTag_Tag.csv") in
 
 let comment_trie0 = sum(<i, _> <- range(comment.size)) { comment.CommentId(i) -> { i -> 1 } } in
 let pht_trie0 = sum(<i, _> <- range(pht.size)) { pht.PostId(i) -> 1 } in

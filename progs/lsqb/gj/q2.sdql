@@ -1,6 +1,6 @@
-let comment = load[...] in
-let post = load[...] in
-let pkp = load[...] in
+let comment = load[<CommentId: @vec {int -> int}, hasCreator_PersonId: @vec {int -> int}, isLocatedIn_CountryId: @vec {int -> int}, replyOf_PostId: @vec {int -> int}, replyOf_CommentId: @vec {int -> int}, size: int>]("datasets/lsqb/Comment.csv") in
+let post = load[<PostId: @vec {int -> int}, hasCreator_PersonId: @vec {int -> int}, Forum_containerOfId: @vec {int -> int}, isLocatedIn_CountryId: @vec {int -> int}, size: int>]("datasets/lsqb/Post.csv") in
+let pkp = load[<Person1Id: @vec {int -> int}, Person2Id: @vec {int -> int}, size: int>]("datasets/lsqb/Person_knows_Person.csv") in
 
 let comment_trie0 = sum(<i, _> <- range(comment.size)) { comment.replyOf_PostId(i) -> { comment.hasCreator_PersonId(i) -> 1 } } in
 let post_trie0 = sum(<i, _> <- range(post.size)) { post.PostId(i) -> { post.hasCreator_PersonId(i) -> 1 } } in
