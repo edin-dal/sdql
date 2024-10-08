@@ -13,6 +13,6 @@ sum(<comment_off, _> <- range(comment.size))
 			if (x1 ∈ pkp_trie0) then
 				let pkp_trie1 = pkp_trie0(x1) in
 				let x2 = comment.hasCreator_PersonId(comment_off) in
-				if (x2 ∈ pkp_trie1)
+				if (x2 ∈ pkp_trie1) then
 					let pkp_trie2 = pkp_trie1(x2) in
 					pkp_trie2

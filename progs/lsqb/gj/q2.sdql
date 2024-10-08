@@ -12,6 +12,6 @@ sum(<x0, comment_trie1> <- comment_trie0)
 			if (x1 ∈ pkp_trie0) then
 				let pkp_trie1 = pkp_trie0(x1) in
 				sum(<x2, comment_trie2> <- comment_trie1)
-					if (x2 ∈ pkp_trie1)
+					if (x2 ∈ pkp_trie1) then
 						let pkp_trie2 = pkp_trie1(x2) in
 						comment_trie2 * post_trie2 * pkp_trie2

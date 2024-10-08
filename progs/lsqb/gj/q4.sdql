@@ -14,7 +14,7 @@ let interm0_trie0 = sum(<x0, post_trie1> <- post_trie0)
 let comment_trie0 = sum(<i, _> <- range(comment.size)) { comment.replyOf_PostId(i) -> 1 } in
 let plp_trie0 = sum(<i, _> <- range(plp.size)) { plp.PostId(i) -> 1 } in
 sum(<x0, comment_trie1> <- comment_trie0)
-	if (x0 ∈ interm0_trie0 && x0 ∈ plp_trie0) then
+	if ((x0 ∈ interm0_trie0) && (x0 ∈ plp_trie0)) then
 		let interm0_trie1 = interm0_trie0(x0) in
 		let plp_trie1 = plp_trie0(x0) in
 		interm0_trie1 * plp_trie1 * comment_trie1
