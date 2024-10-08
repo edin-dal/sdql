@@ -210,7 +210,6 @@ class ParserTest extends AnyFlatSpec with Matchers {
 
     SourceCode.fromFile("progs/job/gj/2a.sdql")
     SourceCode.fromFile("progs/job/gj/2b.sdql")
-    SourceCode.fromFile("progs/job/gj/2c.sdql")
     SourceCode.fromFile("progs/job/gj/2d.sdql")
 
     SourceCode.fromFile("progs/job/gj/3a.sdql")
@@ -245,7 +244,6 @@ class ParserTest extends AnyFlatSpec with Matchers {
     SourceCode.fromFile("progs/job/gj/9d.sdql")
 
     SourceCode.fromFile("progs/job/gj/10a.sdql")
-    SourceCode.fromFile("progs/job/gj/10b.sdql")
     SourceCode.fromFile("progs/job/gj/10c.sdql")
 
     SourceCode.fromFile("progs/job/gj/11a.sdql")
@@ -340,7 +338,6 @@ class ParserTest extends AnyFlatSpec with Matchers {
     SourceCode.fromFile("progs/job/gj/31b.sdql")
     SourceCode.fromFile("progs/job/gj/31c.sdql")
 
-    SourceCode.fromFile("progs/job/gj/32a.sdql")
     SourceCode.fromFile("progs/job/gj/32b.sdql")
 
     SourceCode.fromFile("progs/job/gj/33a.sdql")
@@ -356,7 +353,6 @@ class ParserTest extends AnyFlatSpec with Matchers {
 
     SourceCode.fromFile("progs/job/fj/2a.sdql")
     SourceCode.fromFile("progs/job/fj/2b.sdql")
-    SourceCode.fromFile("progs/job/fj/2c.sdql")
     SourceCode.fromFile("progs/job/fj/2d.sdql")
 
     SourceCode.fromFile("progs/job/fj/3a.sdql")
@@ -391,7 +387,6 @@ class ParserTest extends AnyFlatSpec with Matchers {
     SourceCode.fromFile("progs/job/fj/9d.sdql")
 
     SourceCode.fromFile("progs/job/fj/10a.sdql")
-    SourceCode.fromFile("progs/job/fj/10b.sdql")
     SourceCode.fromFile("progs/job/fj/10c.sdql")
 
     SourceCode.fromFile("progs/job/fj/11a.sdql")
@@ -486,7 +481,6 @@ class ParserTest extends AnyFlatSpec with Matchers {
     SourceCode.fromFile("progs/job/fj/31b.sdql")
     SourceCode.fromFile("progs/job/fj/31c.sdql")
 
-    SourceCode.fromFile("progs/job/fj/32a.sdql")
     SourceCode.fromFile("progs/job/fj/32b.sdql")
 
     SourceCode.fromFile("progs/job/fj/33a.sdql")

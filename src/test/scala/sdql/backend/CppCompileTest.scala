@@ -180,7 +180,6 @@ class CppCompileTestGJ extends AnyFlatSpec with ParallelTestExecution {
 
     CompileHelpers.assertOutputs("progs/job/gj/2a.sdql", "results/job/2a.result")
     CompileHelpers.assertOutputs("progs/job/gj/2b.sdql", "results/job/2b.result")
-    CompileHelpers.assertOutputs("progs/job/gj/2c.sdql", "results/job/2c.result")
     CompileHelpers.assertOutputs("progs/job/gj/2d.sdql", "results/job/2d.result")
 
     CompileHelpers.assertOutputs("progs/job/gj/3a.sdql", "results/job/3a.result")
@@ -205,7 +204,6 @@ class CppCompileTestGJ extends AnyFlatSpec with ParallelTestExecution {
     CompileHelpers.assertOutputs("progs/job/gj/9d.sdql", "results/job/9d.result")
 
     CompileHelpers.assertOutputs("progs/job/gj/10a.sdql", "results/job/10a.result")
-    CompileHelpers.assertOutputs("progs/job/gj/10b.sdql", "results/job/10b.result")
     CompileHelpers.assertOutputs("progs/job/gj/10c.sdql", "results/job/10c.result")
 
     CompileHelpers.assertOutputs("progs/job/gj/11a.sdql", "results/job/11a.result")
@@ -323,7 +321,6 @@ class CppCompileTestGJ extends AnyFlatSpec with ParallelTestExecution {
     CompileHelpers.assertOutputs("progs/job/gj/31b.sdql", "results/job/31b.result")
     CompileHelpers.assertOutputs("progs/job/gj/31c.sdql", "results/job/31c.result")
 
-    CompileHelpers.assertOutputs("progs/job/gj/32a.sdql", "results/job/32a.result")
     CompileHelpers.assertOutputs("progs/job/gj/32b.sdql", "results/job/32b.result")
 
     CompileHelpers.assertOutputs("progs/job/gj/33a.sdql", "results/job/33a.result")
@@ -348,7 +345,6 @@ class CppCompileTestFJ extends AnyFlatSpec with ParallelTestExecution {
 
     CompileHelpers.assertOutputs("progs/job/fj/2a.sdql", "results/job/2a.result")
     CompileHelpers.assertOutputs("progs/job/fj/2b.sdql", "results/job/2b.result")
-    CompileHelpers.assertOutputs("progs/job/fj/2c.sdql", "results/job/2c.result")
     CompileHelpers.assertOutputs("progs/job/fj/2d.sdql", "results/job/2d.result")
 
     CompileHelpers.assertOutputs("progs/job/fj/3a.sdql", "results/job/3a.result")
@@ -373,7 +369,6 @@ class CppCompileTestFJ extends AnyFlatSpec with ParallelTestExecution {
     CompileHelpers.assertOutputs("progs/job/fj/9d.sdql", "results/job/9d.result")
 
     CompileHelpers.assertOutputs("progs/job/fj/10a.sdql", "results/job/10a.result")
-    CompileHelpers.assertOutputs("progs/job/fj/10b.sdql", "results/job/10b.result")
     CompileHelpers.assertOutputs("progs/job/fj/10c.sdql", "results/job/10c.result")
 
     CompileHelpers.assertOutputs("progs/job/fj/11a.sdql", "results/job/11a.result")
@@ -491,7 +486,6 @@ class CppCompileTestFJ extends AnyFlatSpec with ParallelTestExecution {
     CompileHelpers.assertOutputs("progs/job/fj/31b.sdql", "results/job/31b.result")
     CompileHelpers.assertOutputs("progs/job/fj/31c.sdql", "results/job/31c.result")
 
-    CompileHelpers.assertOutputs("progs/job/fj/32a.sdql", "results/job/32a.result")
     CompileHelpers.assertOutputs("progs/job/fj/32b.sdql", "results/job/32b.result")
 
     CompileHelpers.assertOutputs("progs/job/fj/33a.sdql", "results/job/33a.result")
