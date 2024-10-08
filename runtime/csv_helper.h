@@ -3,8 +3,18 @@
 #include <regex>
 #include <sstream>
 
+inline rapidcsv::ConverterParams IntNanConverter(const int pDefaultInteger) {
+    return rapidcsv::ConverterParams(
+        true,
+        std::numeric_limits<long double>::signaling_NaN(),
+        pDefaultInteger,
+        false
+    );
+}
+
 const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
 const auto SEPARATOR = rapidcsv::SeparatorParams('|');
+const auto CONVERTER = IntNanConverter(std::numeric_limits<int>::min());
 
 const std::regex RE_DATE("-");
 

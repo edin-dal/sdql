@@ -377,7 +377,7 @@ object CppCodegen {
       (path, name, recordType, skipCols)
   }
   private def makeCsvConst(name: String, path: String)                                   =
-    s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR);"""
+    s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR, CONVERTER);"""
   private def makeTupleInit(name: String, recordType: RecordType, skipCols: Set[String]) = {
     assert(recordType.attrs.last.name == "size")
     val attrs    = recordType.attrs
