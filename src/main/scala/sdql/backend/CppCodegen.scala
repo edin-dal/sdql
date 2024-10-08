@@ -361,7 +361,8 @@ object CppCodegen {
   private def cppCsvs(e: Exp): String                                                    = {
     val pathNameTypeSkip = iterExps(e).flatMap(extract).toSeq.distinct.sortBy(_._2)
     val csvConsts        =
-      pathNameTypeSkip.map { case (path, name, _, _) => makeCsvConst(name, path) }.mkString("\n", "\n", "\n")
+      pathNameTypeSkip.zipWithIndex.map { case ((path, name, _, _), i) => makeCsvConst(name, path, i) }
+        .mkString("\n", "\n", "\n")
     val tuples           = pathNameTypeSkip.map { case (_, name, recordType, skipCols) =>
       val init = makeTupleInit(name, recordType, skipCols)
       s"auto ${name.toLowerCase} = ${cppType(recordType, noTemplate = true)}($init);\n"
@@ -376,8 +377,9 @@ object CppCodegen {
         (load: @unchecked) match { case Load(_, _, skipCols) => skipCols.toSkipColsSet }
       (path, name, recordType, skipCols)
   }
-  private def makeCsvConst(name: String, path: String)                                   =
-    s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR, CONVERTER);"""
+  private def makeCsvConst(name: String, path: String, i: Int) =
+    // NaN handling for LSQB queries (different value in each table avoids joining them)
+    s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR, IntNanConverter($i));"""
   private def makeTupleInit(name: String, recordType: RecordType, skipCols: Set[String]) = {
     assert(recordType.attrs.last.name == "size")
     val attrs    = recordType.attrs
