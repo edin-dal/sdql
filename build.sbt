@@ -14,10 +14,19 @@ Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-P32")
 Test / testOptions ++= Seq(
   Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestTPCH0_01"),
   Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestTPCH1"),
-  // these two tests aren't mentioned in the public README as their setup is more involved
-  // they require converting from Parquet to CSV the JOB datasets of https://github.com/SIGMOD23p561/free-join
-  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestGJ"),
-  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestFJ")
+  // following tests aren't mentioned in the public README as their setup is more involved
+  // these require converting from Parquet to CSV the JOB datasets of https://github.com/SIGMOD23p561/free-join
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestJOBGJ"),
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestJOBFJ"),
+  // these require converting from Parquet to CSV the LSQB datasets of https://github.com/remysucre/gj-vs-binary
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestLSQBGJ01"),
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestLSQBGJ03"),
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestLSQBGJ1"),
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestLSQBGJ3"),
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestLSQBFJ01"),
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestLSQBFJ03"),
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestLSQBFJ1"),
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestLSQBFJ3")
 )
 
 // Mostly from https://alexn.org/blog/2020/05/26/scala-fatal-warnings/#2-activate-all-linting-options
