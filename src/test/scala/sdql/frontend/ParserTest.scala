@@ -255,8 +255,10 @@ class ParserTest extends AnyFlatSpec with Matchers {
     SourceCode.fromFile("progs/job/gj/12b.sdql")
     SourceCode.fromFile("progs/job/gj/12c.sdql")
 
+    SourceCode.fromFile("progs/job/gj/13a.sdql")
     SourceCode.fromFile("progs/job/gj/13b.sdql")
     SourceCode.fromFile("progs/job/gj/13c.sdql")
+    SourceCode.fromFile("progs/job/gj/13d.sdql")
 
     SourceCode.fromFile("progs/job/gj/14a.sdql")
     SourceCode.fromFile("progs/job/gj/14b.sdql")
@@ -341,5 +343,148 @@ class ParserTest extends AnyFlatSpec with Matchers {
     SourceCode.fromFile("progs/job/gj/33a.sdql")
     SourceCode.fromFile("progs/job/gj/33b.sdql")
     SourceCode.fromFile("progs/job/gj/33c.sdql")
+  }
+
+  it should "parse FJ" in {
+    SourceCode.fromFile("progs/job/fj/1a.sdql")
+    SourceCode.fromFile("progs/job/fj/1b.sdql")
+    SourceCode.fromFile("progs/job/fj/1c.sdql")
+    SourceCode.fromFile("progs/job/fj/1d.sdql")
+
+    SourceCode.fromFile("progs/job/fj/2a.sdql")
+    SourceCode.fromFile("progs/job/fj/2b.sdql")
+    SourceCode.fromFile("progs/job/fj/2d.sdql")
+
+    SourceCode.fromFile("progs/job/fj/3a.sdql")
+    SourceCode.fromFile("progs/job/fj/3b.sdql")
+    SourceCode.fromFile("progs/job/fj/3c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/4a.sdql")
+    SourceCode.fromFile("progs/job/fj/4b.sdql")
+    SourceCode.fromFile("progs/job/fj/4c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/5c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/6a.sdql")
+    SourceCode.fromFile("progs/job/fj/6b.sdql")
+    SourceCode.fromFile("progs/job/fj/6c.sdql")
+    SourceCode.fromFile("progs/job/fj/6d.sdql")
+    SourceCode.fromFile("progs/job/fj/6e.sdql")
+    SourceCode.fromFile("progs/job/fj/6f.sdql")
+
+    SourceCode.fromFile("progs/job/fj/7a.sdql")
+    SourceCode.fromFile("progs/job/fj/7b.sdql")
+    SourceCode.fromFile("progs/job/fj/7c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/8a.sdql")
+    SourceCode.fromFile("progs/job/fj/8b.sdql")
+    SourceCode.fromFile("progs/job/fj/8c.sdql")
+    SourceCode.fromFile("progs/job/fj/8d.sdql")
+
+    SourceCode.fromFile("progs/job/fj/9a.sdql")
+    SourceCode.fromFile("progs/job/fj/9b.sdql")
+    SourceCode.fromFile("progs/job/fj/9c.sdql")
+    SourceCode.fromFile("progs/job/fj/9d.sdql")
+
+    SourceCode.fromFile("progs/job/fj/10a.sdql")
+    SourceCode.fromFile("progs/job/fj/10c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/11a.sdql")
+    SourceCode.fromFile("progs/job/fj/11b.sdql")
+    SourceCode.fromFile("progs/job/fj/11c.sdql")
+    SourceCode.fromFile("progs/job/fj/11d.sdql")
+
+    SourceCode.fromFile("progs/job/fj/12a.sdql")
+    SourceCode.fromFile("progs/job/fj/12b.sdql")
+    SourceCode.fromFile("progs/job/fj/12c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/13a.sdql")
+    SourceCode.fromFile("progs/job/fj/13b.sdql")
+    SourceCode.fromFile("progs/job/fj/13c.sdql")
+    SourceCode.fromFile("progs/job/fj/13d.sdql")
+
+    SourceCode.fromFile("progs/job/fj/14a.sdql")
+    SourceCode.fromFile("progs/job/fj/14b.sdql")
+    SourceCode.fromFile("progs/job/fj/14c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/15a.sdql")
+    SourceCode.fromFile("progs/job/fj/15b.sdql")
+    SourceCode.fromFile("progs/job/fj/15c.sdql")
+    SourceCode.fromFile("progs/job/fj/15d.sdql")
+
+    SourceCode.fromFile("progs/job/fj/16a.sdql")
+    SourceCode.fromFile("progs/job/fj/16b.sdql")
+    SourceCode.fromFile("progs/job/fj/16c.sdql")
+    SourceCode.fromFile("progs/job/fj/16d.sdql")
+
+    SourceCode.fromFile("progs/job/fj/17a.sdql")
+    SourceCode.fromFile("progs/job/fj/17b.sdql")
+    SourceCode.fromFile("progs/job/fj/17c.sdql")
+    SourceCode.fromFile("progs/job/fj/17d.sdql")
+    SourceCode.fromFile("progs/job/fj/17e.sdql")
+    SourceCode.fromFile("progs/job/fj/17f.sdql")
+
+    SourceCode.fromFile("progs/job/fj/18a.sdql")
+    SourceCode.fromFile("progs/job/fj/18b.sdql")
+    SourceCode.fromFile("progs/job/fj/18c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/19a.sdql")
+    SourceCode.fromFile("progs/job/fj/19b.sdql")
+    SourceCode.fromFile("progs/job/fj/19c.sdql")
+    SourceCode.fromFile("progs/job/fj/19d.sdql")
+
+    SourceCode.fromFile("progs/job/fj/20a.sdql")
+    SourceCode.fromFile("progs/job/fj/20b.sdql")
+    SourceCode.fromFile("progs/job/fj/20c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/21a.sdql")
+    SourceCode.fromFile("progs/job/fj/21b.sdql")
+    SourceCode.fromFile("progs/job/fj/21c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/22a.sdql")
+    SourceCode.fromFile("progs/job/fj/22b.sdql")
+    SourceCode.fromFile("progs/job/fj/22c.sdql")
+    SourceCode.fromFile("progs/job/fj/22d.sdql")
+
+    SourceCode.fromFile("progs/job/fj/23a.sdql")
+    SourceCode.fromFile("progs/job/fj/23b.sdql")
+    SourceCode.fromFile("progs/job/fj/23c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/24a.sdql")
+    SourceCode.fromFile("progs/job/fj/24b.sdql")
+
+    SourceCode.fromFile("progs/job/fj/25a.sdql")
+    SourceCode.fromFile("progs/job/fj/25b.sdql")
+    SourceCode.fromFile("progs/job/fj/25c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/26a.sdql")
+    SourceCode.fromFile("progs/job/fj/26b.sdql")
+    SourceCode.fromFile("progs/job/fj/26c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/27a.sdql")
+    SourceCode.fromFile("progs/job/fj/27b.sdql")
+    SourceCode.fromFile("progs/job/fj/27c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/28a.sdql")
+    SourceCode.fromFile("progs/job/fj/28b.sdql")
+    SourceCode.fromFile("progs/job/fj/28c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/29a.sdql")
+    SourceCode.fromFile("progs/job/fj/29b.sdql")
+    SourceCode.fromFile("progs/job/fj/29c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/30a.sdql")
+    SourceCode.fromFile("progs/job/fj/30b.sdql")
+    SourceCode.fromFile("progs/job/fj/30c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/31a.sdql")
+    SourceCode.fromFile("progs/job/fj/31b.sdql")
+    SourceCode.fromFile("progs/job/fj/31c.sdql")
+
+    SourceCode.fromFile("progs/job/fj/32b.sdql")
+
+    SourceCode.fromFile("progs/job/fj/33a.sdql")
+    SourceCode.fromFile("progs/job/fj/33b.sdql")
+    SourceCode.fromFile("progs/job/fj/33c.sdql")
   }
 }
