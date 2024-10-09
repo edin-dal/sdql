@@ -15,87 +15,66 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
   it should "compile and run TPCH Q1 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q1.sdql", "results/tpch/SF_0.01/q1.result")
   }
-
   it should "compile and run TPCH Q2 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q2.sdql", "results/tpch/SF_0.01/q2.result")
   }
-
   it should "compile and run TPCH Q3 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q3.sdql", "results/tpch/SF_0.01/q3.result")
   }
-
   it should "compile and run TPCH Q4 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q4.sdql", "results/tpch/SF_0.01/q4.result")
   }
-
   it should "compile and run TPCH Q5 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q5.sdql", "results/tpch/SF_0.01/q5.result")
   }
-
   it should "compile and run TPCH Q6 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q6.sdql", "results/tpch/SF_0.01/q6.result")
   }
-
   it should "compile and run TPCH Q7 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q7.sdql", "results/tpch/SF_0.01/q7.result")
   }
-
   it should "compile and run TPCH Q8 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q8.sdql", "results/tpch/SF_0.01/q8.result")
   }
-
   it should "compile and run TPCH Q9 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q9.sdql", "results/tpch/SF_0.01/q9.result")
   }
-
   it should "compile and run TPCH Q10 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q10.sdql", "results/tpch/SF_0.01/q10.result")
   }
-
   it should "compile and run TPCH Q11 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q11.sdql", "results/tpch/SF_0.01/q11.result")
   }
-
   it should "compile and run TPCH Q12 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q12.sdql", "results/tpch/SF_0.01/q12.result")
   }
-
   it should "compile and run TPCH Q13 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q13.sdql", "results/tpch/SF_0.01/q13.result")
   }
-
   it should "compile and run TPCH Q14 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q14.sdql", "results/tpch/SF_0.01/q14.result")
   }
-
   it should "compile and run TPCH Q15 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q15.sdql", "results/tpch/SF_0.01/q15.result")
   }
-
   it should "compile and run TPCH Q16 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q16.sdql", "results/tpch/SF_0.01/q16.result")
   }
-
   it should "compile and run TPCH Q17 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q17.sdql", "results/tpch/SF_0.01/q17.result")
   }
-
   it should "compile and run TPCH Q18 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q18.sdql", "results/tpch/SF_0.01/q18.result")
   }
-
   it should "compile and run TPCH Q19 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q19.sdql", "results/tpch/SF_0.01/q19.result")
   }
-
   it should "compile and run TPCH Q20 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q20.sdql", "results/tpch/SF_0.01/q20.result")
   }
-
   it should "compile and run TPCH Q21 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q21.sdql", "results/tpch/SF_0.01/q21.result")
   }
-
   it should "compile and run TPCH Q22 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q22.sdql", "results/tpch/SF_0.01/q22.result")
   }
@@ -111,53 +90,43 @@ class CppCompileTestTPCH1 extends AnyFlatSpec with ParallelTestExecution {
     CompileHelpers.assertOutputs("progs/tpch/q1.sdql", "results/tpch/SF_1/q1.result")
     CompileHelpers.assertOutputs("progs/tpch/q2.sdql", "results/tpch/SF_1/q2.result")
   }
-
   it should "compile and run TPCH Q3-4 SF=1" taggedAs TestTPCH1 in {
     CompileHelpers.assertOutputs("progs/tpch/q3.sdql", "results/tpch/SF_1/q3.result")
     CompileHelpers.assertOutputs("progs/tpch/q4.sdql", "results/tpch/SF_1/q4.result")
   }
-
   it should "compile and run TPCH Q5-6 SF=1" taggedAs TestTPCH1 in {
     CompileHelpers.assertOutputs("progs/tpch/q5.sdql", "results/tpch/SF_1/q5.result")
     CompileHelpers.assertOutputs("progs/tpch/q6.sdql", "results/tpch/SF_1/q6.result")
   }
-
   it should "compile and run TPCH Q7-8 SF=1" taggedAs TestTPCH1 in {
     CompileHelpers.assertOutputs("progs/tpch/q7.sdql", "results/tpch/SF_1/q7.result")
     CompileHelpers.assertOutputs("progs/tpch/q8.sdql", "results/tpch/SF_1/q8.result")
   }
-
   it should "compile and run TPCH Q9-10 SF=1" taggedAs TestTPCH1 in {
     CompileHelpers.assertOutputs("progs/tpch/q9.sdql", "results/tpch/SF_1/q9.result")
     CompileHelpers.assertOutputs("progs/tpch/q10.sdql", "results/tpch/SF_1/q10.result")
   }
-
   it should "compile and run TPCH Q11-12 SF=1" taggedAs TestTPCH1 in {
     CompileHelpers.assertOutputs("progs/tpch/q11.sdql", "results/tpch/SF_1/q11.result")
     CompileHelpers.assertOutputs("progs/tpch/q12.sdql", "results/tpch/SF_1/q12.result")
   }
-
   it should "compile and run TPCH Q13-14 SF=1" taggedAs TestTPCH1 in {
     CompileHelpers.assertOutputs("progs/tpch/q13.sdql", "results/tpch/SF_1/q13.result")
     CompileHelpers.assertOutputs("progs/tpch/q14.sdql", "results/tpch/SF_1/q14.result")
   }
-
   it should "compile and run TPCH Q15-16 SF=1" taggedAs TestTPCH1 in {
     CompileHelpers.assertOutputs("progs/tpch/q15.sdql", "results/tpch/SF_1/q15.result")
     CompileHelpers.assertOutputs("progs/tpch/q16.sdql", "results/tpch/SF_1/q16.result")
 
   }
-
   it should "compile and run TPCH 17-18 SF=1" taggedAs TestTPCH1 in {
     CompileHelpers.assertOutputs("progs/tpch/q17.sdql", "results/tpch/SF_1/q17.result")
     CompileHelpers.assertOutputs("progs/tpch/q18.sdql", "results/tpch/SF_1/q18.result")
   }
-
   it should "compile and run TPCH Q19-20 SF=1" taggedAs TestTPCH1 in {
     CompileHelpers.assertOutputs("progs/tpch/q19.sdql", "results/tpch/SF_1/q19.result")
     CompileHelpers.assertOutputs("progs/tpch/q20.sdql", "results/tpch/SF_1/q20.result")
   }
-
   it should "compile and run TPCH Q21-22 SF=1" taggedAs TestTPCH1 in {
     CompileHelpers.assertOutputs("progs/tpch/q21.sdql", "results/tpch/SF_1/q21.result")
     CompileHelpers.assertOutputs("progs/tpch/q22.sdql", "results/tpch/SF_1/q22.result")
@@ -496,47 +465,77 @@ class CppCompileTestJOBFJ extends AnyFlatSpec with ParallelTestExecution {
   }
 }
 
-class CppCompileTestLSQBGJ01 extends AnyFlatSpec with ParallelTestExecution {
+class CppCompileTestLSQBGJ0_1 extends AnyFlatSpec with ParallelTestExecution {
 
-  // note: these tests expect LSQB files with scaling factor 01 to be present in your datasets folder
-  private object TestLSQBGJ01 extends Tag("TestLSQBGJ01")
+  // note: these tests expect LSQB files with scaling factor 0.1 to be present in your datasets folder
+  private object TestLSQBGJ0_1 extends Tag("TestLSQBGJ0_1")
 
-  it should "compile and run LSQB GJ Q1 SF=01" taggedAs TestLSQBGJ01 in {
-    CompileHelpers.assertOutputs("progs/lsqb/gj/q1.sdql", "results/lsqb/SF_01/q1.result")
+  it should "compile and run LSQB GJ Q1 SF=0.1" taggedAs TestLSQBGJ0_1 in {
+    CompileHelpers.assertOutputs("progs/lsqb/gj/q1.sdql", "results/lsqb/SF_0.1/q1.result")
   }
-
-  it should "compile and run LSQB GJ Q2 SF=01" taggedAs TestLSQBGJ01 in {
-    CompileHelpers.assertOutputs("progs/lsqb/gj/q2.sdql", "results/lsqb/SF_01/q2.result")
+  it should "compile and run LSQB GJ Q2 SF=0.1" taggedAs TestLSQBGJ0_1 in {
+    CompileHelpers.assertOutputs("progs/lsqb/gj/q2.sdql", "results/lsqb/SF_0.1/q2.result")
   }
-
-  it should "compile and run LSQB GJ Q4 SF=01" taggedAs TestLSQBGJ01 in {
-    CompileHelpers.assertOutputs("progs/lsqb/gj/q4.sdql", "results/lsqb/SF_01/q4.result")
+  it should "compile and run LSQB GJ Q4 SF=0.1" taggedAs TestLSQBGJ0_1 in {
+    CompileHelpers.assertOutputs("progs/lsqb/gj/q4.sdql", "results/lsqb/SF_0.1/q4.result")
   }
+  it should "compile and run LSQB GJ Q5 SF=0.1" taggedAs TestLSQBGJ0_1 in {
+    CompileHelpers.assertOutputs("progs/lsqb/gj/q5.sdql", "results/lsqb/SF_0.1/q5.result")
+  }
+}
+class CppCompileTestLSQBFJ0_1 extends AnyFlatSpec with ParallelTestExecution {
 
-  it should "compile and run LSQB GJ Q5 SF=01" taggedAs TestLSQBGJ01 in {
-    CompileHelpers.assertOutputs("progs/lsqb/gj/q5.sdql", "results/lsqb/SF_01/q5.result")
+  // note: these tests expect LSQB files with scaling factor 0.1 to be present in your datasets folder
+  private object TestLSQBFJ0_1 extends Tag("TestLSQBFJ0_1")
+
+  it should "compile and run LSQB FJ Q1 SF=0.1" taggedAs TestLSQBFJ0_1 in {
+    CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_0.1/q1.result")
+  }
+  it should "compile and run LSQB FJ Q2 SF=0.1" taggedAs TestLSQBFJ0_1 in {
+    CompileHelpers.assertOutputs("progs/lsqb/fj/q2.sdql", "results/lsqb/SF_0.1/q2.result")
+  }
+  it should "compile and run LSQB FJ Q4 SF=0.1" taggedAs TestLSQBFJ0_1 in {
+    CompileHelpers.assertOutputs("progs/lsqb/fj/q4.sdql", "results/lsqb/SF_0.1/q4.result")
+  }
+  it should "compile and run LSQB FJ Q5 SF=0.1" taggedAs TestLSQBFJ0_1 in {
+    CompileHelpers.assertOutputs("progs/lsqb/fj/q5.sdql", "results/lsqb/SF_0.1/q5.result")
   }
 }
 
-class CppCompileTestLSQBGJ03 extends AnyFlatSpec with ParallelTestExecution {
+class CppCompileTestLSQBGJ0_3 extends AnyFlatSpec with ParallelTestExecution {
 
-  // note: these tests expect LSQB files with scaling factor 03 to be present in your datasets folder
-  private object TestLSQBGJ03 extends Tag("TestLSQBGJ03")
+  // note: these tests expect LSQB files with scaling factor 0.3 to be present in your datasets folder
+  private object TestLSQBGJ0_3 extends Tag("TestLSQBGJ0_3")
 
-  it should "compile and run LSQB GJ Q1 SF=03" taggedAs TestLSQBGJ03 in {
-    CompileHelpers.assertOutputs("progs/lsqb/gj/q1.sdql", "results/lsqb/SF_03/q1.result")
+  it should "compile and run LSQB GJ Q1 SF=0.3" taggedAs TestLSQBGJ0_3 in {
+    CompileHelpers.assertOutputs("progs/lsqb/gj/q1.sdql", "results/lsqb/SF_0.3/q1.result")
   }
-
-  it should "compile and run LSQB GJ Q2 SF=03" taggedAs TestLSQBGJ03 in {
-    CompileHelpers.assertOutputs("progs/lsqb/gj/q2.sdql", "results/lsqb/SF_03/q2.result")
+  it should "compile and run LSQB GJ Q2 SF=0.3" taggedAs TestLSQBGJ0_3 in {
+    CompileHelpers.assertOutputs("progs/lsqb/gj/q2.sdql", "results/lsqb/SF_0.3/q2.result")
   }
-
-  it should "compile and run LSQB GJ Q4 SF=03" taggedAs TestLSQBGJ03 in {
-    CompileHelpers.assertOutputs("progs/lsqb/gj/q4.sdql", "results/lsqb/SF_03/q4.result")
+  it should "compile and run LSQB GJ Q4 SF=0.3" taggedAs TestLSQBGJ0_3 in {
+    CompileHelpers.assertOutputs("progs/lsqb/gj/q4.sdql", "results/lsqb/SF_0.3/q4.result")
   }
+  it should "compile and run LSQB GJ Q5 SF=0.3" taggedAs TestLSQBGJ0_3 in {
+    CompileHelpers.assertOutputs("progs/lsqb/gj/q5.sdql", "results/lsqb/SF_0.3/q5.result")
+  }
+}
+class CppCompileTestLSQBFJ0_3 extends AnyFlatSpec with ParallelTestExecution {
 
-  it should "compile and run LSQB GJ Q5 SF=03" taggedAs TestLSQBGJ03 in {
-    CompileHelpers.assertOutputs("progs/lsqb/gj/q5.sdql", "results/lsqb/SF_03/q5.result")
+  // note: these tests expect LSQB files with scaling factor 0.3 to be present in your datasets folder
+  private object TestLSQBFJ0_3 extends Tag("TestLSQBFJ0_3")
+
+  it should "compile and run LSQB FJ Q1 SF=0.3" taggedAs TestLSQBFJ0_3 in {
+    CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_0.3/q1.result")
+  }
+  it should "compile and run LSQB FJ Q2 SF=0.3" taggedAs TestLSQBFJ0_3 in {
+    CompileHelpers.assertOutputs("progs/lsqb/fj/q2.sdql", "results/lsqb/SF_0.3/q2.result")
+  }
+  it should "compile and run LSQB FJ Q4 SF=0.3" taggedAs TestLSQBFJ0_3 in {
+    CompileHelpers.assertOutputs("progs/lsqb/fj/q4.sdql", "results/lsqb/SF_0.3/q4.result")
+  }
+  it should "compile and run LSQB FJ Q5 SF=0.3" taggedAs TestLSQBFJ0_3 in {
+    CompileHelpers.assertOutputs("progs/lsqb/fj/q5.sdql", "results/lsqb/SF_0.3/q5.result")
   }
 }
 
@@ -548,17 +547,32 @@ class CppCompileTestLSQBGJ1 extends AnyFlatSpec with ParallelTestExecution {
   it should "compile and run LSQB GJ Q1 SF=1" taggedAs TestLSQBGJ1 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q1.sdql", "results/lsqb/SF_1/q1.result")
   }
-
   it should "compile and run LSQB GJ Q2 SF=1" taggedAs TestLSQBGJ1 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q2.sdql", "results/lsqb/SF_1/q2.result")
   }
-
   it should "compile and run LSQB GJ Q4 SF=1" taggedAs TestLSQBGJ1 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q4.sdql", "results/lsqb/SF_1/q4.result")
   }
-
   it should "compile and run LSQB GJ Q5 SF=1" taggedAs TestLSQBGJ1 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q5.sdql", "results/lsqb/SF_1/q5.result")
+  }
+}
+class CppCompileTestLSQBFJ1 extends AnyFlatSpec with ParallelTestExecution {
+
+  // note: these tests expect LSQB files with scaling factor 1 to be present in your datasets folder
+  private object TestLSQBFJ1 extends Tag("TestLSQBFJ1")
+
+  it should "compile and run LSQB FJ Q1 SF=1" taggedAs TestLSQBFJ1 in {
+    CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_1/q1.result")
+  }
+  it should "compile and run LSQB FJ Q2 SF=1" taggedAs TestLSQBFJ1 in {
+    CompileHelpers.assertOutputs("progs/lsqb/fj/q2.sdql", "results/lsqb/SF_1/q2.result")
+  }
+  it should "compile and run LSQB FJ Q4 SF=1" taggedAs TestLSQBFJ1 in {
+    CompileHelpers.assertOutputs("progs/lsqb/fj/q4.sdql", "results/lsqb/SF_1/q4.result")
+  }
+  it should "compile and run LSQB FJ Q5 SF=1" taggedAs TestLSQBFJ1 in {
+    CompileHelpers.assertOutputs("progs/lsqb/fj/q5.sdql", "results/lsqb/SF_1/q5.result")
   }
 }
 
@@ -570,86 +584,16 @@ class CppCompileTestLSQBGJ3 extends AnyFlatSpec with ParallelTestExecution {
   it should "compile and run LSQB GJ Q1 SF=3" taggedAs TestLSQBGJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q1.sdql", "results/lsqb/SF_3/q1.result")
   }
-
   it should "compile and run LSQB GJ Q2 SF=3" taggedAs TestLSQBGJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q2.sdql", "results/lsqb/SF_3/q2.result")
   }
-
   it should "compile and run LSQB GJ Q4 SF=3" taggedAs TestLSQBGJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q4.sdql", "results/lsqb/SF_3/q4.result")
   }
-
   it should "compile and run LSQB GJ Q5 SF=3" taggedAs TestLSQBGJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q5.sdql", "results/lsqb/SF_3/q5.result")
   }
 }
-
-class CppCompileTestLSQBFJ01 extends AnyFlatSpec with ParallelTestExecution {
-
-  // note: these tests expect LSQB files with scaling factor 01 to be present in your datasets folder
-  private object TestLSQBFJ01 extends Tag("TestLSQBFJ01")
-
-  it should "compile and run LSQB FJ Q1 SF=01" taggedAs TestLSQBFJ01 in {
-    CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_01/q1.result")
-  }
-
-  it should "compile and run LSQB FJ Q2 SF=01" taggedAs TestLSQBFJ01 in {
-    CompileHelpers.assertOutputs("progs/lsqb/fj/q2.sdql", "results/lsqb/SF_01/q2.result")
-  }
-
-  it should "compile and run LSQB FJ Q4 SF=01" taggedAs TestLSQBFJ01 in {
-    CompileHelpers.assertOutputs("progs/lsqb/fj/q4.sdql", "results/lsqb/SF_01/q4.result")
-  }
-
-  it should "compile and run LSQB FJ Q5 SF=01" taggedAs TestLSQBFJ01 in {
-    CompileHelpers.assertOutputs("progs/lsqb/fj/q5.sdql", "results/lsqb/SF_01/q5.result")
-  }
-}
-
-class CppCompileTestLSQBFJ03 extends AnyFlatSpec with ParallelTestExecution {
-
-  // note: these tests expect LSQB files with scaling factor 03 to be present in your datasets folder
-  private object TestLSQBFJ03 extends Tag("TestLSQBFJ03")
-
-  it should "compile and run LSQB FJ Q1 SF=03" taggedAs TestLSQBFJ03 in {
-    CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_03/q1.result")
-  }
-
-  it should "compile and run LSQB FJ Q2 SF=03" taggedAs TestLSQBFJ03 in {
-    CompileHelpers.assertOutputs("progs/lsqb/fj/q2.sdql", "results/lsqb/SF_03/q2.result")
-  }
-
-  it should "compile and run LSQB FJ Q4 SF=03" taggedAs TestLSQBFJ03 in {
-    CompileHelpers.assertOutputs("progs/lsqb/fj/q4.sdql", "results/lsqb/SF_03/q4.result")
-  }
-
-  it should "compile and run LSQB FJ Q5 SF=03" taggedAs TestLSQBFJ03 in {
-    CompileHelpers.assertOutputs("progs/lsqb/fj/q5.sdql", "results/lsqb/SF_03/q5.result")
-  }
-}
-
-class CppCompileTestLSQBFJ1 extends AnyFlatSpec with ParallelTestExecution {
-
-  // note: these tests expect LSQB files with scaling factor 1 to be present in your datasets folder
-  private object TestLSQBFJ1 extends Tag("TestLSQBFJ1")
-
-  it should "compile and run LSQB FJ Q1 SF=1" taggedAs TestLSQBFJ1 in {
-    CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_1/q1.result")
-  }
-
-  it should "compile and run LSQB FJ Q2 SF=1" taggedAs TestLSQBFJ1 in {
-    CompileHelpers.assertOutputs("progs/lsqb/fj/q2.sdql", "results/lsqb/SF_1/q2.result")
-  }
-
-  it should "compile and run LSQB FJ Q4 SF=1" taggedAs TestLSQBFJ1 in {
-    CompileHelpers.assertOutputs("progs/lsqb/fj/q4.sdql", "results/lsqb/SF_1/q4.result")
-  }
-
-  it should "compile and run LSQB FJ Q5 SF=1" taggedAs TestLSQBFJ1 in {
-    CompileHelpers.assertOutputs("progs/lsqb/fj/q5.sdql", "results/lsqb/SF_1/q5.result")
-  }
-}
-
 class CppCompileTestLSQBFJ3 extends AnyFlatSpec with ParallelTestExecution {
 
   // note: these tests expect LSQB files with scaling factor 3 to be present in your datasets folder
@@ -658,15 +602,12 @@ class CppCompileTestLSQBFJ3 extends AnyFlatSpec with ParallelTestExecution {
   it should "compile and run LSQB FJ Q1 SF=3" taggedAs TestLSQBFJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_3/q1.result")
   }
-
   it should "compile and run LSQB FJ Q2 SF=3" taggedAs TestLSQBFJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q2.sdql", "results/lsqb/SF_3/q2.result")
   }
-
   it should "compile and run LSQB FJ Q4 SF=3" taggedAs TestLSQBFJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q4.sdql", "results/lsqb/SF_3/q4.result")
   }
-
   it should "compile and run LSQB FJ Q5 SF=3" taggedAs TestLSQBFJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q5.sdql", "results/lsqb/SF_3/q5.result")
   }
