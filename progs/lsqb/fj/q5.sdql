@@ -3,7 +3,7 @@ let cht = load[<CommentId: @vec {int -> int}, TagId: @vec {int -> int}, size: in
 let pht = load[<PostId: @vec {int -> int}, TagId: @vec {int -> int}, size: int>]("datasets/lsqb/Post_hasTag_Tag.csv") in
 
 let comment_trie0 = sum(<i, _> <- range(comment.size)) @phmap(comment.size) { comment.CommentId(i) -> @smallvecdict(4) { i -> 1 } } in
-let pht_trie0 = sum(<i, _> <- range(pht.size)) @phmap(pht.size) { unique(pht.PostId(i)) -> 1 } in
+let pht_trie0 = sum(<i, _> <- range(pht.size)) @phmap(pht.size) { pht.PostId(i) -> 1 } in
 sum(<cht_off, _> <- range(cht.size))
 	let x0 = cht.CommentId(cht_off) in
 	if (x0 ∈ comment_trie0) then

@@ -3,7 +3,7 @@ let post = load[<PostId: @vec {int -> int}, hasCreator_PersonId: @vec {int -> in
 let pkp = load[<Person1Id: @vec {int -> int}, Person2Id: @vec {int -> int}, size: int>]("datasets/lsqb/Person_knows_Person.csv") in
 
 let post_trie0 = sum(<i, _> <- range(post.size)) @phmap(post.size) { post.PostId(i) -> @smallvecdict(4) { i -> 1 } } in
-let pkp_trie0 = sum(<i, _> <- range(pkp.size)) { pkp.Person2Id(i) -> { unique(pkp.Person1Id(i)) -> 1 } } in
+let pkp_trie0 = sum(<i, _> <- range(pkp.size)) { pkp.Person2Id(i) -> { pkp.Person1Id(i) -> 1 } } in
 sum(<comment_off, _> <- range(comment.size))
 	let x0 = comment.replyOf_PostId(comment_off) in
 	if (x0 ∈ post_trie0) then

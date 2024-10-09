@@ -3,7 +3,7 @@ let post = load[<PostId: @vec {int -> int}, hasCreator_PersonId: @vec {int -> in
 let pht = load[<PostId: @vec {int -> int}, TagId: @vec {int -> int}, size: int>]("datasets/lsqb/Post_hasTag_Tag.csv") in
 let plp = load[<PersonId: @vec {int -> int}, PostId: @vec {int -> int}, size: int>]("datasets/lsqb/Person_likes_Post.csv") in
 
-let pht_trie0 = sum(<i, _> <- range(pht.size)) @phmap(pht.size) { unique(pht.PostId(i)) -> 1 } in
+let pht_trie0 = sum(<i, _> <- range(pht.size)) @phmap(pht.size) { pht.PostId(i) -> 1 } in
 let interm0_trie0 = sum(<post_off, _> <- range(post.size))
 	let x0 = post.PostId(post_off) in
 	if (x0 ∈ pht_trie0) then
@@ -11,7 +11,7 @@ let interm0_trie0 = sum(<post_off, _> <- range(post.size))
 		{ x0 -> pht_trie1 }
 
 
-let plp_trie0 = sum(<i, _> <- range(plp.size)) @phmap(plp.size) { unique(plp.PostId(i)) -> 1 } in
+let plp_trie0 = sum(<i, _> <- range(plp.size)) @phmap(plp.size) { plp.PostId(i) -> 1 } in
 sum(<comment_off, _> <- range(comment.size))
 	let x0 = comment.replyOf_PostId(comment_off) in
 	if ((x0 ∈ interm0_trie0) && (x0 ∈ plp_trie0)) then
