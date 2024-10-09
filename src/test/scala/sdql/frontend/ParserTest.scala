@@ -202,7 +202,7 @@ class ParserTest extends AnyFlatSpec with Matchers {
     SourceCode.fromFile("progs/tpch/q22.sdql")
   }
 
-  it should "parse GJ" in {
+  it should "parse JOB GJ" in {
     SourceCode.fromFile("progs/job/gj/1a.sdql")
     SourceCode.fromFile("progs/job/gj/1b.sdql")
     SourceCode.fromFile("progs/job/gj/1c.sdql")
@@ -345,7 +345,7 @@ class ParserTest extends AnyFlatSpec with Matchers {
     SourceCode.fromFile("progs/job/gj/33c.sdql")
   }
 
-  it should "parse FJ" in {
+  it should "parse JOB FJ" in {
     SourceCode.fromFile("progs/job/fj/1a.sdql")
     SourceCode.fromFile("progs/job/fj/1b.sdql")
     SourceCode.fromFile("progs/job/fj/1c.sdql")
@@ -486,5 +486,19 @@ class ParserTest extends AnyFlatSpec with Matchers {
     SourceCode.fromFile("progs/job/fj/33a.sdql")
     SourceCode.fromFile("progs/job/fj/33b.sdql")
     SourceCode.fromFile("progs/job/fj/33c.sdql")
+  }
+
+  it should "parse LSQB GJ" in {
+    SourceCode.fromFile("progs/lsqb/gj/q1.sdql")
+    SourceCode.fromFile("progs/lsqb/gj/q2.sdql")
+    SourceCode.fromFile("progs/lsqb/gj/q4.sdql")
+    SourceCode.fromFile("progs/lsqb/gj/q5.sdql")
+  }
+
+  it should "parse LSQB FJ" in {
+    SourceCode.fromFile("progs/lsqb/fj/q1.sdql")
+    SourceCode.fromFile("progs/lsqb/fj/q2.sdql")
+    SourceCode.fromFile("progs/lsqb/fj/q4.sdql")
+    SourceCode.fromFile("progs/lsqb/fj/q5.sdql")
   }
 }

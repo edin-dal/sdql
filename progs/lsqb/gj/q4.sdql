@@ -1,0 +1,20 @@
+let comment = load[<CommentId: @vec {int -> int}, hasCreator_PersonId: @vec {int -> int}, isLocatedIn_CountryId: @vec {int -> int}, replyOf_PostId: @vec {int -> int}, replyOf_CommentId: @vec {int -> int}, size: int>]("datasets/lsqb/Comment.csv") in
+let post = load[<PostId: @vec {int -> int}, hasCreator_PersonId: @vec {int -> int}, Forum_containerOfId: @vec {int -> int}, isLocatedIn_CountryId: @vec {int -> int}, size: int>]("datasets/lsqb/Post.csv") in
+let pht = load[<PostId: @vec {int -> int}, TagId: @vec {int -> int}, size: int>]("datasets/lsqb/Post_hasTag_Tag.csv") in
+let plp = load[<PersonId: @vec {int -> int}, PostId: @vec {int -> int}, size: int>]("datasets/lsqb/Person_likes_Post.csv") in
+
+let post_trie0 = sum(<i, _> <- range(post.size)) { post.PostId(i) -> 1 } in
+let pht_trie0 = sum(<i, _> <- range(pht.size)) { pht.PostId(i) -> 1 } in
+let interm0_trie0 = sum(<x0, post_trie1> <- post_trie0)
+	if (x0 ∈ pht_trie0) then
+		let pht_trie1 = pht_trie0(x0) in
+		{ x0 -> pht_trie1 * post_trie1 }
+
+
+let comment_trie0 = sum(<i, _> <- range(comment.size)) { comment.replyOf_PostId(i) -> 1 } in
+let plp_trie0 = sum(<i, _> <- range(plp.size)) { plp.PostId(i) -> 1 } in
+sum(<x0, comment_trie1> <- comment_trie0)
+	if ((x0 ∈ interm0_trie0) && (x0 ∈ plp_trie0)) then
+		let interm0_trie1 = interm0_trie0(x0) in
+		let plp_trie1 = plp_trie0(x0) in
+		interm0_trie1 * plp_trie1 * comment_trie1
