@@ -14,7 +14,7 @@ public:
     public:
         Proxy(smallvecdicts &smallvecdicts, std::tuple<Ts...> key) : smallvecdicts_(smallvecdicts), key_(std::move(key)) {}
 
-        Proxy &operator+=(int) {
+        Proxy &operator+=(long) {
             add_to_smallvecdicts(std::make_index_sequence<sizeof...(Ts)>{});
             return *this;
         }

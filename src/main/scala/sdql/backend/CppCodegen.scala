@@ -127,7 +127,7 @@ object CppCodegen {
         val yyyymmdd = "^(\\d{4})(\\d{2})(\\d{2})$".r.findAllIn(v.toString).matchData.next()
         s"${yyyymmdd.group(1)}${yyyymmdd.group(2)}${yyyymmdd.group(3)}"
       case Const(v: String)    => s""""$v""""
-      case Const(v)            => v.toString
+      case Const(v)            => s"(${cppType(TypeInference.run(e))})$v"
 
       case Sym(name) => name
 
@@ -341,7 +341,7 @@ object CppCodegen {
       s"std::tuple$template"
     case BoolType                                               => "bool"
     case RealType                                               => "double"
-    case IntType | DateType                                     => "int"
+    case IntType | DateType                                     => "long"
     case StringType(None)                                       => "std::string"
     case StringType(Some(maxLen))                               => s"VarChar<$maxLen>"
     case tpe                                                    => raise(s"unimplemented type: $tpe")
