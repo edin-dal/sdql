@@ -67,33 +67,33 @@ public:
 		return vals_.back();
 	}
 
-	inline vector<VT>::iterator find(const KT &key) {
+	inline typename vector<VT>::iterator find(const KT &key) {
 		auto it = lower_bound(keys_.begin(), keys_.end(), key);
 		if (it != keys_.end() && *it == key)
 			return vals_.begin() + (it - keys_.begin());
 		return vals_.end();
 	}
 
-	inline vector<VT>::const_iterator find(const KT &key) const {
+	inline typename vector<VT>::const_iterator find(const KT &key) const {
 		auto it = lower_bound(keys_.begin(), keys_.end(), key);
 		if (it != keys_.end() && *it == key)
 			return vals_.begin() + (it - keys_.begin());
 		return vals_.end();
 	}
 
-	inline vector<VT>::iterator begin() {
+	inline typename vector<VT>::iterator begin() {
 		return vals_.begin();
 	}
 
-	inline vector<VT>::iterator end() {
+	inline typename vector<VT>::iterator end() {
 		return vals_.end();
 	}
 
-	inline vector<VT>::const_iterator begin() const {
+	inline typename vector<VT>::const_iterator begin() const {
 		return vals_.begin();
 	}
 
-	inline vector<VT>::const_iterator end() const {
+	inline typename vector<VT>::const_iterator end() const {
 		return vals_.end();
 	}
 };
