@@ -136,4 +136,8 @@ public:
 	typename Container::iterator begin() { return svec_.begin(); }
 
 	typename Container::iterator end() { return svec_.end(); }
+
+	typename Container::const_iterator begin() const { return svec_.begin(); }
+
+	typename Container::const_iterator end() const { return svec_.end(); }
 };
