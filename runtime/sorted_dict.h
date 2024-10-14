@@ -5,7 +5,6 @@
 using namespace std;
 
 class Range {
-private:
 	size_t ll_;
 	size_t rr_;
 
@@ -16,7 +15,7 @@ public:
 		Range &range_;
 
 	public:
-		Proxy(Range &range) : range_(range) {}
+		explicit Proxy(Range &range) : range_(range) {}
 
 		Proxy &operator+=(int) {
 			++range_.rr_;
@@ -24,7 +23,7 @@ public:
 		}
 	};
 
-	inline Proxy operator[](size_t idx) {
+	Proxy operator[](size_t const idx) {
 		if (ll_ == -1) {
 			ll_ = idx;
 			rr_ = idx;
@@ -32,39 +31,38 @@ public:
 		return Proxy(*this);
 	}
 
-	inline size_t left() const {
+	size_t left() const {
 		return ll_;
 	}
 
-	inline size_t right() const {
+	size_t right() const {
 		return rr_;
 	}
 };
 
 template<typename KT, typename VT>
 class SortedDict {
-private:
     vector<pair<KT, VT>> data_;
 
 public:
 	SortedDict() = default;
 
-	SortedDict(size_t n) {
+	explicit SortedDict(size_t n) {
 		data_.reserve(n);
 	}
 
-	inline size_t size() const {
+	size_t size() const {
 		return data_.size();
 	}
 
-	inline VT &operator[](const KT &key) {
+	VT &operator[](const KT &key) {
 		if (data_.empty() || key != data_.back().first) {
-            data_.push_back({key, VT()});
+            data_.emplace_back(key, VT());
 		}
 		return data_.back().second;
 	}
 
-    inline typename vector<pair<KT, VT>>::iterator find(const KT &key) {
+    typename vector<pair<KT, VT>>::iterator find(const KT &key) {
         auto it = lower_bound(data_.begin(), data_.end(), key, [](const pair<KT, VT>& a, const KT& cmp_key) {
             return a.first < cmp_key;
         });
@@ -73,7 +71,7 @@ public:
         return data_.end();
     }
 
-    inline typename vector<pair<KT, VT>>::const_iterator find(const KT &key) const {
+    typename vector<pair<KT, VT>>::const_iterator find(const KT &key) const {
         auto it = lower_bound(data_.begin(), data_.end(), key, [](const pair<KT, VT>& a, const KT& cmp_key) {
             return a.first < cmp_key;
         });
@@ -82,19 +80,19 @@ public:
         return data_.end();
     }
 
-    inline typename vector<pair<KT, VT>>::iterator begin() {
+    typename vector<pair<KT, VT>>::iterator begin() {
         return data_.begin();
     }
 
-    inline typename vector<pair<KT, VT>>::iterator end() {
+    typename vector<pair<KT, VT>>::iterator end() {
         return data_.end();
     }
 
-    inline typename vector<pair<KT, VT>>::const_iterator begin() const {
+    typename vector<pair<KT, VT>>::const_iterator begin() const {
         return data_.begin();
     }
 
-    inline typename vector<pair<KT, VT>>::const_iterator end() const {
+    typename vector<pair<KT, VT>>::const_iterator end() const {
         return data_.end();
     }
 };
