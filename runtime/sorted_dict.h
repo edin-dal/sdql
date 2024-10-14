@@ -23,7 +23,7 @@ public:
 		}
 	};
 
-	Proxy operator[](size_t const idx) {
+	inline Proxy operator[](size_t const idx) {
 		if (ll_ == -1) {
 			ll_ = idx;
 			rr_ = idx;
@@ -31,11 +31,11 @@ public:
 		return Proxy(*this);
 	}
 
-	size_t left() const {
+	inline size_t left() const {
 		return ll_;
 	}
 
-	size_t right() const {
+	inline size_t right() const {
 		return rr_;
 	}
 };
@@ -51,18 +51,31 @@ public:
 		data_.reserve(n);
 	}
 
-	size_t size() const {
+	inline size_t size() const {
 		return data_.size();
 	}
 
-	VT &operator[](const KT &key) {
+	inline VT &operator[](const KT &key) {
 		if (data_.empty() || key != data_.back().first) {
             data_.emplace_back(key, VT());
 		}
 		return data_.back().second;
 	}
 
-    typename vector<pair<KT, VT>>::iterator find(const KT &key) {
+    inline VT &at(const KT &key) {
+        auto it = lower_bound(data_.begin(), data_.end(), key, [](const pair<KT, VT>& a, const KT& cmp_key) {
+            return a.first < cmp_key;
+        });
+        if (it == data_.end()) {
+            data_.emplace_back(key, VT());
+            return data_.back().second;
+        }
+        if (it->first != key)
+            data_.emplace(it, key, VT());
+        return it->second;
+    }
+
+    inline typename vector<pair<KT, VT>>::iterator find(const KT &key) {
         auto it = lower_bound(data_.begin(), data_.end(), key, [](const pair<KT, VT>& a, const KT& cmp_key) {
             return a.first < cmp_key;
         });
@@ -71,7 +84,7 @@ public:
         return data_.end();
     }
 
-    typename vector<pair<KT, VT>>::const_iterator find(const KT &key) const {
+    inline typename vector<pair<KT, VT>>::const_iterator find(const KT &key) const {
         auto it = lower_bound(data_.begin(), data_.end(), key, [](const pair<KT, VT>& a, const KT& cmp_key) {
             return a.first < cmp_key;
         });
@@ -80,19 +93,19 @@ public:
         return data_.end();
     }
 
-    typename vector<pair<KT, VT>>::iterator begin() {
+    inline typename vector<pair<KT, VT>>::iterator begin() {
         return data_.begin();
     }
 
-    typename vector<pair<KT, VT>>::iterator end() {
+    inline typename vector<pair<KT, VT>>::iterator end() {
         return data_.end();
     }
 
-    typename vector<pair<KT, VT>>::const_iterator begin() const {
+    inline typename vector<pair<KT, VT>>::const_iterator begin() const {
         return data_.begin();
     }
 
-    typename vector<pair<KT, VT>>::const_iterator end() const {
+    inline typename vector<pair<KT, VT>>::const_iterator end() const {
         return data_.end();
     }
 };
