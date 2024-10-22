@@ -121,7 +121,7 @@ object CppCodegen {
       case Mult(e1, External(Inv.SYMBOL, Seq(e2)))   => s"(${run(e1)} / ${run(e2)})"
       case Mult(e1, e2)                              => s"(${run(e1)} * ${run(e2)})"
 
-      case e: Neg => s"-${run(e)}"
+      case Neg(e) => s"-${run(e)}"
 
       case Const(DateValue(v)) =>
         val yyyymmdd = "^(\\d{4})(\\d{2})(\\d{2})$".r.findAllIn(v.toString).matchData.next()

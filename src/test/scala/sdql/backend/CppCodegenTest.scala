@@ -32,6 +32,9 @@ class CppCodegenTest extends AnyFlatSpec with ParallelTestExecution {
   it should "codegen arith op ^" in CodegenHelpers.compilesExp(sdql"3 ^ 2")
   it should "codegen arith op /" in CodegenHelpers.compilesExp(sdql"42 / 21")
 
+  it should "codegen neg const" in CodegenHelpers.compilesExp(sdql"-2")
+  it should "codegen neg expr" in CodegenHelpers.compilesExp(sdql"-(1 + 1)")
+
   it should "codegen logical op &&" in {
     CodegenHelpers.compilesExp(sdql"true && true")
     CodegenHelpers.compilesExp(sdql"true && false")
