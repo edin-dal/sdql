@@ -638,14 +638,20 @@ class CppCompileTestLSQBFJ3 extends AnyFlatSpec with ParallelTestExecution with 
   }
 }
 
-// TODO change this as it's specific to my folder layout
 object LSQBHelpers {
-  def beforeAll(sf: Double): Unit  = {
-    val _ = Process(Seq("ln", "-s", s"lsqb_no_headers/SF_${toString(sf)}", "lsqb"), new java.io.File("datasets")).!!
+  // replace with e.g. Some("lsqb_no_headers") or whichever folder of datasets has subfolders SF_0.1, SF_0.3, SF_1, SF_3
+  val LSQB_NO_HEADERS_FOLDER: Option[String] = None
+
+  def beforeAll(sf: Double): Unit = LSQB_NO_HEADERS_FOLDER match {
+    case Some(folder) =>
+      val _ = Process(Seq("ln", "-s", s"$folder/SF_${toString(sf)}", "lsqb"), new java.io.File("datasets")).!!
+    case _            =>
   }
-  def afterAll(): Unit             = {
-    val _ = Process(Seq("rm", "lsqb"), new java.io.File("datasets")).!!
-  }
+  def afterAll(): Unit            =
+    if (LSQB_NO_HEADERS_FOLDER.isDefined) {
+      val _ = Process(Seq("rm", "lsqb"), new java.io.File("datasets")).!!
+    }
+
   private def toString(sf: Double) = if (sf == sf.toInt) sf.toInt.toString else sf.toString
 }
 
