@@ -341,7 +341,8 @@ object CppCodegen {
       s"std::tuple$template"
     case BoolType                                               => "bool"
     case RealType                                               => "double"
-    case IntType | DateType                                     => "long"
+    case IntType | DateType                                     => "int"
+    case LongType                                               => "long"
     case StringType(None)                                       => "std::string"
     case StringType(Some(maxLen))                               => s"VarChar<$maxLen>"
     case tpe                                                    => raise(s"unimplemented type: $tpe")

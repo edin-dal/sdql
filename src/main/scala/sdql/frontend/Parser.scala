@@ -22,6 +22,7 @@ object Parser {
       "ext",
       "iter",
       "int",
+      "long",
       "double",
       "string",
       "varchar",
@@ -58,10 +59,19 @@ object Parser {
   private def exponent[$: P]      = P(CharIn("eE") ~ CharIn("+\\-").? ~ digits)
   private def fractional[$: P]    = P("." ~ digits)
   private def integral[$: P]      = P("0" | CharIn("1-9") ~ digits.?)
+  private def real[$: P]          = P(CharIn("+\\-").? ~ integral ~ fractional ~ exponent.?).!.map(x => Const(x.toDouble))
 
-  private def int[$: P] = P(CharIn("+\\-").? ~ integral).!.map(x => Const(x.toInt))
-
-  private def number[$: P] = P(CharIn("+\\-").? ~ integral ~ fractional ~ exponent.?).!.map(x => Const(x.toDouble))
+  private def int[$: P]       = P(intHint.? ~ intNoHint).map {
+    case (Some("long"), s) => Const(s.toLong)
+    case (_, s)            => Const(s.toInt)
+  }
+  private def intHint[$: P]   = P("@" ~ intHints ~ space)
+  private def intHints[$: P]  = ("int" | "long").!
+  private def intNoHint[$: P] = P(sign.!.? ~ integral.!).map {
+    case (Some("-"), s) => s"-$s"
+    case (_, s)         => s
+  }
+  private def sign[$: P]      = "+" | "-"
 
   private def dateValue[$: P] = P("date" ~ "(" ~ (integral.!.map(_.toInt)) ~ space ~ ")").map(x => Const(DateValue(x)))
   private def concat[$: P]    = P("concat" ~ "(" ~ expr ~ space ~ "," ~ space ~/ expr ~ ")").map(x => Concat(x._1, x._2))
@@ -79,6 +89,7 @@ object Parser {
   private def tpeNullable[$: P]   = P("nullable" ~ ("[" ~ space ~/ tpe ~/ space ~/ "]")).map(NullableSemiRingType.apply)
   private def tpeBool[$: P]       = P("bool").map(_ => BoolType)
   private def tpeInt[$: P]        = P("int").map(_ => IntType)
+  private def tpeLong[$: P]       = P("long").map(_ => LongType)
   private def tpeReal[$: P]       = P("double" | "real").map(_ => RealType)
   private def tpeString[$: P]     = P("string").map(_ => StringType())
   private def tpeVarChar[$: P]    = P("varchar" ~ "(" ~ integral.!.map(_.toInt) ~ space ~ ")").map(VarCharType.apply)
@@ -91,7 +102,7 @@ object Parser {
   }
   private def tpeDictNoHint[$: P] = P("{" ~/ tpe ~ space ~ "->" ~ space ~/ tpe ~ "}").map(x => DictType(x._1, x._2))
   private def tpe[$: P]: P[Type]  =
-    tpeBool | tpeInt | tpeReal | tpeString | tpeVarChar |
+    tpeBool | tpeInt | tpeLong | tpeReal | tpeString | tpeVarChar |
       tpeDate | tpeRec | tpeDict | tpeTropSR | tpeEnum | tpeNullable
 
   private def strChars[$: P] = P(CharsWhile(stringChars))
@@ -99,7 +110,7 @@ object Parser {
   private def string[$: P]     = P(space ~ "\"" ~/ (strChars | escape).rep.! ~ "\"").map(Const.apply)
   private def fieldChars[$: P] = P(CharsWhile(_ != '`'))
   private def fieldConst[$: P] = P(space ~ "`" ~/ (fieldChars | escape).rep.! ~ "`").map(x => Const(Symbol(x)))
-  private def const[$: P]      = `true` | `false` | unit | number | int | string | dateValue
+  private def const[$: P]      = `true` | `false` | unit | real | int | string | dateValue
   private def idRest[$: P]     = P(CharPred(c => isLetter(c) | isDigit(c) | c == '_').!).map(_(0))
   private def variable[$: P]   = P(space ~ !keywords ~ ((alpha | "_" | "$") ~ idRest.rep).! ~ space).map(Sym.apply)
   private def ifThenElse[$: P] = P(ifThen ~/ maybeElse.?).map {

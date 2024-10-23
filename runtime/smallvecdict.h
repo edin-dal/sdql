@@ -123,7 +123,7 @@ public:
 	public:
 		Proxy(smallvecdict &svecdict, T key) : svecdict_(svecdict), key_(std::move(key)) {}
 
-		Proxy &operator+=(long) {
+		Proxy &operator+=(int) {
 			svecdict_.svec_.push_back(key_);
 			return *this;
 		}
