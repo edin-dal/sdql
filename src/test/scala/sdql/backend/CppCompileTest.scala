@@ -8,10 +8,13 @@ import sdql.transformations.Rewriter
 
 import scala.sys.process.Process
 
-class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
+class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution with BeforeAndAfterAll {
 
   // note: these tests expect TPCH files with scaling factor 0.01 to be present in your datasets folder
   private object TestTPCH0_01 extends Tag("TestTPCH0_01")
+
+  override def beforeAll(): Unit = DatasetsHelpers.beforeAll(DatasetsHelpers.TPCH_SUBFOLDER)(sf = 0.01)
+  override def afterAll(): Unit  = DatasetsHelpers.afterAll(DatasetsHelpers.TPCH_SUBFOLDER)()
 
   it should "compile and run TPCH Q1 SF=0.01" taggedAs TestTPCH0_01 in {
     CompileHelpers.assertOutputs("progs/tpch/q1.sdql", "results/tpch/SF_0.01/q1.result")
@@ -82,10 +85,13 @@ class CppCompileTestTPCH0_01 extends AnyFlatSpec with ParallelTestExecution {
 }
 
 // note: DON'T run all cases in parallel - unless you have ~64GB of ram
-class CppCompileTestTPCH1 extends AnyFlatSpec with ParallelTestExecution {
+class CppCompileTestTPCH1 extends AnyFlatSpec with ParallelTestExecution with BeforeAndAfterAll {
 
   // note: these tests expect TPCH files with scaling factor 1 to be present in your datasets folder
   private object TestTPCH1 extends Tag("TestTPCH1")
+
+  override def beforeAll(): Unit = DatasetsHelpers.beforeAll(DatasetsHelpers.TPCH_SUBFOLDER)(sf = 1)
+  override def afterAll(): Unit  = DatasetsHelpers.afterAll(DatasetsHelpers.TPCH_SUBFOLDER)()
 
   it should "compile and run TPCH Q1-2 SF=1" taggedAs TestTPCH1 in {
     CompileHelpers.assertOutputs("progs/tpch/q1.sdql", "results/tpch/SF_1/q1.result")
@@ -471,8 +477,8 @@ class CppCompileTestLSQBGJ0_1 extends AnyFlatSpec with ParallelTestExecution wit
   // note: these tests expect LSQB files with scaling factor 0.1 to be present in your datasets folder
   private object TestLSQBGJ0_1 extends Tag("TestLSQBGJ0_1")
 
-  override def beforeAll(): Unit = LSQBHelpers.beforeAll(sf = 0.1)
-  override def afterAll(): Unit  = LSQBHelpers.afterAll()
+  override def beforeAll(): Unit = DatasetsHelpers.beforeAll(DatasetsHelpers.LSQB_SUBFOLDER)(sf = 0.1)
+  override def afterAll(): Unit  = DatasetsHelpers.afterAll(DatasetsHelpers.LSQB_SUBFOLDER)()
 
   it should "compile and run LSQB GJ Q1 SF=0.1" taggedAs TestLSQBGJ0_1 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q1.sdql", "results/lsqb/SF_0.1/q1.result")
@@ -492,8 +498,8 @@ class CppCompileTestLSQBFJ0_1 extends AnyFlatSpec with ParallelTestExecution wit
   // note: these tests expect LSQB files with scaling factor 0.1 to be present in your datasets folder
   private object TestLSQBFJ0_1 extends Tag("TestLSQBFJ0_1")
 
-  override def beforeAll(): Unit = LSQBHelpers.beforeAll(sf = 0.1)
-  override def afterAll(): Unit  = LSQBHelpers.afterAll()
+  override def beforeAll(): Unit = DatasetsHelpers.beforeAll(DatasetsHelpers.LSQB_SUBFOLDER)(sf = 0.1)
+  override def afterAll(): Unit  = DatasetsHelpers.afterAll(DatasetsHelpers.LSQB_SUBFOLDER)()
 
   it should "compile and run LSQB FJ Q1 SF=0.1" taggedAs TestLSQBFJ0_1 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_0.1/q1.result")
@@ -514,8 +520,8 @@ class CppCompileTestLSQBGJ0_3 extends AnyFlatSpec with ParallelTestExecution wit
   // note: these tests expect LSQB files with scaling factor 0.3 to be present in your datasets folder
   private object TestLSQBGJ0_3 extends Tag("TestLSQBGJ0_3")
 
-  override def beforeAll(): Unit = LSQBHelpers.beforeAll(sf = 0.3)
-  override def afterAll(): Unit  = LSQBHelpers.afterAll()
+  override def beforeAll(): Unit = DatasetsHelpers.beforeAll(DatasetsHelpers.LSQB_SUBFOLDER)(sf = 0.3)
+  override def afterAll(): Unit  = DatasetsHelpers.afterAll(DatasetsHelpers.LSQB_SUBFOLDER)()
 
   it should "compile and run LSQB GJ Q1 SF=0.3" taggedAs TestLSQBGJ0_3 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q1.sdql", "results/lsqb/SF_0.3/q1.result")
@@ -535,8 +541,8 @@ class CppCompileTestLSQBFJ0_3 extends AnyFlatSpec with ParallelTestExecution wit
   // note: these tests expect LSQB files with scaling factor 0.3 to be present in your datasets folder
   private object TestLSQBFJ0_3 extends Tag("TestLSQBFJ0_3")
 
-  override def beforeAll(): Unit = LSQBHelpers.beforeAll(sf = 0.3)
-  override def afterAll(): Unit  = LSQBHelpers.afterAll()
+  override def beforeAll(): Unit = DatasetsHelpers.beforeAll(DatasetsHelpers.LSQB_SUBFOLDER)(sf = 0.3)
+  override def afterAll(): Unit  = DatasetsHelpers.afterAll(DatasetsHelpers.LSQB_SUBFOLDER)()
 
   it should "compile and run LSQB FJ Q1 SF=0.3" taggedAs TestLSQBFJ0_3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_0.3/q1.result")
@@ -557,8 +563,8 @@ class CppCompileTestLSQBGJ1 extends AnyFlatSpec with ParallelTestExecution with 
   // note: these tests expect LSQB files with scaling factor 1 to be present in your datasets folder
   private object TestLSQBGJ1 extends Tag("TestLSQBGJ1")
 
-  override def beforeAll(): Unit = LSQBHelpers.beforeAll(sf = 1)
-  override def afterAll(): Unit  = LSQBHelpers.afterAll()
+  override def beforeAll(): Unit = DatasetsHelpers.beforeAll(DatasetsHelpers.LSQB_SUBFOLDER)(sf = 1)
+  override def afterAll(): Unit  = DatasetsHelpers.afterAll(DatasetsHelpers.LSQB_SUBFOLDER)()
 
   it should "compile and run LSQB GJ Q1 SF=1" taggedAs TestLSQBGJ1 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q1.sdql", "results/lsqb/SF_1/q1.result")
@@ -578,8 +584,8 @@ class CppCompileTestLSQBFJ1 extends AnyFlatSpec with ParallelTestExecution with 
   // note: these tests expect LSQB files with scaling factor 1 to be present in your datasets folder
   private object TestLSQBFJ1 extends Tag("TestLSQBFJ1")
 
-  override def beforeAll(): Unit = LSQBHelpers.beforeAll(sf = 1)
-  override def afterAll(): Unit  = LSQBHelpers.afterAll()
+  override def beforeAll(): Unit = DatasetsHelpers.beforeAll(DatasetsHelpers.LSQB_SUBFOLDER)(sf = 1)
+  override def afterAll(): Unit  = DatasetsHelpers.afterAll(DatasetsHelpers.LSQB_SUBFOLDER)()
 
   it should "compile and run LSQB FJ Q1 SF=1" taggedAs TestLSQBFJ1 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_1/q1.result")
@@ -600,8 +606,8 @@ class CppCompileTestLSQBGJ3 extends AnyFlatSpec with ParallelTestExecution with 
   // note: these tests expect LSQB files with scaling factor 3 to be present in your datasets folder
   private object TestLSQBGJ3 extends Tag("TestLSQBGJ3")
 
-  override def beforeAll(): Unit = LSQBHelpers.beforeAll(sf = 3)
-  override def afterAll(): Unit  = LSQBHelpers.afterAll()
+  override def beforeAll(): Unit = DatasetsHelpers.beforeAll(DatasetsHelpers.LSQB_SUBFOLDER)(sf = 3)
+  override def afterAll(): Unit  = DatasetsHelpers.afterAll(DatasetsHelpers.LSQB_SUBFOLDER)()
 
   it should "compile and run LSQB GJ Q1 SF=3" taggedAs TestLSQBGJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q1.sdql", "results/lsqb/SF_3/q1.result")
@@ -621,8 +627,8 @@ class CppCompileTestLSQBFJ3 extends AnyFlatSpec with ParallelTestExecution with 
   // note: these tests expect LSQB files with scaling factor 3 to be present in your datasets folder
   private object TestLSQBFJ3 extends Tag("TestLSQBFJ3")
 
-  override def beforeAll(): Unit = LSQBHelpers.beforeAll(sf = 3)
-  override def afterAll(): Unit  = LSQBHelpers.afterAll()
+  override def beforeAll(): Unit = DatasetsHelpers.beforeAll(DatasetsHelpers.LSQB_SUBFOLDER)(sf = 3)
+  override def afterAll(): Unit  = DatasetsHelpers.afterAll(DatasetsHelpers.LSQB_SUBFOLDER)()
 
   it should "compile and run LSQB FJ Q1 SF=3" taggedAs TestLSQBFJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_3/q1.result")
@@ -638,19 +644,26 @@ class CppCompileTestLSQBFJ3 extends AnyFlatSpec with ParallelTestExecution with 
   }
 }
 
-object LSQBHelpers {
-  // replace with e.g. Some("lsqb_no_headers") or whichever folder of datasets has subfolders SF_0.1, SF_0.3, SF_1, SF_3
-  val LSQB_NO_HEADERS_FOLDER: Option[String] = None
+object DatasetsHelpers {
 
-  def beforeAll(sf: Double): Unit = LSQB_NO_HEADERS_FOLDER match {
-    case Some(folder) =>
-      val _ = Process(Seq("ln", "-s", s"$folder/SF_${toString(sf)}", "lsqb"), new java.io.File("datasets")).!!
-    case _            =>
+  sealed trait Dataset
+  case object JOB  extends Dataset
+  case object LSQB extends Dataset
+
+  // Convenience for running many tests, sets up / tears down a symlink to datasets with the appropriate scaling factors
+  val TPCH_SUBFOLDER: Option[String] = None // e.g. set to Some("tpch") to read from datasets/tpch_datasets/
+  val LSQB_SUBFOLDER: Option[String] = None // e.g. set to Some("lsqb") to read from datasets/lsqb_datasets/
+
+  def beforeAll(subFolder: Option[String])(sf: Double): Unit = subFolder match {
+    case Some(jobOrLsqb) =>
+      val path = s"${jobOrLsqb}_datasets/SF_${toString(sf)}"
+      val _    = Process(Seq("ln", "-s", path, jobOrLsqb), new java.io.File("datasets")).!!
+    case _               =>
   }
-  def afterAll(): Unit            =
-    if (LSQB_NO_HEADERS_FOLDER.isDefined) {
-      val _ = Process(Seq("rm", "lsqb"), new java.io.File("datasets")).!!
-    }
+  def afterAll(subFolder: Option[String])(): Unit            = subFolder match {
+    case Some(jobOrLsqb) => val _ = Process(Seq("rm", jobOrLsqb), new java.io.File("datasets")).!!
+    case _               =>
+  }
 
   private def toString(sf: Double) = if (sf == sf.toInt) sf.toInt.toString else sf.toString
 }
