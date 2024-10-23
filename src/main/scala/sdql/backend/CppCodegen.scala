@@ -317,7 +317,7 @@ object CppCodegen {
         agg match {
           case SumAgg | MaxAgg => "\"\""
           case ProdAgg         => raise("undefined")
-          case MinAgg          => s"MAX_STRING"
+          case MinAgg          => s"STRING_MAX"
         }
       case StringType(Some(_))                           => raise("initialising VarChars shouldn't be needed")
       case tpe                                           => raise(s"unimplemented type: $tpe")
