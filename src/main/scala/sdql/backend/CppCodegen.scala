@@ -127,7 +127,7 @@ object CppCodegen {
         val yyyymmdd = "^(\\d{4})(\\d{2})(\\d{2})$".r.findAllIn(v.toString).matchData.next()
         s"${yyyymmdd.group(1)}${yyyymmdd.group(2)}${yyyymmdd.group(3)}"
       case Const(v: String)    => s""""$v""""
-      case Const(v)            => s"(${cppType(TypeInference.run(e))})$v"
+      case Const(v)            => v.toString
 
       case Sym(name) => name
 
