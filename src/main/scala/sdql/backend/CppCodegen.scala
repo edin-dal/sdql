@@ -190,7 +190,7 @@ object CppCodegen {
         raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
       case External(Size.SYMBOL, Seq(arg))                                              =>
         TypeInference.run(arg) match {
-          case _: DictType => s"${CppCodegen.run(arg)}.size()"
+          case _: DictType => s"static_cast<${cppType(IntType)}>(${CppCodegen.run(arg)}.size())"
           case t           => raise(s"unexpected: ${t.prettyPrint}")
         }
       case External(name, _)                                                            => raise(s"unhandled function name: $name")
