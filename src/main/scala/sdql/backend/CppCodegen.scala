@@ -121,7 +121,7 @@ object CppCodegen {
       case Mult(e1, External(Inv.SYMBOL, Seq(e2)))   => s"(${run(e1)} / ${run(e2)})"
       case Mult(e1, e2)                              => s"(${run(e1)} * ${run(e2)})"
 
-      case e: Neg => s"-${run(e)}"
+      case Neg(e) => s"-${run(e)}"
 
       case Const(DateValue(v)) =>
         val yyyymmdd = "^(\\d{4})(\\d{2})(\\d{2})$".r.findAllIn(v.toString).matchData.next()
@@ -190,7 +190,7 @@ object CppCodegen {
         raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
       case External(Size.SYMBOL, Seq(arg))                                              =>
         TypeInference.run(arg) match {
-          case _: DictType => s"${CppCodegen.run(arg)}.size()"
+          case _: DictType => s"static_cast<${cppType(IntType)}>(${CppCodegen.run(arg)}.size())"
           case t           => raise(s"unexpected: ${t.prettyPrint}")
         }
       case External(name, _)                                                            => raise(s"unhandled function name: $name")
@@ -342,6 +342,7 @@ object CppCodegen {
     case BoolType                                               => "bool"
     case RealType                                               => "double"
     case IntType | DateType                                     => "int"
+    case LongType                                               => "long"
     case StringType(None)                                       => "std::string"
     case StringType(Some(maxLen))                               => s"VarChar<$maxLen>"
     case tpe                                                    => raise(s"unimplemented type: $tpe")
@@ -361,7 +362,8 @@ object CppCodegen {
   private def cppCsvs(e: Exp): String                                                    = {
     val pathNameTypeSkip = iterExps(e).flatMap(extract).toSeq.distinct.sortBy(_._2)
     val csvConsts        =
-      pathNameTypeSkip.map { case (path, name, _, _) => makeCsvConst(name, path) }.mkString("\n", "\n", "\n")
+      pathNameTypeSkip.zipWithIndex.map { case ((path, name, _, _), i) => makeCsvConst(name, path, i) }
+        .mkString("\n", "\n", "\n")
     val tuples           = pathNameTypeSkip.map { case (_, name, recordType, skipCols) =>
       val init = makeTupleInit(name, recordType, skipCols)
       s"auto ${name.toLowerCase} = ${cppType(recordType, noTemplate = true)}($init);\n"
@@ -376,8 +378,9 @@ object CppCodegen {
         (load: @unchecked) match { case Load(_, _, skipCols) => skipCols.toSkipColsSet }
       (path, name, recordType, skipCols)
   }
-  private def makeCsvConst(name: String, path: String)                                   =
-    s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR);"""
+  private def makeCsvConst(name: String, path: String, i: Int) =
+    // NaN handling for LSQB queries (different value in each table avoids joining them)
+    s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR, IntNanConverter($i));"""
   private def makeTupleInit(name: String, recordType: RecordType, skipCols: Set[String]) = {
     assert(recordType.attrs.last.name == "size")
     val attrs    = recordType.attrs

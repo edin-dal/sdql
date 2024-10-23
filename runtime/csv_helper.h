@@ -3,6 +3,16 @@
 #include <regex>
 #include <sstream>
 
+static_assert(sizeof(int) * CHAR_BIT == 32, "int is not 32 bits");
+inline rapidcsv::ConverterParams IntNanConverter(const uint16_t offset) {
+    return rapidcsv::ConverterParams(
+        true,
+        std::numeric_limits<long double>::signaling_NaN(),
+        std::numeric_limits<int>::min() + offset,
+        false
+    );
+}
+
 const auto NO_HEADERS = rapidcsv::LabelParams(-1, -1);
 const auto SEPARATOR = rapidcsv::SeparatorParams('|');
 

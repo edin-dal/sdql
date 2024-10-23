@@ -21,6 +21,7 @@ case class StringType(maxLen: Option[Int] = None) extends Type
 case object RealType                                                  extends Type
 case object BoolType                                                  extends Type
 case object IntType                                                   extends Type
+case object LongType                                                  extends Type
 case object DateType                                                  extends Type
 case class DictType(key: Type, value: Type, hint: DictHint = PHmap()) extends Type
 object SetType { def apply(key: Type): DictType = DictType(key, IntType) }

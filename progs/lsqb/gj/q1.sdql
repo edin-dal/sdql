@@ -1,0 +1,54 @@
+let tagclass = load[<TagClassId: @vec {int -> long}, isSubclassOf_TagClassId: @vec {int -> long}, size: int>]("datasets/lsqb/TagClass.csv") in
+let tag = load[<TagId: @vec {int -> long}, hasType_TagClassId: @vec {int -> long}, size: int>]("datasets/lsqb/Tag.csv") in
+let comment = load[<CommentId: @vec {int -> long}, hasCreator_PersonId: @vec {int -> long}, isLocatedIn_CountryId: @vec {int -> long}, replyOf_PostId: @vec {int -> long}, replyOf_CommentId: @vec {int -> long}, size: int>]("datasets/lsqb/Comment.csv") in
+let cht = load[<CommentId: @vec {int -> long}, TagId: @vec {int -> long}, size: int>]("datasets/lsqb/Comment_hasTag_Tag.csv") in
+let post = load[<PostId: @vec {int -> long}, hasCreator_PersonId: @vec {int -> long}, Forum_containerOfId: @vec {int -> long}, isLocatedIn_CountryId: @vec {int -> long}, size: int>]("datasets/lsqb/Post.csv") in
+let forum = load[<ForumId: @vec {int -> long}, hasModerator_PersonId: @vec {int -> long}, size: int>]("datasets/lsqb/Forum.csv") in
+let fhp = load[<ForumId: @vec {int -> long}, PersonId: @vec {int -> long}, size: int>]("datasets/lsqb/Forum_hasMember_Person.csv") in
+let person = load[<PersonId: @vec {int -> long}, isLocatedIn_CityId: @vec {int -> long}, size: int>]("datasets/lsqb/Person.csv") in
+let city = load[<CityId: @vec {int -> long}, isPartOf_CountryId: @vec {int -> long}, size: int>]("datasets/lsqb/City.csv") in
+let country = load[<CountryId: @vec {int -> long}, isPartOf_ContinentId: @vec {int -> long}, size: int>]("datasets/lsqb/Country.csv") in
+
+let tag_trie0 = sum(<i, _> <- range(tag.size)) @phmap(tag.size) { tag.hasType_TagClassId(i) -> @smallvecdict(4) { i -> 1 } } in
+let tagclass_trie0 = sum(<i, _> <- range(tagclass.size)) { tagclass.TagClassId(i) -> 1 } in
+let interm0_trie0 = sum(<x0, tag_trie1> <- tag_trie0)
+	if (x0 ∈ tagclass_trie0) then
+		let tagclass_trie1 = tagclass_trie0(x0) in
+		sum (<tag_off, _> <- tag_trie1)
+			{ tag.TagId(tag_off) -> tagclass_trie1 }
+
+let cht_trie0 = sum(<i, _> <- range(cht.size)) { cht.TagId(i) -> { cht.CommentId(i) -> 1 } } in
+let comment_trie0 = sum(<i, _> <- range(comment.size)) { comment.CommentId(i) -> { comment.replyOf_PostId(i) -> 1 } } in
+let post_trie0 = sum(<i, _> <- range(post.size)) { post.PostId(i) -> { post.Forum_containerOfId(i) -> 1 } } in
+let forum_trie0 = sum(<i, _> <- range(forum.size)) { forum.ForumId(i) -> 1 } in
+let interm1_trie0 = sum(<x0, cht_trie1> <- cht_trie0)
+	if (x0 ∈ interm0_trie0) then
+		let interm0_trie1 = interm0_trie0(x0) in
+		sum(<x1, cht_trie2> <- cht_trie1)
+			if (x1 ∈ comment_trie0) then
+				let comment_trie1 = comment_trie0(x1) in
+				sum(<x2, comment_trie2> <- comment_trie1)
+					if (x2 ∈ post_trie0) then
+						let post_trie1 = post_trie0(x2) in
+						sum(<x3, post_trie2> <- post_trie1)
+							if (x3 ∈ forum_trie0) then
+								let forum_trie1 = forum_trie0(x3) in
+								{ x3 -> cht_trie2 * comment_trie2 * post_trie2 * forum_trie1 * interm0_trie1 }
+
+let fhp_trie0 = sum(<i, _> <- range(fhp.size)) { fhp.ForumId(i) -> { fhp.PersonId(i) -> 1 } } in
+let person_trie0 = sum(<i, _> <- range(person.size)) { person.PersonId(i) -> { person.isLocatedIn_CityId(i) -> 1 } } in
+let city_trie0 = sum(<i, _> <- range(city.size)) { city.CityId(i) -> { city.isPartOf_CountryId(i) -> 1 } } in
+let country_trie0 = sum(<i, _> <- range(country.size)) { country.CountryId(i) -> 1 } in
+sum(<x0, fhp_trie1> <- fhp_trie0)
+	if (x0 ∈ interm1_trie0) then
+		let interm1_trie1 = interm1_trie0(x0) in
+		sum(<x1, fhp_trie2> <- fhp_trie1)
+			if (x1 ∈ person_trie0) then
+				let person_trie1 = person_trie0(x1) in
+				sum(<x2, person_trie2> <- person_trie1)
+					if (x2 ∈ city_trie0) then
+						let city_trie1 = city_trie0(x2) in
+						sum(<x3, city_trie2> <- city_trie1)
+							if (x3 ∈ country_trie0) then
+								let country_trie1 = country_trie0(x3) in
+								fhp_trie2 * interm1_trie1 * person_trie2 * city_trie2 * country_trie1

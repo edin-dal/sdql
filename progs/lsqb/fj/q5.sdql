@@ -1,0 +1,15 @@
+let comment = load[<CommentId: @vec {int -> long}, hasCreator_PersonId: @vec {int -> long}, isLocatedIn_CountryId: @vec {int -> long}, replyOf_PostId: @vec {int -> long}, replyOf_CommentId: @vec {int -> long}, size: int>]("datasets/lsqb/Comment.csv") in
+let cht = load[<CommentId: @vec {int -> long}, TagId: @vec {int -> long}, size: int>]("datasets/lsqb/Comment_hasTag_Tag.csv") in
+let pht = load[<PostId: @vec {int -> long}, TagId: @vec {int -> long}, size: int>]("datasets/lsqb/Post_hasTag_Tag.csv") in
+
+let comment_trie0 = sum(<i, _> <- range(comment.size)) @phmap(comment.size) { comment.CommentId(i) -> @smallvecdict(4) { i -> 1 } } in
+let pht_trie0 = sum(<i, _> <- range(pht.size)) @phmap(pht.size) { pht.PostId(i) -> 1 } in
+sum(<cht_off, _> <- range(cht.size))
+	let x0 = cht.CommentId(cht_off) in
+	if (x0 ∈ comment_trie0) then
+		let comment_trie1 = comment_trie0(x0) in
+		sum(<comment_off, _> <- comment_trie1)
+			let x1 = comment.replyOf_PostId(comment_off) in
+			if (x1 ∈ pht_trie0) then
+				let pht_trie1 = pht_trie0(x1) in
+				pht_trie1
