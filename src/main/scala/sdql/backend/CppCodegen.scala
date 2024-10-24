@@ -333,6 +333,9 @@ object CppCodegen {
     case DictType(rt: RecordType, IntType, SmallVecDicts(size)) =>
       val template = if (noTemplate) "" else s"<$size, ${recordParams(rt)}>"
       s"smallvecdicts$template"
+    case DictType(kt, vt, _: SortedDict)                        =>
+      val template = if (noTemplate) "" else s"<${cppType(kt)}, ${cppType(vt)}>"
+      s"SortedDict$template"
     case DictType(IntType, vt, _: Vec)                          =>
       val template = if (noTemplate) "" else s"<${cppType(vt)}>"
       s"std::vector$template"
