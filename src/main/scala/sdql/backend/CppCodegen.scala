@@ -276,13 +276,13 @@ object CppCodegen {
   private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, isTernary: Boolean) =
     exps.map(e => s"[${CppCodegen.run(e)}]").mkString("")
   private def splitNested(e: Exp): (Seq[Exp], Exp)                                               = e match {
-    case DictNode(Seq((k, v @ DictNode(_, _: PHmap | _: SmallVecDict | _: SmallVecDicts))), _) =>
+    case DictNode(Seq((k, v @ DictNode(_, _: PHmap | Range | _: SmallVecDict | _: SmallVecDicts))), _) =>
       val (lhs, rhs) = splitNested(v)
       (Seq(k) ++ lhs, rhs)
-    case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _)                         => (Seq(k), rhs)
-    case DictNode(Seq((k, rhs)), _)                                                            => (Seq(k), rhs)
-    case DictNode(map, _) if map.length != 1                                                   => raise(s"unsupported: $e")
-    case _                                                                                     => (Seq(), e)
+    case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _)                                 => (Seq(k), rhs)
+    case DictNode(Seq((k, rhs)), _)                                                                    => (Seq(k), rhs)
+    case DictNode(map, _) if map.length != 1                                                           => raise(s"unsupported: $e")
+    case _                                                                                             => (Seq(), e)
   }
 
   private def initialise(tpe: Type)(implicit agg: Aggregation, typesCtx: TypesCtx, isTernary: Boolean): String =
