@@ -38,6 +38,34 @@ public:
 	inline size_t right() const {
 		return rr_;
 	}
+
+	class Iterator {
+	public:
+		explicit Iterator(const size_t current) : current_(current) {}
+
+		bool operator!=(const Iterator& other) const {
+			return current_ != other.current_;
+		}
+
+		size_t operator*() const {
+			return current_;
+		}
+
+		Iterator& operator++() {
+			++current_;
+			return *this;
+		}
+
+	private:
+		size_t current_;
+	};
+
+	Iterator begin() { return Iterator(ll_); }
+	Iterator end() { return Iterator(rr_); }
+
+	Iterator begin() const { return Iterator(ll_); }
+	Iterator end() const { return Iterator(rr_); }
+
 };
 
 template<typename KT, typename VT>
