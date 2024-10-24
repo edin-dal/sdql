@@ -108,4 +108,9 @@ public:
     inline typename vector<pair<KT, VT>>::const_iterator end() const {
         return data_.end();
     }
+
+	// TODO convenience method - get rid of this
+	inline bool contains(const KT &key) {
+		return this->find(key) != this->end();
+	}
 };
