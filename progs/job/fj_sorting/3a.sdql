@@ -1,0 +1,35 @@
+let mk = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @vec {int -> int}, size: int>]("datasets/job/movie_keyword.csv")
+let t = load[<id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, imdb_id: @vec {int -> string}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, series_years: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/3a/t.csv")
+let mi = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type_id: @vec {int -> int}, info: @vec {int -> string}, note: @vec {int -> string}, size: int>]("datasets/job/3a/mi.csv")
+let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/3a/k.csv")
+
+// TODO sort before timer
+let t_offsets = ext(`SortedIndices`, t.id)
+let k_offsets = ext(`SortedIndices`, k.id)
+
+let t_trie0 = sum(<i, _> <- range(t.size)) @st(t.size) { t.id(t_offsets(i)) -> @range { i -> 1 } } in
+let interm0_unsort = sum(<mk_off, _> <- range(mk.size))
+	let x0 = mk.movie_id(mk_off) in
+	if (x0 ∈ t_trie0) then
+		let t_trie1 = t_trie0(x0) in // TODO codegen at instead of []
+		sum(<t_i, _> <- t_trie1)
+		    let t_off = t_offsets(t_i)
+			@vec { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.title(t_off)> -> 1 }
+in
+let interm0 = ext(`SortVec`, 0, interm0_unsort)
+let interm0_trie0 = sum(<i, _> <- range(ext(`Size`, interm0)))
+    @st(ext(`Size`, interm0)) { interm0(i).col0 -> @range { i -> 1 } }
+in
+
+let k_trie0 = sum(<i, _> <- range(k.size)) @st(k.size) { unique(k.id(k_offsets(i))) -> 1 } in
+sum(<mi_off, _> <- range(mi.size))
+	let x0 = mi.movie_id(mi_off) in
+	if (x0 ∈ interm0_trie0) then
+		let interm0_trie1 = interm0_trie0(x0) in // TODO codegen at instead of []
+		sum(<interm0_off, _> <- interm0_trie1)
+		    let interm0_tuple = interm0(interm0_off)
+			let x1 = interm0_tuple.col1 in
+			if (x1 ∈ k_trie0) then
+				let k_trie1 = k_trie0(x1) in
+				let mn_interm0 = <col2=interm0_tuple.col2> in
+				promote[min_sum](<col2=mn_interm0.col2>)
