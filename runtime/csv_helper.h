@@ -51,12 +51,3 @@ inline std::string print_date(const int yyyymmdd) {
   ss << yyyy << "-" << mm_str << "-" << dd_str;
   return ss.str();
 }
-
-template <typename T>
-std::vector<int> sorted_indices(const std::vector<T> &vec)
-{
-    vector<int> v(vec.size());
-    iota(v.begin(), v.end(), 0);
-    sort(v.begin(), v.end(), [&](const int i, const int j) { return vec[i] < vec[j]; });
-    return v;
-}

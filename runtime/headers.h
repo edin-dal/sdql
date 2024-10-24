@@ -21,3 +21,4 @@
 #include "sorted_dict.h"
 #include "smallvecdict.h"
 #include "smallvecdicts.h"
+#include "sort_helper.h"
