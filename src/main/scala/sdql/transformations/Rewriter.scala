@@ -167,9 +167,9 @@ private object LowerToLLQL extends Transformation {
     if (isUpdate(e)) Update(e, Aggregation.fromExpression(e), dest) else Modify(e, dest)
 
   private def isUpdate(e: Exp)(implicit ctx: TypesCtx) = sumHint(e) match {
-    case Some(_: PHmap) if cond(e) { case dict: DictNode => checkIsUnique(dict) }   => false
-    case None | Some(_: PHmap | _: SortedDict | _: SmallVecDict | _: SmallVecDicts) => true
-    case Some(_: Vec)                                                               => false
+    case Some(_: PHmap) if cond(e) { case dict: DictNode => checkIsUnique(dict) }           => false
+    case None | Some(_: PHmap | Range | _: SortedDict | _: SmallVecDict | _: SmallVecDicts) => true
+    case Some(_: Vec)                                                                       => false
   }
 
   private def sumHint(e: Exp)(implicit ctx: TypesCtx) = e match {
