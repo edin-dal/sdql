@@ -235,7 +235,12 @@ object CppCodegen {
 
       case Modify(e, destination) =>
         val (lhs, rhs) = cppLhsRhs(e, destination)
-        s"$lhs = $rhs;"
+        TypeInference.run(e) match {
+          // TODO remove special case
+          // TODO emplace_back without constructing tuple
+          case DictType(IntType, _: RecordType, Vec(None)) => s"$lhs.push_back($rhs);"
+          case _                                           => s"$lhs = $rhs;"
+        }
 
       case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
     }
@@ -282,6 +287,7 @@ object CppCodegen {
       val (lhs, rhs) = splitNested(v)
       (Seq(k) ++ lhs, rhs)
     case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _)                                 => (Seq(k), rhs)
+    case DictNode(Seq((k @ RecNode(_), Const(1))), _: Vec)                                             => (Seq(), k) // TODO remove special case
     case DictNode(Seq((k, rhs)), _)                                                                    => (Seq(k), rhs)
     case DictNode(map, _) if map.length != 1                                                           => raise(s"unsupported: $e")
     case _                                                                                             => (Seq(), e)

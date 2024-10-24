@@ -39,8 +39,11 @@ object TypeInference {
         case None      => raise(s"unknown name: $name")
       }
 
-    case DictNode(Nil, _)    => raise("Type inference needs backtracking to infer empty type { }")
-    case DictNode(seq, hint) =>
+    case DictNode(Nil, _)                                     => raise("Type inference needs backtracking to infer empty type { }")
+    // TODO remove special case
+    //  @vec { <...> -> 1 } treats the relational form <...> -> 1 it as a mapping i -> <...>
+    case DictNode(Seq((r: RecNode, Const(1))), hint @ Vec(_)) => DictType(IntType, run(r), hint)
+    case DictNode(seq, hint)                                  =>
       DictType(seq.map(_._1).map(run).reduce(promote), seq.map(_._2).map(run).reduce(promote), hint)
 
     case RecNode(values) => RecordType(values.map(v => Attribute(name = v._1, tpe = run(v._2))))
