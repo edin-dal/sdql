@@ -116,6 +116,10 @@ object TypeInference {
         case tpe                             => raise(s"$name unexpect arg ${tpe.simpleName}")
       }
       DictType(IntType, IntType, Vec(size))
+    // TODO
+    case External(SortVec.SYMBOL, args)                                                                    =>
+      val (_, arg) = args match { case Seq(Const(n: Int), arg) => (n, arg) }
+      run(arg)
     case External(Inv.SYMBOL, args)                                                                        =>
       val arg = args match { case Seq(e) => e }
       run(arg)

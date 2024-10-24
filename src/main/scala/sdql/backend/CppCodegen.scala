@@ -188,6 +188,8 @@ object CppCodegen {
       case External(LastIndex.SYMBOL, Seq(on, patt))                                    =>
         s"${CppCodegen.run(on)}.lastIndex(${CppCodegen.run(patt)})"
       case External(SortedIndices.SYMBOL, Seq(arg))                                     => s"sorted_indices(${CppCodegen.run(arg)})"
+      // TODO
+      case External(SortVec.SYMBOL, Seq(n, arg))                                        => s"sort_vec<${CppCodegen.run(n)}>(${CppCodegen.run(arg)})"
       case External(name @ Inv.SYMBOL, _)                                               =>
         raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
       case External(Size.SYMBOL, Seq(arg))                                              =>

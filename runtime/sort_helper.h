@@ -15,6 +15,7 @@ bool tuple_cmp(const std::tuple<T...>& a, const std::tuple<T...>& b) {
 }
 
 template <size_t N, typename... T>
-void sort_vec(std::vector<std::tuple<T...>>& vec) {
+std::vector<std::tuple<T...>> sort_vec(std::vector<std::tuple<T...>> vec) {
     std::sort(vec.begin(), vec.end(), tuple_cmp<N, T...>);
+    return vec;
 }
