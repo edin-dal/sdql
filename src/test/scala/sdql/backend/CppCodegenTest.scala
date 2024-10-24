@@ -132,7 +132,7 @@ sum(<x_s, x_s_v> <- S)
     """)
   }
 
-  // checks we support columnar layout - though we use row layout in GF/FJ queries
+  // checks we support columnar layout - though we use row layout in JOB GF/FJ queries
   it should "codegen smallvecdicts" in {
     CodegenHelpers.compilesExp(sdql"""
       let a = { 0 -> 1, 1 -> 10, 2 -> 100 }
