@@ -287,40 +287,41 @@ object CppCodegen {
 
   private def initialise(tpe: Type)(implicit agg: Aggregation, typesCtx: TypesCtx, isTernary: Boolean): String =
     tpe match {
-      case DictType(_, _, PHmap(Some(e)))                => CppCodegen.run(e)
-      case DictType(_, _, PHmap(None) | _: SmallVecDict) => "{}"
-      case DictType(_, _, Vec(size))                     =>
+      case DictType(_, _, PHmap(Some(e)))                                   => CppCodegen.run(e)
+      case DictType(_, _, SortedDict(Some(e)))                              => CppCodegen.run(e)
+      case DictType(_, _, PHmap(None) | SortedDict(None) | _: SmallVecDict) => "{}"
+      case DictType(_, _, Vec(size))                                        =>
         size match {
           case None       => ""
           case Some(size) => (size + 1).toString
         }
-      case DictType(_, _, _: SmallVecDicts)              => ""
-      case RecordType(attrs)                             => attrs.map(_.tpe).map(initialise).mkString(", ")
-      case BoolType                                      =>
+      case DictType(_, _, _: SmallVecDicts)                                 => ""
+      case RecordType(attrs)                                                => attrs.map(_.tpe).map(initialise).mkString(", ")
+      case BoolType                                                         =>
         agg match {
           case SumAgg | MaxAgg  => "false"
           case ProdAgg | MinAgg => "true"
         }
-      case RealType                                      =>
+      case RealType                                                         =>
         agg match {
           case SumAgg | MaxAgg => "0.0"
           case ProdAgg         => "1.0"
           case MinAgg          => s"std::numeric_limits<${cppType(RealType)}>::max()"
         }
-      case IntType | DateType                            =>
+      case IntType | DateType                                               =>
         agg match {
           case SumAgg | MaxAgg => "0"
           case ProdAgg         => "1"
           case MinAgg          => s"std::numeric_limits<${cppType(IntType)}>::max()"
         }
-      case StringType(None)                              =>
+      case StringType(None)                                                 =>
         agg match {
           case SumAgg | MaxAgg => "\"\""
           case ProdAgg         => raise("undefined")
           case MinAgg          => s"STRING_MAX"
         }
-      case StringType(Some(_))                           => raise("initialising VarChars shouldn't be needed")
-      case tpe                                           => raise(s"unimplemented type: $tpe")
+      case StringType(Some(_))                                              => raise("initialising VarChars shouldn't be needed")
+      case tpe                                                              => raise(s"unimplemented type: $tpe")
     }
 
   private def cppType(tpe: Type, noTemplate: Boolean = false): String = tpe match {
@@ -342,6 +343,7 @@ object CppCodegen {
     case rt: RecordType                                         =>
       val template = if (noTemplate) "" else s"<${recordParams(rt)}>"
       s"std::tuple$template"
+    case DictType(_, _, Range)                                  => "Range"
     case BoolType                                               => "bool"
     case RealType                                               => "double"
     case IntType | DateType                                     => "int"

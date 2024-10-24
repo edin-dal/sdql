@@ -155,8 +155,9 @@ object Parser {
   }
   private def dictNoHint[$: P]    = P("{" ~ keyValue.rep(sep = ","./) ~ space ~ "}").map(DictNode(_))
   private def hinted[$: P]        = P("@" ~/ hint ~/ space)
-  private def hint[$: P]          = phmap | smallvecdicts | smallvecdict | sorteddict | vec
+  private def hint[$: P]          = phmap | range_ | smallvecdicts | smallvecdict | sorteddict | vec
   private def phmap[$: P]         = P("phmap" ~ parens.?).map(PHmap.apply)
+  private def range_[$: P]        = P("range").map(_ => Range)
   private def smallvecdict[$: P]  = P("smallvecdict" ~ sized).map(SmallVecDict.apply)
   private def smallvecdicts[$: P] = P("smallvecdicts" ~ sized).map(SmallVecDicts.apply)
   private def sorteddict[$: P]    = P("st" ~ parens.?).map(SortedDict.apply)
