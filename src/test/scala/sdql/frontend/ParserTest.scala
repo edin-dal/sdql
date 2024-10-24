@@ -114,6 +114,10 @@ class ParserTest extends AnyFlatSpec with Matchers {
     sdql"@phmap {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), PHmap()))
     sdql"@phmap(100) {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), PHmap(Some(Const(100)))))
     sdql"@phmap(a) {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), PHmap(Some(Sym("a")))))
+    sdql"@st {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), SortedDict()))
+    sdql"@st {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), SortedDict()))
+    sdql"@st(100) {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), SortedDict(Some(Const(100)))))
+    sdql"@st(a) {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), SortedDict(Some(Sym("a")))))
     sdql"@smallvecdict(4) {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), SmallVecDict(4)))
     sdql"@smallvecdict(4) {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), SmallVecDict(4)))
     sdql"@smallvecdicts(4) {< foo = 1  > -> 1}" should be(
