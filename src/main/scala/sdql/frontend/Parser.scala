@@ -235,5 +235,5 @@ object Parser {
     value
   }
 
-  private def timer(implicit ctx: P[?]) = P("timer" ~ parens).map(e => Timer(e))
+  private def timer(implicit ctx: P[?]) = P("timer" ~ expr).map(e => Timer(e))
 }

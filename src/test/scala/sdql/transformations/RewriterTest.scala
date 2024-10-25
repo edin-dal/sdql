@@ -194,8 +194,8 @@ class BindFreeExpressionTest extends AnyFlatSpec with Matchers {
     BindFreeExpression(rewrite) should be(rewrite)
   }
   it should "bind free expression without timer" in {
-    val e       = sdql"let x = y in timer(z)"
-    val rewrite = sdql"let x = y in timer(let ${Sym(resultName)} = z in {})"
+    val e       = sdql"let x = y in timer z"
+    val rewrite = sdql"let x = y in timer let ${Sym(resultName)} = z in {}"
     BindFreeExpression(e) should be(rewrite)
   }
 }
