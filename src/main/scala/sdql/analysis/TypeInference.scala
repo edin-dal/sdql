@@ -167,6 +167,8 @@ object TypeInference {
     case Update(e, _, _)    => run(e)
     case Modify(e, _)       => run(e)
 
+    case Timer(e) => run(e)
+
     case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }
 

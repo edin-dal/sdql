@@ -139,6 +139,7 @@ private object BindFreeExpression extends Transformation {
   def apply(e: Exp): Exp = e match {
     case DictNode(Nil, _)      => e // just in case of repeated applications
     case LetBinding(x, e1, e2) => LetBinding(x, e1, apply(e2))
+    case Timer(e)              => Timer(apply(e))
     case e                     => LetBinding(Sym(resultName), e, DictNode(Nil))
   }
 }

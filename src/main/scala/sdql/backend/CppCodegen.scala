@@ -12,37 +12,18 @@ object CppCodegen {
 
   /** Generates C++ from an expression transformed to LLQL */
   def apply(e: Exp, benchmarkRuns: Int = 0): String = {
-    val csvBody    = cppCsvs(e)
-    val sortBody   = if (benchmarkRuns == 0) "" else cppSort(e)
-    val queryBody  = run(e)(Map(), isTernary = false)
-    val benchStart =
-      if (benchmarkRuns == 0) ""
-      // note: first benchmark run is warmup
-      else
-        s"""HighPrecisionTimer timer;
-           |for (${cppType(IntType)} iter = 0; iter <= $benchmarkRuns; iter++) {
-           |timer.Reset();
-           |""".stripMargin
-    val benchStop  =
-      if (benchmarkRuns == 0) cppPrintResult(TypeInference(e))
-      else
-        s"""timer.StoreElapsedTime(0);
-           |doNotOptimiseAway($resultName);
-           |std::cerr << "*" << " " << std::flush;
-           |}
-           |std::cout << std::endl << timer.GetMean(0) << " ms";
-           |""".stripMargin
+    val csvBody   = cppCsvs(e)
+    val sortBody  = if (benchmarkRuns == 0) "" else cppSort(e)
+    val queryBody = run(e)(Map(), isTernary = false, benchmarkRuns)
     s"""#include "../runtime/headers.h"
        |$csvBody
        |$sortBody
        |int main() {
-       |$benchStart
        |$queryBody
-       |$benchStop
        |}""".stripMargin
   }
 
-  def run(e: Exp)(implicit typesCtx: TypesCtx, isTernary: Boolean): String =
+  private def run(e: Exp)(implicit typesCtx: TypesCtx, isTernary: Boolean, benchmarkRuns: Int): String =
     e match {
       case LetBinding(x @ Sym(name), e1, e2) =>
         val isTernary = !cond(e1) { case _: Sum | _: Initialise => true }
@@ -50,25 +31,25 @@ object CppCodegen {
           // codegen for loads / sorting was handled in a separate tree traversal
           case _: Load | External(SortedIndices.SYMBOL, _) => ""
           case e1 @ External(ConstantString.SYMBOL, _)     =>
-            s"const auto $name = ${run(e1)(typesCtx, isTernary)};"
+            s"const auto $name = ${run(e1)(typesCtx, isTernary, benchmarkRuns)};"
           case e1: Const                                   =>
-            s"constexpr auto $name = ${run(e1)(Map(), isTernary = false)};"
+            s"constexpr auto $name = ${run(e1)(Map(), isTernary = false, benchmarkRuns)};"
           case _                                           =>
             val isRetrieval = cond(e1) { case _: FieldNode | _: Get => true }
             def isDict      = cond(TypeInference.run(e1)) { case _: DictType => true }
             val cppName     = if (isRetrieval && isDict) s"&$name" else name
             val semicolon   = if (cond(e1) { case _: Initialise => true }) "" else ";"
-            s"auto $cppName = ${run(e1)(typesCtx, isTernary)}$semicolon"
+            s"auto $cppName = ${run(e1)(typesCtx, isTernary, benchmarkRuns)}$semicolon"
         }
         val e2Cpp     = e2 match {
           case DictNode(Nil, _) => ""
-          case _                => run(e2)(typesCtx ++ Map(x -> TypeInference.run(e1)), isTernary = false)
+          case _                => run(e2)(typesCtx ++ Map(x -> TypeInference.run(e1)), isTernary = false, benchmarkRuns)
         }
         e1Cpp + e2Cpp
 
       case Sum(k, v, e1, e2) =>
         val (_, typesLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
-        val body            = run(e2)(typesLocal, isTernary)
+        val body            = run(e2)(typesLocal, isTernary, benchmarkRuns)
         val head            = e1 match {
           case _: RangeNode => s"${cppType(IntType)} ${k.name} = 0; ${k.name} < ${run(e1)}; ${k.name}++"
           case _            =>
@@ -79,7 +60,7 @@ object CppCodegen {
               case DictType(_, _, hint)                     => raise(s"unexpected dictionary hint: $hint")
               case t                                        => raise(s"unexpected: ${t.prettyPrint}")
             }
-            val rhs = run(e1)(typesLocal, isTernary)
+            val rhs = run(e1)(typesLocal, isTernary, benchmarkRuns)
             s"auto $lhs : $rhs"
         }
         s"for ($head) { $body }"
@@ -138,15 +119,15 @@ object CppCodegen {
       case DictNode(Nil, _) => ""
       case DictNode(seq, _) =>
         seq.map { case (e1, e2) =>
-          val e1Cpp = run(e1)(typesCtx, isTernary = true)
-          val e2Cpp = run(e2)(typesCtx, isTernary = true)
+          val e1Cpp = run(e1)(typesCtx, isTernary = true, benchmarkRuns)
+          val e2Cpp = run(e2)(typesCtx, isTernary = true, benchmarkRuns)
           s"{$e1Cpp, $e2Cpp}"
         }
           .mkString(s"${cppType(TypeInference.run(e))}({", ", ", "})")
 
       case RecNode(values) =>
         val tpe = TypeInference.run(e)
-        values.map(e => run(e._2)(typesCtx, isTernary = true)).mkString(s"${cppType(tpe)}(", ", ", ")")
+        values.map(e => run(e._2)(typesCtx, isTernary = true, benchmarkRuns)).mkString(s"${cppType(tpe)}(", ", ", ")")
 
       case Get(e1, e2) =>
         (TypeInference.run(e1): @unchecked) match {
@@ -229,7 +210,7 @@ object CppCodegen {
       case Initialise(tpe, e) =>
         val unpacked      = TropicalSemiRingType.unpack(tpe)
         val agg           = Aggregation.fromType(tpe)
-        val initialiseCpp = initialise(unpacked)(agg, typesCtx, isTernary)
+        val initialiseCpp = initialise(unpacked)(agg, typesCtx, isTernary, benchmarkRuns)
         s"${cppType(unpacked)}($initialiseCpp); ${run(e)}"
 
       case Update(e, agg, destination) =>
@@ -250,19 +231,42 @@ object CppCodegen {
           case _                                           => s"$lhs = $rhs;"
         }
 
+      case Timer(e) =>
+        val benchStart =
+          if (benchmarkRuns == 0) ""
+          else
+            // note: first benchmark run is warmup
+            s"""HighPrecisionTimer timer;
+               |for (${cppType(IntType)} iter = 0; iter <= $benchmarkRuns; iter++) {
+               |timer.Reset();
+               |""".stripMargin
+        val benchStop  =
+          if (benchmarkRuns == 0) cppPrintResult(TypeInference(e))
+          else
+            s"""timer.StoreElapsedTime(0);
+               |doNotOptimiseAway($resultName);
+               |std::cerr << "*" << " " << std::flush;
+               |}
+               |std::cout << std::endl << timer.GetMean(0) << " ms";
+               |""".stripMargin
+        s"""$benchStart
+           |${run(e)}
+           |$benchStop
+           |""".stripMargin
+
       case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
     }
 
-  private def ternary(e: IfThenElse)(implicit typesCtx: TypesCtx)                     = e match {
+  private def ternary(e: IfThenElse)(implicit typesCtx: TypesCtx, benchmarkRuns: Int)                     = e match {
     case IfThenElse(cond, e1, e2) =>
-      val condBody = run(cond)(typesCtx, isTernary = true)
-      val ifBody   = run(e1)(typesCtx, isTernary = true)
-      val elseBody = run(e2)(typesCtx, isTernary = true)
+      val condBody = run(cond)(typesCtx, isTernary = true, benchmarkRuns)
+      val ifBody   = run(e1)(typesCtx, isTernary = true, benchmarkRuns)
+      val elseBody = run(e2)(typesCtx, isTernary = true, benchmarkRuns)
       s"($condBody) ? $ifBody : $elseBody"
   }
-  private def default(e: IfThenElse)(implicit typesCtx: TypesCtx, isTernary: Boolean) = e match {
+  private def default(e: IfThenElse)(implicit typesCtx: TypesCtx, isTernary: Boolean, benchmarkRuns: Int) = e match {
     case IfThenElse(cond, e1, e2) =>
-      val condBody = run(cond)(typesCtx, isTernary)
+      val condBody = run(cond)(typesCtx, isTernary, benchmarkRuns)
       val ifBody   = run(e1)
       val elseBody = e2 match {
         case DictNode(Nil, _) | Update(DictNode(Nil, _), _, _) | Const(0) | Const(0.0) => ""
@@ -275,22 +279,22 @@ object CppCodegen {
     case Get(e1, e2) => cond(TypeInference.run(e1)) { case DictType(kt, _, _) => TypeInference.run(e2) == kt }
   }
 
-  private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, isTernary: Boolean) =
+  private def dictCmpNil(e1: Exp, e2: Exp)(implicit typesCtx: TypesCtx, isTernary: Boolean, benchmarkRuns: Int) =
     TypeInference.run(e1) match {
       case DictType(IntType, _, _: Vec) => s"${run(e1)}[${run(e2)}] != 0"
       case _                            => s"${run(e1)}.contains(${run(e2)})"
     }
 
-  private def cppLhsRhs(e: Exp, destination: Sym)(implicit typesCtx: TypesCtx)                   = {
+  private def cppLhsRhs(e: Exp, destination: Sym)(implicit typesCtx: TypesCtx, benchmarkRuns: Int)                   = {
     val (accessors, inner) = splitNested(e)
-    val bracketed          = cppAccessors(accessors)(typesCtx, isTernary = true)
+    val bracketed          = cppAccessors(accessors)(typesCtx, isTernary = true, benchmarkRuns)
     val lhs                = s"${destination.name}$bracketed"
-    val rhs                = run(inner)(typesCtx, isTernary = true)
+    val rhs                = run(inner)(typesCtx, isTernary = true, benchmarkRuns)
     (lhs, rhs)
   }
-  private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, isTernary: Boolean) =
+  private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, isTernary: Boolean, benchmarkRuns: Int) =
     exps.map(e => s"[${run(e)}]").mkString("")
-  private def splitNested(e: Exp): (Seq[Exp], Exp)                                               = e match {
+  private def splitNested(e: Exp): (Seq[Exp], Exp)                                                                   = e match {
     case DictNode(Seq((k, v @ DictNode(_, _: PHmap | Range | _: SmallVecDict | _: SmallVecDicts))), _) =>
       val (lhs, rhs) = splitNested(v)
       (Seq(k) ++ lhs, rhs)
@@ -301,7 +305,9 @@ object CppCodegen {
     case _                                                                                             => (Seq(), e)
   }
 
-  private def initialise(tpe: Type)(implicit agg: Aggregation, typesCtx: TypesCtx, isTernary: Boolean): String =
+  private def initialise(
+    tpe: Type
+  )(implicit agg: Aggregation, typesCtx: TypesCtx, isTernary: Boolean, benchmarkRuns: Int): String =
     tpe match {
       case DictType(_, _, PHmap(Some(e)))                                   => run(e)
       case DictType(_, _, SortedDict(Some(e)))                              => run(e)

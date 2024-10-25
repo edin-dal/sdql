@@ -224,3 +224,6 @@ sealed trait LLQL
 case class Initialise(tpe: Type, e: Exp) extends Exp with LLQL
 case class Update(e: Exp, agg: Aggregation, dest: Sym) extends Exp with LLQL
 case class Modify(e: Exp, dest: Sym)                   extends Exp with LLQL
+
+/** Marks which section of the program to time in benchmarks */
+case class Timer(exp: Exp) extends Exp

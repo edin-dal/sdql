@@ -41,7 +41,8 @@ object Parser {
       "min_sum",
       "max_sum",
       "enum",
-      "nullable"
+      "nullable",
+      "timer"
     ) ~
       !idRest
   )
@@ -169,7 +170,7 @@ object Parser {
       space ~ (const | neg | not | dictOrSet |
         rec | ifThenElse | range | load | concat | promote | unique |
         letBinding | sum | variable |
-        ext | parens) ~ space
+        ext | parens | timer) ~ space
     )
 
   private def neg[$: P]: P[Neg]  = P("-" ~ !(">") ~ factor).map(Neg.apply)
@@ -233,4 +234,6 @@ object Parser {
     }
     value
   }
+
+  private def timer(implicit ctx: P[?]) = P("timer" ~ parens).map(e => Timer(e))
 }

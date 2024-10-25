@@ -51,6 +51,7 @@ object Restage {
       case Initialise(_, e)            => Seq(e)
       case Update(e, _, _)             => Seq(e)
       case Modify(e, _)                => Seq(e)
+      case Timer(e)                    => Seq(e)
       case _                           => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
     }
     def factory(e: Exp): Seq[Exp] => Exp = e match {
@@ -85,6 +86,7 @@ object Restage {
       case Initialise(tpe, _)          => seq => Initialise(tpe, seq(0))
       case Update(_, agg, dest)        => seq => Update(seq(0), agg, dest)
       case Modify(_, dest)             => seq => Modify(seq(0), dest)
+      case Timer(_)                    => seq => Timer(seq(0))
       case _                           => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
     }
   }

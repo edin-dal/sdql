@@ -6,6 +6,7 @@ let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_cod
 let t_offsets = ext(`SortedIndices`, t.id)
 let k_offsets = ext(`SortedIndices`, k.id)
 
+timer(
 let t_trie0 = sum(<i, _> <- range(t.size)) @st(t.size) { t.id(t_offsets(i)) -> @range { i -> 1 } } in
 let interm0_unsort = sum(<mk_off, _> <- range(mk.size))
 	let x0 = mk.movie_id(mk_off) in
@@ -32,3 +33,4 @@ sum(<mi_off, _> <- range(mi.size))
 				let k_trie1 = k_trie0(x1) in
 				let mn_interm0 = <col2=interm0_tuple.col2> in
 				promote[min_sum](<col2=mn_interm0.col2>)
+)
