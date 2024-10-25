@@ -11,7 +11,7 @@ let t_trie0 = sum(<i, _> <- range(t.size)) @st(t.size) { t.id(t_offsets(i)) -> @
 let interm0_unsort = sum(<mk_off, _> <- range(mk.size))
 	let x0 = mk.movie_id(mk_off) in
 	if (x0 ∈ t_trie0) then
-		let t_trie1 = t_trie0(x0) in // TODO codegen at instead of []
+		let t_trie1 = t_trie0(x0) in
 		sum(<t_i, _> <- t_trie1)
 		    let t_off = t_offsets(t_i)
 			@vec { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.title(t_off)> -> 1 }
@@ -25,7 +25,7 @@ let k_trie0 = sum(<i, _> <- range(k.size)) @st(k.size) { unique(k.id(k_offsets(i
 sum(<mi_off, _> <- range(mi.size))
 	let x0 = mi.movie_id(mi_off) in
 	if (x0 ∈ interm0_trie0) then
-		let interm0_trie1 = interm0_trie0(x0) in // TODO codegen at instead of []
+		let interm0_trie1 = interm0_trie0(x0) in
 		sum(<interm0_off, _> <- interm0_trie1)
 		    let interm0_tuple = interm0(interm0_off)
 			let x1 = interm0_tuple.col1 in

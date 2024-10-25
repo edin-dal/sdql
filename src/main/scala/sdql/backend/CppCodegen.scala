@@ -147,8 +147,9 @@ object CppCodegen {
 
       case Get(e1, e2) =>
         (TypeInference.run(e1): @unchecked) match {
-          case _: RecordType => s"std::get<${run(e2)}>(${run(e1)})"
-          case _: DictType   => s"${run(e1)}[${run(e2)}]"
+          case _: RecordType                 => s"std::get<${run(e2)}>(${run(e1)})"
+          case DictType(_, _, _: SortedDict) => s"${run(e1)}.at(${run(e2)})"
+          case _: DictType                   => s"${run(e1)}[${run(e2)}]"
         }
 
       case External(ConstantString.SYMBOL, Seq(Const(str: String), Const(maxLen: Int))) =>
