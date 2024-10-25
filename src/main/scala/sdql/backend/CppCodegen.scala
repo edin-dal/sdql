@@ -13,6 +13,7 @@ object CppCodegen {
   /** Generates C++ from an expression transformed to LLQL */
   def apply(e: Exp, benchmarkRuns: Int = 0): String = {
     val csvBody    = cppCsvs(e)
+    val sortBody   = if (benchmarkRuns == 0) "" else cppSort(e)
     val queryBody  = run(e)(Map(), isTernary = false)
     val benchStart =
       if (benchmarkRuns == 0) ""
@@ -33,6 +34,7 @@ object CppCodegen {
            |""".stripMargin
     s"""#include "../runtime/headers.h"
        |$csvBody
+       |$sortBody
        |int main() {
        |$benchStart
        |$queryBody
@@ -45,12 +47,13 @@ object CppCodegen {
       case LetBinding(x @ Sym(name), e1, e2) =>
         val isTernary = !cond(e1) { case _: Sum | _: Initialise => true }
         val e1Cpp     = e1 match {
-          // codegen for loads was handled in a separate tree traversal
-          case _: Load                                 => ""
-          case e1 @ External(ConstantString.SYMBOL, _) =>
+          // codegen for loads / sorting was handled in a separate tree traversal
+          case _: Load | External(SortedIndices.SYMBOL, _) => ""
+          case e1 @ External(ConstantString.SYMBOL, _)     =>
             s"const auto $name = ${run(e1)(typesCtx, isTernary)};"
-          case e1: Const                               => s"constexpr auto $name = ${run(e1)(Map(), isTernary = false)};"
-          case _                                       =>
+          case e1: Const                                   =>
+            s"constexpr auto $name = ${run(e1)(Map(), isTernary = false)};"
+          case _                                           =>
             val isRetrieval = cond(e1) { case _: FieldNode | _: Get => true }
             def isDict      = cond(TypeInference.run(e1)) { case _: DictType => true }
             val cppName     = if (isRetrieval && isDict) s"&$name" else name
@@ -188,8 +191,8 @@ object CppCodegen {
         s"${run(on)}.firstIndex(${run(patt)})"
       case External(LastIndex.SYMBOL, Seq(on, patt))                                    =>
         s"${run(on)}.lastIndex(${run(patt)})"
-      case External(SortedIndices.SYMBOL, Seq(arg))                                     =>
-        s"sorted_indices(${run(arg)})"
+      case External(name @ SortedIndices.SYMBOL, _)                                     =>
+        raise(s"$name should have been handled in separate tree traversal")
       case External(SortVec.SYMBOL, Seq(n, arg))                                        =>
         s"sort_vec<${run(n)}>(${run(arg)})"
       case External(name @ Inv.SYMBOL, _)                                               =>
@@ -377,7 +380,7 @@ object CppCodegen {
   //         let same_varname = load[...]("foo.csv")
   //     else
   //         let same_varname = load[...]("bar.csv")
-  private def cppCsvs(e: Exp): String                                                    = {
+  private def cppCsvs(e: Exp)                                                            = {
     val pathNameTypeSkip = iterExps(e).flatMap(extract).toSeq.distinct.sortBy(_._2)
     val csvConsts        =
       pathNameTypeSkip.zipWithIndex.map { case ((path, name, _, _), i) => makeCsvConst(name, path, i) }
@@ -424,6 +427,19 @@ object CppCodegen {
     Iterator(e) ++ (e match {
       case Restage(cs, _) => cs.flatMap(iterExps)
     })
+
+  // Computing sorted offsets of CSVs is also assigned to const variables outside the main function - to avoid timing
+  private def cppSort(e: Exp) =
+    iterExps(e)
+      .filter(e => cond(e) { case LetBinding(_, External(SortedIndices.SYMBOL, _), _) => true })
+      .map(e =>
+        (e: @unchecked) match {
+          case LetBinding(Sym(name), External(_, Seq(FieldNode(Sym(src), _))), _) =>
+            // TODO this assumes we do sorting by column 0 always
+            s"const auto $name = sorted_indices(std::get<0>($src));"
+        }
+      )
+      .mkString("", "\n", "\n")
 
   private def cppPrintResult(tpe: Type): String        = tpe match {
     case DictType(kt, vt, _: PHmap)        =>
