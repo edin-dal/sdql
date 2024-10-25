@@ -65,9 +65,9 @@ object CppCodegen {
 
       case Sum(k, v, e1, e2) =>
         val (_, typesLocal) = TypeInference.sumInferTypeAndCtx(k, v, e1, e2)
-        val body            = CppCodegen.run(e2)(typesLocal, isTernary)
+        val body            = run(e2)(typesLocal, isTernary)
         val head            = e1 match {
-          case _: RangeNode => s"${cppType(IntType)} ${k.name} = 0; ${k.name} < ${CppCodegen.run(e1)}; ${k.name}++"
+          case _: RangeNode => s"${cppType(IntType)} ${k.name} = 0; ${k.name} < ${run(e1)}; ${k.name}++"
           case _            =>
             val lhs = TypeInference.run(e1)(typesLocal) match {
               case DictType(_, _, _: PHmap)                 => s"&[${k.name}, ${v.name}]"
@@ -76,7 +76,7 @@ object CppCodegen {
               case DictType(_, _, hint)                     => raise(s"unexpected dictionary hint: $hint")
               case t                                        => raise(s"unexpected: ${t.prettyPrint}")
             }
-            val rhs = CppCodegen.run(e1)(typesLocal, isTernary)
+            val rhs = run(e1)(typesLocal, isTernary)
             s"auto $lhs : $rhs"
         }
         s"for ($head) { $body }"
@@ -161,43 +161,45 @@ object CppCodegen {
           case (StringType(None), StringType(Some(_))) | (StringType(Some(_)), StringType(None)) =>
             raise(s"${StrContains.SYMBOL} doesn't support fixed and variable length strings together")
         }
-        s"${CppCodegen.run(str)}.$func(${CppCodegen.run(subStr)})"
+        s"${run(str)}.$func(${run(subStr)})"
       case External(StrStartsWith.SYMBOL, Seq(str, prefix))                             =>
         val startsWith = (TypeInference.run(str): @unchecked) match {
           case StringType(None)    => "starts_with"
           case StringType(Some(_)) => "startsWith"
         }
-        s"${CppCodegen.run(str)}.$startsWith(${CppCodegen.run(prefix)})"
+        s"${run(str)}.$startsWith(${run(prefix)})"
       case External(StrEndsWith.SYMBOL, Seq(str, suffix))                               =>
         val endsWith = (TypeInference.run(str): @unchecked) match {
           case StringType(None)    => "ends_with"
           case StringType(Some(_)) => "endsWith"
         }
-        s"${CppCodegen.run(str)}.$endsWith(${CppCodegen.run(suffix)})"
+        s"${run(str)}.$endsWith(${run(suffix)})"
       case External(SubString.SYMBOL, Seq(str, Const(start: Int), Const(end: Int)))     =>
         val subStr = (TypeInference.run(str): @unchecked) match {
           case StringType(None)    => "substr"
           case StringType(Some(_)) => s"substr<${end - start}>"
         }
-        s"${CppCodegen.run(str)}.$subStr($start, $end)"
+        s"${run(str)}.$subStr($start, $end)"
       case External(StrIndexOf.SYMBOL, Seq(field: FieldNode, elem, from))               =>
         assert(cond(TypeInference.run(field)) { case StringType(None) => true })
-        s"${CppCodegen.run(field)}.find(${CppCodegen.run(elem)}, ${CppCodegen.run(from)})"
+        s"${run(field)}.find(${run(elem)}, ${run(from)})"
       case External(FirstIndex.SYMBOL, Seq(on, patt))                                   =>
-        s"${CppCodegen.run(on)}.firstIndex(${CppCodegen.run(patt)})"
+        s"${run(on)}.firstIndex(${run(patt)})"
       case External(LastIndex.SYMBOL, Seq(on, patt))                                    =>
-        s"${CppCodegen.run(on)}.lastIndex(${CppCodegen.run(patt)})"
-      case External(SortedIndices.SYMBOL, Seq(arg))                                     => s"sorted_indices(${CppCodegen.run(arg)})"
-      // TODO
-      case External(SortVec.SYMBOL, Seq(n, arg))                                        => s"sort_vec<${CppCodegen.run(n)}>(${CppCodegen.run(arg)})"
+        s"${run(on)}.lastIndex(${run(patt)})"
+      case External(SortedIndices.SYMBOL, Seq(arg))                                     =>
+        s"sorted_indices(${run(arg)})"
+      case External(SortVec.SYMBOL, Seq(n, arg))                                        =>
+        s"sort_vec<${run(n)}>(${run(arg)})"
       case External(name @ Inv.SYMBOL, _)                                               =>
         raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
       case External(Size.SYMBOL, Seq(arg))                                              =>
         TypeInference.run(arg) match {
-          case _: DictType => s"static_cast<${cppType(IntType)}>(${CppCodegen.run(arg)}.size())"
+          case _: DictType => s"static_cast<${cppType(IntType)}>(${run(arg)}.size())"
           case t           => raise(s"unexpected: ${t.prettyPrint}")
         }
-      case External(name, _)                                                            => raise(s"unhandled function name: $name")
+      case External(name, _)                                                            =>
+        raise(s"unhandled function name: $name")
 
       case Concat(e1: RecNode, e2: RecNode) => run(e1.concat(e2))
       case Concat(e1: Sym, e2: Sym)         => s"std::tuple_cat(${run(e1)}, ${run(e2)})"
@@ -224,7 +226,7 @@ object CppCodegen {
         val unpacked      = TropicalSemiRingType.unpack(tpe)
         val agg           = Aggregation.fromType(tpe)
         val initialiseCpp = initialise(unpacked)(agg, typesCtx, isTernary)
-        s"${cppType(unpacked)}($initialiseCpp); ${CppCodegen.run(e)}"
+        s"${cppType(unpacked)}($initialiseCpp); ${run(e)}"
 
       case Update(e, agg, destination) =>
         val (lhs, rhs) = cppLhsRhs(e, destination)
@@ -279,11 +281,11 @@ object CppCodegen {
     val (accessors, inner) = splitNested(e)
     val bracketed          = cppAccessors(accessors)(typesCtx, isTernary = true)
     val lhs                = s"${destination.name}$bracketed"
-    val rhs                = CppCodegen.run(inner)(typesCtx, isTernary = true)
+    val rhs                = run(inner)(typesCtx, isTernary = true)
     (lhs, rhs)
   }
   private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, isTernary: Boolean) =
-    exps.map(e => s"[${CppCodegen.run(e)}]").mkString("")
+    exps.map(e => s"[${run(e)}]").mkString("")
   private def splitNested(e: Exp): (Seq[Exp], Exp)                                               = e match {
     case DictNode(Seq((k, v @ DictNode(_, _: PHmap | Range | _: SmallVecDict | _: SmallVecDicts))), _) =>
       val (lhs, rhs) = splitNested(v)
@@ -297,8 +299,8 @@ object CppCodegen {
 
   private def initialise(tpe: Type)(implicit agg: Aggregation, typesCtx: TypesCtx, isTernary: Boolean): String =
     tpe match {
-      case DictType(_, _, PHmap(Some(e)))                                   => CppCodegen.run(e)
-      case DictType(_, _, SortedDict(Some(e)))                              => CppCodegen.run(e)
+      case DictType(_, _, PHmap(Some(e)))                                   => run(e)
+      case DictType(_, _, SortedDict(Some(e)))                              => run(e)
       case DictType(_, _, PHmap(None) | SortedDict(None) | _: SmallVecDict) => "{}"
       case DictType(_, _, Vec(size))                                        =>
         size match {
