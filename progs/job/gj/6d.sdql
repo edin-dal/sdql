@@ -4,6 +4,8 @@ let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_cod
 let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @vec {int -> int}, person_role_id: @vec {int -> int}, note: @vec {int -> string}, nr_order: @vec {int -> int}, role_id: @vec {int -> int}, size: int>]("datasets/job/cast_info.csv")
 let n = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> string}, gender: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/6d/n.csv")
 
+timer
+
 let mk_trie0 = sum(<i, _> <- range(mk.size))  { mk.movie_id(i) ->  { mk.keyword_id(i) -> @smallvecdict(0) { i -> 1 } } } in
 let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size)  { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let k_trie0 = sum(<i, _> <- range(k.size)) @phmap(k.size)  { k.id(i) -> @smallvecdict(4) { i -> 1 } } in

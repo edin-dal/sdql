@@ -13,6 +13,8 @@ let cn1 = load[<id: @vec {int -> int}, name: @vec {int -> string}, country_code:
 let mc2 = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, company_id: @vec {int -> int}, company_type_id: @vec {int -> int}, note: @vec {int -> string}, size: int>]("datasets/job/movie_companies.csv")
 let cn2 = load[<id: @vec {int -> int}, name: @vec {int -> string}, country_code: @vec {int -> string}, imdb_id: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, name_pcode_sf: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/company_name.csv")
 
+timer
+
 let ml_trie0 = sum(<i, _> <- range(ml.size)) @phmap(ml.size)  { ml.link_type_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let lt_trie0 = sum(<i, _> <- range(lt.size))  { lt.id(i) -> 1 } in
 let interm0_trie0 = sum(<x0, ml_trie1> <- ml_trie0)

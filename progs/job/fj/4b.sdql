@@ -4,6 +4,8 @@ let mi_idx = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type
 let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/4b/k.csv")
 let it = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/4b/it.csv")
 
+timer
+
 let k_trie0 = sum(<i, _> <- range(k.size)) @phmap(k.size) { unique(k.id(i)) -> 1 } in
 let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) @phmap(mi_idx.size) { mi_idx.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in

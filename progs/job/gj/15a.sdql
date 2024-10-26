@@ -8,6 +8,8 @@ let ct = load[<id: @vec {int -> int}, kind: @vec {int -> string}, size: int>]("d
 let cn = load[<id: @vec {int -> int}, name: @vec {int -> string}, country_code: @vec {int -> string}, imdb_id: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, name_pcode_sf: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/15a/cn.csv")
 let at = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, note: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/aka_title.csv")
 
+timer
+
 let mk_trie0 = sum(<i, _> <- range(mk.size)) @phmap(mk.size)  { mk.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size)  { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)

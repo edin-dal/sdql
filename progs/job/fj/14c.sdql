@@ -7,6 +7,8 @@ let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_cod
 let it2 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/14c/it2.csv")
 let it1 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/14c/it1.csv")
 
+timer
+
 let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size) { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) @phmap(mi_idx.size) { mi_idx.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm0_trie0 = sum(<mk_off, _> <- range(mk.size))
