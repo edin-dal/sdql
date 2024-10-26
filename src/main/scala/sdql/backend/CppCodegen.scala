@@ -5,17 +5,15 @@ import sdql.ir.*
 import sdql.ir.ExternalFunctions.*
 import sdql.raise
 
-import scala.PartialFunction.{ cond, condOpt }
+import scala.PartialFunction.cond
 
 object CppCodegen {
   type TypesCtx = TypeInference.Ctx
 
   /** Generates C++ from an expression transformed to LLQL */
   def apply(e: Exp, benchmarkRuns: Int = 0): String = {
-    val csvBody   = cppCsvs(e)
     val queryBody = run(e)(Map(), isTernary = false, benchmarkRuns)
-    s"""#include "../runtime/headers.h"
-       |$csvBody
+    s"""#include "../runtime/headers.h"\n
        |int main() {
        |$queryBody
        |}""".stripMargin
@@ -26,8 +24,7 @@ object CppCodegen {
       case LetBinding(x @ Sym(name), e1, e2) =>
         val isTernary = !cond(e1) { case _: Sum | _: Initialise => true }
         val e1Cpp     = e1 match {
-          // codegen for loads was handled in a separate tree traversal
-          case _: Load                                 => ""
+          case e: Load                                 => load(e, name)
           case e1 @ External(ConstantString.SYMBOL, _) =>
             s"const auto $name = ${run(e1)(typesCtx, isTernary, benchmarkRuns)};"
           case e1: Const                               =>
@@ -234,14 +231,16 @@ object CppCodegen {
           if (benchmarkRuns == 0) ""
           else
             // note: first benchmark run is warmup
-            s"""HighPrecisionTimer timer;
-               |for (${cppType(IntType)} iter = 0; iter <= $benchmarkRuns; iter++) {
-               |timer.Reset();
-               |""".stripMargin
+            s"""|\n
+                |HighPrecisionTimer timer;
+                |for (${cppType(IntType)} iter = 0; iter <= $benchmarkRuns; iter++) {
+                |timer.Reset();
+                |""".stripMargin
         val benchStop  =
           if (benchmarkRuns == 0) cppPrintResult(TypeInference(e))
           else
-            s"""timer.StoreElapsedTime(0);
+            s"""\n
+               |timer.StoreElapsedTime(0);
                |doNotOptimiseAway($resultName);
                |std::cerr << "*" << " " << std::flush;
                |}
@@ -254,6 +253,37 @@ object CppCodegen {
 
       case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
     }
+
+  private def load(e: Load, name: String) = (e: @unchecked) match {
+    case Load(path, tp: RecordType, skipCols) =>
+      // TODO don't hardcode 0
+      // NaN handling for LSQB queries (different value in each table avoids joining them)
+      val document    =
+        s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR, IntNanConverter(0));"""
+      val skipColsSet = skipCols.toSkipColsSet
+      assert(tp.attrs.last.name == "size")
+      val attrs       = tp.attrs
+        .dropRight(1)
+        .map(attr => (attr.tpe: @unchecked) match { case DictType(IntType, vt, Vec(None)) => Attribute(attr.name, vt) })
+      val readCols    = attrs.zipWithIndex.filter { case (attr, _) => !skipColsSet.contains(attr.name) }.map {
+        case (Attribute(attr_name, tpe), i) =>
+          s"/* $attr_name */" ++ (tpe match {
+            case DateType                 =>
+              s"dates_to_numerics(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(StringType())}>($i)" + ")"
+            case StringType(Some(maxLen)) =>
+              s"strings_to_varchars<$maxLen>(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(StringType())}>($i)" + ")"
+            case _                        =>
+              s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)"
+          })
+      }
+      val readSize    =
+        if (skipColsSet.contains("size")) Seq()
+        else Seq(s"/* size */static_cast<${cppType(IntType)}>(${name.toUpperCase}_CSV.GetRowCount())")
+      val init        = (readCols ++ readSize).mkString(",\n")
+      s"""$document
+         |auto ${name.toLowerCase} = ${cppType(tp, noTemplate = true)}($init);
+         |\n""".stripMargin
+  }
 
   private def ternary(e: IfThenElse)(implicit typesCtx: TypesCtx, benchmarkRuns: Int)                     = e match {
     case IfThenElse(cond, e1, e2) =>
@@ -292,16 +322,22 @@ object CppCodegen {
   }
   private def cppAccessors(exps: Iterable[Exp])(implicit typesCtx: TypesCtx, isTernary: Boolean, benchmarkRuns: Int) =
     exps.map(e => s"[${run(e)}]").mkString("")
-  private def splitNested(e: Exp): (Seq[Exp], Exp)                                                                   = e match {
-    case DictNode(Seq((k, v @ DictNode(_, _: PHmap | Range | _: SmallVecDict | _: SmallVecDicts))), _) =>
-      val (lhs, rhs) = splitNested(v)
-      (Seq(k) ++ lhs, rhs)
-    case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _)                                 => (Seq(k), rhs)
-    case DictNode(Seq((k @ RecNode(_), Const(1))), _: Vec)                                             => (Seq(), k) // TODO remove special case
-    case DictNode(Seq((k, rhs)), _)                                                                    => (Seq(k), rhs)
-    case DictNode(map, _) if map.length != 1                                                           => raise(s"unsupported: $e")
-    case _                                                                                             => (Seq(), e)
-  }
+  private def splitNested(e: Exp): (Seq[Exp], Exp)                                                                   =
+    e match {
+      case DictNode(Seq((k, v @ DictNode(_, _: PHmap | Range | _: SmallVecDict | _: SmallVecDicts))), _) =>
+        val (lhs, rhs) = splitNested(v)
+        (Seq(k) ++ lhs, rhs)
+      case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _)                                 =>
+        (Seq(k), rhs)
+      case DictNode(Seq((k @ RecNode(_), Const(1))), _: Vec)                                             =>
+        (Seq(), k) // TODO remove special case
+      case DictNode(Seq((k, rhs)), _)                                                                    =>
+        (Seq(k), rhs)
+      case DictNode(map, _) if map.length != 1                                                           =>
+        raise(s"unsupported: $e")
+      case _                                                                                             =>
+        (Seq(), e)
+    }
 
   private def initialise(
     tpe: Type
@@ -315,8 +351,10 @@ object CppCodegen {
           case None       => ""
           case Some(size) => (size + 1).toString
         }
-      case DictType(_, _, _: SmallVecDicts)                                 => ""
-      case RecordType(attrs)                                                => attrs.map(_.tpe).map(initialise).mkString(", ")
+      case DictType(_, _, _: SmallVecDicts)                                 =>
+        ""
+      case RecordType(attrs)                                                =>
+        attrs.map(_.tpe).map(initialise).mkString(", ")
       case BoolType                                                         =>
         agg match {
           case SumAgg | MaxAgg  => "false"
@@ -340,8 +378,10 @@ object CppCodegen {
           case ProdAgg         => raise("undefined")
           case MinAgg          => s"STRING_MAX"
         }
-      case StringType(Some(_))                                              => raise("initialising VarChars shouldn't be needed")
-      case tpe                                                              => raise(s"unimplemented type: $tpe")
+      case StringType(Some(_))                                              =>
+        raise("initialising VarChars shouldn't be needed")
+      case tpe                                                              =>
+        raise(s"unimplemented type: $tpe")
     }
 
   private def cppType(tpe: Type, noTemplate: Boolean = false): String = tpe match {
@@ -375,62 +415,6 @@ object CppCodegen {
   private def recordParams(rt: RecordType)                            = rt match {
     case RecordType(attrs) => attrs.map(_.tpe).map(cppType(_)).mkString(", ")
   }
-
-  // In the generated C++ program, CSVs are loaded into const variables outside the main function.
-  // This is convenient so we can just time everything inside main for benchmarks (which shouldn't include load times).
-  // Though it assumes loads expressions are bound to global variables (always holds for all of our queries).
-  // E.g. we currently don't support cases like this one:
-  //     if (...) then
-  //         let same_varname = load[...]("foo.csv")
-  //     else
-  //         let same_varname = load[...]("bar.csv")
-  private def cppCsvs(e: Exp)                                                            = {
-    val pathNameTypeSkip = iterExps(e).flatMap(extract).toSeq.distinct.sortBy(_._2)
-    val csvConsts        =
-      pathNameTypeSkip.zipWithIndex.map { case ((path, name, _, _), i) => makeCsvConst(name, path, i) }
-        .mkString("\n", "\n", "\n")
-    val tuples           = pathNameTypeSkip.map { case (_, name, recordType, skipCols) =>
-      val init = makeTupleInit(name, recordType, skipCols)
-      s"auto ${name.toLowerCase} = ${cppType(recordType, noTemplate = true)}($init);\n"
-    }
-      .mkString("\n")
-    Seq(csvConsts, tuples).mkString("\n")
-  }
-  private def extract(e: Exp)                                                            = condOpt(e) {
-    case LetBinding(Sym(name), load @ Load(path, tp: RecordType, _), _) if TypeInference.isColumnStore(tp) =>
-      val recordType            = (load: @unchecked) match { case Load(_, recordType: RecordType, _) => recordType }
-      val skipCols: Set[String] =
-        (load: @unchecked) match { case Load(_, _, skipCols) => skipCols.toSkipColsSet }
-      (path, name, recordType, skipCols)
-  }
-  private def makeCsvConst(name: String, path: String, i: Int) =
-    // NaN handling for LSQB queries (different value in each table avoids joining them)
-    s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR, IntNanConverter($i));"""
-  private def makeTupleInit(name: String, recordType: RecordType, skipCols: Set[String]) = {
-    assert(recordType.attrs.last.name == "size")
-    val attrs    = recordType.attrs
-      .dropRight(1)
-      .map(attr => (attr.tpe: @unchecked) match { case DictType(IntType, vt, Vec(None)) => Attribute(attr.name, vt) })
-    val readCols = attrs.zipWithIndex.filter { case (attr, _) => !skipCols.contains(attr.name) }.map {
-      case (Attribute(attr_name, tpe), i) =>
-        s"/* $attr_name */" ++ (tpe match {
-          case DateType                 =>
-            s"dates_to_numerics(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(StringType())}>($i)" + ")"
-          case StringType(Some(maxLen)) =>
-            s"strings_to_varchars<$maxLen>(" + s"${name.toUpperCase}_CSV.GetColumn<${cppType(StringType())}>($i)" + ")"
-          case _                        =>
-            s"${name.toUpperCase}_CSV.GetColumn<${cppType(tpe)}>($i)"
-        })
-    }
-    val readSize =
-      if (skipCols.contains("size")) Seq()
-      else Seq(s"/* size */static_cast<${cppType(IntType)}>(${name.toUpperCase}_CSV.GetRowCount())")
-    (readCols ++ readSize).mkString(",\n")
-  }
-  private def iterExps(e: Exp): Iterator[Exp]                                            =
-    Iterator(e) ++ (e match {
-      case Restage(cs, _) => cs.flatMap(iterExps)
-    })
 
   private def cppPrintResult(tpe: Type): String        = tpe match {
     case DictType(kt, vt, _: PHmap)        =>
