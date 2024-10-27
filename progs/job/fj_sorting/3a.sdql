@@ -17,7 +17,7 @@ let interm0_unsort = sum(<mk_off, _> <- range(mk.size))
 		    let t_off = t_offsets(t_i)
 			@vec { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.title(t_off)> -> 1 }
 in
-let interm0 = ext(`SortVec`, 0, interm0_unsort)
+let interm0 = ext(`SortedVec`, 0, interm0_unsort)
 let interm0_trie0 = sum(<i, _> <- range(ext(`Size`, interm0)))
     @st(ext(`Size`, interm0)) { interm0(i).col0 -> @range { i -> 1 } }
 in
