@@ -170,7 +170,7 @@ object CppCodegen {
       case External(SortedIndices.SYMBOL, Seq(arg))                                     =>
         s"sorted_indices(${run(arg)})"
       case External(SortVec.SYMBOL, Seq(n, arg))                                        =>
-        s"sort_vec<${run(n)}>(${run(arg)})"
+        s"sort_vec<${run(n)}>(std::move(${run(arg)}))"
       case External(name @ Inv.SYMBOL, _)                                               =>
         raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
       case External(Size.SYMBOL, Seq(arg))                                              =>

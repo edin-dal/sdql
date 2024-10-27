@@ -10,12 +10,10 @@ std::vector<int> sorted_indices(const std::vector<T> &vec)
 }
 
 template <size_t N, typename... T>
-bool tuple_cmp(const std::tuple<T...>& a, const std::tuple<T...>& b) {
-    return std::get<N>(a) < std::get<N>(b);
-}
-
-template <size_t N, typename... T>
 std::vector<std::tuple<T...>> sort_vec(std::vector<std::tuple<T...>> vec) {
-    std::sort(vec.begin(), vec.end(), tuple_cmp<N, T...>);
+    std::sort(vec.begin(), vec.end(), [](const std::tuple<T...>& a, const std::tuple<T...>& b)
+    {
+        return get<N>(a) < get<N>(b);
+    });
     return vec;
 }
