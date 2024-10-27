@@ -71,6 +71,7 @@ public:
 template<typename KT, typename VT>
 class SortedDict {
     vector<pair<KT, VT>> data_;
+	std::optional<std::pair<KT, std::reference_wrapper<VT>>> last_found;
 
 public:
 	SortedDict() = default;
@@ -91,6 +92,9 @@ public:
 	}
 
     inline VT &at(const KT &key) {
+		if(last_found.has_value() && last_found.value().first == key) {
+			return last_found.value().second;
+		}
         auto it = lower_bound(data_.begin(), data_.end(), key, [](const pair<KT, VT>& a, const KT& cmp_key) {
             return a.first < cmp_key;
         });
@@ -98,17 +102,24 @@ public:
             data_.emplace_back(key, VT());
             return data_.back().second;
         }
-        if (it->first != key)
-            data_.emplace(it, key, VT());
+        if (it->first != key) {
+	        data_.emplace(it, key, VT());
+        }
         return it->second;
     }
+
+	inline bool contains(const KT &key) {
+		return this->find(key) != this->end();
+	}
 
     inline typename vector<pair<KT, VT>>::iterator find(const KT &key) {
         auto it = lower_bound(data_.begin(), data_.end(), key, [](const pair<KT, VT>& a, const KT& cmp_key) {
             return a.first < cmp_key;
         });
-        if (it != data_.end() && it->first == key)
-            return it;
+        if (it != data_.end() && it->first == key) {
+	        last_found = std::pair(key, std::ref(it->second));
+        	return it;
+        }
         return data_.end();
     }
 
@@ -116,8 +127,10 @@ public:
         auto it = lower_bound(data_.begin(), data_.end(), key, [](const pair<KT, VT>& a, const KT& cmp_key) {
             return a.first < cmp_key;
         });
-        if (it != data_.end() && it->first == key)
-            return it;
+        if (it != data_.end() && it->first == key) {
+        	last_found = std::pair(key, std::ref(it->second));
+	        return it;
+        }
         return data_.end();
     }
 
@@ -136,9 +149,4 @@ public:
     inline typename vector<pair<KT, VT>>::const_iterator end() const {
         return data_.end();
     }
-
-	// TODO convenience method - get rid of this
-	inline bool contains(const KT &key) {
-		return this->find(key) != this->end();
-	}
 };
