@@ -116,7 +116,7 @@ object TypeInference {
       }
       DictType(IntType, IntType, Vec(size))
     // TODO
-    case External(SortedVec.SYMBOL, args)                                                                    =>
+    case External(SortedVec.SYMBOL, args)                                                                  =>
       val (_, arg) = args match { case Seq(Const(n: Int), arg) => (n, arg) }
       run(arg)
     case External(Inv.SYMBOL, args)                                                                        =>
