@@ -220,7 +220,6 @@ object CppCodegen {
       case Modify(e, destination) =>
         val (lhs, rhs) = cppLhsRhs(e, destination)
         TypeInference.run(e) match {
-          // TODO remove special case
           // avoiding tuple construction in emplace_back has negligible performance gains
           case DictType(IntType, _: RecordType, Vec(None)) => s"$lhs.emplace_back($rhs);"
           case _                                           => s"$lhs = $rhs;"
@@ -330,7 +329,7 @@ object CppCodegen {
       case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _)                                 =>
         (Seq(k), rhs)
       case DictNode(Seq((k @ RecNode(_), Const(1))), _: Vec)                                             =>
-        (Seq(), k) // TODO remove special case
+        (Seq(), k)
       case DictNode(Seq((k, rhs)), _)                                                                    =>
         (Seq(k), rhs)
       case DictNode(map, _) if map.length != 1                                                           =>
