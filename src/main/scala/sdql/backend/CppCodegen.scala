@@ -221,7 +221,7 @@ object CppCodegen {
         val (lhs, rhs) = cppLhsRhs(e, destination)
         TypeInference.run(e) match {
           // TODO remove special case
-          // TODO don't construct tuple
+          // avoiding tuple construction in emplace_back has negligible performance gains
           case DictType(IntType, _: RecordType, Vec(None)) => s"$lhs.emplace_back($rhs);"
           case _                                           => s"$lhs = $rhs;"
         }
