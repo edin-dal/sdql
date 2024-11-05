@@ -104,6 +104,11 @@ class ParserTest extends AnyFlatSpec with Matchers {
     sdql"range(x.z)" should be(RangeNode(FieldNode(Sym("x"), "z")))
   }
 
+  it should "work for int hints" in {
+    sdql"@int 2147483647" should be(Const(2147483647))
+    sdql"@long 2147483648" should be(Const(2147483648L))
+  }
+
   it should "work for dict hints" in {
     sdql"@phmap {0 -> 1}" should be(DictNode(Seq(Const(0) -> Const(1)), PHmap()))
     sdql"@phmap {x -> y}" should be(DictNode(Seq(Sym("x") -> Sym("y")), PHmap()))
@@ -202,7 +207,7 @@ class ParserTest extends AnyFlatSpec with Matchers {
     SourceCode.fromFile("progs/tpch/q22.sdql")
   }
 
-  it should "parse GJ" in {
+  it should "parse JOB GJ" in {
     SourceCode.fromFile("progs/job/gj/1a.sdql")
     SourceCode.fromFile("progs/job/gj/1b.sdql")
     SourceCode.fromFile("progs/job/gj/1c.sdql")
@@ -345,7 +350,7 @@ class ParserTest extends AnyFlatSpec with Matchers {
     SourceCode.fromFile("progs/job/gj/33c.sdql")
   }
 
-  it should "parse FJ" in {
+  it should "parse JOB FJ" in {
     SourceCode.fromFile("progs/job/fj/1a.sdql")
     SourceCode.fromFile("progs/job/fj/1b.sdql")
     SourceCode.fromFile("progs/job/fj/1c.sdql")
@@ -486,5 +491,19 @@ class ParserTest extends AnyFlatSpec with Matchers {
     SourceCode.fromFile("progs/job/fj/33a.sdql")
     SourceCode.fromFile("progs/job/fj/33b.sdql")
     SourceCode.fromFile("progs/job/fj/33c.sdql")
+  }
+
+  it should "parse LSQB GJ" in {
+    SourceCode.fromFile("progs/lsqb/gj/q1.sdql")
+    SourceCode.fromFile("progs/lsqb/gj/q2.sdql")
+    SourceCode.fromFile("progs/lsqb/gj/q4.sdql")
+    SourceCode.fromFile("progs/lsqb/gj/q5.sdql")
+  }
+
+  it should "parse LSQB FJ" in {
+    SourceCode.fromFile("progs/lsqb/fj/q1.sdql")
+    SourceCode.fromFile("progs/lsqb/fj/q2.sdql")
+    SourceCode.fromFile("progs/lsqb/fj/q4.sdql")
+    SourceCode.fromFile("progs/lsqb/fj/q5.sdql")
   }
 }
