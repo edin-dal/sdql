@@ -9,6 +9,8 @@ let person = load[<PersonId: @vec {int -> long}, isLocatedIn_CityId: @vec {int -
 let city = load[<CityId: @vec {int -> long}, isPartOf_CountryId: @vec {int -> long}, size: int>]("datasets/lsqb/City.csv") in
 let country = load[<CountryId: @vec {int -> long}, isPartOf_ContinentId: @vec {int -> long}, size: int>]("datasets/lsqb/Country.csv") in
 
+timer
+
 let tagclass_trie0 = sum(<i, _> <- range(tagclass.size)) @phmap(tagclass.size) { tagclass.TagClassId(i) -> 1 } in
 let interm0_trie0 = sum(<tag_off, _> <- range(tag.size))
 	let x0 = tag.hasType_TagClassId(tag_off) in
