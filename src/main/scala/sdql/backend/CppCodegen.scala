@@ -169,7 +169,7 @@ object CppCodegen {
         s"${run(on)}.lastIndex(${run(patt)})"
       case External(SortedIndices.SYMBOL, Seq(arg))                                     =>
         s"sorted_indices(${run(arg)})"
-      case External(SortedVec.SYMBOL, Seq(n, arg))                                        =>
+      case External(SortedVec.SYMBOL, Seq(n, arg))                                      =>
         s"sort_vec<${run(n)}>(std::move(${run(arg)}))"
       case External(name @ Inv.SYMBOL, _)                                               =>
         raise(s"$name should have been handled by ${Mult.getClass.getSimpleName.init}")
@@ -255,8 +255,8 @@ object CppCodegen {
 
   private def load(e: Load, name: String) = (e: @unchecked) match {
     case Load(path, tp: RecordType, skipCols) =>
-      // TODO don't hardcode 0
-      // NaN handling for LSQB queries (different value in each table avoids joining them)
+      // note: NaN handling is required for LSQB queries - we replace NaN with the same value in every table, this works
+      // a more robust approach would assign a different NaN value to each table, in case NaNs get joined - but no need
       val document    =
         s"""const rapidcsv::Document ${name.toUpperCase}_CSV("../$path", NO_HEADERS, SEPARATOR, IntNanConverter(0));"""
       val skipColsSet = skipCols.toSkipColsSet
