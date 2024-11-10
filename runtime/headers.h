@@ -18,6 +18,7 @@
 #include "agg_helper.h"
 #include "bench_helper.h"
 #include "csv_helper.h"
+#include "debug_helper.h"
 #include "sorted_dict.h"
 #include "smallvecdict.h"
 #include "smallvecdicts.h"
