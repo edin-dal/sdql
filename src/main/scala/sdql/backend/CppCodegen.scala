@@ -49,7 +49,7 @@ object CppCodegen {
           case _: RangeNode => s"${cppType(IntType)} ${k.name} = 0; ${k.name} < ${run(e1)}; ${k.name}++"
           case _            =>
             val lhs = TypeInference.run(e1)(typesLocal) match {
-              case DictType(_, _, _: PHmap)                 => s"&[${k.name}, ${v.name}]"
+              case DictType(_, _, _: PHmap | SortedDict(_)) => s"&[${k.name}, ${v.name}]"
               case DictType(_, _, _: SmallVecDict)          => s"&${k.name}"
               case DictType(_, _, _: SmallVecDicts | Range) => s"${k.name}"
               case DictType(_, _, hint)                     => raise(s"unexpected dictionary hint: $hint")
