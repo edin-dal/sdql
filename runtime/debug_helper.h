@@ -5,7 +5,7 @@
 #include "smallvecdict.h"
 #include "sorted_dict.h"
 
-// compares trie with one level of nesting to unsorted version
+// compares trie with 1 level of nesting to unsorted version
 template<size_t N>
 auto to_unsorted(const SortedDict<int, Range> & trie, const vector<int>& offsets) {
     phmap::flat_hash_map<int, smallvecdict<int, N>> unsorted(trie.size());
@@ -16,11 +16,10 @@ auto to_unsorted(const SortedDict<int, Range> & trie, const vector<int>& offsets
     }
     return unsorted;
 }
-
-// compares trie with two levels of nesting to unsorted version
-template<size_t N>
-auto to_unsorted(const SortedDict<int, SortedDict<int, Range>>& trie, const std::vector<int>& offsets) {
-    using InnerMapType = phmap::flat_hash_map<int, smallvecdict<int, N>>;
+// compares trie with > 1 level of nesting to unsorted version
+template<size_t N, typename NestedDict>
+auto to_unsorted(const SortedDict<int, NestedDict>& trie, const std::vector<int>& offsets) {
+    using InnerMapType = decltype(to_unsorted<N>(std::declval<NestedDict>(), offsets));
     phmap::flat_hash_map<int, InnerMapType> unsorted(trie.size());
     for (const auto& [x, inner_trie] : trie) {
         unsorted[x] = to_unsorted<N>(inner_trie, offsets);
