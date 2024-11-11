@@ -149,11 +149,4 @@ public:
     typename vector<pair<KT, VT>>::const_iterator end() const {
         return data_.end();
     }
-
-	auto keys_to_set() const {
-		std::set<KT> kset;
-		std::transform(data_.begin(), data_.end(), std::inserter(kset, kset.end()),
-					   [](const auto& pair) { return pair.first; });
-		return kset;
-	}
 };
