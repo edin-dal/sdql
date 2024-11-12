@@ -149,4 +149,11 @@ public:
     typename vector<pair<KT, VT>>::const_iterator end() const {
         return data_.end();
     }
+
+	bool operator==(const SortedDict& other) const {
+		return size() == other.size() &&
+			   std::equal(data_.begin(), data_.end(), other.data_.begin(), [](const auto& a, const auto& b) {
+				   return a.first == b.first && a.second.left() == b.second.left() && a.second.right() == b.second.right();
+			   });
+	}
 };
