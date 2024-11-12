@@ -109,12 +109,15 @@ object TypeInference {
     case External(StrIndexOf.SYMBOL | FirstIndex.SYMBOL | LastIndex.SYMBOL | Year.SYMBOL, _)               => IntType
     case External(ParseDate.SYMBOL, _)                                                                     => DateType
     case External(name @ SortedIndices.SYMBOL, args)                                                       =>
-      val arg  = args match { case Seq(e) => e }
-      val size = run(arg) match {
-        case DictType(IntType, _, Vec(size)) => size
-        case tpe                             => raise(s"$name unexpect arg ${tpe.simpleName}")
+      val sizes = args.map { arg =>
+        run(arg) match {
+          case DictType(IntType, _, Vec(size)) => size
+          case tpe                             => raise(s"$name unexpected arg ${tpe.simpleName}")
+        }
       }
-      DictType(IntType, IntType, Vec(size))
+      if (sizes.distinct.size != 1)
+        raise(s"$name requires all arguments to have the same size")
+      DictType(IntType, IntType, Vec(sizes.head))
     case External(SortedVec.SYMBOL, args)                                                                  =>
       val (_, arg) = args match { case Seq(Const(n: Int), arg) => (n, arg) }
       run(arg)

@@ -167,8 +167,8 @@ object CppCodegen {
         s"${run(on)}.firstIndex(${run(patt)})"
       case External(LastIndex.SYMBOL, Seq(on, patt))                                    =>
         s"${run(on)}.lastIndex(${run(patt)})"
-      case External(SortedIndices.SYMBOL, Seq(arg))                                     =>
-        s"sorted_indices(${run(arg)})"
+      case External(SortedIndices.SYMBOL, args)                                         =>
+        s"sorted_indices(${args.map(run).mkString(", ")})"
       case External(SortedVec.SYMBOL, Seq(n, arg))                                      =>
         s"sort_vec<${run(n)}>(std::move(${run(arg)}))"
       case External(name @ Inv.SYMBOL, _)                                               =>
