@@ -24,12 +24,12 @@ object CppCodegen {
       case LetBinding(x @ Sym(name), e1, e2) =>
         val isTernary = !cond(e1) { case _: Sum | _: Initialise => true }
         val e1Cpp     = e1 match {
-          case e: Load                                 => load(e, name)
-          case e1 @ External(ConstantString.SYMBOL, _) =>
+          case e: Load                                                        => load(e, name)
+          case e1 @ External(ConstantString.SYMBOL | SortedIndices.SYMBOL, _) =>
             s"const auto $name = ${run(e1)(typesCtx, isTernary, benchmarkRuns)};"
-          case e1: Const                               =>
+          case e1: Const                                                      =>
             s"constexpr auto $name = ${run(e1)(Map(), isTernary = false, benchmarkRuns)};"
-          case _                                       =>
+          case _                                                              =>
             val isRetrieval = cond(e1) { case _: FieldNode | _: Get => true }
             def isDict      = cond(TypeInference.run(e1)) { case _: DictType => true }
             val cppName     = if (isRetrieval && isDict) s"&$name" else name
@@ -227,7 +227,7 @@ object CppCodegen {
 
       case Timer(e) =>
         val benchStart =
-          if (benchmarkRuns == 0) ""
+          if (benchmarkRuns == 0) "\n"
           else
             // note: first benchmark run is warmup
             s"""|\n
@@ -280,8 +280,8 @@ object CppCodegen {
         else Seq(s"/* size */static_cast<${cppType(IntType)}>(${name.toUpperCase}_CSV.GetRowCount())")
       val init        = (readCols ++ readSize).mkString(",\n")
       s"""$document
-         |auto ${name.toLowerCase} = ${cppType(tp, noTemplate = true)}($init);
-         |\n""".stripMargin
+         |const auto ${name.toLowerCase} = ${cppType(tp, noTemplate = true)}($init);
+         |""".stripMargin
   }
 
   private def ternary(e: IfThenElse)(implicit typesCtx: TypesCtx, benchmarkRuns: Int)                     = e match {
