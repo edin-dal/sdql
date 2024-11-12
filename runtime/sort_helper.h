@@ -1,12 +1,22 @@
 #pragma once
 
-template <typename T>
-std::vector<int> sorted_indices(const std::vector<T> &vec)
+template <typename T, typename... Ts>
+std::vector<int> sorted_indices(const std::vector<T>& vec0, const std::vector<Ts>&... vecs)
 {
-    vector<int> v(vec.size());
-    iota(v.begin(), v.end(), 0);
-    sort(v.begin(), v.end(), [&](const int i, const int j) { return vec[i] < vec[j]; });
-    return v;
+    // Ensure all vectors are the same size
+    const std::size_t size = vec0.size();
+    assert(((vecs.size() == size) && ...));
+
+    // Initialize the indices vector
+    std::vector<int> indices(size);
+    std::iota(indices.begin(), indices.end(), 0);
+
+    // Sort indices based on multi-vector lexicographic order
+    std::sort(indices.begin(), indices.end(), [&](int i, int j) {
+        return std::tie(vec0[i], vecs[i]...) < std::tie(vec0[j], vecs[j]...);
+    });
+
+    return indices;
 }
 
 template <size_t N, typename... T>
