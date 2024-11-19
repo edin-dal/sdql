@@ -644,6 +644,32 @@ class CppCompileTestLSQBFJ3 extends AnyFlatSpec with ParallelTestExecution with 
   }
 }
 
+class CppCompileTestJOBSorting extends AnyFlatSpec with ParallelTestExecution {
+
+  object TestJOBSorting extends Tag("TestJOBSorting")
+
+  it should "compile and run JOB 3a" taggedAs TestJOBSorting in {
+    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/3a.sdql", "results/job/3a.result")
+    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/3a.sdql", "results/job/3a.result")
+    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/3a_optimised.sdql", "results/job/3a.result")
+  }
+
+  it should "compile and run JOB FJ 10a pure sorting" taggedAs TestJOBSorting in CompileHelpers.assertOutputs(
+    "progs/sorting/job/fj_pure/10a.sdql",
+    "results/job/10a.result"
+  )
+
+  it should "compile and run JOB GJ 13a hybrid sorting" taggedAs TestJOBSorting in {
+    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/13a.sdql", "results/job/13a.result")
+    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/13a_optimised.sdql", "results/job/13a.result")
+  }
+
+  it should "compile and run JOB GJ 13b hybrid sorting" taggedAs TestJOBSorting in CompileHelpers.assertOutputs(
+    "progs/sorting/job/gj_hybrid/13b.sdql",
+    "results/job/13b.result"
+  )
+}
+
 object DatasetsHelpers {
 
   sealed trait Dataset

@@ -17,6 +17,7 @@ Test / testOptions ++= Seq(
   // require converting from Parquet to CSV the JOB datasets of https://github.com/SIGMOD23p561/free-join
   Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestJOBGJ"),
   Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestJOBFJ"),
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestJOBSorting"),
   // require converting from Parquet to CSV the LSQB datasets of https://github.com/remysucre/gj-vs-binary
   Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestLSQBGJ0_1"),
   Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestLSQBFJ0_1"),
