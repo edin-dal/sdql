@@ -19,9 +19,6 @@ let cn_offsets = ext(`SortedIndices`, cn.id)
 
 timer
 
-// TODO remove this comment
-// this solution is based on the original hashmap query (correct, works)
-
 let t_trie0 = sum(<i, _> <- range(t.size)) @st(t.size) { t.id(t_offsets(i)) -> @range { i -> 1 } } in
 let miidx_trie0 = sum(<i, _> <- range(miidx.size)) @st(miidx.size)  { miidx.movie_id(miidx_offsets(i)) -> @range { i -> 1 } } in
 let interm0_trie0 = sum(<x0, t_trie1> <- t_trie0)
