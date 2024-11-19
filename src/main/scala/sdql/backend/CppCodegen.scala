@@ -323,18 +323,21 @@ object CppCodegen {
     exps.map(e => s"[${run(e)}]").mkString("")
   private def splitNested(e: Exp): (Seq[Exp], Exp)                                                                   =
     e match {
-      case DictNode(Seq((k, v @ DictNode(_, _: PHmap | Range | _: SmallVecDict | _: SmallVecDicts))), _) =>
+      case DictNode(
+            Seq((k, v @ DictNode(_, _: PHmap | Range | _: SmallVecDict | _: SmallVecDicts | _: SortedDict))),
+            _
+          ) =>
         val (lhs, rhs) = splitNested(v)
         (Seq(k) ++ lhs, rhs)
-      case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _)                                 =>
+      case DictNode(Seq((k, DictNode(Seq((rhs, Const(1))), _: Vec))), _) =>
         (Seq(k), rhs)
-      case DictNode(Seq((k @ RecNode(_), Const(1))), _: Vec)                                             =>
+      case DictNode(Seq((k @ RecNode(_), Const(1))), _: Vec)             =>
         (Seq(), k)
-      case DictNode(Seq((k, rhs)), _)                                                                    =>
+      case DictNode(Seq((k, rhs)), _)                                    =>
         (Seq(k), rhs)
-      case DictNode(map, _) if map.length != 1                                                           =>
+      case DictNode(map, _) if map.length != 1                           =>
         raise(s"unsupported: $e")
-      case _                                                                                             =>
+      case _                                                             =>
         (Seq(), e)
     }
 
