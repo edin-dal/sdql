@@ -654,9 +654,19 @@ class CppCompileTestJOBSorting extends AnyFlatSpec with ParallelTestExecution {
     CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/3a_optimised.sdql", "results/job/3a.result")
   }
 
+  it should "compile and run JOB FJ 8a pure sorting" taggedAs TestJOBSorting in CompileHelpers.assertOutputs(
+    "progs/sorting/job/fj_pure/8a.sdql",
+    "results/job/8a.result"
+  )
+
   it should "compile and run JOB FJ 10a pure sorting" taggedAs TestJOBSorting in CompileHelpers.assertOutputs(
     "progs/sorting/job/fj_pure/10a.sdql",
     "results/job/10a.result"
+  )
+
+  it should "compile and run JOB FJ 12b pure sorting" taggedAs TestJOBSorting in CompileHelpers.assertOutputs(
+    "progs/sorting/job/fj_pure/12b.sdql",
+    "results/job/12b.result"
   )
 
   it should "compile and run JOB GJ 13a hybrid sorting" taggedAs TestJOBSorting in {
@@ -667,6 +677,16 @@ class CppCompileTestJOBSorting extends AnyFlatSpec with ParallelTestExecution {
   it should "compile and run JOB GJ 13b hybrid sorting" taggedAs TestJOBSorting in CompileHelpers.assertOutputs(
     "progs/sorting/job/gj_hybrid/13b.sdql",
     "results/job/13b.result"
+  )
+
+  it should "compile and run JOB FJ 17b pure sorting" taggedAs TestJOBSorting in CompileHelpers.assertOutputs(
+    "progs/sorting/job/fj_pure/17b.sdql",
+    "results/job/17b.result"
+  )
+
+  it should "compile and run JOB FJ 17f pure sorting" taggedAs TestJOBSorting in CompileHelpers.assertOutputs(
+    "progs/sorting/job/fj_pure/17f.sdql",
+    "results/job/17f.result"
   )
 }
 
