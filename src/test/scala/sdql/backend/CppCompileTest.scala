@@ -685,10 +685,10 @@ class CppCompileTestJOBSorting extends AnyFlatSpec with ParallelTestExecution {
     CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/17b.sdql", "results/job/17b.result")
   }
 
-  it should "compile and run JOB FJ 17f pure sorting" taggedAs TestJOBSorting in CompileHelpers.assertOutputs(
-    "progs/sorting/job/fj_pure/17f.sdql",
-    "results/job/17f.result"
-  )
+  it should "compile and run JOB 17f" taggedAs TestJOBSorting in {
+    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/17f.sdql", "results/job/17f.result")
+    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/17f.sdql", "results/job/17f.result")
+  }
 }
 
 object DatasetsHelpers {

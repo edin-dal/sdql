@@ -561,6 +561,7 @@ class CppCodegenTestJOBSorting extends AnyFlatSpec with ParallelTestExecution {
   it should "codegen JOB FJ 17b pure sorting" in CodegenHelpers.compilesFile("progs/sorting/job/fj_pure/17b.sdql")
   it should "codegen JOB FJ 17b hybrid sorting" in CodegenHelpers.compilesFile("progs/sorting/job/fj_hybrid/17b.sdql")
   it should "codegen JOB FJ 17f pure sorting" in CodegenHelpers.compilesFile("progs/sorting/job/fj_pure/17f.sdql")
+  it should "codegen JOB FJ 17f hybrid sorting" in CodegenHelpers.compilesFile("progs/sorting/job/fj_hybrid/17f.sdql")
 }
 
 object CodegenHelpers {
