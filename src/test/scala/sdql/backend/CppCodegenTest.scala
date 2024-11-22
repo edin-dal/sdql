@@ -543,16 +543,20 @@ class CppCodegenTestLSQB extends AnyFlatSpec with ParallelTestExecution {
 
 class CppCodegenTestJOBSorting extends AnyFlatSpec with ParallelTestExecution {
   it should "codegen JOB FJ 3a pure sorting" in CodegenHelpers.compilesFile("progs/sorting/job/fj_pure/3a.sdql")
-  it should "codegen JOB FJ 10a pure sorting" in CodegenHelpers.compilesFile("progs/sorting/job/fj_pure/10a.sdql")
   it should "codegen JOB GJ 3a hybrid sorting" in CodegenHelpers.compilesFile("progs/sorting/job/gj_hybrid/3a.sdql")
   it should "codegen JOB GJ 3a hybrid sorting (optimised)" in CodegenHelpers.compilesFile(
     "progs/sorting/job/gj_hybrid/3a_optimised.sdql"
   )
+  it should "codegen JOB FJ 8a pure sorting" in CodegenHelpers.compilesFile("progs/sorting/job/fj_pure/8a.sdql")
+  it should "codegen JOB FJ 10a pure sorting" in CodegenHelpers.compilesFile("progs/sorting/job/fj_pure/10a.sdql")
+  it should "codegen JOB FJ 12b pure sorting" in CodegenHelpers.compilesFile("progs/sorting/job/fj_pure/12b.sdql")
   it should "codegen JOB GJ 13a hybrid sorting" in CodegenHelpers.compilesFile("progs/sorting/job/gj_hybrid/13a.sdql")
   it should "codegen JOB GJ 13a hybrid sorting (optimised)" in CodegenHelpers.compilesFile(
     "progs/sorting/job/gj_hybrid/13a_optimised.sdql"
   )
   it should "codegen JOB GJ 13b hybrid sorting" in CodegenHelpers.compilesFile("progs/sorting/job/gj_hybrid/13b.sdql")
+  it should "codegen JOB FJ 17b pure sorting" in CodegenHelpers.compilesFile("progs/sorting/job/fj_pure/17b.sdql")
+  it should "codegen JOB FJ 17f pure sorting" in CodegenHelpers.compilesFile("progs/sorting/job/fj_pure/17f.sdql")
 }
 
 object CodegenHelpers {
