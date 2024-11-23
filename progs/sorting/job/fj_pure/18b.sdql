@@ -1,0 +1,61 @@
+let t = load[<id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, imdb_id: @vec {int -> string}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, series_years: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/18b/t.csv")
+let t_offsets = ext(`SortedIndices`, t.id)
+let mi_idx = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type_id: @vec {int -> int}, info: @vec {int -> string}, note: @vec {int -> string}, size: int>]("datasets/job/18b/mi_idx.csv")
+let mi_idx_offsets = ext(`SortedIndices`, mi_idx.movie_id)
+let mi = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type_id: @vec {int -> int}, info: @vec {int -> string}, note: @vec {int -> string}, size: int>]("datasets/job/18b/mi.csv")
+let mi_offsets = ext(`SortedIndices`, mi.movie_id)
+let it2 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/18b/it2.csv")
+let it2_offsets = ext(`SortedIndices`, it2.id)
+let it1 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/18b/it1.csv")
+let it1_offsets = ext(`SortedIndices`, it1.id)
+let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @vec {int -> int}, person_role_id: @vec {int -> int}, note: @vec {int -> string}, nr_order: @vec {int -> int}, role_id: @vec {int -> int}, size: int>]("datasets/job/18b/ci.csv")
+let ci_offsets = ext(`SortedIndices`, ci.person_id)
+let n = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> string}, gender: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/18b/n.csv")
+let n_offsets = ext(`SortedIndices`, n.id)
+
+timer
+
+let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size)) @st(mi_idx.size) { mi_idx.movie_id(mi_idx_offsets(i)) -> @range { i -> 1 } } in
+let interm0_unsort = sum(<t_off, _> <- range(t.size))
+	let x0 = t.id(t_off) in
+	if (x0 ∈ mi_idx_trie0) then
+		let mi_idx_trie1 = mi_idx_trie0(x0) in
+		sum(<mi_idx_i, _> <- mi_idx_trie1)
+			let mi_idx_off = mi_idx_offsets(mi_idx_i)
+			@vec { <col0=t.id(t_off), col1=t.title(t_off), col2=mi_idx.info_type_id(mi_idx_off), col3=mi_idx.info(mi_idx_off)> -> 1 }
+in
+
+let interm0 = ext(`SortedVec`, 0, interm0_unsort)
+let interm0_trie0 = sum(<i, _> <- range(ext(`Size`, interm0))) @st(ext(`Size`, interm0)) { interm0(i).col0 -> @range { i -> 1 } } in
+
+let it2_trie0 = sum(<i, _> <- range(it2.size)) @st(it2.size) { it2.id(it2_offsets(i)) -> 1 } in
+let it1_trie0 = sum(<i, _> <- range(it1.size)) @st(it1.size) { it1.id(it1_offsets(i)) -> 1 } in
+let interm1_unsort = sum(<mi_off, _> <- range(mi.size))
+	let x0 = mi.movie_id(mi_off) in
+	if (x0 ∈ interm0_trie0) then
+		let interm0_trie1 = interm0_trie0(x0) in
+		sum(<interm0_off, _> <- interm0_trie1)
+			let interm0_tuple = interm0(interm0_off)
+			let x1 = interm0_tuple.col2 in
+			if (x1 ∈ it2_trie0) then
+				let it2_trie1 = it2_trie0(x1) in
+				let x2 = mi.info_type_id(mi_off) in
+				if (x2 ∈ it1_trie0) then
+					let it1_trie1 = it1_trie0(x2) in
+					@vec { <col0=mi.movie_id(mi_off), col1=mi.info_type_id(mi_off), col2=mi.info(mi_off), col3=interm0_tuple.col2, col4=interm0_tuple.col1, col5=interm0_tuple.col3> -> 1 }
+in
+
+let interm1 = ext(`SortedVec`, 0, interm1_unsort)
+let interm1_trie0 = sum(<i, _> <- range(ext(`Size`, interm1))) @st(ext(`Size`, interm1)) { interm1(i).col0 -> @range { i -> 1 } } in
+
+let n_trie0 = sum(<i, _> <- range(n.size)) @st(n.size) { n.id(n_offsets(i)) -> 1 } in
+sum(<ci_off, _> <- range(ci.size))
+	let x0 = ci.movie_id(ci_off) in
+	if (x0 ∈ interm1_trie0) then
+		let interm1_trie1 = interm1_trie0(x0) in
+		let x1 = ci.person_id(ci_off) in
+		if (x1 ∈ n_trie0) then
+			let n_trie1 = n_trie0(x1) in
+			let mn_interm1 = sum(<interm1_off, _> <- interm1_trie1) let interm1_tuple = interm1(interm1_off) in promote[min_sum](<col2=interm1_tuple.col2, col4=interm1_tuple.col4, col5=interm1_tuple.col5>) in
+			promote[min_sum](<col3=mn_interm1.col2, col5=mn_interm1.col4, col6=mn_interm1.col5>)
+
