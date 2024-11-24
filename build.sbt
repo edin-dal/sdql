@@ -18,7 +18,8 @@ Test / testOptions ++= Seq(
   Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestJOBGJ"),
   Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestJOBFJ"),
   Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestJOBFJSorting"),
-  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestJOBHybrid"),
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestJOBFJHybrid"),
+  Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestJOBGJHybrid"),
   // require converting from Parquet to CSV the LSQB datasets of https://github.com/remysucre/gj-vs-binary
   Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestLSQBGJ0_1"),
   Tests.Argument(TestFrameworks.ScalaTest, "-l", "TestLSQBFJ0_1"),
