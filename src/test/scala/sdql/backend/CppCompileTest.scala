@@ -472,6 +472,507 @@ class CppCompileTestJOBFJ extends AnyFlatSpec with ParallelTestExecution {
   }
 }
 
+// note: DON'T run all cases in parallel - unless you have ~64GB of ram
+class CppCompileTestJOBFJSorting extends AnyFlatSpec with ParallelTestExecution {
+
+  // note: these tests expect JOB files to be present in your datasets folder
+  private object TestJOBFJSorting extends Tag("TestJOBFJSorting")
+
+  it should "compile and run JOB FJ 1-5 & 8-15" taggedAs TestJOBFJSorting in {
+    // 1-5
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/1a.sdql", "results/job/1a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/1b.sdql", "results/job/1b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/1c.sdql", "results/job/1c.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/1d.sdql", "results/job/1d.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/2a.sdql", "results/job/2a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/2b.sdql", "results/job/2b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/2d.sdql", "results/job/2d.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/3a.sdql", "results/job/3a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/3b.sdql", "results/job/3b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/3c.sdql", "results/job/3c.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/4a.sdql", "results/job/4a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/4b.sdql", "results/job/4b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/4c.sdql", "results/job/4c.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/5c.sdql", "results/job/5c.result")
+
+    // 8-15
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/8a.sdql", "results/job/8a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/8b.sdql", "results/job/8b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/8c.sdql", "results/job/8c.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/8d.sdql", "results/job/8d.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/9a.sdql", "results/job/9a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/9b.sdql", "results/job/9b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/9c.sdql", "results/job/9c.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/9d.sdql", "results/job/9d.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/10a.sdql", "results/job/10a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/10c.sdql", "results/job/10c.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/11a.sdql", "results/job/11a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/11b.sdql", "results/job/11b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/11c.sdql", "results/job/11c.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/11d.sdql", "results/job/11d.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/12a.sdql", "results/job/12a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/12b.sdql", "results/job/12b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/12c.sdql", "results/job/12c.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/13a.sdql", "results/job/13a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/13b.sdql", "results/job/13b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/13c.sdql", "results/job/13c.result")
+    // note: producing_company min here is '68 Productions instead "O" Films due to ordering of ' < "
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/13d.sdql", "results/job/13d.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/14a.sdql", "results/job/14a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/14b.sdql", "results/job/14b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/14c.sdql", "results/job/14c.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/15a.sdql", "results/job/15a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/15b.sdql", "results/job/15b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/15c.sdql", "results/job/15c.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/15d.sdql", "results/job/15d.result")
+  }
+
+  it should "compile and run JOB FJ 6-7" taggedAs TestJOBFJSorting in {
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/6a.sdql", "results/job/6a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/6b.sdql", "results/job/6b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/6c.sdql", "results/job/6c.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/6d.sdql", "results/job/6d.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/6e.sdql", "results/job/6e.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/6f.sdql", "results/job/6f.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/7a.sdql", "results/job/7a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/7b.sdql", "results/job/7b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/7c.sdql", "results/job/7c.result")
+  }
+
+  it should "compile and run JOB FJ 16-17" taggedAs TestJOBFJSorting in {
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/16a.sdql", "results/job/16a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/16b.sdql", "results/job/16b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/16c.sdql", "results/job/16c.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/16d.sdql", "results/job/16d.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/17a.sdql", "results/job/17a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/17b.sdql", "results/job/17b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/17c.sdql", "results/job/17c.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/17d.sdql", "results/job/17d.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/17e.sdql", "results/job/17e.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/17f.sdql", "results/job/17f.result")
+  }
+
+  it should "compile and run JOB FJ 18-20 & 26" taggedAs TestJOBFJSorting in {
+    // 18-20
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/18a.sdql", "results/job/18a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/18b.sdql", "results/job/18b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/18c.sdql", "results/job/18c.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/19a.sdql", "results/job/19a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/19b.sdql", "results/job/19b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/19c.sdql", "results/job/19c.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/19d.sdql", "results/job/19d.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/20a.sdql", "results/job/20a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/20b.sdql", "results/job/20b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/20c.sdql", "results/job/20c.result")
+
+    // 26
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/26a.sdql", "results/job/26a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/26b.sdql", "results/job/26b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/26c.sdql", "results/job/26c.result")
+  }
+
+  it should "compile and run JOB FJ 21-25 & 27-33" taggedAs TestJOBFJSorting in {
+    // 21-25
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/21a.sdql", "results/job/21a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/21b.sdql", "results/job/21b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/21c.sdql", "results/job/21c.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/22a.sdql", "results/job/22a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/22b.sdql", "results/job/22b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/22c.sdql", "results/job/22c.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/22d.sdql", "results/job/22d.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/23a.sdql", "results/job/23a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/23b.sdql", "results/job/23b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/23c.sdql", "results/job/23c.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/24a.sdql", "results/job/24a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/24b.sdql", "results/job/24b.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/25a.sdql", "results/job/25a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/25b.sdql", "results/job/25b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/25c.sdql", "results/job/25c.result")
+
+    // 27-33
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/27a.sdql", "results/job/27a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/27b.sdql", "results/job/27b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/27c.sdql", "results/job/27c.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/28a.sdql", "results/job/28a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/28b.sdql", "results/job/28b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/28c.sdql", "results/job/28c.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/29a.sdql", "results/job/29a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/29b.sdql", "results/job/29b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/29c.sdql", "results/job/29c.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/30a.sdql", "results/job/30a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/30b.sdql", "results/job/30b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/30c.sdql", "results/job/30c.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/31a.sdql", "results/job/31a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/31b.sdql", "results/job/31b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/31c.sdql", "results/job/31c.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/32b.sdql", "results/job/32b.result")
+
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/33a.sdql", "results/job/33a.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/33b.sdql", "results/job/33b.result")
+    CompileHelpers.assertOutputs("progs/job/sorting/fj/33c.sdql", "results/job/33c.result")
+  }
+}
+
+// note: DON'T run all cases in parallel - unless you have ~64GB of ram
+class CppCompileTestJOBGJHybrid extends AnyFlatSpec with ParallelTestExecution {
+
+  // note: these tests expect JOB files to be present in your datasets folder
+  private object TestJOBGJHybrid extends Tag("TestJOBGJHybrid")
+
+  it should "compile and run JOB FJ 1-5 & 8-15" taggedAs TestJOBGJHybrid in {
+    // 1-5
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/1a.sdql", "results/job/1a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/1b.sdql", "results/job/1b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/1c.sdql", "results/job/1c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/1d.sdql", "results/job/1d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/2a.sdql", "results/job/2a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/2b.sdql", "results/job/2b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/2d.sdql", "results/job/2d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/3a.sdql", "results/job/3a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/3b.sdql", "results/job/3b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/3c.sdql", "results/job/3c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/4a.sdql", "results/job/4a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/4b.sdql", "results/job/4b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/4c.sdql", "results/job/4c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/5c.sdql", "results/job/5c.result")
+
+    // 8-15
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/8a.sdql", "results/job/8a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/8b.sdql", "results/job/8b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/8c.sdql", "results/job/8c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/8d.sdql", "results/job/8d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/9a.sdql", "results/job/9a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/9b.sdql", "results/job/9b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/9c.sdql", "results/job/9c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/9d.sdql", "results/job/9d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/10a.sdql", "results/job/10a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/10c.sdql", "results/job/10c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/11a.sdql", "results/job/11a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/11b.sdql", "results/job/11b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/11c.sdql", "results/job/11c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/11d.sdql", "results/job/11d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/12a.sdql", "results/job/12a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/12b.sdql", "results/job/12b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/12c.sdql", "results/job/12c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/13a.sdql", "results/job/13a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/13b.sdql", "results/job/13b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/13c.sdql", "results/job/13c.result")
+    // note: producing_company min here is '68 Productions instead "O" Films due to ordering of ' < "
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/13d.sdql", "results/job/13d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/14a.sdql", "results/job/14a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/14b.sdql", "results/job/14b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/14c.sdql", "results/job/14c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/15a.sdql", "results/job/15a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/15b.sdql", "results/job/15b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/15c.sdql", "results/job/15c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/15d.sdql", "results/job/15d.result")
+  }
+
+  it should "compile and run JOB FJ 6-7" taggedAs TestJOBGJHybrid in {
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/6a.sdql", "results/job/6a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/6b.sdql", "results/job/6b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/6c.sdql", "results/job/6c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/6d.sdql", "results/job/6d.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/6e.sdql", "results/job/6e.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/6f.sdql", "results/job/6f.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/7a.sdql", "results/job/7a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/7b.sdql", "results/job/7b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/7c.sdql", "results/job/7c.result")
+  }
+
+  it should "compile and run JOB FJ 16-17" taggedAs TestJOBGJHybrid in {
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/16a.sdql", "results/job/16a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/16b.sdql", "results/job/16b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/16c.sdql", "results/job/16c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/16d.sdql", "results/job/16d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/17a.sdql", "results/job/17a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/17b.sdql", "results/job/17b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/17c.sdql", "results/job/17c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/17d.sdql", "results/job/17d.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/17e.sdql", "results/job/17e.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/17f.sdql", "results/job/17f.result")
+  }
+
+  it should "compile and run JOB FJ 18-20 & 26" taggedAs TestJOBGJHybrid in {
+    // 18-20
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/18a.sdql", "results/job/18a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/18b.sdql", "results/job/18b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/18c.sdql", "results/job/18c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/19a.sdql", "results/job/19a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/19b.sdql", "results/job/19b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/19c.sdql", "results/job/19c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/19d.sdql", "results/job/19d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/20a.sdql", "results/job/20a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/20b.sdql", "results/job/20b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/20c.sdql", "results/job/20c.result")
+
+    // 26
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/26a.sdql", "results/job/26a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/26b.sdql", "results/job/26b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/26c.sdql", "results/job/26c.result")
+  }
+
+  it should "compile and run JOB FJ 21-25 & 27-33" taggedAs TestJOBGJHybrid in {
+    // 21-25
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/21a.sdql", "results/job/21a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/21b.sdql", "results/job/21b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/21c.sdql", "results/job/21c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/22a.sdql", "results/job/22a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/22b.sdql", "results/job/22b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/22c.sdql", "results/job/22c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/22d.sdql", "results/job/22d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/23a.sdql", "results/job/23a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/23b.sdql", "results/job/23b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/23c.sdql", "results/job/23c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/24a.sdql", "results/job/24a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/24b.sdql", "results/job/24b.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/25a.sdql", "results/job/25a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/25b.sdql", "results/job/25b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/25c.sdql", "results/job/25c.result")
+
+    // 27-33
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/27a.sdql", "results/job/27a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/27b.sdql", "results/job/27b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/27c.sdql", "results/job/27c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/28a.sdql", "results/job/28a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/28b.sdql", "results/job/28b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/28c.sdql", "results/job/28c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/29a.sdql", "results/job/29a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/29b.sdql", "results/job/29b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/29c.sdql", "results/job/29c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/30a.sdql", "results/job/30a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/30b.sdql", "results/job/30b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/30c.sdql", "results/job/30c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/31a.sdql", "results/job/31a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/31b.sdql", "results/job/31b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/31c.sdql", "results/job/31c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/32b.sdql", "results/job/32b.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/33a.sdql", "results/job/33a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/33b.sdql", "results/job/33b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/33c.sdql", "results/job/33c.result")
+  }
+
+  // TODO remove this after we "optimise" all the queries
+  it should "compile and run JOB GJ optimised" taggedAs TestJOBGJHybrid in {
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/3a_optimised.sdql", "results/job/3a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/gj/13a_optimised.sdql", "results/job/13a.result")
+  }
+}
+
+// note: DON'T run all cases in parallel - unless you have ~64GB of ram
+class CppCompileTestJOBFJHybrid extends AnyFlatSpec with ParallelTestExecution {
+
+  // note: these tests expect JOB files to be present in your datasets folder
+  private object TestJOBFJHybrid extends Tag("TestJOBFJHybrid")
+
+  it should "compile and run JOB FJ 1-5 & 8-15" taggedAs TestJOBFJHybrid in {
+    // 1-5
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/1a.sdql", "results/job/1a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/1b.sdql", "results/job/1b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/1c.sdql", "results/job/1c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/1d.sdql", "results/job/1d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/2a.sdql", "results/job/2a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/2b.sdql", "results/job/2b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/2d.sdql", "results/job/2d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/3a.sdql", "results/job/3a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/3b.sdql", "results/job/3b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/3c.sdql", "results/job/3c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/4a.sdql", "results/job/4a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/4b.sdql", "results/job/4b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/4c.sdql", "results/job/4c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/5c.sdql", "results/job/5c.result")
+
+    // 8-15
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/8a.sdql", "results/job/8a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/8b.sdql", "results/job/8b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/8c.sdql", "results/job/8c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/8d.sdql", "results/job/8d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/9a.sdql", "results/job/9a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/9b.sdql", "results/job/9b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/9c.sdql", "results/job/9c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/9d.sdql", "results/job/9d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/10a.sdql", "results/job/10a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/10c.sdql", "results/job/10c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/11a.sdql", "results/job/11a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/11b.sdql", "results/job/11b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/11c.sdql", "results/job/11c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/11d.sdql", "results/job/11d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/12a.sdql", "results/job/12a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/12b.sdql", "results/job/12b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/12c.sdql", "results/job/12c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/13a.sdql", "results/job/13a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/13b.sdql", "results/job/13b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/13c.sdql", "results/job/13c.result")
+    // note: producing_company min here is '68 Productions instead "O" Films due to ordering of ' < "
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/13d.sdql", "results/job/13d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/14a.sdql", "results/job/14a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/14b.sdql", "results/job/14b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/14c.sdql", "results/job/14c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/15a.sdql", "results/job/15a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/15b.sdql", "results/job/15b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/15c.sdql", "results/job/15c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/15d.sdql", "results/job/15d.result")
+  }
+
+  it should "compile and run JOB FJ 6-7" taggedAs TestJOBFJHybrid in {
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/6a.sdql", "results/job/6a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/6b.sdql", "results/job/6b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/6c.sdql", "results/job/6c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/6d.sdql", "results/job/6d.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/6e.sdql", "results/job/6e.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/6f.sdql", "results/job/6f.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/7a.sdql", "results/job/7a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/7b.sdql", "results/job/7b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/7c.sdql", "results/job/7c.result")
+  }
+
+  it should "compile and run JOB FJ 16-17" taggedAs TestJOBFJHybrid in {
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/16a.sdql", "results/job/16a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/16b.sdql", "results/job/16b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/16c.sdql", "results/job/16c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/16d.sdql", "results/job/16d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/17a.sdql", "results/job/17a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/17b.sdql", "results/job/17b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/17c.sdql", "results/job/17c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/17d.sdql", "results/job/17d.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/17e.sdql", "results/job/17e.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/17f.sdql", "results/job/17f.result")
+  }
+
+  it should "compile and run JOB FJ 18-20 & 26" taggedAs TestJOBFJHybrid in {
+    // 18-20
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/18a.sdql", "results/job/18a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/18b.sdql", "results/job/18b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/18c.sdql", "results/job/18c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/19a.sdql", "results/job/19a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/19b.sdql", "results/job/19b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/19c.sdql", "results/job/19c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/19d.sdql", "results/job/19d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/20a.sdql", "results/job/20a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/20b.sdql", "results/job/20b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/20c.sdql", "results/job/20c.result")
+
+    // 26
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/26a.sdql", "results/job/26a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/26b.sdql", "results/job/26b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/26c.sdql", "results/job/26c.result")
+  }
+
+  it should "compile and run JOB FJ 21-25 & 27-33" taggedAs TestJOBFJHybrid in {
+    // 21-25
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/21a.sdql", "results/job/21a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/21b.sdql", "results/job/21b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/21c.sdql", "results/job/21c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/22a.sdql", "results/job/22a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/22b.sdql", "results/job/22b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/22c.sdql", "results/job/22c.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/22d.sdql", "results/job/22d.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/23a.sdql", "results/job/23a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/23b.sdql", "results/job/23b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/23c.sdql", "results/job/23c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/24a.sdql", "results/job/24a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/24b.sdql", "results/job/24b.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/25a.sdql", "results/job/25a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/25b.sdql", "results/job/25b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/25c.sdql", "results/job/25c.result")
+
+    // 27-33
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/27a.sdql", "results/job/27a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/27b.sdql", "results/job/27b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/27c.sdql", "results/job/27c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/28a.sdql", "results/job/28a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/28b.sdql", "results/job/28b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/28c.sdql", "results/job/28c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/29a.sdql", "results/job/29a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/29b.sdql", "results/job/29b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/29c.sdql", "results/job/29c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/30a.sdql", "results/job/30a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/30b.sdql", "results/job/30b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/30c.sdql", "results/job/30c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/31a.sdql", "results/job/31a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/31b.sdql", "results/job/31b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/31c.sdql", "results/job/31c.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/32b.sdql", "results/job/32b.result")
+
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/33a.sdql", "results/job/33a.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/33b.sdql", "results/job/33b.result")
+    CompileHelpers.assertOutputs("progs/job/hybrid/fj/33c.sdql", "results/job/33c.result")
+  }
+}
+
 class CppCompileTestLSQBGJ0_1 extends AnyFlatSpec with ParallelTestExecution with BeforeAndAfterAll {
 
   // note: these tests expect LSQB files with scaling factor 0.1 to be present in your datasets folder
@@ -641,507 +1142,6 @@ class CppCompileTestLSQBFJ3 extends AnyFlatSpec with ParallelTestExecution with 
   }
   it should "compile and run LSQB FJ Q5 SF=3" taggedAs TestLSQBFJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q5.sdql", "results/lsqb/SF_3/q5.result")
-  }
-}
-
-// note: DON'T run all cases in parallel - unless you have ~64GB of ram
-class CppCompileTestJOBFJSorting extends AnyFlatSpec with ParallelTestExecution {
-
-  // note: these tests expect JOB files to be present in your datasets folder
-  private object TestJOBFJSorting extends Tag("TestJOBFJSorting")
-
-  it should "compile and run JOB FJ 1-5 & 8-15" taggedAs TestJOBFJSorting in {
-    // 1-5
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/1a.sdql", "results/job/1a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/1b.sdql", "results/job/1b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/1c.sdql", "results/job/1c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/1d.sdql", "results/job/1d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/2a.sdql", "results/job/2a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/2b.sdql", "results/job/2b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/2d.sdql", "results/job/2d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/3a.sdql", "results/job/3a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/3b.sdql", "results/job/3b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/3c.sdql", "results/job/3c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/4a.sdql", "results/job/4a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/4b.sdql", "results/job/4b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/4c.sdql", "results/job/4c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/5c.sdql", "results/job/5c.result")
-
-    // 8-15
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/8a.sdql", "results/job/8a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/8b.sdql", "results/job/8b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/8c.sdql", "results/job/8c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/8d.sdql", "results/job/8d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/9a.sdql", "results/job/9a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/9b.sdql", "results/job/9b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/9c.sdql", "results/job/9c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/9d.sdql", "results/job/9d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/10a.sdql", "results/job/10a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/10c.sdql", "results/job/10c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/11a.sdql", "results/job/11a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/11b.sdql", "results/job/11b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/11c.sdql", "results/job/11c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/11d.sdql", "results/job/11d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/12a.sdql", "results/job/12a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/12b.sdql", "results/job/12b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/12c.sdql", "results/job/12c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/13a.sdql", "results/job/13a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/13b.sdql", "results/job/13b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/13c.sdql", "results/job/13c.result")
-    // note: producing_company min here is '68 Productions instead "O" Films due to ordering of ' < "
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/13d.sdql", "results/job/13d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/14a.sdql", "results/job/14a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/14b.sdql", "results/job/14b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/14c.sdql", "results/job/14c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/15a.sdql", "results/job/15a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/15b.sdql", "results/job/15b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/15c.sdql", "results/job/15c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/15d.sdql", "results/job/15d.result")
-  }
-
-  it should "compile and run JOB FJ 6-7" taggedAs TestJOBFJSorting in {
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/6a.sdql", "results/job/6a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/6b.sdql", "results/job/6b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/6c.sdql", "results/job/6c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/6d.sdql", "results/job/6d.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/6e.sdql", "results/job/6e.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/6f.sdql", "results/job/6f.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/7a.sdql", "results/job/7a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/7b.sdql", "results/job/7b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/7c.sdql", "results/job/7c.result")
-  }
-
-  it should "compile and run JOB FJ 16-17" taggedAs TestJOBFJSorting in {
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/16a.sdql", "results/job/16a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/16b.sdql", "results/job/16b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/16c.sdql", "results/job/16c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/16d.sdql", "results/job/16d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/17a.sdql", "results/job/17a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/17b.sdql", "results/job/17b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/17c.sdql", "results/job/17c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/17d.sdql", "results/job/17d.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/17e.sdql", "results/job/17e.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/17f.sdql", "results/job/17f.result")
-  }
-
-  it should "compile and run JOB FJ 18-20 & 26" taggedAs TestJOBFJSorting in {
-    // 18-20
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/18a.sdql", "results/job/18a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/18b.sdql", "results/job/18b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/18c.sdql", "results/job/18c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/19a.sdql", "results/job/19a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/19b.sdql", "results/job/19b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/19c.sdql", "results/job/19c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/19d.sdql", "results/job/19d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/20a.sdql", "results/job/20a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/20b.sdql", "results/job/20b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/20c.sdql", "results/job/20c.result")
-
-    // 26
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/26a.sdql", "results/job/26a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/26b.sdql", "results/job/26b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/26c.sdql", "results/job/26c.result")
-  }
-
-  it should "compile and run JOB FJ 21-25 & 27-33" taggedAs TestJOBFJSorting in {
-    // 21-25
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/21a.sdql", "results/job/21a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/21b.sdql", "results/job/21b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/21c.sdql", "results/job/21c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/22a.sdql", "results/job/22a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/22b.sdql", "results/job/22b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/22c.sdql", "results/job/22c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/22d.sdql", "results/job/22d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/23a.sdql", "results/job/23a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/23b.sdql", "results/job/23b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/23c.sdql", "results/job/23c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/24a.sdql", "results/job/24a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/24b.sdql", "results/job/24b.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/25a.sdql", "results/job/25a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/25b.sdql", "results/job/25b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/25c.sdql", "results/job/25c.result")
-
-    // 27-33
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/27a.sdql", "results/job/27a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/27b.sdql", "results/job/27b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/27c.sdql", "results/job/27c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/28a.sdql", "results/job/28a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/28b.sdql", "results/job/28b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/28c.sdql", "results/job/28c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/29a.sdql", "results/job/29a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/29b.sdql", "results/job/29b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/29c.sdql", "results/job/29c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/30a.sdql", "results/job/30a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/30b.sdql", "results/job/30b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/30c.sdql", "results/job/30c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/31a.sdql", "results/job/31a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/31b.sdql", "results/job/31b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/31c.sdql", "results/job/31c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/32b.sdql", "results/job/32b.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/33a.sdql", "results/job/33a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/33b.sdql", "results/job/33b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_pure/33c.sdql", "results/job/33c.result")
-  }
-}
-
-// note: DON'T run all cases in parallel - unless you have ~64GB of ram
-class CppCompileTestJOBFJHybrid extends AnyFlatSpec with ParallelTestExecution {
-
-  // note: these tests expect JOB files to be present in your datasets folder
-  private object TestJOBFJHybrid extends Tag("TestJOBFJHybrid")
-
-  it should "compile and run JOB FJ 1-5 & 8-15" taggedAs TestJOBFJHybrid in {
-    // 1-5
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/1a.sdql", "results/job/1a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/1b.sdql", "results/job/1b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/1c.sdql", "results/job/1c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/1d.sdql", "results/job/1d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/2a.sdql", "results/job/2a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/2b.sdql", "results/job/2b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/2d.sdql", "results/job/2d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/3a.sdql", "results/job/3a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/3b.sdql", "results/job/3b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/3c.sdql", "results/job/3c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/4a.sdql", "results/job/4a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/4b.sdql", "results/job/4b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/4c.sdql", "results/job/4c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/5c.sdql", "results/job/5c.result")
-
-    // 8-15
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/8a.sdql", "results/job/8a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/8b.sdql", "results/job/8b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/8c.sdql", "results/job/8c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/8d.sdql", "results/job/8d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/9a.sdql", "results/job/9a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/9b.sdql", "results/job/9b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/9c.sdql", "results/job/9c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/9d.sdql", "results/job/9d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/10a.sdql", "results/job/10a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/10c.sdql", "results/job/10c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/11a.sdql", "results/job/11a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/11b.sdql", "results/job/11b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/11c.sdql", "results/job/11c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/11d.sdql", "results/job/11d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/12a.sdql", "results/job/12a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/12b.sdql", "results/job/12b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/12c.sdql", "results/job/12c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/13a.sdql", "results/job/13a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/13b.sdql", "results/job/13b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/13c.sdql", "results/job/13c.result")
-    // note: producing_company min here is '68 Productions instead "O" Films due to ordering of ' < "
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/13d.sdql", "results/job/13d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/14a.sdql", "results/job/14a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/14b.sdql", "results/job/14b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/14c.sdql", "results/job/14c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/15a.sdql", "results/job/15a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/15b.sdql", "results/job/15b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/15c.sdql", "results/job/15c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/15d.sdql", "results/job/15d.result")
-  }
-
-  it should "compile and run JOB FJ 6-7" taggedAs TestJOBFJHybrid in {
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/6a.sdql", "results/job/6a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/6b.sdql", "results/job/6b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/6c.sdql", "results/job/6c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/6d.sdql", "results/job/6d.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/6e.sdql", "results/job/6e.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/6f.sdql", "results/job/6f.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/7a.sdql", "results/job/7a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/7b.sdql", "results/job/7b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/7c.sdql", "results/job/7c.result")
-  }
-
-  it should "compile and run JOB FJ 16-17" taggedAs TestJOBFJHybrid in {
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/16a.sdql", "results/job/16a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/16b.sdql", "results/job/16b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/16c.sdql", "results/job/16c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/16d.sdql", "results/job/16d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/17a.sdql", "results/job/17a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/17b.sdql", "results/job/17b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/17c.sdql", "results/job/17c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/17d.sdql", "results/job/17d.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/17e.sdql", "results/job/17e.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/17f.sdql", "results/job/17f.result")
-  }
-
-  it should "compile and run JOB FJ 18-20 & 26" taggedAs TestJOBFJHybrid in {
-    // 18-20
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/18a.sdql", "results/job/18a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/18b.sdql", "results/job/18b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/18c.sdql", "results/job/18c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/19a.sdql", "results/job/19a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/19b.sdql", "results/job/19b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/19c.sdql", "results/job/19c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/19d.sdql", "results/job/19d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/20a.sdql", "results/job/20a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/20b.sdql", "results/job/20b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/20c.sdql", "results/job/20c.result")
-
-    // 26
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/26a.sdql", "results/job/26a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/26b.sdql", "results/job/26b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/26c.sdql", "results/job/26c.result")
-  }
-
-  it should "compile and run JOB FJ 21-25 & 27-33" taggedAs TestJOBFJHybrid in {
-    // 21-25
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/21a.sdql", "results/job/21a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/21b.sdql", "results/job/21b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/21c.sdql", "results/job/21c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/22a.sdql", "results/job/22a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/22b.sdql", "results/job/22b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/22c.sdql", "results/job/22c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/22d.sdql", "results/job/22d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/23a.sdql", "results/job/23a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/23b.sdql", "results/job/23b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/23c.sdql", "results/job/23c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/24a.sdql", "results/job/24a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/24b.sdql", "results/job/24b.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/25a.sdql", "results/job/25a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/25b.sdql", "results/job/25b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/25c.sdql", "results/job/25c.result")
-
-    // 27-33
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/27a.sdql", "results/job/27a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/27b.sdql", "results/job/27b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/27c.sdql", "results/job/27c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/28a.sdql", "results/job/28a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/28b.sdql", "results/job/28b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/28c.sdql", "results/job/28c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/29a.sdql", "results/job/29a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/29b.sdql", "results/job/29b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/29c.sdql", "results/job/29c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/30a.sdql", "results/job/30a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/30b.sdql", "results/job/30b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/30c.sdql", "results/job/30c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/31a.sdql", "results/job/31a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/31b.sdql", "results/job/31b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/31c.sdql", "results/job/31c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/32b.sdql", "results/job/32b.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/33a.sdql", "results/job/33a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/33b.sdql", "results/job/33b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/fj_hybrid/33c.sdql", "results/job/33c.result")
-  }
-}
-
-// note: DON'T run all cases in parallel - unless you have ~64GB of ram
-class CppCompileTestJOBGJHybrid extends AnyFlatSpec with ParallelTestExecution {
-
-  // note: these tests expect JOB files to be present in your datasets folder
-  private object TestJOBGJHybrid extends Tag("TestJOBGJHybrid")
-
-  it should "compile and run JOB FJ 1-5 & 8-15" taggedAs TestJOBGJHybrid in {
-    // 1-5
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/1a.sdql", "results/job/1a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/1b.sdql", "results/job/1b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/1c.sdql", "results/job/1c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/1d.sdql", "results/job/1d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/2a.sdql", "results/job/2a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/2b.sdql", "results/job/2b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/2d.sdql", "results/job/2d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/3a.sdql", "results/job/3a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/3b.sdql", "results/job/3b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/3c.sdql", "results/job/3c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/4a.sdql", "results/job/4a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/4b.sdql", "results/job/4b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/4c.sdql", "results/job/4c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/5c.sdql", "results/job/5c.result")
-
-    // 8-15
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/8a.sdql", "results/job/8a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/8b.sdql", "results/job/8b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/8c.sdql", "results/job/8c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/8d.sdql", "results/job/8d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/9a.sdql", "results/job/9a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/9b.sdql", "results/job/9b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/9c.sdql", "results/job/9c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/9d.sdql", "results/job/9d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/10a.sdql", "results/job/10a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/10c.sdql", "results/job/10c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/11a.sdql", "results/job/11a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/11b.sdql", "results/job/11b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/11c.sdql", "results/job/11c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/11d.sdql", "results/job/11d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/12a.sdql", "results/job/12a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/12b.sdql", "results/job/12b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/12c.sdql", "results/job/12c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/13a.sdql", "results/job/13a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/13b.sdql", "results/job/13b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/13c.sdql", "results/job/13c.result")
-    // note: producing_company min here is '68 Productions instead "O" Films due to ordering of ' < "
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/13d.sdql", "results/job/13d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/14a.sdql", "results/job/14a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/14b.sdql", "results/job/14b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/14c.sdql", "results/job/14c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/15a.sdql", "results/job/15a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/15b.sdql", "results/job/15b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/15c.sdql", "results/job/15c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/15d.sdql", "results/job/15d.result")
-  }
-
-  it should "compile and run JOB FJ 6-7" taggedAs TestJOBGJHybrid in {
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/6a.sdql", "results/job/6a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/6b.sdql", "results/job/6b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/6c.sdql", "results/job/6c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/6d.sdql", "results/job/6d.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/6e.sdql", "results/job/6e.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/6f.sdql", "results/job/6f.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/7a.sdql", "results/job/7a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/7b.sdql", "results/job/7b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/7c.sdql", "results/job/7c.result")
-  }
-
-  it should "compile and run JOB FJ 16-17" taggedAs TestJOBGJHybrid in {
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/16a.sdql", "results/job/16a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/16b.sdql", "results/job/16b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/16c.sdql", "results/job/16c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/16d.sdql", "results/job/16d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/17a.sdql", "results/job/17a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/17b.sdql", "results/job/17b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/17c.sdql", "results/job/17c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/17d.sdql", "results/job/17d.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/17e.sdql", "results/job/17e.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/17f.sdql", "results/job/17f.result")
-  }
-
-  it should "compile and run JOB FJ 18-20 & 26" taggedAs TestJOBGJHybrid in {
-    // 18-20
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/18a.sdql", "results/job/18a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/18b.sdql", "results/job/18b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/18c.sdql", "results/job/18c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/19a.sdql", "results/job/19a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/19b.sdql", "results/job/19b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/19c.sdql", "results/job/19c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/19d.sdql", "results/job/19d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/20a.sdql", "results/job/20a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/20b.sdql", "results/job/20b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/20c.sdql", "results/job/20c.result")
-
-    // 26
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/26a.sdql", "results/job/26a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/26b.sdql", "results/job/26b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/26c.sdql", "results/job/26c.result")
-  }
-
-  it should "compile and run JOB FJ 21-25 & 27-33" taggedAs TestJOBGJHybrid in {
-    // 21-25
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/21a.sdql", "results/job/21a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/21b.sdql", "results/job/21b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/21c.sdql", "results/job/21c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/22a.sdql", "results/job/22a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/22b.sdql", "results/job/22b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/22c.sdql", "results/job/22c.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/22d.sdql", "results/job/22d.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/23a.sdql", "results/job/23a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/23b.sdql", "results/job/23b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/23c.sdql", "results/job/23c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/24a.sdql", "results/job/24a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/24b.sdql", "results/job/24b.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/25a.sdql", "results/job/25a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/25b.sdql", "results/job/25b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/25c.sdql", "results/job/25c.result")
-
-    // 27-33
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/27a.sdql", "results/job/27a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/27b.sdql", "results/job/27b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/27c.sdql", "results/job/27c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/28a.sdql", "results/job/28a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/28b.sdql", "results/job/28b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/28c.sdql", "results/job/28c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/29a.sdql", "results/job/29a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/29b.sdql", "results/job/29b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/29c.sdql", "results/job/29c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/30a.sdql", "results/job/30a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/30b.sdql", "results/job/30b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/30c.sdql", "results/job/30c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/31a.sdql", "results/job/31a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/31b.sdql", "results/job/31b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/31c.sdql", "results/job/31c.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/32b.sdql", "results/job/32b.result")
-
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/33a.sdql", "results/job/33a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/33b.sdql", "results/job/33b.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/33c.sdql", "results/job/33c.result")
-  }
-
-  // TODO remove this
-  it should "compile and run JOB GJ optimised" taggedAs TestJOBGJHybrid in {
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/3a_optimised.sdql", "results/job/3a.result")
-    CompileHelpers.assertOutputs("progs/sorting/job/gj_hybrid/13a_optimised.sdql", "results/job/13a.result")
   }
 }
 
