@@ -51,11 +51,9 @@ sum(<x0, mi_trie1> <- mi_trie0)
 					sum(<x2, mi_trie2> <- mi_trie1)
 						if (x2 ∈ it2_trie0) then
 							let it2_trie1 = it2_trie0(x2) in
-							// TODO remove comment - fix to Amirali's C++ query
 							let x3 = interm0_tuple(3) in
 								if (x3 ∈ it_trie0) then
 									let it_trie1 = it_trie0(x3) in
-									// TODO remove comment - *******************
 									sum(<x4, mc_trie2> <- mc_trie1)
 										if (x4 ∈ ct_trie0) then
 											let ct_trie1 = ct_trie0(x4) in

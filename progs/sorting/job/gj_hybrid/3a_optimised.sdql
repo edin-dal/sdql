@@ -9,9 +9,6 @@ let k_offsets = ext(`SortedIndices`, k.id)
 
 timer
 
-// TODO remove this comment
-// this solution is a direct translation of Amirali's C++ code (correct, works)
-
 let mk_trie0 = sum(<i, _> <- range(mk.size)) @st(mk.size) { mk.movie_id(mk_offsets(i)) -> @range { i -> 1 } } in
 let t_trie0 = sum(<i, _> <- range(t.size)) @st(t.size) { t.id(t_offsets(i)) -> @range { i -> 1 } } in
 let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
