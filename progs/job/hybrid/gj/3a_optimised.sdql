@@ -32,3 +32,4 @@ sum(<x0, mi_trie1> <- mi_trie0)
 				let k_trie1 = k_trie0(x1) in
 				let mn_interm0 = <col2=interm0_tuple.col2> in
 				promote[min_sum](<col2=mn_interm0.col2>)
+
