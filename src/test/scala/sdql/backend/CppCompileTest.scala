@@ -800,12 +800,6 @@ class CppCompileTestJOBGJHybrid extends AnyFlatSpec with ParallelTestExecution {
     CompileHelpers.assertOutputs("progs/job/hybrid/gj/33b.sdql", "results/job/33b.result")
     CompileHelpers.assertOutputs("progs/job/hybrid/gj/33c.sdql", "results/job/33c.result")
   }
-
-  // TODO remove this after we "optimise" all the queries
-  it should "compile and run JOB GJ optimised" taggedAs TestJOBGJHybrid in {
-    CompileHelpers.assertOutputs("progs/job/hybrid/gj/3a_optimised.sdql", "results/job/3a.result")
-    CompileHelpers.assertOutputs("progs/job/hybrid/gj/13a_optimised.sdql", "results/job/13a.result")
-  }
 }
 
 // note: DON'T run all cases in parallel - unless you have ~64GB of ram

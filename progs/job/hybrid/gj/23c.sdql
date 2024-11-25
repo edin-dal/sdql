@@ -30,7 +30,7 @@ let interm0_trie0 = sum(<x0, cc_trie1> <- cc_trie0)
 		let cct1_trie1 = cct1_trie0(x0) in
 		sum(<cc_i, _> <- cc_trie1)
 			let cc_off = cc_offsets(cc_i)
-			@phmap(promote[min_sum](1000000) + promote[min_sum](cc.size)) { cc.movie_id(cc_off) -> @smallvecdict(0) { <col0=cc.status_id(cc_off), col1=cc.movie_id(cc_off)> -> 1 } }
+			@phmap(promote[min_sum](1000000) + promote[min_sum](cc.size)) { cc.movie_id(cc_off) -> @smallvecdict(4) { <col0=cc.status_id(cc_off)> -> 1 } }
 in
 
 let t_trie0 = sum(<i, _> <- range(t.size)) @st(t.size) { t.kind_id(t_offsets(i)) -> @st(t.size) { t.id(t_offsets(i)) -> @range { i -> 1 } } } in
@@ -45,7 +45,7 @@ let interm1_trie0 = sum(<x0, t_trie1> <- t_trie0)
 					let t_off = t_offsets(t_i)
 					sum(<kt_i, _> <- kt_trie1)
 						let kt_off = kt_offsets(kt_i)
-						@phmap(promote[min_sum](1000000) + promote[min_sum](t.size)) { t.id(t_off) -> @smallvecdict(0) { <col0=t.kind_id(t_off), col1=t.id(t_off), col2=t.title(t_off), col3=kt.kind(kt_off)> -> 1 } }
+						@phmap(promote[min_sum](1000000) + promote[min_sum](t.size)) { t.id(t_off) -> @smallvecdict(4) { <col0=t.kind_id(t_off), col2=t.title(t_off), col3=kt.kind(kt_off)> -> 1 } }
 in
 
 let mc_trie0 = sum(<i, _> <- range(mc.size)) @st(mc.size) { mc.company_type_id(mc_offsets(i)) -> @st(mc.size) { mc.company_id(mc_offsets(i)) -> @st(mc.size) { mc.movie_id(mc_offsets(i)) -> @range { i -> 1 } } } } in
@@ -63,7 +63,7 @@ let interm2_trie0 = sum(<x0, mc_trie1> <- mc_trie0)
 						sum(<mc_i, _> <- mc_trie3)
 							let mc_off = mc_offsets(mc_i)
 							sum(<interm1_tuple, _> <- interm1_trie1)
-								@phmap(promote[min_sum](1000000) + promote[min_sum](mc.size)) { mc.movie_id(mc_off) -> @smallvecdict(0) { <col0=mc.company_type_id(mc_off), col1=mc.company_id(mc_off), col2=mc.movie_id(mc_off), col4=interm1_tuple.col2, col5=interm1_tuple.col3> -> 1 } }
+								@phmap(promote[min_sum](1000000) + promote[min_sum](mc.size)) { mc.movie_id(mc_off) -> @smallvecdict(4) { <col0=mc.company_type_id(mc_off), col1=mc.company_id(mc_off), col4=interm1_tuple.col2, col5=interm1_tuple.col3> -> 1 } }
 in
 
 let mk_trie0 = sum(<i, _> <- range(mk.size)) @st(mk.size) { mk.keyword_id(mk_offsets(i)) -> @st(mk.size) { mk.movie_id(mk_offsets(i)) -> @range { i -> 1 } } } in
@@ -77,7 +77,7 @@ let interm3_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 				sum(<mk_i, _> <- mk_trie2)
 					let mk_off = mk_offsets(mk_i)
 					sum(<interm2_tuple, _> <- interm2_trie1)
-						@phmap(promote[min_sum](1000000) + promote[min_sum](mk.size)) { mk.movie_id(mk_off) -> @smallvecdict(0) { <col0=mk.keyword_id(mk_off), col1=mk.movie_id(mk_off), col5=interm2_tuple.col4, col6=interm2_tuple.col5> -> 1 } }
+						@phmap(promote[min_sum](1000000) + promote[min_sum](mk.size)) { mk.movie_id(mk_off) -> @smallvecdict(4) { <col0=mk.keyword_id(mk_off), col5=interm2_tuple.col4, col6=interm2_tuple.col5> -> 1 } }
 in
 
 let mi_trie0 = sum(<i, _> <- range(mi.size)) @st(mi.size) { mi.info_type_id(mi_offsets(i)) -> @st(mi.size) { mi.movie_id(mi_offsets(i)) -> 1 } } in

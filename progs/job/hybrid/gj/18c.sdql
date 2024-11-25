@@ -24,7 +24,7 @@ let interm0_trie0 = sum(<x0, t_trie1> <- t_trie0)
 			let t_off = t_offsets(t_i)
 			sum(<mi_idx_i, _> <- mi_idx_trie1)
 				let mi_idx_off = mi_idx_offsets(mi_idx_i)
-				@phmap(promote[min_sum](1000000) + promote[min_sum](t.size)) { t.id(t_off) -> { mi_idx.info_type_id(mi_idx_off) -> @smallvecdict(0) { <col0=t.id(t_off), col1=t.title(t_off), col2=mi_idx.info_type_id(mi_idx_off), col3=mi_idx.info(mi_idx_off)> -> 1 } } }
+				@phmap(promote[min_sum](1000000) + promote[min_sum](t.size)) { t.id(t_off) -> @smallvecdict(4) { <col1=t.title(t_off), col2=mi_idx.info_type_id(mi_idx_off), col3=mi_idx.info(mi_idx_off)> -> 1 } }
 in
 
 let mi_trie0 = sum(<i, _> <- range(mi.size)) @st(mi.size) { mi.movie_id(mi_offsets(i)) -> @st(mi.size) { mi.info_type_id(mi_offsets(i)) -> @range { i -> 1 } } } in
@@ -33,7 +33,8 @@ let it1_trie0 = sum(<i, _> <- range(it1.size)) @st(it1.size) { it1.id(it1_offset
 let interm1_trie0 = sum(<x0, mi_trie1> <- mi_trie0)
 	if (x0 ∈ interm0_trie0) then
 		let interm0_trie1 = interm0_trie0(x0) in
-		sum(<x1, interm0_trie2> <- interm0_trie1)
+		sum(<interm0_tuple, _> <- interm0_trie1)
+			let x1 = interm0_tuple.col2
 			if (x1 ∈ it2_trie0) then
 				let it2_trie1 = it2_trie0(x1) in
 				sum(<x2, mi_trie2> <- mi_trie1)
@@ -41,8 +42,7 @@ let interm1_trie0 = sum(<x0, mi_trie1> <- mi_trie0)
 						let it1_trie1 = it1_trie0(x2) in
 						sum(<mi_i, _> <- mi_trie2)
 							let mi_off = mi_offsets(mi_i)
-							sum(<interm0_tuple, _> <- interm0_trie2)
-								@phmap(promote[min_sum](1000000) + promote[min_sum](mi.size)) { mi.movie_id(mi_off) -> @smallvecdict(0) { <col0=mi.movie_id(mi_off), col1=mi.info_type_id(mi_off), col2=mi.info(mi_off), col3=interm0_tuple.col2, col4=interm0_tuple.col1, col5=interm0_tuple.col3> -> 1 } }
+							@phmap(promote[min_sum](1000000) + promote[min_sum](mi.size)) { mi.movie_id(mi_off) -> @smallvecdict(4) { <col1=mi.info_type_id(mi_off), col2=mi.info(mi_off), col3=interm0_tuple.col2, col4=interm0_tuple.col1, col5=interm0_tuple.col3> -> 1 } }
 in
 
 let ci_trie0 = sum(<i, _> <- range(ci.size)) @st(ci.size) { ci.person_id(ci_offsets(i)) -> @st(ci.size) { ci.movie_id(ci_offsets(i)) -> 1 } } in

@@ -39,7 +39,7 @@ let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)
 									let t_off = t_offsets(t_i)
 									sum(<mc_i, _> <- mc_trie2)
 										let mc_off = mc_offsets(mc_i)
-										@phmap(promote[min_sum](1000000) + promote[min_sum](mc.size)) { mk.movie_id(mk_off) -> @smallvecdict(0) { <col0=mk.movie_id(mk_off), col1=mk.keyword_id(mk_off), col2=t.title(t_off), col3=mc.company_id(mc_off)> -> 1 } }
+										@phmap(promote[min_sum](1000000) + promote[min_sum](mk.size)) { mk.movie_id(mk_off) -> @smallvecdict(4) { <col1=mk.keyword_id(mk_off), col2=t.title(t_off), col3=mc.company_id(mc_off)> -> 1 } }
 in
 
 let ci_trie0 = sum(<i, _> <- range(ci.size)) @st(ci.size) { ci.person_id(ci_offsets(i)) -> @st(ci.size) { ci.movie_id(ci_offsets(i)) -> 1 } } in
