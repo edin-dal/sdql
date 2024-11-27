@@ -967,6 +967,27 @@ class CppCompileTestJOBFJHybrid extends AnyFlatSpec with ParallelTestExecution {
   }
 }
 
+class CppCompileTestJOBRevised extends AnyFlatSpec with ParallelTestExecution {
+
+  // note: these tests expect JOB files to be present in your datasets folder
+  private object TestJOBRevised extends Tag("TestJOBRevised")
+
+  it should "compile and run JOB FJ 3" taggedAs TestJOBRevised in {
+    CompileHelpers.assertOutputs("progs/job/revised/3a.sdql", "results/job/3a.result")
+    CompileHelpers.assertOutputs("progs/job/revised/3b.sdql", "results/job/3b.result")
+  }
+  it should "compile and run JOB FJ 14" taggedAs TestJOBRevised in {
+    CompileHelpers.assertOutputs("progs/job/revised/14a.sdql", "results/job/14a.result")
+  }
+  it should "compile and run JOB FJ 15" taggedAs TestJOBRevised in {
+    CompileHelpers.assertOutputs("progs/job/revised/15a.sdql", "results/job/15a.result")
+    CompileHelpers.assertOutputs("progs/job/revised/15b.sdql", "results/job/15b.result")
+  }
+  it should "compile and run JOB FJ 17" taggedAs TestJOBRevised in {
+    CompileHelpers.assertOutputs("progs/job/revised/17b.sdql", "results/job/17b.result")
+  }
+}
+
 class CppCompileTestLSQBGJ0_1 extends AnyFlatSpec with ParallelTestExecution with BeforeAndAfterAll {
 
   // note: these tests expect LSQB files with scaling factor 0.1 to be present in your datasets folder
