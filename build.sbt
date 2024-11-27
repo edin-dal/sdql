@@ -4,7 +4,7 @@ libraryDependencies ++= Seq(
   "com.lihaoyi"   %% "fastparse"      % "3.1.1",
   "junit"          % "junit-dep"      % "4.11"   % "test",
   "org.scalatest"  % "scalatest_2.13" % "3.2.19" % "test",
-  "org.scalameta" %% "munit"          % "1.0.0" // for pretty printing expressions
+  "org.scalameta" %% "munit"          % "1.0.2" // for pretty printing expressions
 )
 
 // Note: IntelliJ accepts -P but SBT requires no. of threads
