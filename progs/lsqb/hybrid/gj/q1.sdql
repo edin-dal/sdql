@@ -1,0 +1,67 @@
+let tagclass = load[<TagClassId: @vec {int -> long}, isSubclassOf_TagClassId: @vec {int -> long}, size: int>]("datasets/lsqb/TagClass.csv") in
+let tagclass_offsets = ext(`SortedIndices`, tagclass.TagClassId)
+let tag = load[<TagId: @vec {int -> long}, hasType_TagClassId: @vec {int -> long}, size: int>]("datasets/lsqb/Tag.csv") in
+let tag_offsets = ext(`SortedIndices`, tag.hasType_TagClassId)
+let comment = load[<CommentId: @vec {int -> long}, hasCreator_PersonId: @vec {int -> long}, isLocatedIn_CountryId: @vec {int -> long}, replyOf_PostId: @vec {int -> long}, replyOf_CommentId: @vec {int -> long}, size: int>]("datasets/lsqb/Comment.csv") in
+let comment_offsets = ext(`SortedIndices`, comment.CommentId, comment.replyOf_PostId)
+let cht = load[<CommentId: @vec {int -> long}, TagId: @vec {int -> long}, size: int>]("datasets/lsqb/Comment_hasTag_Tag.csv") in
+let cht_offsets = ext(`SortedIndices`, cht.TagId, cht.CommentId)
+let post = load[<PostId: @vec {int -> long}, hasCreator_PersonId: @vec {int -> long}, Forum_containerOfId: @vec {int -> long}, isLocatedIn_CountryId: @vec {int -> long}, size: int>]("datasets/lsqb/Post.csv") in
+let post_offsets = ext(`SortedIndices`, post.PostId)
+let forum = load[<ForumId: @vec {int -> long}, hasModerator_PersonId: @vec {int -> long}, size: int>]("datasets/lsqb/Forum.csv") in
+let forum_offsets = ext(`SortedIndices`, forum.ForumId)
+let fhp = load[<ForumId: @vec {int -> long}, PersonId: @vec {int -> long}, size: int>]("datasets/lsqb/Forum_hasMember_Person.csv") in
+let fhp_offsets =  ext(`SortedIndices`, fhp.ForumId, fhp.PersonId)
+let person = load[<PersonId: @vec {int -> long}, isLocatedIn_CityId: @vec {int -> long}, size: int>]("datasets/lsqb/Person.csv") in
+let person_offsets = ext(`SortedIndices`, person.PersonId, person.isLocatedIn_CityId)
+let city = load[<CityId: @vec {int -> long}, isPartOf_CountryId: @vec {int -> long}, size: int>]("datasets/lsqb/City.csv") in
+let city_offsets = ext(`SortedIndices`, city.CityId, city.isPartOf_CountryId)
+let country = load[<CountryId: @vec {int -> long}, isPartOf_ContinentId: @vec {int -> long}, size: int>]("datasets/lsqb/Country.csv") in
+let country_offsets = ext(`SortedIndices`, country.CountryId)
+
+timer
+
+let tag_trie0 = sum(<i, _> <- range(tag.size)) @st(tag.size) { tag.hasType_TagClassId(tag_offsets(i)) -> @range { i -> 1 } } in
+let tagclass_trie0 = sum(<i, _> <- range(tagclass.size)) @st(tagclass.size) { tagclass.TagClassId(tagclass_offsets(i)) -> 1 } in
+let interm0_trie0 = sum(<x0, tag_trie1> <- tag_trie0)
+	if (x0 ∈ tagclass_trie0) then
+		let tagclass_trie1 = tagclass_trie0(x0) in
+		sum (<tag_i, _> <- tag_trie1)
+		    let tag_off = tag_offsets(tag_i)
+			{ tag.TagId(tag_off) -> tagclass_trie1 }
+
+let cht_trie0 = sum(<i, _> <- range(cht.size)) @st(cht.size) { cht.TagId(i) -> @st { cht.CommentId(i) -> 1 } } in // isn't using cht_offsets
+let comment_trie0 = sum(<i, _> <- range(comment.size)) @st(comment.size) { comment.CommentId(comment_offsets(i)) -> @st { comment.replyOf_PostId(comment_offsets(i)) -> 1 } } in
+let post_trie0 = sum(<i, _> <- range(post.size)) @st(post.size) { post.PostId(post_offsets(i)) -> @st { post.Forum_containerOfId(post_offsets(i)) -> 1 } } in
+let forum_trie0 = sum(<i, _> <- range(forum.size)) @st(forum.size) { forum.ForumId(forum_offsets(i)) -> 1 } in
+let interm1_trie0 = sum(<x0, cht_trie1> <- cht_trie0)
+	if (x0 ∈ interm0_trie0) then
+		let interm0_trie1 = interm0_trie0(x0) in
+		sum(<x1, cht_trie2> <- cht_trie1)
+			if (x1 ∈ comment_trie0) then
+				let comment_trie1 = comment_trie0(x1) in
+				sum(<x2, comment_trie2> <- comment_trie1)
+					if (x2 ∈ post_trie0) then
+						let post_trie1 = post_trie0(x2) in
+						sum(<x3, post_trie2> <- post_trie1)
+							if (x3 ∈ forum_trie0) then
+								let forum_trie1 = forum_trie0(x3) in
+								{ x3 -> cht_trie2 * comment_trie2 * post_trie2 * forum_trie1 * interm0_trie1 }
+
+let fhp_trie0 = sum(<i, _> <- range(fhp.size)) @st(fhp.size) { fhp.ForumId(i) -> @st { fhp.PersonId(i) -> 1 } } in // isn't using fhp_offsets
+let person_trie0 = sum(<i, _> <- range(person.size)) @st(person.size) { person.PersonId(person_offsets(i)) -> @st { person.isLocatedIn_CityId(person_offsets(i)) -> 1 } } in
+let city_trie0 = sum(<i, _> <- range(city.size)) @st(city.size) { city.CityId(city_offsets(i)) -> @st { city.isPartOf_CountryId(city_offsets(i)) -> 1 } } in
+let country_trie0 = sum(<i, _> <- range(country.size)) @st(country.size) { country.CountryId(country_offsets(i)) -> 1 } in
+sum(<x0, fhp_trie1> <- fhp_trie0)
+	if (x0 ∈ interm1_trie0) then
+		let interm1_trie1 = interm1_trie0(x0) in
+		sum(<x1, fhp_trie2> <- fhp_trie1)
+			if (x1 ∈ person_trie0) then
+				let person_trie1 = person_trie0(x1) in
+				sum(<x2, person_trie2> <- person_trie1)
+					if (x2 ∈ city_trie0) then
+						let city_trie1 = city_trie0(x2) in
+						sum(<x3, city_trie2> <- city_trie1)
+							if (x3 ∈ country_trie0) then
+								let country_trie1 = country_trie0(x3) in
+								fhp_trie2 * interm1_trie1 * person_trie2 * city_trie2 * country_trie1
