@@ -998,15 +998,19 @@ class CppCompileTestLSQBGJ0_1 extends AnyFlatSpec with ParallelTestExecution wit
 
   it should "compile and run LSQB GJ Q1 SF=0.1" taggedAs TestLSQBGJ0_1 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q1.sdql", "results/lsqb/SF_0.1/q1.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q1.sdql", "results/lsqb/SF_0.1/q1.result")
   }
   it should "compile and run LSQB GJ Q2 SF=0.1" taggedAs TestLSQBGJ0_1 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q2.sdql", "results/lsqb/SF_0.1/q2.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q2.sdql", "results/lsqb/SF_0.1/q2.result")
   }
   it should "compile and run LSQB GJ Q4 SF=0.1" taggedAs TestLSQBGJ0_1 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q4.sdql", "results/lsqb/SF_0.1/q4.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q4.sdql", "results/lsqb/SF_0.1/q4.result")
   }
   it should "compile and run LSQB GJ Q5 SF=0.1" taggedAs TestLSQBGJ0_1 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q5.sdql", "results/lsqb/SF_0.1/q5.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q5.sdql", "results/lsqb/SF_0.1/q5.result")
   }
 }
 class CppCompileTestLSQBFJ0_1 extends AnyFlatSpec with ParallelTestExecution with BeforeAndAfterAll {
@@ -1019,15 +1023,19 @@ class CppCompileTestLSQBFJ0_1 extends AnyFlatSpec with ParallelTestExecution wit
 
   it should "compile and run LSQB FJ Q1 SF=0.1" taggedAs TestLSQBFJ0_1 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_0.1/q1.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q1.sdql", "results/lsqb/SF_0.1/q1.result")
   }
   it should "compile and run LSQB FJ Q2 SF=0.1" taggedAs TestLSQBFJ0_1 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q2.sdql", "results/lsqb/SF_0.1/q2.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q2.sdql", "results/lsqb/SF_0.1/q2.result")
   }
   it should "compile and run LSQB FJ Q4 SF=0.1" taggedAs TestLSQBFJ0_1 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q4.sdql", "results/lsqb/SF_0.1/q4.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q4.sdql", "results/lsqb/SF_0.1/q4.result")
   }
   it should "compile and run LSQB FJ Q5 SF=0.1" taggedAs TestLSQBFJ0_1 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q5.sdql", "results/lsqb/SF_0.1/q5.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q5.sdql", "results/lsqb/SF_0.1/q5.result")
   }
 }
 
@@ -1041,15 +1049,19 @@ class CppCompileTestLSQBGJ0_3 extends AnyFlatSpec with ParallelTestExecution wit
 
   it should "compile and run LSQB GJ Q1 SF=0.3" taggedAs TestLSQBGJ0_3 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q1.sdql", "results/lsqb/SF_0.3/q1.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q1.sdql", "results/lsqb/SF_0.3/q1.result")
   }
   it should "compile and run LSQB GJ Q2 SF=0.3" taggedAs TestLSQBGJ0_3 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q2.sdql", "results/lsqb/SF_0.3/q2.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q2.sdql", "results/lsqb/SF_0.3/q2.result")
   }
   it should "compile and run LSQB GJ Q4 SF=0.3" taggedAs TestLSQBGJ0_3 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q4.sdql", "results/lsqb/SF_0.3/q4.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q4.sdql", "results/lsqb/SF_0.3/q4.result")
   }
   it should "compile and run LSQB GJ Q5 SF=0.3" taggedAs TestLSQBGJ0_3 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q5.sdql", "results/lsqb/SF_0.3/q5.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q5.sdql", "results/lsqb/SF_0.3/q5.result")
   }
 }
 class CppCompileTestLSQBFJ0_3 extends AnyFlatSpec with ParallelTestExecution with BeforeAndAfterAll {
@@ -1062,15 +1074,19 @@ class CppCompileTestLSQBFJ0_3 extends AnyFlatSpec with ParallelTestExecution wit
 
   it should "compile and run LSQB FJ Q1 SF=0.3" taggedAs TestLSQBFJ0_3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_0.3/q1.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q1.sdql", "results/lsqb/SF_0.3/q1.result")
   }
   it should "compile and run LSQB FJ Q2 SF=0.3" taggedAs TestLSQBFJ0_3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q2.sdql", "results/lsqb/SF_0.3/q2.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q2.sdql", "results/lsqb/SF_0.3/q2.result")
   }
   it should "compile and run LSQB FJ Q4 SF=0.3" taggedAs TestLSQBFJ0_3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q4.sdql", "results/lsqb/SF_0.3/q4.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q4.sdql", "results/lsqb/SF_0.3/q4.result")
   }
   it should "compile and run LSQB FJ Q5 SF=0.3" taggedAs TestLSQBFJ0_3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q5.sdql", "results/lsqb/SF_0.3/q5.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q5.sdql", "results/lsqb/SF_0.3/q5.result")
   }
 }
 
@@ -1084,15 +1100,19 @@ class CppCompileTestLSQBGJ1 extends AnyFlatSpec with ParallelTestExecution with 
 
   it should "compile and run LSQB GJ Q1 SF=1" taggedAs TestLSQBGJ1 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q1.sdql", "results/lsqb/SF_1/q1.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q1.sdql", "results/lsqb/SF_1/q1.result")
   }
   it should "compile and run LSQB GJ Q2 SF=1" taggedAs TestLSQBGJ1 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q2.sdql", "results/lsqb/SF_1/q2.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q2.sdql", "results/lsqb/SF_1/q2.result")
   }
   it should "compile and run LSQB GJ Q4 SF=1" taggedAs TestLSQBGJ1 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q4.sdql", "results/lsqb/SF_1/q4.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q4.sdql", "results/lsqb/SF_1/q4.result")
   }
   it should "compile and run LSQB GJ Q5 SF=1" taggedAs TestLSQBGJ1 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q5.sdql", "results/lsqb/SF_1/q5.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q5.sdql", "results/lsqb/SF_1/q5.result")
   }
 }
 class CppCompileTestLSQBFJ1 extends AnyFlatSpec with ParallelTestExecution with BeforeAndAfterAll {
@@ -1105,15 +1125,19 @@ class CppCompileTestLSQBFJ1 extends AnyFlatSpec with ParallelTestExecution with 
 
   it should "compile and run LSQB FJ Q1 SF=1" taggedAs TestLSQBFJ1 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_1/q1.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q1.sdql", "results/lsqb/SF_1/q1.result")
   }
   it should "compile and run LSQB FJ Q2 SF=1" taggedAs TestLSQBFJ1 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q2.sdql", "results/lsqb/SF_1/q2.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q2.sdql", "results/lsqb/SF_1/q2.result")
   }
   it should "compile and run LSQB FJ Q4 SF=1" taggedAs TestLSQBFJ1 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q4.sdql", "results/lsqb/SF_1/q4.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q4.sdql", "results/lsqb/SF_1/q4.result")
   }
   it should "compile and run LSQB FJ Q5 SF=1" taggedAs TestLSQBFJ1 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q5.sdql", "results/lsqb/SF_1/q5.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q5.sdql", "results/lsqb/SF_1/q5.result")
   }
 }
 
@@ -1127,15 +1151,19 @@ class CppCompileTestLSQBGJ3 extends AnyFlatSpec with ParallelTestExecution with 
 
   it should "compile and run LSQB GJ Q1 SF=3" taggedAs TestLSQBGJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q1.sdql", "results/lsqb/SF_3/q1.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q1.sdql", "results/lsqb/SF_3/q1.result")
   }
   it should "compile and run LSQB GJ Q2 SF=3" taggedAs TestLSQBGJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q2.sdql", "results/lsqb/SF_3/q2.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q2.sdql", "results/lsqb/SF_3/q2.result")
   }
   it should "compile and run LSQB GJ Q4 SF=3" taggedAs TestLSQBGJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q4.sdql", "results/lsqb/SF_3/q4.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q4.sdql", "results/lsqb/SF_3/q4.result")
   }
   it should "compile and run LSQB GJ Q5 SF=3" taggedAs TestLSQBGJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/gj/q5.sdql", "results/lsqb/SF_3/q5.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/gj/q5.sdql", "results/lsqb/SF_3/q5.result")
   }
 }
 class CppCompileTestLSQBFJ3 extends AnyFlatSpec with ParallelTestExecution with BeforeAndAfterAll {
@@ -1148,15 +1176,19 @@ class CppCompileTestLSQBFJ3 extends AnyFlatSpec with ParallelTestExecution with 
 
   it should "compile and run LSQB FJ Q1 SF=3" taggedAs TestLSQBFJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q1.sdql", "results/lsqb/SF_3/q1.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q1.sdql", "results/lsqb/SF_3/q1.result")
   }
   it should "compile and run LSQB FJ Q2 SF=3" taggedAs TestLSQBFJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q2.sdql", "results/lsqb/SF_3/q2.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q2.sdql", "results/lsqb/SF_3/q2.result")
   }
   it should "compile and run LSQB FJ Q4 SF=3" taggedAs TestLSQBFJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q4.sdql", "results/lsqb/SF_3/q4.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q4.sdql", "results/lsqb/SF_3/q4.result")
   }
   it should "compile and run LSQB FJ Q5 SF=3" taggedAs TestLSQBFJ3 in {
     CompileHelpers.assertOutputs("progs/lsqb/fj/q5.sdql", "results/lsqb/SF_3/q5.result")
+    CompileHelpers.assertOutputs("progs/lsqb/hybrid/fj/q5.sdql", "results/lsqb/SF_3/q5.result")
   }
 }
 

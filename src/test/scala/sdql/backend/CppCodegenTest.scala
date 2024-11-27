@@ -1077,15 +1077,23 @@ class CppCodegenTestJOBRevised extends AnyFlatSpec with ParallelTestExecution {
 class CppCodegenTestLSQB extends AnyFlatSpec with ParallelTestExecution {
   it should "codegen LSQB GJ" in {
     CodegenHelpers.compilesFile("progs/lsqb/gj/q1.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/gj/q1.sdql")
     CodegenHelpers.compilesFile("progs/lsqb/gj/q2.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/gj/q2.sdql")
     CodegenHelpers.compilesFile("progs/lsqb/gj/q4.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/gj/q4.sdql")
     CodegenHelpers.compilesFile("progs/lsqb/gj/q5.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/gj/q5.sdql")
   }
   it should "codegen LSQB FJ" in {
     CodegenHelpers.compilesFile("progs/lsqb/fj/q1.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/fj/q1.sdql")
     CodegenHelpers.compilesFile("progs/lsqb/fj/q2.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/fj/q2.sdql")
     CodegenHelpers.compilesFile("progs/lsqb/fj/q4.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/fj/q4.sdql")
     CodegenHelpers.compilesFile("progs/lsqb/fj/q5.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/fj/q5.sdql")
   }
 }
 
