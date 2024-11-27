@@ -967,24 +967,24 @@ class CppCompileTestJOBFJHybrid extends AnyFlatSpec with ParallelTestExecution {
   }
 }
 
-class CppCompileTestJOBRevised extends AnyFlatSpec with ParallelTestExecution {
+class CppCompileTestJOBFJRevised extends AnyFlatSpec with ParallelTestExecution {
 
   // note: these tests expect JOB files to be present in your datasets folder
-  private object TestJOBRevised extends Tag("TestJOBRevised")
+  private object TestJOBFJRevised extends Tag("TestJOBFJRevised")
 
-  it should "compile and run JOB FJ 3" taggedAs TestJOBRevised in {
-    CompileHelpers.assertOutputs("progs/job/revised/3a.sdql", "results/job/3a.result")
-    CompileHelpers.assertOutputs("progs/job/revised/3b.sdql", "results/job/3b.result")
+  it should "compile and run JOB FJ 3" taggedAs TestJOBFJRevised in {
+    CompileHelpers.assertOutputs("progs/job/revised/fj/3a.sdql", "results/job/3a.result")
+    CompileHelpers.assertOutputs("progs/job/revised/fj/3b.sdql", "results/job/3b.result")
   }
-  it should "compile and run JOB FJ 14" taggedAs TestJOBRevised in {
-    CompileHelpers.assertOutputs("progs/job/revised/14a.sdql", "results/job/14a.result")
+  it should "compile and run JOB FJ 14" taggedAs TestJOBFJRevised in {
+    CompileHelpers.assertOutputs("progs/job/revised/fj/14a.sdql", "results/job/14a.result")
   }
-  it should "compile and run JOB FJ 15" taggedAs TestJOBRevised in {
-    CompileHelpers.assertOutputs("progs/job/revised/15a.sdql", "results/job/15a.result")
-    CompileHelpers.assertOutputs("progs/job/revised/15b.sdql", "results/job/15b.result")
+  it should "compile and run JOB FJ 15" taggedAs TestJOBFJRevised in {
+    CompileHelpers.assertOutputs("progs/job/revised/fj/15a.sdql", "results/job/15a.result")
+    CompileHelpers.assertOutputs("progs/job/revised/fj/15b.sdql", "results/job/15b.result")
   }
-  it should "compile and run JOB FJ 17" taggedAs TestJOBRevised in {
-    CompileHelpers.assertOutputs("progs/job/revised/17b.sdql", "results/job/17b.result")
+  it should "compile and run JOB FJ 17" taggedAs TestJOBFJRevised in {
+    CompileHelpers.assertOutputs("progs/job/revised/fj/17b.sdql", "results/job/17b.result")
   }
 }
 

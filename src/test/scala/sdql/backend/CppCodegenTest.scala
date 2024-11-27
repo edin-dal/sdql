@@ -1059,18 +1059,18 @@ class CppCodegenTestJOBFJHybrid extends AnyFlatSpec with ParallelTestExecution {
 
 class CppCodegenTestJOBRevised extends AnyFlatSpec with ParallelTestExecution {
   it should "codegen JOB FJ 3" in {
-    CodegenHelpers.compilesFile("progs/job/revised/3a.sdql")
-    CodegenHelpers.compilesFile("progs/job/revised/3b.sdql")
+    CodegenHelpers.compilesFile("progs/job/revised/fj/3a.sdql")
+    CodegenHelpers.compilesFile("progs/job/revised/fj/3b.sdql")
   }
   it should "codegen JOB FJ 14" in {
-    CodegenHelpers.compilesFile("progs/job/revised/14a.sdql")
+    CodegenHelpers.compilesFile("progs/job/revised/fj/14a.sdql")
   }
   it should "codegen JOB FJ 15" in {
-    CodegenHelpers.compilesFile("progs/job/revised/15a.sdql")
-    CodegenHelpers.compilesFile("progs/job/revised/15b.sdql")
+    CodegenHelpers.compilesFile("progs/job/revised/fj/15a.sdql")
+    CodegenHelpers.compilesFile("progs/job/revised/fj/15b.sdql")
   }
   it should "codegen JOB FJ 17" in {
-    CodegenHelpers.compilesFile("progs/job/revised/17b.sdql")
+    CodegenHelpers.compilesFile("progs/job/revised/fj/17b.sdql")
   }
 }
 
