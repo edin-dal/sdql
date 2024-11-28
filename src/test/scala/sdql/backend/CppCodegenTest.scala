@@ -1057,7 +1057,7 @@ class CppCodegenTestJOBFJHybrid extends AnyFlatSpec with ParallelTestExecution {
   }
 }
 
-class CppCodegenTestJOBRevised extends AnyFlatSpec with ParallelTestExecution {
+class CppCodegenTestJOBFJRevised extends AnyFlatSpec with ParallelTestExecution {
   it should "codegen JOB FJ 3" in {
     CodegenHelpers.compilesFile("progs/job/revised/fj/3a.sdql")
     CodegenHelpers.compilesFile("progs/job/revised/fj/3b.sdql")
