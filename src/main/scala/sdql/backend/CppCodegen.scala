@@ -31,8 +31,7 @@ object CppCodegen {
             s"constexpr auto $name = ${run(e1)(Map(), isTernary = false, benchmarkRuns)};"
           case _                                                              =>
             val isRetrieval = cond(e1) { case _: FieldNode | _: Get => true }
-            def isDict      = cond(TypeInference.run(e1)) { case _: DictType => true }
-            val cppName     = if (isRetrieval && isDict) s"&$name" else name
+            val cppName     = if (isRetrieval && !TypeInference.run(e1).isScalar) s"&$name" else name
             val semicolon   = if (cond(e1) { case _: Initialise => true }) "" else ";"
             s"auto $cppName = ${run(e1)(typesCtx, isTernary, benchmarkRuns)}$semicolon"
         }
