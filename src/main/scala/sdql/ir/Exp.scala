@@ -91,8 +91,10 @@ case class DictNode(map: Seq[(Exp, Exp)], hint: DictHint = PHmap()) extends Exp 
 }
 sealed trait DictHint
 case class PHmap(e: Option[Exp] = None)                             extends DictHint
+case object Range                                                   extends DictHint
 case class SmallVecDict(size: Int)                                  extends DictHint
 case class SmallVecDicts(size: Int)                                 extends DictHint
+case class SortedDict(e: Option[Exp] = None)                        extends DictHint
 case class Vec(size: Option[Int] = None)                            extends DictHint
 
 /**
@@ -222,3 +224,6 @@ sealed trait LLQL
 case class Initialise(tpe: Type, e: Exp) extends Exp with LLQL
 case class Update(e: Exp, agg: Aggregation, dest: Sym) extends Exp with LLQL
 case class Modify(e: Exp, dest: Sym)                   extends Exp with LLQL
+
+/** Marks which section of the program to time in benchmarks */
+case class Timer(exp: Exp) extends Exp

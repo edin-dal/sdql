@@ -63,8 +63,9 @@ object VarCharType { def apply(maxLen: Int): Type = StringType(Some(maxLen)) }
 object ScalarType {
   def unapply(tp: Type): Option[Type] = Some(tp).filter(isScalar)
   def isScalar(tp: Type): Boolean     = tp match {
-    case RealType | IntType | _: StringType | DateType | BoolType => true
-    case _                                                        => false
+    case RealType | IntType | LongType | _: StringType | DateType | BoolType => true
+    case _: DictType | _: RecordType                                         => false
+    case _: CustomSemiRingType                                               => false // could be handled more precisely
   }
 }
 

@@ -10,6 +10,8 @@ let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_cod
 let mi = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type_id: @vec {int -> int}, info: @vec {int -> string}, note: @vec {int -> string}, size: int>]("datasets/job/23c/mi.csv")
 let it1 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/23c/it1.csv")
 
+timer
+
 let cc_trie0 = sum(<i, _> <- range(cc.size)) @phmap(cc.size)  { cc.status_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let cct1_trie0 = sum(<i, _> <- range(cct1.size))  { cct1.id(i) -> 1 } in
 let interm0_trie0 = sum(<x0, cc_trie1> <- cc_trie0)

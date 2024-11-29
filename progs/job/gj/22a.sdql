@@ -10,6 +10,8 @@ let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_cod
 let mi = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type_id: @vec {int -> int}, info: @vec {int -> string}, note: @vec {int -> string}, size: int>]("datasets/job/22a/mi.csv")
 let it1 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/22a/it1.csv")
 
+timer
+
 let t_trie0 = sum(<i, _> <- range(t.size))  { t.id(i) ->  { t.kind_id(i) -> @smallvecdict(0) { i -> 1 } } } in
 let mi_idx_trie0 = sum(<i, _> <- range(mi_idx.size))  { mi_idx.movie_id(i) ->  { mi_idx.info_type_id(i) -> @smallvecdict(0) { i -> 1 } } } in
 let kt_trie0 = sum(<i, _> <- range(kt.size))  { kt.id(i) -> 1 } in

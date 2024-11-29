@@ -1,0 +1,112 @@
+{
+    "opt_plan": [
+        {
+            "node": {
+                "node": "root",
+                "keys": {
+                    "keys": [
+                        [
+                            2,
+                            {
+                                "relation": "t",
+                                "attribute": "title"
+                            }
+                        ]
+                    ]
+                },
+                "record": []
+            },
+            "build_plan": {
+                "build_plan": [
+                    [
+                        "mi",
+                        [
+                            [
+                                "movie_id",
+                                "info_type_id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "t",
+                        [
+                            [
+                                "id"
+                            ],
+                            [
+                                "title"
+                            ]
+                        ]
+                    ],
+                    [
+                        "mc",
+                        [
+                            [
+                                "movie_id",
+                                "company_type_id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "it",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "ct",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ]
+                ]
+            },
+            "compiled_plan": {
+                "compiled_plan": [
+                    [
+                        {
+                            "relation": "mi",
+                            "attribute": "movie_id"
+                        },
+                        {
+                            "relation": "t",
+                            "attribute": "id"
+                        },
+                        {
+                            "relation": "mc",
+                            "attribute": "movie_id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "mi",
+                            "attribute": "info_type_id"
+                        },
+                        {
+                            "relation": "it",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "mc",
+                            "attribute": "company_type_id"
+                        },
+                        {
+                            "relation": "ct",
+                            "attribute": "id"
+                        }
+                    ]
+                ]
+            }
+        }
+    ]
+}

@@ -188,6 +188,16 @@ class BindFreeExpressionTest extends AnyFlatSpec with Matchers {
     val rewrite = sdql"let x = y in let ${Sym(resultName)} = z in {}"
     BindFreeExpression(e) should be(rewrite)
   }
+  it should "bind free expression idempotent" in {
+    val e       = sdql"let x = y in z"
+    val rewrite = BindFreeExpression(e)
+    BindFreeExpression(rewrite) should be(rewrite)
+  }
+  it should "bind free expression without timer" in {
+    val e       = sdql"let x = y in timer z"
+    val rewrite = sdql"let x = y in timer let ${Sym(resultName)} = z in {}"
+    BindFreeExpression(e) should be(rewrite)
+  }
 }
 
 class LowerToLLQLTest extends AnyFlatSpec with Matchers {

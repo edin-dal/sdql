@@ -11,6 +11,8 @@ let it1 = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("
 let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @vec {int -> int}, person_role_id: @vec {int -> int}, note: @vec {int -> string}, nr_order: @vec {int -> int}, role_id: @vec {int -> int}, size: int>]("datasets/job/30b/ci.csv")
 let n = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> string}, gender: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/30b/n.csv")
 
+timer
+
 let cct2_trie0 = sum(<i, _> <- range(cct2.size)) @phmap(cct2.size) { unique(cct2.id(i)) -> 1 } in
 let cct1_trie0 = sum(<i, _> <- range(cct1.size)) @phmap(cct1.size) { unique(cct1.id(i)) -> 1 } in
 let interm0_trie0 = sum(<cc_off, _> <- range(cc.size))

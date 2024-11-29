@@ -11,6 +11,8 @@ let mk = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, keyword_id: @
 let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/27b/k.csv")
 let mi = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type_id: @vec {int -> int}, info: @vec {int -> string}, note: @vec {int -> string}, size: int>]("datasets/job/27b/mi.csv")
 
+timer
+
 let lt_trie0 = sum(<i, _> <- range(lt.size)) @phmap(lt.size) { lt.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm0_trie0 = sum(<ml_off, _> <- range(ml.size))
 	let x0 = ml.link_type_id(ml_off) in

@@ -3,6 +3,8 @@ let t = load[<id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @v
 let mi = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, info_type_id: @vec {int -> int}, info: @vec {int -> string}, note: @vec {int -> string}, size: int>]("datasets/job/3c/mi.csv")
 let k = load[<id: @vec {int -> int}, keyword: @vec {int -> string}, phonetic_code: @vec {int -> string}, size: int>]("datasets/job/3c/k.csv")
 
+timer
+
 let mk_trie0 = sum(<i, _> <- range(mk.size)) @phmap(mk.size)  { mk.movie_id(i) -> @smallvecdict(4) { i -> 1 } } in
 let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size)  { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let interm0_trie0 = sum(<x0, mk_trie1> <- mk_trie0)

@@ -4,6 +4,8 @@ let mc = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, company_id: @
 let it = load[<id: @vec {int -> int}, info: @vec {int -> string}, size: int>]("datasets/job/info_type.csv")
 let ct = load[<id: @vec {int -> int}, kind: @vec {int -> string}, size: int>]("datasets/job/5c/ct.csv")
 
+timer
+
 let mi_trie0 = sum(<i, _> <- range(mi.size))  { mi.movie_id(i) ->  { mi.info_type_id(i) -> 1 } } in
 let t_trie0 = sum(<i, _> <- range(t.size)) @phmap(t.size)  { t.id(i) -> @smallvecdict(4) { i -> 1 } } in
 let mc_trie0 = sum(<i, _> <- range(mc.size))  { mc.movie_id(i) ->  { mc.company_type_id(i) -> 1 } } in

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <set>
 #include <vector>
 
 using namespace std;
@@ -54,21 +55,21 @@ public:
 	};
 
 	class const_iterator {
-		T *ptr_;
+		const T *ptr_;
 
 	public:
-		explicit const_iterator(T *ptr) : ptr_(ptr) {}
+		explicit const_iterator(const T *ptr) : ptr_(ptr) {}
 
 		const_iterator &operator++() {
 			++ptr_;
 			return *this;
 		}
 
-		const T &operator*() { return *ptr_; }
+		const T &operator*() const { return *ptr_; }
 
-		bool operator==(const const_iterator &rhs) { return ptr_ == rhs.ptr_; }
+		bool operator==(const const_iterator &rhs) const { return ptr_ == rhs.ptr_; }
 
-		bool operator!=(const const_iterator &rhs) { return ptr_ != rhs.ptr_; }
+		bool operator!=(const const_iterator &rhs) const { return ptr_ != rhs.ptr_; }
 	};
 
 	iterator begin() {
@@ -136,4 +137,20 @@ public:
 	typename Container::iterator begin() { return svec_.begin(); }
 
 	typename Container::iterator end() { return svec_.end(); }
+
+	typename Container::const_iterator begin() const { return svec_.begin(); }
+
+	typename Container::const_iterator end() const { return svec_.end(); }
+
+	bool operator==(smallvecdict &other) {
+	    return size() == other.size()
+	                 && std::multiset<T>(svec_.begin(), svec_.end())
+	                        == std::multiset<T>(other.svec_.begin(), other.svec_.end());
+	}
+
+	bool operator==(const smallvecdict &other) const {
+		return size() == other.size()
+                 && std::multiset<T>(svec_.begin(), svec_.end())
+                        == std::multiset<T>(other.svec_.begin(), other.svec_.end());
+	}
 };

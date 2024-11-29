@@ -16,6 +16,8 @@ let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @v
 let chn = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> int}, name_pcode_cf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/29a/chn.csv")
 let rt = load[<id: @vec {int -> int}, role: @vec {int -> string}, size: int>]("datasets/job/29a/rt.csv")
 
+timer
+
 let cc_trie0 = sum(<i, _> <- range(cc.size))  { cc.subject_id(i) ->  { cc.status_id(i) -> @smallvecdict(0) { i -> 1 } } } in
 let cct1_trie0 = sum(<i, _> <- range(cct1.size))  { cct1.id(i) -> 1 } in
 let cct2_trie0 = sum(<i, _> <- range(cct2.size))  { cct2.id(i) -> 1 } in

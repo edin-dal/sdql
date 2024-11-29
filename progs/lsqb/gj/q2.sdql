@@ -2,6 +2,8 @@ let comment = load[<CommentId: @vec {int -> long}, hasCreator_PersonId: @vec {in
 let post = load[<PostId: @vec {int -> long}, hasCreator_PersonId: @vec {int -> long}, Forum_containerOfId: @vec {int -> long}, isLocatedIn_CountryId: @vec {int -> long}, size: int>]("datasets/lsqb/Post.csv") in
 let pkp = load[<Person1Id: @vec {int -> long}, Person2Id: @vec {int -> long}, size: int>]("datasets/lsqb/Person_knows_Person.csv") in
 
+timer
+
 let comment_trie0 = sum(<i, _> <- range(comment.size)) { comment.replyOf_PostId(i) -> { comment.hasCreator_PersonId(i) -> 1 } } in
 let post_trie0 = sum(<i, _> <- range(post.size)) { post.PostId(i) -> { post.hasCreator_PersonId(i) -> 1 } } in
 let pkp_trie0 = sum(<i, _> <- range(pkp.size)) { pkp.Person2Id(i) -> { pkp.Person1Id(i) -> 1 } } in

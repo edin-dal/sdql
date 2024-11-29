@@ -1,0 +1,506 @@
+{
+    "opt_plan": [
+        {
+            "node": {
+                "node": "interm0",
+                "keys": {
+                    "keys": [
+                        [
+                            0,
+                            {
+                                "relation": "cc",
+                                "attribute": "subject_id"
+                            }
+                        ],
+                        [
+                            1,
+                            {
+                                "relation": "cc",
+                                "attribute": "status_id"
+                            }
+                        ],
+                        [
+                            2,
+                            {
+                                "relation": "cc",
+                                "attribute": "movie_id"
+                            }
+                        ]
+                    ]
+                },
+                "record": [
+                    2
+                ]
+            },
+            "build_plan": {
+                "build_plan": [
+                    [
+                        "cc",
+                        [
+                            [
+                                "subject_id",
+                                "status_id"
+                            ],
+                            [
+                                "movie_id"
+                            ]
+                        ]
+                    ],
+                    [
+                        "cct1",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "cct2",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ]
+                ]
+            },
+            "compiled_plan": {
+                "compiled_plan": [
+                    [
+                        {
+                            "relation": "cc",
+                            "attribute": "subject_id"
+                        },
+                        {
+                            "relation": "cct1",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "cc",
+                            "attribute": "status_id"
+                        },
+                        {
+                            "relation": "cct2",
+                            "attribute": "id"
+                        }
+                    ]
+                ]
+            }
+        },
+        {
+            "node": {
+                "node": "interm1",
+                "keys": {
+                    "keys": [
+                        [
+                            0,
+                            {
+                                "relation": "mi_idx",
+                                "attribute": "info_type_id"
+                            }
+                        ],
+                        [
+                            1,
+                            {
+                                "relation": "mi_idx",
+                                "attribute": "movie_id"
+                            }
+                        ],
+                        [
+                            2,
+                            {
+                                "relation": "mi_idx",
+                                "attribute": "info"
+                            }
+                        ]
+                    ]
+                },
+                "record": [
+                    1
+                ]
+            },
+            "build_plan": {
+                "build_plan": [
+                    [
+                        "mi_idx",
+                        [
+                            [
+                                "info_type_id",
+                                "movie_id"
+                            ],
+                            [
+                                "info"
+                            ]
+                        ]
+                    ],
+                    [
+                        "it2",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "interm0",
+                        [
+                            [
+                                "col2"
+                            ],
+                            []
+                        ]
+                    ]
+                ]
+            },
+            "compiled_plan": {
+                "compiled_plan": [
+                    [
+                        {
+                            "relation": "mi_idx",
+                            "attribute": "info_type_id"
+                        },
+                        {
+                            "relation": "it2",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "mi_idx",
+                            "attribute": "movie_id"
+                        },
+                        {
+                            "relation": "interm0",
+                            "attribute": "col2"
+                        }
+                    ]
+                ]
+            }
+        },
+        {
+            "node": {
+                "node": "interm2",
+                "keys": {
+                    "keys": [
+                        [
+                            0,
+                            {
+                                "relation": "t",
+                                "attribute": "kind_id"
+                            }
+                        ],
+                        [
+                            1,
+                            {
+                                "relation": "t",
+                                "attribute": "id"
+                            }
+                        ],
+                        [
+                            2,
+                            {
+                                "relation": "t",
+                                "attribute": "title"
+                            }
+                        ],
+                        [
+                            4,
+                            {
+                                "relation": "interm1",
+                                "attribute": "col2"
+                            }
+                        ]
+                    ]
+                },
+                "record": [
+                    1
+                ]
+            },
+            "build_plan": {
+                "build_plan": [
+                    [
+                        "t",
+                        [
+                            [
+                                "kind_id",
+                                "id"
+                            ],
+                            [
+                                "title"
+                            ]
+                        ]
+                    ],
+                    [
+                        "kt",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "interm1",
+                        [
+                            [
+                                "col1"
+                            ],
+                            [
+                                "col2"
+                            ]
+                        ]
+                    ]
+                ]
+            },
+            "compiled_plan": {
+                "compiled_plan": [
+                    [
+                        {
+                            "relation": "t",
+                            "attribute": "kind_id"
+                        },
+                        {
+                            "relation": "kt",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "t",
+                            "attribute": "id"
+                        },
+                        {
+                            "relation": "interm1",
+                            "attribute": "col1"
+                        }
+                    ]
+                ]
+            }
+        },
+        {
+            "node": {
+                "node": "interm3",
+                "keys": {
+                    "keys": [
+                        [
+                            0,
+                            {
+                                "relation": "mk",
+                                "attribute": "keyword_id"
+                            }
+                        ],
+                        [
+                            1,
+                            {
+                                "relation": "mk",
+                                "attribute": "movie_id"
+                            }
+                        ],
+                        [
+                            3,
+                            {
+                                "relation": "interm2",
+                                "attribute": "col2"
+                            }
+                        ],
+                        [
+                            5,
+                            {
+                                "relation": "interm2",
+                                "attribute": "col4"
+                            }
+                        ]
+                    ]
+                },
+                "record": [
+                    1
+                ]
+            },
+            "build_plan": {
+                "build_plan": [
+                    [
+                        "mk",
+                        [
+                            [
+                                "keyword_id",
+                                "movie_id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "k",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "interm2",
+                        [
+                            [
+                                "col1"
+                            ],
+                            [
+                                "col2",
+                                "col4"
+                            ]
+                        ]
+                    ]
+                ]
+            },
+            "compiled_plan": {
+                "compiled_plan": [
+                    [
+                        {
+                            "relation": "mk",
+                            "attribute": "keyword_id"
+                        },
+                        {
+                            "relation": "k",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "mk",
+                            "attribute": "movie_id"
+                        },
+                        {
+                            "relation": "interm2",
+                            "attribute": "col1"
+                        }
+                    ]
+                ]
+            }
+        },
+        {
+            "node": {
+                "node": "root",
+                "keys": {
+                    "keys": [
+                        [
+                            3,
+                            {
+                                "relation": "n",
+                                "attribute": "name"
+                            }
+                        ],
+                        [
+                            4,
+                            {
+                                "relation": "chn",
+                                "attribute": "name"
+                            }
+                        ],
+                        [
+                            7,
+                            {
+                                "relation": "interm3",
+                                "attribute": "col3"
+                            }
+                        ],
+                        [
+                            9,
+                            {
+                                "relation": "interm3",
+                                "attribute": "col5"
+                            }
+                        ]
+                    ]
+                },
+                "record": []
+            },
+            "build_plan": {
+                "build_plan": [
+                    [
+                        "ci",
+                        [
+                            [
+                                "person_id",
+                                "person_role_id",
+                                "movie_id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "n",
+                        [
+                            [
+                                "id"
+                            ],
+                            [
+                                "name"
+                            ]
+                        ]
+                    ],
+                    [
+                        "chn",
+                        [
+                            [
+                                "id"
+                            ],
+                            [
+                                "name"
+                            ]
+                        ]
+                    ],
+                    [
+                        "interm3",
+                        [
+                            [
+                                "col1"
+                            ],
+                            [
+                                "col3",
+                                "col5"
+                            ]
+                        ]
+                    ]
+                ]
+            },
+            "compiled_plan": {
+                "compiled_plan": [
+                    [
+                        {
+                            "relation": "ci",
+                            "attribute": "person_id"
+                        },
+                        {
+                            "relation": "n",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "ci",
+                            "attribute": "person_role_id"
+                        },
+                        {
+                            "relation": "chn",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "ci",
+                            "attribute": "movie_id"
+                        },
+                        {
+                            "relation": "interm3",
+                            "attribute": "col1"
+                        }
+                    ]
+                ]
+            }
+        }
+    ]
+}

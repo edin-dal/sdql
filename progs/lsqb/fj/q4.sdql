@@ -3,6 +3,8 @@ let post = load[<PostId: @vec {int -> long}, hasCreator_PersonId: @vec {int -> l
 let pht = load[<PostId: @vec {int -> long}, TagId: @vec {int -> long}, size: int>]("datasets/lsqb/Post_hasTag_Tag.csv") in
 let plp = load[<PersonId: @vec {int -> long}, PostId: @vec {int -> long}, size: int>]("datasets/lsqb/Person_likes_Post.csv") in
 
+timer
+
 let pht_trie0 = sum(<i, _> <- range(pht.size)) @phmap(pht.size) { pht.PostId(i) -> 1 } in
 let interm0_trie0 = sum(<post_off, _> <- range(post.size))
 	let x0 = post.PostId(post_off) in

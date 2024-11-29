@@ -1,0 +1,235 @@
+{
+    "opt_plan": [
+        {
+            "node": {
+                "node": "interm0",
+                "keys": {
+                    "keys": [
+                        [
+                            0,
+                            {
+                                "relation": "t",
+                                "attribute": "id"
+                            }
+                        ],
+                        [
+                            1,
+                            {
+                                "relation": "t",
+                                "attribute": "title"
+                            }
+                        ],
+                        [
+                            2,
+                            {
+                                "relation": "mi_idx",
+                                "attribute": "info_type_id"
+                            }
+                        ]
+                    ]
+                },
+                "record": [
+                    0,
+                    2
+                ]
+            },
+            "build_plan": {
+                "build_plan": [
+                    [
+                        "t",
+                        [
+                            [
+                                "id"
+                            ],
+                            [
+                                "title"
+                            ]
+                        ]
+                    ],
+                    [
+                        "mi_idx",
+                        [
+                            [
+                                "movie_id"
+                            ],
+                            [
+                                "info_type_id"
+                            ]
+                        ]
+                    ]
+                ]
+            },
+            "compiled_plan": {
+                "compiled_plan": [
+                    [
+                        {
+                            "relation": "t",
+                            "attribute": "id"
+                        },
+                        {
+                            "relation": "mi_idx",
+                            "attribute": "movie_id"
+                        }
+                    ]
+                ]
+            }
+        },
+        {
+            "node": {
+                "node": "root",
+                "keys": {
+                    "keys": [
+                        [
+                            2,
+                            {
+                                "relation": "mi",
+                                "attribute": "info"
+                            }
+                        ],
+                        [
+                            4,
+                            {
+                                "relation": "interm0",
+                                "attribute": "col1"
+                            }
+                        ]
+                    ]
+                },
+                "record": []
+            },
+            "build_plan": {
+                "build_plan": [
+                    [
+                        "mi",
+                        [
+                            [
+                                "movie_id",
+                                "info_type_id"
+                            ],
+                            [
+                                "info"
+                            ]
+                        ]
+                    ],
+                    [
+                        "interm0",
+                        [
+                            [
+                                "col0",
+                                "col2"
+                            ],
+                            [
+                                "col1"
+                            ]
+                        ]
+                    ],
+                    [
+                        "mc",
+                        [
+                            [
+                                "movie_id",
+                                "company_type_id",
+                                "company_id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "it2",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "it1",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "ct",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "cn",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ]
+                ]
+            },
+            "compiled_plan": {
+                "compiled_plan": [
+                    [
+                        {
+                            "relation": "mi",
+                            "attribute": "movie_id"
+                        },
+                        {
+                            "relation": "interm0",
+                            "attribute": "col0"
+                        },
+                        {
+                            "relation": "mc",
+                            "attribute": "movie_id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "interm0",
+                            "attribute": "col2"
+                        },
+                        {
+                            "relation": "it2",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "mi",
+                            "attribute": "info_type_id"
+                        },
+                        {
+                            "relation": "it1",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "mc",
+                            "attribute": "company_type_id"
+                        },
+                        {
+                            "relation": "ct",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "mc",
+                            "attribute": "company_id"
+                        },
+                        {
+                            "relation": "cn",
+                            "attribute": "id"
+                        }
+                    ]
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,244 @@
+{
+    "opt_plan": [
+        {
+            "node": {
+                "node": "interm0",
+                "keys": {
+                    "keys": [
+                        [
+                            0,
+                            {
+                                "relation": "t",
+                                "attribute": "id"
+                            }
+                        ],
+                        [
+                            1,
+                            {
+                                "relation": "t",
+                                "attribute": "title"
+                            }
+                        ],
+                        [
+                            2,
+                            {
+                                "relation": "ml",
+                                "attribute": "link_type_id"
+                            }
+                        ]
+                    ]
+                },
+                "record": [
+                    0,
+                    2
+                ]
+            },
+            "build_plan": {
+                "build_plan": [
+                    [
+                        "t",
+                        [
+                            [
+                                "id"
+                            ],
+                            [
+                                "title"
+                            ]
+                        ]
+                    ],
+                    [
+                        "ml",
+                        [
+                            [
+                                "movie_id"
+                            ],
+                            [
+                                "link_type_id"
+                            ]
+                        ]
+                    ]
+                ]
+            },
+            "compiled_plan": {
+                "compiled_plan": [
+                    [
+                        {
+                            "relation": "t",
+                            "attribute": "id"
+                        },
+                        {
+                            "relation": "ml",
+                            "attribute": "movie_id"
+                        }
+                    ]
+                ]
+            }
+        },
+        {
+            "node": {
+                "node": "root",
+                "keys": {
+                    "keys": [
+                        [
+                            3,
+                            {
+                                "relation": "interm0",
+                                "attribute": "col1"
+                            }
+                        ],
+                        [
+                            6,
+                            {
+                                "relation": "lt",
+                                "attribute": "link"
+                            }
+                        ],
+                        [
+                            7,
+                            {
+                                "relation": "cn",
+                                "attribute": "name"
+                            }
+                        ]
+                    ]
+                },
+                "record": []
+            },
+            "build_plan": {
+                "build_plan": [
+                    [
+                        "mk",
+                        [
+                            [
+                                "movie_id",
+                                "keyword_id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "interm0",
+                        [
+                            [
+                                "col0",
+                                "col2"
+                            ],
+                            [
+                                "col1"
+                            ]
+                        ]
+                    ],
+                    [
+                        "mc",
+                        [
+                            [
+                                "movie_id",
+                                "company_type_id",
+                                "company_id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "lt",
+                        [
+                            [
+                                "id"
+                            ],
+                            [
+                                "link"
+                            ]
+                        ]
+                    ],
+                    [
+                        "k",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "ct",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "cn",
+                        [
+                            [
+                                "id"
+                            ],
+                            [
+                                "name"
+                            ]
+                        ]
+                    ]
+                ]
+            },
+            "compiled_plan": {
+                "compiled_plan": [
+                    [
+                        {
+                            "relation": "mk",
+                            "attribute": "movie_id"
+                        },
+                        {
+                            "relation": "interm0",
+                            "attribute": "col0"
+                        },
+                        {
+                            "relation": "mc",
+                            "attribute": "movie_id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "interm0",
+                            "attribute": "col2"
+                        },
+                        {
+                            "relation": "lt",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "mk",
+                            "attribute": "keyword_id"
+                        },
+                        {
+                            "relation": "k",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "mc",
+                            "attribute": "company_type_id"
+                        },
+                        {
+                            "relation": "ct",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "mc",
+                            "attribute": "company_id"
+                        },
+                        {
+                            "relation": "cn",
+                            "attribute": "id"
+                        }
+                    ]
+                ]
+            }
+        }
+    ]
+}
