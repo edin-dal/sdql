@@ -16,9 +16,9 @@ class OptPlanModelTest extends AnyFlatSpec with ParallelTestExecution {
 
   it should "decode JOB GJ json plans" in decodeJobJsonPlans("plans/job/gj")
 
-  def decodeJobJsonPlans(other: String): Unit = {
+  def decodeJobJsonPlans(path: String): Unit = {
     System.getProperty("user.dir")
-    val paths     = Paths.get(System.getProperty("user.dir")).resolve(other)
+    val paths     = Paths.get(System.getProperty("user.dir")).resolve(path)
     val jsonFiles = Files.list(paths).iterator().asScala.filter(_.toString.endsWith(".json"))
 
     jsonFiles.foreach { path =>
