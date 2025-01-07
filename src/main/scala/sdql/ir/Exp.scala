@@ -1,8 +1,6 @@
 package sdql
 package ir
 
-import munit.Assertions.munitPrint
-
 import scala.annotation.tailrec
 
 /**
@@ -10,7 +8,7 @@ import scala.annotation.tailrec
  * abstract syntax tree of a given program.
  */
 sealed trait Exp {
-  def prettyPrint: String = munitPrint(this)
+  def prettyPrint: String = Print.pretty(this)
 
   def simpleName: String = {
     val name = this.getClass.getSimpleName

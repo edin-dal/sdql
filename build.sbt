@@ -1,14 +1,13 @@
 scalaVersion := "2.13.14"
 
 libraryDependencies ++= Seq(
-  "com.lihaoyi"   %% "fastparse"            % "3.1.1",
-  "junit"          % "junit-dep"            % "4.11"   % "test",
-  "org.scalatest"  % "scalatest_2.13"       % "3.2.19" % "test",
-  "org.scalameta" %% "munit"                % "1.0.2", // for pretty printing expressions
-  "io.circe"      %% "circe-core"           % "0.14.10",
-  "io.circe"      %% "circe-generic"        % "0.14.10",
-  "io.circe"      %% "circe-parser"         % "0.14.10",
-  "io.circe"      %% "circe-generic-extras" % "0.14.4" // follows a separate versioning
+  "com.lihaoyi"  %% "fastparse"            % "3.1.1",
+  "junit"         % "junit-dep"            % "4.11"   % "test",
+  "org.scalatest" % "scalatest_2.13"       % "3.2.19" % "test",
+  "io.circe"     %% "circe-core"           % "0.14.10",
+  "io.circe"     %% "circe-generic"        % "0.14.10",
+  "io.circe"     %% "circe-parser"         % "0.14.10",
+  "io.circe"     %% "circe-generic-extras" % "0.14.4" // follows a separate versioning
 )
 
 // Note: IntelliJ accepts -P but SBT requires no. of threads
