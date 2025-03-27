@@ -1,9 +1,9 @@
-SDQL
+SDQL Query
 ----
 
-An implementation of SDQL (Semi-ring Dictionary Query Language) in Scala.
+An implementation of SDQL (Semi-ring Dictionary Query Language) in Scala for query processing.
 
-# Syntax
+## Syntax
 
 * For more details, refer to the [OOPSLA'22 paper](https://dl.acm.org/doi/pdf/10.1145/3527333) or the more
   recent [A semi-ring dictionary query language for data science](https://www.research.ed.ac.uk/en/publications/a-semi-ring-dictionary-query-language-for-data-science).
@@ -11,7 +11,7 @@ An implementation of SDQL (Semi-ring Dictionary Query Language) in Scala.
 * The following syntactic sugar constructs are not supported: array construction `[| x1, ..., xn |]` and key-set of
   dictionary `dom`.
 
-# TPCH datasets
+## TPCH datasets
 
 Generate datasets as follows:
 
@@ -29,7 +29,7 @@ cd ..
 
 _Note: for the interpreter you will want a smaller scale factor like `-s 0.01`._
 
-## TPCH tables format
+### TPCH tables format
 
 The data loader does not expect TPCH tables to have end-of-line `|` characters.
 
@@ -45,7 +45,7 @@ On macOS:
 sed -i '' 's/|$//' datasets/tpch/*.tbl
 ```
 
-# Running tests
+## Running tests
 
 You can check everything works by running the tests:
 
@@ -59,7 +59,7 @@ To automatically run `sbt test` before each push, configure the local git hooks 
 git config core.hooksPath hooks
 ```
 
-## Optional tests
+### Optional tests
 
 These are slower end-to-end tests: they generate, compile/interpret, and check the results of full queries.
 
@@ -77,7 +77,7 @@ sbt "testOnly * -- -n TestTPCH0_01"
 sbt "testOnly * -- -n TestTPCH1"
 ```
 
-### Result files
+#### Result files
 
 These tests will compare their results against a ground truth we provide.
 
@@ -92,7 +92,7 @@ ln -s sdql-benchmark/results results
 
 _Note: make sure you also have the required files in your `datasets` folder._
 
-# Running the Compiler
+## Running the Compiler
 
 ```sh
 sbt
@@ -108,7 +108,7 @@ run compile progs/tpch q1.sdql q6.sdql
 
 _Note: compilation requires `clang++` and `clang-format` to be installed._
 
-# Running the Interpreter
+## Running the Interpreter
 
 _⚠️ The interpreter is deprecated, support is limited to programs in the folder `progs/tpch-interpreter`_.
 
