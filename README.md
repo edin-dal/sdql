@@ -1,7 +1,7 @@
 SDQL Query
 ----
 
-An implementation of SDQL (Semi-ring Dictionary Query Language) in Scala for query processing.
+An implementation of SDQL (Semi-ring Dictionary Query Language) in Scala for query processing. The backend of this work was primarily a student project and does not represent the best performance that can be achieved with SDQL. For a more performant implementation for query processing, refer to [sdql.py](https://github.com/edin-dal/sdqlpy).
 
 ## Syntax
 
