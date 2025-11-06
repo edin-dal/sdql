@@ -6,6 +6,8 @@ let rt = load[<id: @vec {int -> int}, role: @vec {int -> string}, size: int>]("d
 let t = load[<id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, imdb_id: @vec {int -> string}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, series_years: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/title.csv")
 let an1 = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/aka_name.csv")
 
+timer
+
 let cn_trie0 = sum(<i, _> <- range(cn.size)) @phmap(cn.size) { unique(cn.id(i)) -> 1 } in
 let interm0_trie0 = sum(<mc_off, _> <- range(mc.size))
 	let x0 = mc.company_id(mc_off) in

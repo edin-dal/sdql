@@ -20,6 +20,8 @@ object ExternalFunctions                       {
   object StrIndexOf     extends ExternalFactory("StrIndexOf")
   object FirstIndex     extends ExternalFactory("FirstIndex")
   object LastIndex      extends ExternalFactory("LastIndex")
+  object SortedIndices  extends ExternalFactory("SortedIndices")
+  object SortedVec      extends ExternalFactory("SortedVec")
   object Year           extends ExternalFactory("Year")
   object CStore         extends ExternalFactory("CStore")
   object ParseDate      extends ExternalFactory("ParseDate")

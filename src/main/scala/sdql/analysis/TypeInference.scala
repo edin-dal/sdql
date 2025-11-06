@@ -39,8 +39,10 @@ object TypeInference {
         case None      => raise(s"unknown name: $name")
       }
 
-    case DictNode(Nil, _)    => raise("Type inference needs backtracking to infer empty type { }")
-    case DictNode(seq, hint) =>
+    case DictNode(Nil, _)                                     => raise("Type inference needs backtracking to infer empty type { }")
+    //  @vec { <...> -> 1 } treats the relational form <...> -> 1 it as a mapping i -> <...>
+    case DictNode(Seq((r: RecNode, Const(1))), hint @ Vec(_)) => DictType(IntType, run(r), hint)
+    case DictNode(seq, hint)                                  =>
       DictType(seq.map(_._1).map(run).reduce(promote), seq.map(_._2).map(run).reduce(promote), hint)
 
     case RecNode(values) => RecordType(values.map(v => Attribute(name = v._1, tpe = run(v._2))))
@@ -106,6 +108,19 @@ object TypeInference {
       }
     case External(StrIndexOf.SYMBOL | FirstIndex.SYMBOL | LastIndex.SYMBOL | Year.SYMBOL, _)               => IntType
     case External(ParseDate.SYMBOL, _)                                                                     => DateType
+    case External(name @ SortedIndices.SYMBOL, args)                                                       =>
+      val sizes = args.map { arg =>
+        run(arg) match {
+          case DictType(IntType, _, Vec(size)) => size
+          case tpe                             => raise(s"$name unexpected arg ${tpe.simpleName}")
+        }
+      }
+      if (sizes.distinct.size != 1)
+        raise(s"$name requires all arguments to have the same size")
+      DictType(IntType, IntType, Vec(sizes.head))
+    case External(SortedVec.SYMBOL, args)                                                                  =>
+      val (_, arg) = args match { case Seq(Const(n: Int), arg) => (n, arg) }
+      run(arg)
     case External(Inv.SYMBOL, args)                                                                        =>
       val arg = args match { case Seq(e) => e }
       run(arg)
@@ -152,6 +167,8 @@ object TypeInference {
     case Initialise(tpe, _) => TropicalSemiRingType.unpack(tpe)
     case Update(e, _, _)    => run(e)
     case Modify(e, _)       => run(e)
+
+    case Timer(e) => run(e)
 
     case _ => raise(f"unhandled ${e.simpleName} in\n${e.prettyPrint}")
   }

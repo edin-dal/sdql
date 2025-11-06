@@ -1,0 +1,47 @@
+let mc = load[<id: @vec {int -> int}, movie_id: @vec {int -> int}, company_id: @vec {int -> int}, company_type_id: @vec {int -> int}, note: @vec {int -> string}, size: int>]("datasets/job/movie_companies.csv")
+let mc_offsets = ext(`SortedIndices`, mc.movie_id)
+let cn = load[<id: @vec {int -> int}, name: @vec {int -> string}, country_code: @vec {int -> string}, imdb_id: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, name_pcode_sf: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/8d/cn.csv")
+let cn_offsets = ext(`SortedIndices`, cn.id)
+let ci = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, movie_id: @vec {int -> int}, person_role_id: @vec {int -> int}, note: @vec {int -> string}, nr_order: @vec {int -> int}, role_id: @vec {int -> int}, size: int>]("datasets/job/cast_info.csv")
+let ci_offsets = ext(`SortedIndices`, ci.person_id)
+let n1 = load[<id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, imdb_id: @vec {int -> string}, gender: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/name.csv")
+let n1_offsets = ext(`SortedIndices`, n1.id)
+let rt = load[<id: @vec {int -> int}, role: @vec {int -> string}, size: int>]("datasets/job/8d/rt.csv")
+let rt_offsets = ext(`SortedIndices`, rt.id)
+let t = load[<id: @vec {int -> int}, title: @vec {int -> string}, imdb_index: @vec {int -> string}, kind_id: @vec {int -> int}, production_year: @vec {int -> int}, imdb_id: @vec {int -> string}, phonetic_code: @vec {int -> string}, episode_of_id: @vec {int -> int}, season_nr: @vec {int -> int}, episode_nr: @vec {int -> int}, series_years: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/title.csv")
+let t_offsets = ext(`SortedIndices`, t.id)
+let an1 = load[<id: @vec {int -> int}, person_id: @vec {int -> int}, name: @vec {int -> string}, imdb_index: @vec {int -> string}, name_pcode_cf: @vec {int -> string}, name_pcode_nf: @vec {int -> string}, surname_pcode: @vec {int -> string}, md5sum: @vec {int -> string}, size: int>]("datasets/job/aka_name.csv")
+let an1_offsets = ext(`SortedIndices`, an1.person_id)
+
+timer
+
+let cn_trie0 = sum(<i, _> <- range(cn.size)) @st(cn.size) { cn.id(cn_offsets(i)) -> 1 } in
+let interm0_trie0 = sum(<mc_off, _> <- range(mc.size))
+	let x0 = mc.company_id(mc_off) in
+	if (x0 ∈ cn_trie0) then
+		let cn_trie1 = cn_trie0(x0) in
+		@phmap(promote[min_sum](1000000) + promote[min_sum](mc.size)) { mc.movie_id(mc_off) -> @smallvecdict(4) { <col0=mc.company_id(mc_off)> -> 1 } }
+in
+
+let rt_trie0 = sum(<i, _> <- range(rt.size)) @st(rt.size) { rt.id(rt_offsets(i)) -> 1 } in
+let an1_trie0 = sum(<i, _> <- range(an1.size)) @st(an1.size) { an1.person_id(an1_offsets(i)) -> @range { i -> 1 } } in
+let t_trie0 = sum(<i, _> <- range(t.size)) @st(t.size) { t.id(t_offsets(i)) -> @range { i -> 1 } } in
+let n1_trie0 = sum(<i, _> <- range(n1.size)) @st(n1.size) { n1.id(n1_offsets(i)) -> 1 } in
+sum(<ci_off, _> <- range(ci.size))
+	let x0 = ci.role_id(ci_off) in
+	if (x0 ∈ rt_trie0) then
+		let rt_trie1 = rt_trie0(x0) in
+		let x1 = ci.person_id(ci_off) in
+		if (x1 ∈ an1_trie0) then
+			let an1_trie1 = an1_trie0(x1) in
+			let x2 = ci.movie_id(ci_off) in
+			if (x2 ∈ interm0_trie0) then
+				if (x2 ∈ t_trie0) then
+					let interm0_trie1 = interm0_trie0(x2) in
+					let t_trie1 = t_trie0(x2) in
+					if (x1 ∈ n1_trie0) then
+						let n1_trie1 = n1_trie0(x1) in
+						let mn_t = sum(<t_i, _> <- t_trie1) let t_off = t_offsets(t_i) in promote[min_sum](<title=t.title(t_off)>) in
+						let mn_an1 = sum(<an1_i, _> <- an1_trie1) let an1_off = an1_offsets(an1_i) in promote[min_sum](<name=an1.name(an1_off)>) in
+						promote[min_sum](<col4=mn_t.title, col5=mn_an1.name>)
+

@@ -3,7 +3,7 @@ package frontend
 
 import sdql.ir.*
 
-class SourceCode(val fileName: String, val exp: Exp)
+class SourceCode(val fileName: String, val content: String, val exp: Exp)
 
 object SourceCode {
   def fromFile(fileName: String): SourceCode = {
@@ -11,6 +11,6 @@ object SourceCode {
     val content =
       try source.mkString
       finally source.close()
-    new SourceCode(fileName, Parser(content))
+    new SourceCode(fileName, content, Parser(content))
   }
 }

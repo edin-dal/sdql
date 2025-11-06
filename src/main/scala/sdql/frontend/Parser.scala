@@ -41,7 +41,8 @@ object Parser {
       "min_sum",
       "max_sum",
       "enum",
-      "nullable"
+      "nullable",
+      "timer"
     ) ~
       !idRest
   )
@@ -155,10 +156,12 @@ object Parser {
   }
   private def dictNoHint[$: P]    = P("{" ~ keyValue.rep(sep = ","./) ~ space ~ "}").map(DictNode(_))
   private def hinted[$: P]        = P("@" ~/ hint ~/ space)
-  private def hint[$: P]          = phmap | smallvecdicts | smallvecdict | vec
+  private def hint[$: P]          = phmap | range_ | smallvecdicts | smallvecdict | sorteddict | vec
   private def phmap[$: P]         = P("phmap" ~ parens.?).map(PHmap.apply)
+  private def range_[$: P]        = P("range").map(_ => Range)
   private def smallvecdict[$: P]  = P("smallvecdict" ~ sized).map(SmallVecDict.apply)
   private def smallvecdicts[$: P] = P("smallvecdicts" ~ sized).map(SmallVecDicts.apply)
+  private def sorteddict[$: P]    = P("st" ~ parens.?).map(SortedDict.apply)
   private def vec[$: P]           = P("vec" ~ sized.?).map(Vec.apply)
   private def sized[$: P]         = P("(" ~/ integral.!.map(_.toInt) ~/ ")")
 
@@ -167,7 +170,7 @@ object Parser {
       space ~ (const | neg | not | dictOrSet |
         rec | ifThenElse | range | load | concat | promote | unique |
         letBinding | sum | variable |
-        ext | parens) ~ space
+        ext | parens | timer) ~ space
     )
 
   private def neg[$: P]: P[Neg]  = P("-" ~ !(">") ~ factor).map(Neg.apply)
@@ -231,4 +234,6 @@ object Parser {
     }
     value
   }
+
+  private def timer(implicit ctx: P[?]) = P("timer" ~ expr).map(e => Timer(e))
 }

@@ -34,11 +34,9 @@ case class MaxProdSemiRing(override val value: Option[Double])
 
 // type isn't known at time of parsing, it can be populated later by type inference
 case class TropicalSemiRingType(isMax: Boolean, isProd: Boolean, tp: Option[Type] = None)
-    extends CustomSemiRingType(
-      s"${if (isMax) "max" else "min"}_${if (isProd) "prod" else "sum"}",
-      Seq(isMax, isProd, tp)
-    )
+    extends CustomSemiRingType(TropicalSemiRingType.name(isMax, isProd), Seq(isMax, isProd, tp))
 object TropicalSemiRingType {
+  def name(isMax: Boolean, isProd: Boolean): String                    = s"${if (isMax) "max" else "min"}_${if (isProd) "prod" else "sum"}"
   def apply(name: String): TropicalSemiRingType                        = name match {
     case "min_sum" | "mnsm"  => TropicalSemiRingType(isMax = false, isProd = false)
     case "max_sum" | "mxsm"  => TropicalSemiRingType(isMax = true, isProd = false)

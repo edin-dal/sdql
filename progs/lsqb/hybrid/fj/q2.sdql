@@ -1,0 +1,23 @@
+let comment = load[<CommentId: @vec {int -> long}, hasCreator_PersonId: @vec {int -> long}, isLocatedIn_CountryId: @vec {int -> long}, replyOf_PostId: @vec {int -> long}, replyOf_CommentId: @vec {int -> long}, size: int>]("datasets/lsqb/Comment.csv") in
+let post = load[<PostId: @vec {int -> long}, hasCreator_PersonId: @vec {int -> long}, Forum_containerOfId: @vec {int -> long}, isLocatedIn_CountryId: @vec {int -> long}, size: int>]("datasets/lsqb/Post.csv") in
+let post_offsets = ext(`SortedIndices`, post.PostId)
+let pkp = load[<Person1Id: @vec {int -> long}, Person2Id: @vec {int -> long}, size: int>]("datasets/lsqb/Person_knows_Person.csv") in
+let pkp_offsets = ext(`SortedIndices`, pkp.Person2Id, pkp.Person1Id)
+
+timer
+
+let post_trie0 = sum(<i, _> <- range(post.size)) @st(post.size) { post.PostId(post_offsets(i)) -> @range { i -> 1 } } in
+let pkp_trie0 = sum(<i, _> <- range(pkp.size)) @st(pkp.size) { pkp.Person2Id(pkp_offsets(i)) -> @st { pkp.Person1Id(pkp_offsets(i)) -> 1 } } in
+sum(<comment_off, _> <- range(comment.size))
+	let x0 = comment.replyOf_PostId(comment_off) in
+	if (x0 ∈ post_trie0) then
+		let post_trie1 = post_trie0(x0) in
+		sum(<post_i, _> <- post_trie1)
+		    let post_off = post_offsets(post_i) in
+			let x1 = post.hasCreator_PersonId(post_off) in
+			if (x1 ∈ pkp_trie0) then
+				let pkp_trie1 = pkp_trie0(x1) in
+				let x2 = comment.hasCreator_PersonId(comment_off) in
+				if (x2 ∈ pkp_trie1) then
+					let pkp_trie2 = pkp_trie1(x2) in
+					pkp_trie2

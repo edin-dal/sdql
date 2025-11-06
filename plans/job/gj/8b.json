@@ -1,0 +1,210 @@
+{
+    "opt_plan": [
+        {
+            "node": {
+                "node": "interm0",
+                "keys": {
+                    "keys": [
+                        [
+                            0,
+                            {
+                                "relation": "mc",
+                                "attribute": "company_id"
+                            }
+                        ],
+                        [
+                            1,
+                            {
+                                "relation": "mc",
+                                "attribute": "movie_id"
+                            }
+                        ]
+                    ]
+                },
+                "record": [
+                    1
+                ]
+            },
+            "build_plan": {
+                "build_plan": [
+                    [
+                        "mc",
+                        [
+                            [
+                                "company_id"
+                            ],
+                            [
+                                "movie_id"
+                            ]
+                        ]
+                    ],
+                    [
+                        "cn",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ]
+                ]
+            },
+            "compiled_plan": {
+                "compiled_plan": [
+                    [
+                        {
+                            "relation": "mc",
+                            "attribute": "company_id"
+                        },
+                        {
+                            "relation": "cn",
+                            "attribute": "id"
+                        }
+                    ]
+                ]
+            }
+        },
+        {
+            "node": {
+                "node": "root",
+                "keys": {
+                    "keys": [
+                        [
+                            4,
+                            {
+                                "relation": "t",
+                                "attribute": "title"
+                            }
+                        ],
+                        [
+                            5,
+                            {
+                                "relation": "an",
+                                "attribute": "name"
+                            }
+                        ]
+                    ]
+                },
+                "record": []
+            },
+            "build_plan": {
+                "build_plan": [
+                    [
+                        "ci",
+                        [
+                            [
+                                "person_id",
+                                "movie_id",
+                                "role_id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "n",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "interm0",
+                        [
+                            [
+                                "col1"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "rt",
+                        [
+                            [
+                                "id"
+                            ],
+                            []
+                        ]
+                    ],
+                    [
+                        "t",
+                        [
+                            [
+                                "id"
+                            ],
+                            [
+                                "title"
+                            ]
+                        ]
+                    ],
+                    [
+                        "an",
+                        [
+                            [
+                                "person_id"
+                            ],
+                            [
+                                "name"
+                            ]
+                        ]
+                    ]
+                ]
+            },
+            "compiled_plan": {
+                "compiled_plan": [
+                    [
+                        {
+                            "relation": "ci",
+                            "attribute": "person_id"
+                        },
+                        {
+                            "relation": "n",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "ci",
+                            "attribute": "movie_id"
+                        },
+                        {
+                            "relation": "interm0",
+                            "attribute": "col1"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "ci",
+                            "attribute": "role_id"
+                        },
+                        {
+                            "relation": "rt",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "ci",
+                            "attribute": "movie_id"
+                        },
+                        {
+                            "relation": "t",
+                            "attribute": "id"
+                        }
+                    ],
+                    [
+                        {
+                            "relation": "ci",
+                            "attribute": "person_id"
+                        },
+                        {
+                            "relation": "an",
+                            "attribute": "person_id"
+                        }
+                    ]
+                ]
+            }
+        }
+    ]
+}

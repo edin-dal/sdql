@@ -132,7 +132,7 @@ sum(<x_s, x_s_v> <- S)
     """)
   }
 
-  // checks we support columnar layout - though we use row layout in GF/FJ queries
+  // checks we support columnar layout - though we use row layout in JOB GF/FJ queries
   it should "codegen smallvecdicts" in {
     CodegenHelpers.compilesExp(sdql"""
       let a = { 0 -> 1, 1 -> 10, 2 -> 100 }
@@ -526,18 +526,574 @@ class CppCodegenTestJOBFJ extends AnyFlatSpec with ParallelTestExecution {
   }
 }
 
+class CppCodegenTestJOBFJSorting extends AnyFlatSpec with ParallelTestExecution {
+  it should "codegen JOB FJ 1" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/1a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/1b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/1c.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/1d.sdql")
+  }
+  it should "codegen JOB FJ 2" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/2a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/2b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/2d.sdql")
+  }
+  it should "codegen JOB FJ 3" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/3a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/3b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/3c.sdql")
+  }
+  it should "codegen JOB FJ 4" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/4a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/4b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/4c.sdql")
+  }
+  it should "codegen JOB FJ 5" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/5c.sdql")
+  }
+  it should "codegen JOB FJ 6" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/6a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/6b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/6c.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/6d.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/6e.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/6f.sdql")
+  }
+  it should "codegen JOB FJ 7" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/7a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/7b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/7c.sdql")
+  }
+  it should "codegen JOB FJ 8" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/8a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/8b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/8c.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/8d.sdql")
+  }
+  it should "codegen JOB FJ 9" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/9a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/9b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/9c.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/9d.sdql")
+  }
+  it should "codegen JOB FJ 10" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/10a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/10c.sdql")
+  }
+  it should "codegen JOB FJ 11" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/11a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/11b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/11c.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/11d.sdql")
+  }
+  it should "codegen JOB FJ 12" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/12a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/12b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/12c.sdql")
+  }
+  it should "codegen JOB FJ 13" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/13a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/13b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/13c.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/13d.sdql")
+  }
+  it should "codegen JOB FJ 14" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/14a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/14b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/14c.sdql")
+  }
+  it should "codegen JOB FJ 15" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/15a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/15b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/15c.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/15d.sdql")
+  }
+  it should "codegen JOB FJ 16" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/16a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/16b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/16c.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/16d.sdql")
+  }
+  it should "codegen JOB FJ 17" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/17a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/17b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/17c.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/17d.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/17e.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/17f.sdql")
+  }
+  it should "codegen JOB FJ 18" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/18a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/18b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/18c.sdql")
+  }
+  it should "codegen JOB FJ 19" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/19a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/19b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/19c.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/19d.sdql")
+  }
+  it should "codegen JOB FJ 20" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/20a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/20b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/20c.sdql")
+  }
+  it should "codegen JOB FJ 21" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/21a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/21b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/21c.sdql")
+  }
+  it should "codegen JOB FJ 22" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/22a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/22b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/22c.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/22d.sdql")
+  }
+  it should "codegen JOB FJ 23" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/23a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/23b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/23c.sdql")
+  }
+  it should "codegen JOB FJ 24" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/24a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/24b.sdql")
+  }
+  it should "codegen JOB FJ 25" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/25a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/25b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/25c.sdql")
+  }
+  it should "codegen JOB FJ 26" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/26a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/26b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/26c.sdql")
+  }
+  it should "codegen JOB FJ 27" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/27a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/27b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/27c.sdql")
+  }
+  it should "codegen JOB FJ 28" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/28a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/28b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/28c.sdql")
+  }
+  it should "codegen JOB FJ 29" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/29a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/29b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/29c.sdql")
+  }
+  it should "codegen JOB FJ 30" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/30a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/30b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/30c.sdql")
+  }
+  it should "codegen JOB FJ 31" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/31a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/31b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/31c.sdql")
+  }
+  it should "codegen JOB FJ 32" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/32b.sdql")
+  }
+  it should "codegen JOB FJ 33" in {
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/33a.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/33b.sdql")
+    CodegenHelpers.compilesFile("progs/job/sorting/fj/33c.sdql")
+  }
+}
+
+class CppCodegenTestJOBGJHybrid extends AnyFlatSpec with ParallelTestExecution {
+  it should "codegen JOB GJ 1" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/1a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/1b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/1c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/1d.sdql")
+  }
+  it should "codegen JOB GJ 2" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/2a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/2b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/2d.sdql")
+  }
+  it should "codegen JOB GJ 3" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/3a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/3b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/3c.sdql")
+  }
+  it should "codegen JOB GJ 4" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/4a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/4b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/4c.sdql")
+  }
+  it should "codegen JOB GJ 5" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/5c.sdql")
+  }
+  it should "codegen JOB GJ 6" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/6a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/6b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/6c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/6d.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/6e.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/6f.sdql")
+  }
+  it should "codegen JOB GJ 7" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/7a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/7b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/7c.sdql")
+  }
+  it should "codegen JOB GJ 8" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/8a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/8b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/8c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/8d.sdql")
+  }
+  it should "codegen JOB GJ 9" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/9a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/9b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/9c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/9d.sdql")
+  }
+  it should "codegen JOB GJ 10" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/10a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/10c.sdql")
+  }
+  it should "codegen JOB GJ 11" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/11a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/11b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/11c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/11d.sdql")
+  }
+  it should "codegen JOB GJ 12" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/12a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/12b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/12c.sdql")
+  }
+  it should "codegen JOB GJ 13" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/13a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/13b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/13c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/13d.sdql")
+  }
+  it should "codegen JOB GJ 14" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/14a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/14b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/14c.sdql")
+  }
+  it should "codegen JOB GJ 15" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/15a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/15b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/15c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/15d.sdql")
+  }
+  it should "codegen JOB GJ 16" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/16a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/16b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/16c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/16d.sdql")
+  }
+  it should "codegen JOB GJ 17" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/17a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/17b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/17c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/17d.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/17e.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/17f.sdql")
+  }
+  it should "codegen JOB GJ 18" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/18a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/18b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/18c.sdql")
+  }
+  it should "codegen JOB GJ 19" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/19a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/19b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/19c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/19d.sdql")
+  }
+  it should "codegen JOB GJ 20" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/20a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/20b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/20c.sdql")
+  }
+  it should "codegen JOB GJ 21" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/21a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/21b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/21c.sdql")
+  }
+  it should "codegen JOB GJ 22" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/22a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/22b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/22c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/22d.sdql")
+  }
+  it should "codegen JOB GJ 23" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/23a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/23b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/23c.sdql")
+  }
+  it should "codegen JOB GJ 24" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/24a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/24b.sdql")
+  }
+  it should "codegen JOB GJ 25" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/25a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/25b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/25c.sdql")
+  }
+  it should "codegen JOB GJ 26" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/26a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/26b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/26c.sdql")
+  }
+  it should "codegen JOB GJ 27" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/27a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/27b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/27c.sdql")
+  }
+  it should "codegen JOB GJ 28" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/28a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/28b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/28c.sdql")
+  }
+  it should "codegen JOB GJ 29" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/29a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/29b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/29c.sdql")
+  }
+  it should "codegen JOB GJ 30" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/30a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/30b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/30c.sdql")
+  }
+  it should "codegen JOB GJ 31" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/31a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/31b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/31c.sdql")
+  }
+  it should "codegen JOB GJ 32" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/32b.sdql")
+  }
+  it should "codegen JOB GJ 33" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/33a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/33b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/gj/33c.sdql")
+  }
+}
+
+class CppCodegenTestJOBFJHybrid extends AnyFlatSpec with ParallelTestExecution {
+  it should "codegen JOB FJ 1" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/1a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/1b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/1c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/1d.sdql")
+  }
+  it should "codegen JOB FJ 2" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/2a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/2b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/2d.sdql")
+  }
+  it should "codegen JOB FJ 3" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/3a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/3b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/3c.sdql")
+  }
+  it should "codegen JOB FJ 4" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/4a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/4b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/4c.sdql")
+  }
+  it should "codegen JOB FJ 5" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/5c.sdql")
+  }
+  it should "codegen JOB FJ 6" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/6a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/6b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/6c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/6d.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/6e.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/6f.sdql")
+  }
+  it should "codegen JOB FJ 7" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/7a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/7b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/7c.sdql")
+  }
+  it should "codegen JOB FJ 8" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/8a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/8b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/8c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/8d.sdql")
+  }
+  it should "codegen JOB FJ 9" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/9a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/9b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/9c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/9d.sdql")
+  }
+  it should "codegen JOB FJ 10" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/10a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/10c.sdql")
+  }
+  it should "codegen JOB FJ 11" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/11a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/11b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/11c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/11d.sdql")
+  }
+  it should "codegen JOB FJ 12" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/12a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/12b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/12c.sdql")
+  }
+  it should "codegen JOB FJ 13" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/13a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/13b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/13c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/13d.sdql")
+  }
+  it should "codegen JOB FJ 14" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/14a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/14b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/14c.sdql")
+  }
+  it should "codegen JOB FJ 15" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/15a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/15b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/15c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/15d.sdql")
+  }
+  it should "codegen JOB FJ 16" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/16a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/16b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/16c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/16d.sdql")
+  }
+  it should "codegen JOB FJ 17" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/17a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/17b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/17c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/17d.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/17e.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/17f.sdql")
+  }
+  it should "codegen JOB FJ 18" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/18a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/18b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/18c.sdql")
+  }
+  it should "codegen JOB FJ 19" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/19a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/19b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/19c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/19d.sdql")
+  }
+  it should "codegen JOB FJ 20" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/20a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/20b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/20c.sdql")
+  }
+  it should "codegen JOB FJ 21" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/21a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/21b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/21c.sdql")
+  }
+  it should "codegen JOB FJ 22" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/22a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/22b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/22c.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/22d.sdql")
+  }
+  it should "codegen JOB FJ 23" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/23a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/23b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/23c.sdql")
+  }
+  it should "codegen JOB FJ 24" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/24a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/24b.sdql")
+  }
+  it should "codegen JOB FJ 25" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/25a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/25b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/25c.sdql")
+  }
+  it should "codegen JOB FJ 26" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/26a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/26b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/26c.sdql")
+  }
+  it should "codegen JOB FJ 27" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/27a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/27b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/27c.sdql")
+  }
+  it should "codegen JOB FJ 28" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/28a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/28b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/28c.sdql")
+  }
+  it should "codegen JOB FJ 29" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/29a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/29b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/29c.sdql")
+  }
+  it should "codegen JOB FJ 30" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/30a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/30b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/30c.sdql")
+  }
+  it should "codegen JOB FJ 31" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/31a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/31b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/31c.sdql")
+  }
+  it should "codegen JOB FJ 32" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/32b.sdql")
+  }
+  it should "codegen JOB FJ 33" in {
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/33a.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/33b.sdql")
+    CodegenHelpers.compilesFile("progs/job/hybrid/fj/33c.sdql")
+  }
+}
+
+class CppCodegenTestJOBFJRevised extends AnyFlatSpec with ParallelTestExecution {
+  it should "codegen JOB FJ 3" in {
+    CodegenHelpers.compilesFile("progs/job/revised/fj/3a.sdql")
+    CodegenHelpers.compilesFile("progs/job/revised/fj/3b.sdql")
+  }
+  it should "codegen JOB FJ 14" in {
+    CodegenHelpers.compilesFile("progs/job/revised/fj/14a.sdql")
+  }
+  it should "codegen JOB FJ 15" in {
+    CodegenHelpers.compilesFile("progs/job/revised/fj/15a.sdql")
+    CodegenHelpers.compilesFile("progs/job/revised/fj/15b.sdql")
+  }
+  it should "codegen JOB FJ 17" in {
+    CodegenHelpers.compilesFile("progs/job/revised/fj/17b.sdql")
+  }
+}
+
 class CppCodegenTestLSQB extends AnyFlatSpec with ParallelTestExecution {
   it should "codegen LSQB GJ" in {
     CodegenHelpers.compilesFile("progs/lsqb/gj/q1.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/gj/q1.sdql")
     CodegenHelpers.compilesFile("progs/lsqb/gj/q2.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/gj/q2.sdql")
     CodegenHelpers.compilesFile("progs/lsqb/gj/q4.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/gj/q4.sdql")
     CodegenHelpers.compilesFile("progs/lsqb/gj/q5.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/gj/q5.sdql")
   }
   it should "codegen LSQB FJ" in {
     CodegenHelpers.compilesFile("progs/lsqb/fj/q1.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/fj/q1.sdql")
     CodegenHelpers.compilesFile("progs/lsqb/fj/q2.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/fj/q2.sdql")
     CodegenHelpers.compilesFile("progs/lsqb/fj/q4.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/fj/q4.sdql")
     CodegenHelpers.compilesFile("progs/lsqb/fj/q5.sdql")
+    CodegenHelpers.compilesFile("progs/lsqb/hybrid/fj/q5.sdql")
   }
 }
 
